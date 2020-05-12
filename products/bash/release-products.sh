@@ -273,21 +273,15 @@ function release_asset_repo {
     if ! kubectl get ns ${asset_repo_namespace} > /dev/null 2>&1; then
       echo "There is no namespace '${asset_repo_namespace}'" 1>&2
       exit 1
-    else
-      echo "Namespace '${asset_repo_namespace}' exists"
     fi
     if ! kubectl get secret ${asset_repo_pull_secret} -n ${asset_repo_namespace} > /dev/null 2>&1; then
       echo "There is no '${asset_repo_pull_secret}' in namespace '${asset_repo_namespace}'" 1>&2
       exit 1
-    else
-      echo "The secret '${asset_repo_pull_secret}' exists in the namespace '${asset_repo_namespace}'"
     fi
     # Create the Helm values file
     echo "${asset_repo_values}" > asset-repo-values.yaml
-    echo "Asset repository values.yaml created"
     # Create the release
-    echo "Creating the asset repo release"
-    helm install ${chart_repo}/${asset_repo_chart} --name ${asset_repo_release_name} --namespace ${asset_repo_namespace} --values asset-repo-values.yaml --tls --debug
+    helm install ${chart_repo}/${asset_repo_chart} --name ${asset_repo_release_name} --namespace ${asset_repo_namespace} --values asset-repo-values.yaml --tls
 }
 
 # ----------------------------------------------------------------------
