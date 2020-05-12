@@ -18,8 +18,9 @@
 #       ./release-products.sh <console> ace
 #
 # 5. Supported products are:
-#    ace    App Connect Dashboard & App Connect Designer
-#    apic   API Connect
+#    ace          App Connect Dashboard & App Connect Designer
+#    apic         API Connect
+#    assetrepo    Asset Repository
 #
 # 6. Products deploy in the background so may not be fully ready when the script
 #    completes.
@@ -40,7 +41,7 @@ if [[ -z "${cp_console}" ]]; then
     exit 2
 fi
 if [[ -z "${cp_products}" ]]; then
-    cp_products="ace apic"
+    cp_products="ace apic assetrepo"
 fi
 if [[ -z "${cp_password}" ]]; then
     read -p "Password (${cp_username}): " -s -r cp_password
@@ -239,6 +240,50 @@ function release_apic {
 }
 
 
+# --- Asset Repo -------------------------------------------------------
+
+asset_repo_release_name=asset-repo-demo
+asset_repo_namespace=assetrepo
+asset_repo_chart=ibm-icp4i-asset-repo-prod
+asset_repo_pull_secret=ibm-entitlement-key
+asset_repo_block_storage_class=ibmc-block-gold
+asset_repo_file_storage_class=ibmc-file-gold
+
+asset_repo_values="\
+assetSync:
+  storageClassName: ${asset_repo_file_storage_class}
+couchdb:
+  persistentVolume:
+    storageClass: ${asset_repo_block_storage_class}
+global:
+  images:
+    pullSecret: ${asset_repo_pull_secret}
+    pullPolicy: Always
+license: accept
+selectedCluster:
+- ip: ${cp_console}
+  label: local-cluster
+  namespace: local-cluster
+  value: local-cluster
+"
+
+function release_asset_repo {
+    echo "Releasing Asset Repo..."
+    # Validate the environment
+    if ! kubectl get ns ${asset_repo_namespace} > /dev/null 2>&1; then
+      echo "There is no namespace '${asset_repo_namespace}'" 1>&2
+      exit 1
+    fi
+    if ! kubectl get secret ${asset_repo_pull_secret} -n ${asset_repo_namespace} > /dev/null 2>&1; then
+      echo "There is no '${asset_repo_pull_secret}' in namespace '${asset_repo_namespace}'" 1>&2
+      exit 1
+    fi
+    # Create the Helm values file
+    echo "${asset_repo_values}" > asset-repo-values.yaml
+    # Create the release
+    helm install ${chart_repo}/${asset_repo_chart} --name ${asset_repo_release_name} --namespace ${asset_repo_namespace} --values asset-repo-values.yaml --tls
+}
+
 # ----------------------------------------------------------------------
 
 for product in $cp_products; do
@@ -249,6 +294,9 @@ for product in $cp_products; do
             ;;
         apic)
             release_apic
+            ;;
+        assetrepo)
+            release_asset_repo
             ;;
         *)
             echo "Unknown product: ${product}"
