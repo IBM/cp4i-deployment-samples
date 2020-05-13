@@ -75,6 +75,7 @@ response="No resources found."
 until [[ "$response" == *"$desiredResponseContent"* || "$retries" -eq "$i" ]]; do
   echo "Waiting for asset repo route to be created, attempt number: $i..."
   response=`oc get routes -n $NAMESPACE -l release=$RELEASE_NAME`
+  echo("Debug ... $response")
   ((i=i+1))
   sleep $interval
 done
