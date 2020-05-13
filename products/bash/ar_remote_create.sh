@@ -66,6 +66,23 @@ else
     exit 1
 fi
 
+echo "=== Checking the route has been created ==="
+i=1
+retries=50
+interval=10
+notAvailableResponse="No resources found."
+response="No resources found."
+until [[ "$response" != "$notAvailableResponse" || "$retries" -eq "$i" ]]; do
+  echo "Waiting for asset repo route to be created, attempt number: $i..."
+  response=`oc get routes -n $NAMESPACE -l release=$RELEASE_NAME`
+  ((i=i+1))
+  sleep $interval
+done
+
+if [[ $response == $notAvailableResponse ]]; then
+  echo "Error: Asset repository route could not be found"
+  exit 1
+fi
 
 ar_path=`oc get routes -n $NAMESPACE -l release=$RELEASE_NAME -o jsonpath="{.items[0].spec.host}" | sed`
 printf "$tick "
@@ -83,7 +100,7 @@ function get_catalogs() {
 
 get_catalogs $ar_path $token
 ## retries request until we get a 200, or hit max retries
-until [[ $response =~ 200 || "$retries" -eq "$i" ]] ;do
+until [[ $response =~ 200 || "$retries" -eq "$i" ]]; do
 echo "Waiting for asset repo to come alive, attempt number: $i..."
 get_catalogs $ar_path $token
 ((i=i+1))
