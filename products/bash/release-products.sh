@@ -103,6 +103,7 @@ ace_dashboard_tracing=false
 
 ace_dashboard_values="\
 helmTlsSecret: ${ace_dashboard_helm_secret}
+replicaCount: 1
 image:
   pullSecret: ${ace_dashboard_pull_secret}
 license: accept
