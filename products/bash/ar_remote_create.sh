@@ -71,7 +71,6 @@ i=1
 retries=50
 interval=10
 desiredResponseContent="$RELEASE_NAME-$NAMESPACE"
-echo "Debug... $desiredResponseContent"
 response="No resources found."
 until [[ "$response" == *"$desiredResponseContent"* || "$retries" -eq "$i" ]]; do
   echo "Waiting for asset repo route to be created, attempt number: $i..."
