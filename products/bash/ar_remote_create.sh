@@ -70,16 +70,17 @@ echo "=== Checking the route has been created ==="
 i=1
 retries=50
 interval=10
-notAvailableResponse="No resources found."
+desiredResponseContent="$RELEASE_NAME-$NAMESPACE"
+echo "Debug... $desiredResponseContent"
 response="No resources found."
-until [[ "$response" != "$notAvailableResponse" || "$retries" -eq "$i" ]]; do
+until [[ "$response" == *"$desiredResponseContent"* || "$retries" -eq "$i" ]]; do
   echo "Waiting for asset repo route to be created, attempt number: $i..."
   response=`oc get routes -n $NAMESPACE -l release=$RELEASE_NAME`
   ((i=i+1))
   sleep $interval
 done
 
-if [[ $response == $notAvailableResponse ]]; then
+if [[ "$response" != *"$desiredResponseContent"* ]]; then
   echo "Error: Asset repository route could not be found"
   exit 1
 fi
