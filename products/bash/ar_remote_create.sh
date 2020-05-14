@@ -10,7 +10,7 @@ while getopts "r:n:a:u:p:t:g:d:" opt; do
       ;;
     n ) NAMESPACE="$OPTARG"
       ;;
-    a ) CP_CONSOLE="$OPTARG"
+    a ) CP_CONSOLE_URL="$OPTARG"
       ;;
     u ) CP_USERNAME="$OPTARG"
       ;;
@@ -26,7 +26,7 @@ while getopts "r:n:a:u:p:t:g:d:" opt; do
     ;;
   esac
 done
-if [[ -z "$CP_USERNAME" || -z "$CP_PASSWORD" || -z "$CP_CONSOLE" ]]
+if [[ -z "$CP_USERNAME" || -z "$CP_PASSWORD" || -z "$CP_CONSOLE_URL" ]]
 then
   echo "ERROR: Missing argument(s)"
   echo -e $help
@@ -42,7 +42,7 @@ REMOTE_DESC=${REMOTE_DESC:-"Remote that populates the asset repository with asse
 
 cp4iuser=$CP_USERNAME
 cp4ipwd=$CP_PASSWORD
-icpConsoleUrl=$CP_CONSOLE
+icpConsoleUrl=$CP_CONSOLE_URL
 asset_repo_release=$RELEASE_NAME
 asset_repo_namespace=$NAMESPACE
 ### End inputs
