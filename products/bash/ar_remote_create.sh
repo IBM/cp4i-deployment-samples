@@ -59,39 +59,42 @@ echo "- Generating access token for user at $icpConsoleUrl"
 # get an icp token
 token_response=`curl --insecure -s -X POST -H "Content-Type: application/x-www-form-urlencoded" -d "grant_type=password&scope=openid&username=$cp4iuser&password=$cp4ipwd" $icpConsoleUrl/idprovider/v1/auth/identitytoken`
 token=""
-if jq -e '.access_token' >/dev/null 2>&1 <<<"$token_response"; then
-    token=`jq -r '.access_token' <<< "$token_response"`
+
+if [[ ! -z "$token_response" ]]; then 
+  if jq -e '.access_token' >/dev/null 2>&1 <<<"$token_response"; then
+      token=`jq -r '.access_token' <<< "$token_response"`
+  else
+      echo "Error: Failed to parse JSON, $token_response"
+      exit 1
+  fi
 else
-    echo "Error: Failed to parse JSON, $token_response"
-    exit 1
+  echo "Error: No token found"
+  exit 1
 fi
 
 echo "=== Checking the route has been created ==="
 i=1
-retries=50
+retries=30
 interval=10
 desiredResponseContent="$RELEASE_NAME-$NAMESPACE"
-response="No resources found."
-until [[ "$response" == *"$desiredResponseContent"* || "$retries" -eq "$i" ]]; do
+ar_path=""
+until [[ "$ar_path" == *"$desiredResponseContent"* ]]; do
   echo "Waiting for asset repo route to be created, attempt number: $i..."
-  response=`oc get routes -n $NAMESPACE -l release=$RELEASE_NAME`
-  echo("Debug ... $response")
+  ar_path=`oc get routes -n $NAMESPACE | grep -i ${RELEASE_NAME} | awk '{ print $2 }'`
   ((i=i+1))
+  if [[ "$retries" -eq "$i" ]]; then
+    echo "Error: Asset repository route could not be found"
+    exit 1
+  fi
   sleep $interval
 done
 
-if [[ "$response" != *"$desiredResponseContent"* ]]; then
-  echo "Error: Asset repository route could not be found"
-  exit 1
-fi
-
-ar_path=`oc get routes -n $NAMESPACE -l release=$RELEASE_NAME -o jsonpath="{.items[0].spec.host}" | sed`
 printf "$tick "
 echo "Asset repository as available at $ar_path"
 
 echo "=== Checking that Asset repository is live ==="
 i=1
-retries=50
+retries=60
 interval=10
 response=500
 function get_catalogs() {
