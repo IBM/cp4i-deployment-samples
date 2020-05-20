@@ -285,6 +285,70 @@ function release_asset_repo {
     helm install ${chart_repo}/${asset_repo_chart} --name ${asset_repo_release_name} --namespace ${asset_repo_namespace} --values asset-repo-values.yaml --tls
 }
 
+# --- Event Streams ----------------------------------------------------
+
+event_streams_release_name=event-streams-demo
+event_streams_namespace=eventstreams
+event_streams_chart=ibm-eventstreams-icp4i-prod
+event_streams_pull_secret=ibm-entitlement-key
+navigator_namespace=integration
+
+event_streams_values="\
+license: accept
+global:
+  production: true
+  supportingProgram: false
+  image:
+    pullSecret: ${event_streams_pull_secret}
+    pullPolicy: Always
+  generateClusterRoles: false
+kafka:
+  openJMX: false
+selectedCluster:
+  - label: local-cluster
+    value: local-cluster
+    ip: ${cp_console}
+    namespace: local-cluster
+telemetry:
+  enabled: false
+persistence:
+  enabled: false
+  useDynamicProvisioning: false
+replicator:
+  replicas: 0
+proxy:
+  upgradeToRoutes: false
+  externalEndpoint: ${cp_console}
+zookeeper:
+  persistence:
+    enabled: false
+    useDynamicProvisioning: false
+schema-registry:
+  replicas: 0
+  persistence:
+    enabled: false
+    useDynamicProvisioning: false
+icp4i:
+  icp4iPlatformNamespace: ${navigator_namespace}
+"
+
+function release_event_streams {
+    echo "Releasing Event Streams..."
+    # Validate the environment
+    if ! kubectl get ns ${event_streams_namespace} > /dev/null 2>&1; then
+      echo "There is no namespace '${event_streams_namespace}'" 1>&2
+      exit 1
+    fi
+    if ! kubectl get secret ${event_streams_pull_secret} -n ${event_streams_namespace} > /dev/null 2>&1; then
+      echo "There is no '${event_streams_pull_secret}' in namespace '${event_streams_namespace}'" 1>&2
+      exit 1
+    fi
+    # Create the Helm values file
+    echo "${event_streams_values}" > event-streams-values.yaml
+    # Create the release
+    helm install ${chart_repo}/${event_streams_chart} --name ${event_streams_release_name} --namespace ${event_streams_namespace} --values event-streams-values.yaml --tls
+}
+
 # ----------------------------------------------------------------------
 
 for product in $cp_products; do
@@ -298,6 +362,9 @@ for product in $cp_products; do
             ;;
         assetrepo)
             release_asset_repo
+            ;;
+        eventstreams)
+            release_event_streams
             ;;
         *)
             echo "Unknown product: ${product}"
