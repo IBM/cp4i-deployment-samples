@@ -41,7 +41,7 @@ if [[ -z "${cp_console}" ]]; then
     exit 2
 fi
 if [[ -z "${cp_products}" ]]; then
-    cp_products="ace apic assetrepo"
+    cp_products="ace apic assetrepo eventstreams"
 fi
 if [[ -z "${cp_password}" ]]; then
     read -p "Password (${cp_username}): " -s -r cp_password
@@ -121,7 +121,7 @@ function release_ace_dashboard {
         exit 1
     fi
     if ! kubectl get secret ${ace_dashboard_pull_secret} -n ${ace_dashboard_namespace} > /dev/null 2>&1; then
-        echo "There is no '${ace_dashboard_pull_secret}' in namespace '${ace_dashboard_namespace}'" 1>&2
+        echo "There is no '${ace_dashboard_pull_secret}' secret in namespace '${ace_dashboard_namespace}'" 1>&2
         exit 1
     fi
     # Create the Helm TLS key
@@ -163,7 +163,7 @@ function release_ace_designer {
         exit 1
     fi
     if ! kubectl get secret ${ace_designer_pull_secret} -n ${ace_designer_namespace} > /dev/null 2>&1; then
-        echo "There is no '${ace_designer_pull_secret}' in namespace '${ace_designer_namespace}'" 1>&2
+        echo "There is no '${ace_designer_pull_secret}' secret in namespace '${ace_designer_namespace}'" 1>&2
         exit 1
     fi
     # Create the Helm values file
@@ -229,7 +229,7 @@ function release_apic {
         exit 1
     fi
     if ! kubectl get secret ${apic_pull_secret} -n ${apic_namespace} > /dev/null 2>&1; then
-        echo "There is no '${apic_pull_secret}' in namespace '${apic_namespace}'" 1>&2
+        echo "There is no '${apic_pull_secret}' secret in namespace '${apic_namespace}'" 1>&2
         exit 1
     fi
     # Create the Helm TLS key
@@ -276,7 +276,7 @@ function release_asset_repo {
       exit 1
     fi
     if ! kubectl get secret ${asset_repo_pull_secret} -n ${asset_repo_namespace} > /dev/null 2>&1; then
-      echo "There is no '${asset_repo_pull_secret}' in namespace '${asset_repo_namespace}'" 1>&2
+      echo "There is no '${asset_repo_pull_secret}' secret in namespace '${asset_repo_namespace}'" 1>&2
       exit 1
     fi
     # Create the Helm values file
@@ -340,7 +340,7 @@ function release_event_streams {
       exit 1
     fi
     if ! kubectl get secret ${event_streams_pull_secret} -n ${event_streams_namespace} > /dev/null 2>&1; then
-      echo "There is no '${event_streams_pull_secret}' in namespace '${event_streams_namespace}'" 1>&2
+      echo "There is no '${event_streams_pull_secret}' secret in namespace '${event_streams_namespace}'" 1>&2
       exit 1
     fi
     # Create the Helm values file
