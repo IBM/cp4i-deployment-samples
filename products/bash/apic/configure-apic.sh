@@ -7,14 +7,14 @@ NAMESPACE="apic" # update to namespace where apic is installed
 PORG_ADMIN_EMAIL=${PORG_ADMIN_EMAIL:-"cp4i-admin@apiconnect.net"} # update to recipient of portal site creation email
 ACE_REGISTRATION_SECRET_NAME="ace-v11-service-creds" # corresponds to registration obj currently hard-coded in configmap
 PROVIDER_SECRET_NAME="cp4i-admin-creds" # corresponds to credentials obj currently hard-coded in configmap
-CONFIGURATOR_IMAGE=${CONFIGURATOR_IMAGE:-"cp.stg.icr.io/cp/apic/apic-configurator:dte-21"}
+CONFIGURATOR_IMAGE=${CONFIGURATOR_IMAGE:-"cp.icr.io/cp/apic/apic-configurator:dte-21"}
 MAIL_SERVER_HOST=${MAIL_SERVER_HOST:-"smtp.mailtrap.io"}
 MAIL_SERVER_PORT=${MAIL_SERVER_PORT:-"2525"}
 MAIL_SERVER_USERNAME=${MAIL_SERVER_USERNAME:-"<your-username>"}
 MAIL_SERVER_PASSWORD=${MAIL_SERVER_PASSWORD:-"<your-password>"}
 # Directories
-TEMPLATE_DIR=/cp4i-deployment-samples-${demoDeploymentBranch}/products/bash/apic/template-apic-config-manifest
-MANIFEST_DIR=/cp4i-deployment-samples-${demoDeploymentBranch}/products/bash/apic/apic-config-manifest
+TEMPLATE_DIR=$DIR/template-apic-config-manifest
+MANIFEST_DIR=$DIR/apic-config-manifest
 
 echo "Waiting for OIDC registration job to complete..."
 for i in `seq 1 60`; do
@@ -52,7 +52,7 @@ GW_SVC_EP=$(echo $ENDPOINTS | jq -r '.["apic-gw-service"]')
 
 # template config and manifests with namespace and endpoints
 echo "Templating manifests"
-sed -i.bak "s#{{{ apim_namespace }}}#$NAMESPACE#g;
+sed "s#{{{ apim_namespace }}}#$NAMESPACE#g;
   s#{{{ porg_admin_email }}}#$PORG_ADMIN_EMAIL#g;
   s#{{{ api_endpoint }}}#$API_EP#g;
   s#{{{ portal_director_endpoint }}}#$PTL_DIR_EP#g;
@@ -61,11 +61,11 @@ sed -i.bak "s#{{{ apim_namespace }}}#$NAMESPACE#g;
   s#{{{ api_gateway_endpoint }}}#$API_GW_EP#g;
   s#{{{ gateway_service_endpoint }}}#$GW_SVC_EP#g;
   s#{{{ mail_server_host }}}#$MAIL_SERVER_HOST#g;
-  s#{{{ mail_server_port }}}#$MAIL_SERVER_PORT#g" .$TEMPLATE_DIR/configmap.yaml > .$MANIFEST_DIR/configmap.yaml
-sed -i.bak "s#{{{ mail_server_username }}}#$MAIL_SERVER_USERNAME#g;
-  s#{{{ mail_server_password }}}#$MAIL_SERVER_PASSWORD#g" .$TEMPLATE_DIR/default-mail-server-creds-secret.yaml > .$MANIFEST_DIR/default-mail-server-creds-secret.yaml
-sed -i.bak "s#{{{ apim_namespace }}}#$NAMESPACE#g" .$TEMPLATE_DIR/rbac.yaml > .$MANIFEST_DIR/rbac.yaml
-sed -i.bak "s#{{{ configurator_image }}}#$CONFIGURATOR_IMAGE#g" .$TEMPLATE_DIR/job.yaml > .$MANIFEST_DIR/job.yaml
+  s#{{{ mail_server_port }}}#$MAIL_SERVER_PORT#g" $TEMPLATE_DIR/configmap.yaml > $MANIFEST_DIR/configmap.yaml
+sed "s#{{{ mail_server_username }}}#$MAIL_SERVER_USERNAME#g;
+  s#{{{ mail_server_password }}}#$MAIL_SERVER_PASSWORD#g" $TEMPLATE_DIR/default-mail-server-creds-secret.yaml > $MANIFEST_DIR/default-mail-server-creds-secret.yaml
+sed "s#{{{ apim_namespace }}}#$NAMESPACE#g" $TEMPLATE_DIR/rbac.yaml > $MANIFEST_DIR/rbac.yaml
+sed "s#{{{ configurator_image }}}#$CONFIGURATOR_IMAGE#g" $TEMPLATE_DIR/job.yaml > $MANIFEST_DIR/job.yaml
 
 
 
