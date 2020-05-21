@@ -15,6 +15,7 @@ MAIL_SERVER_PASSWORD=${MAIL_SERVER_PASSWORD:-"<your-password>"}
 # Directories
 TEMPLATE_DIR=$DIR/template-apic-config-manifest
 MANIFEST_DIR=$DIR/apic-config-manifest
+mkdir -p $MANIFEST_DIR
 
 echo "Waiting for OIDC registration job to complete..."
 for i in `seq 1 60`; do
