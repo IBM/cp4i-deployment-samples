@@ -1,0 +1,108 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: configurator-base
+data:
+  configurator-base.yaml: |-
+    logger:
+      level: trace
+    namespace: {{{ apim_namespace }}}
+    api_endpoint: https://{{{ api_endpoint }}}
+    credentials:
+      admin:
+        secret_name: cloud-manager-service-creds
+        registration:
+          name: 'cloud-manager'
+          title: 'Cloud Manager'
+          client_type: 'ibm_cloud'
+          client_id: 'cloud-manager'
+          state: 'enabled'
+          scopes:
+            - 'cloud:view'
+            - 'cloud:manage'
+            - 'provider-org:view'
+            - 'provider-org:manage'
+            - 'org:view'
+            - 'org:manage'
+            - 'my:view'
+      provider:
+        secret_name: cp4i-admin-creds
+    registrations:
+      - registration:
+          name: 'ace-v11'
+          client_type: 'toolkit'
+          client_id: 'ace-v11'
+          client_secret: 'myclientid123'
+        secret_name: ace-v11-service-creds
+    mail_servers:
+      - title: "Default Mail Server"
+        name: default-mail-server
+        host: "{{{ mail_server_host }}}"
+        port: {{{ mail_server_port }}}
+        # tls_client_profile_url: https://{{{ api_endpoint }}}/api/orgs/admin/tls-client-profiles/tls-client-profile-default
+    users:
+      # cloud_manager:
+      api_manager:
+        - user:
+            username: cp4i-admin
+            # configurator will generate a password if it is omitted
+            password: "engageibmAPI1"
+            first_name: CP4I
+            last_name: Administrator
+            email: {{{ porg_admin_email }}}
+            # email: cp4i-admin@apiconnect.net
+          secret_name: cp4i-admin-creds
+    orgs:
+      - org:
+          name: demoorg
+          title: Org for Demo use
+          org_type: provider
+          owner_url: https://{{{ api_endpoint }}}/api/user-registries/admin/api-manager-lur/users/cp4i-admin
+        members:
+          - name: admin
+            user:
+              identity_provider: ibm-common-services
+              url: https://{{{ api_endpoint }}}/api/user-registries/admin/ibm-common-services/users/admin
+            role_urls:
+              - https://{{{ api_endpoint }}}/api/orgs/demoorg/roles/administrator
+        catalogs:
+          - catalog:
+              name: democatalog
+              title: Catalog for Demo use
+            settings:
+              portal:
+                type: drupal
+                endpoint: https://{{{ portal_web_endpoint }}}/demoorg/democatalog
+                portal_service_url: https://{{{ api_endpoint }}}/api/orgs/demoorg/portal-services/portal-service1
+    services:
+      portal:
+        - name: portal-service1
+          title: portal-service1
+          endpoint: https://{{{ portal_director_endpoint }}}
+          web_endpoint_base: https://{{{ portal_web_endpoint }}}
+      analytics:
+        - name: analytics-service1
+          title: analytics-service1
+          endpoint: https://{{{ analytics_client_endpoint }}}
+      gateway:
+        - name: api-gateway-service1
+          title: api-gateway-service1
+          gateway_service_type: datapower-api-gateway
+          integration_url: https://{{{ api_endpoint }}}/api/cloud/integrations/gateway-service/datapower-api-gateway
+          visibility:
+            type: public
+          tls_client_profile_url: https://{{{ api_endpoint }}}/api/orgs/admin/tls-client-profiles/tls-client-profile-default
+          endpoint: https://{{{ gateway_service_endpoint }}}
+          api_endpoint_base: https://{{{ api_gateway_endpoint }}}
+          sni:
+            - host: '*'
+              tls_server_profile_url: https://{{{ api_endpoint }}}/api/orgs/admin/tls-server-profiles/tls-server-profile-default
+          analytics_service_url: https://{{{ api_endpoint }}}/api/orgs/admin/availability-zones/availability-zone-default/analytics-services/analytics-service1
+    mail_settings:
+      mail_server_url: https://{{{ api_endpoint }}}/api/orgs/admin/mail-servers/default-mail-server
+      email_sender:
+        name: "APIC Administrator"
+        address: admin@apiconnect.net
+    cloud_settings:
+      gateway_service_default_urls:
+        - https://{{{ api_endpoint }}}/api/orgs/admin/availability-zones/availability-zone-default/gateway-services/api-gateway-service1
