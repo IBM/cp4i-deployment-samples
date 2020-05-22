@@ -54,8 +54,8 @@ data:
           secret_name: cp4i-admin-creds
     orgs:
       - org:
-          name: carrepairorg01
-          title: Car Repair Org 01
+          name: demoorg
+          title: Org for Demo use
           org_type: provider
           owner_url: https://{{{ api_endpoint }}}/api/user-registries/admin/api-manager-lur/users/cp4i-admin
         members:
@@ -64,16 +64,16 @@ data:
               identity_provider: ibm-common-services
               url: https://{{{ api_endpoint }}}/api/user-registries/admin/ibm-common-services/users/admin
             role_urls:
-              - https://{{{ api_endpoint }}}/api/orgs/carrepairorg01/roles/administrator
+              - https://{{{ api_endpoint }}}/api/orgs/demoorg/roles/administrator
         catalogs:
           - catalog:
-              name: carrepaircatalog01
-              title: Car Repair Catalog 01
+              name: democatalog
+              title: Catalog for Demo use
             settings:
               portal:
                 type: drupal
-                endpoint: https://{{{ portal_web_endpoint }}}/carrepairorg01/carrepaircatalog01
-                portal_service_url: https://{{{ api_endpoint }}}/api/orgs/carrepairorg01/portal-services/portal-service1
+                endpoint: https://{{{ portal_web_endpoint }}}/demoorg/democatalog
+                portal_service_url: https://{{{ api_endpoint }}}/api/orgs/demoorg/portal-services/portal-service1
     services:
       portal:
         - name: portal-service1
