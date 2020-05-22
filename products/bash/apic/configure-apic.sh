@@ -67,7 +67,7 @@ sed "s#{{{ mail_server_username }}}#$MAIL_SERVER_USERNAME#g;
   s#{{{ mail_server_password }}}#$MAIL_SERVER_PASSWORD#g" $TEMPLATE_DIR/default-mail-server-creds-secret.yaml > $MANIFEST_DIR/default-mail-server-creds-secret.yaml
 sed "s#{{{ apim_namespace }}}#$NAMESPACE#g" $TEMPLATE_DIR/rbac.yaml > $MANIFEST_DIR/rbac.yaml
 sed "s#{{{ configurator_image }}}#$CONFIGURATOR_IMAGE#g" $TEMPLATE_DIR/job.yaml > $MANIFEST_DIR/job.yaml
-
+cp $TEMPLATE_DIR/serviceaccount.yaml $MANIFEST_DIR/serviceaccount.yaml
 
 
 # create the k8s resources
