@@ -181,7 +181,8 @@ apic_chart=ibm-apiconnect-icp4i-prod
 apic_helm_secret=apic-helm-tls
 apic_pull_secret=ibm-entitlement-key
 apic_storage_class=ibmc-block-gold
-apic_tracing=false
+apic_tracing=true
+apic_tracing_namespace=tracing
 
 apic_endpoint_root=$(kubectl get configmap ibmcloud-cluster-info -n kube-public -o jsonpath='{.data.proxy_address}')
 
@@ -199,6 +200,7 @@ gateway:
   highPerformancePeering: false
   odTracing:
     enabled: ${apic_tracing}
+    odManagerNamespace: ${apic_tracing_namespace}
   replicaCount: 1
   v5CompatibilityMode: false
 global:
