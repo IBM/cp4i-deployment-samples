@@ -353,7 +353,7 @@ function release_event_streams {
 
 # --- MQ ---------------------------------------------------------------
 
-mq_release_name=mq-streams-demo
+mq_release_name=mq-demo
 mq_namespace=mq
 mq_chart=ibm-mqadvanced-server-integration-prod
 mq_pull_secret=ibm-entitlement-key
@@ -385,7 +385,7 @@ odTracingConfig:
 "
 
 function release_mq {
-    echo "Releasing Event Streams..."
+    echo "Releasing MQ..."
     # Validate the environment
     if ! kubectl get ns ${mq_namespace} > /dev/null 2>&1; then
       echo "There is no namespace '${mq_namespace}'" 1>&2
