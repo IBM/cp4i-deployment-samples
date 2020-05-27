@@ -43,7 +43,7 @@ if [[ -z "${cp_console}" ]]; then
     exit 2
 fi
 if [[ -z "${cp_products}" ]]; then
-    cp_products="apic ace assetrepo eventstreams mq"
+    cp_products="apic ace assetrepo eventstreams tracingmq"
 fi
 if [[ -z "${cp_password}" ]]; then
     read -p "Password (${cp_username}): " -s -r cp_password
@@ -400,6 +400,55 @@ function release_mq {
     helm install ${chart_repo}/${mq_chart} --name ${mq_release_name} --namespace ${mq_namespace} --values mq-values.yaml --tls
 }
 
+# --- Tracing ----------------------------------------------------------
+
+tracing_release_name=tracing-demo
+tracing_namespace=tracing
+tracing_chart=ibm-icp4i-tracing-prod
+tracing_pull_secret=ibm-entitlement-key
+tracing_storage=ibmc-block-gold
+navigator_namespace=integration
+proxyHost=${cp_console/icp-console/icp-proxy}
+navigatorHost=${cp_console/icp-console/navigator-integration}
+
+tracing_values="\
+configdb:
+  storageClassName: ${tracing_storage}
+elasticsearch:
+  volumeClaimTemplate:
+    storageClassName: ${tracing_storage}
+global:
+  images:
+    pullSecret: ${tracing_pull_secret}
+    pullPolicy: Always
+ingress:
+  odUiHost: ${proxyHost}
+license: accept
+platformNavigatorHost: ${navigatorHost}
+selectedCluster:
+- ip: ${cp_console}
+  label: local-cluster
+  namespace: local-cluster
+  value: local-cluster
+"
+
+function release_tracing {
+    echo "Releasing Operations Dashboard..."
+    # Validate the environment
+    if ! kubectl get ns ${tracing_namespace} > /dev/null 2>&1; then
+      echo "There is no namespace '${tracing_namespace}'" 1>&2
+      exit 1
+    fi
+    if ! kubectl get secret ${tracing_pull_secret} -n ${tracing_namespace} > /dev/null 2>&1; then
+      echo "There is no '${tracing_pull_secret}' secret in namespace '${tracing_namespace}'" 1>&2
+      exit 1
+    fi
+    # Create the Helm values file
+    echo "${tracing_values}" > tracing-values.yaml
+    # Create the release
+    helm install ${chart_repo}/${tracing_chart} --name ${tracing_release_name} --namespace ${tracing_namespace} --values tracing-values.yaml --tls
+}
+
 # ----------------------------------------------------------------------
 
 for product in $cp_products; do
@@ -419,6 +468,8 @@ for product in $cp_products; do
             ;;
         mq)
             release_mq
+        tracing)
+            release_tracing
             ;;
         *)
             echo "Unknown product: ${product}"
