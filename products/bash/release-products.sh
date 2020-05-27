@@ -405,6 +405,7 @@ function release_mq {
 tracing_release_name=tracing-demo
 tracing_namespace=tracing
 tracing_chart=ibm-icp4i-tracing-prod
+tracing_version=1.0.2
 tracing_pull_secret=ibm-entitlement-key
 tracing_storage=ibmc-block-gold
 navigator_namespace=integration
@@ -445,8 +446,36 @@ function release_tracing {
     fi
     # Create the Helm values file
     echo "${tracing_values}" > tracing-values.yaml
+
+    if ! wget -q https://github.com/IBM/charts/raw/master/repo/entitled/${tracing_chart}-${tracing_version}.tgz; then
+      echo "Failed to download ${tracing_chart}-${tracing_version}.tgz from https://github.com/IBM/charts/raw/master/repo/entitled" 1>&2
+      exit 1
+    fi
+
+    if ! tar -xvf ${tracing_chart}-${tracing_version}.tgz; then
+      echo "Failed to untar ${tracing_chart}-${tracing_version}.tgz"
+      exit 1
+    fi
+
+    if ! mv ${tracing_chart}/templates/stateful-set.yaml ${tracing_chart}/templates/stateful-set.yaml.bak; then
+      echo "Failed to rename stateful-set.yaml to stateful-set.yaml.bak"
+      exit 1
+    fi
+
+    if ! sed '/OD_ES_KEYSTORE_PASSWORD/i \
+      \          - name: "OD_SAMPLING_POLICY_DEFAULT_SAMPLE_PERCENT" \
+      \            value: "100" \
+      ' ${tracing_chart}/templates/stateful-set.yaml.bak > ${tracing_chart}/templates/stateful-set.yaml; then
+      echo "Failed to insert OD_SAMPLING_POLICY_DEFAULT_SAMPLE_PERCENT into stateful-set.yaml"
+      exit 1
+    fi
+    if ! rm ${tracing_chart}/templates/stateful-set.yaml.bak; then
+      echo "Failed to delete stateful-set.yaml.bak"
+      exit 1
+    fi
+
     # Create the release
-    helm install ${chart_repo}/${tracing_chart} --name ${tracing_release_name} --namespace ${tracing_namespace} --values tracing-values.yaml --tls
+    helm install ${tracing_chart}/ --name ${tracing_release_name} --namespace ${tracing_namespace} --values tracing-values.yaml --tls
 }
 
 # ----------------------------------------------------------------------
