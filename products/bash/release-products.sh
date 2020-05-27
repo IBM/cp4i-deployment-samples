@@ -21,6 +21,8 @@
 #    ace          App Connect Dashboard & App Connect Designer
 #    apic         API Connect
 #    assetrepo    Asset Repository
+#    eventstreams Event Streams
+#    mq           MQ
 #
 # 6. Products deploy in the background so may not be fully ready when the script
 #    completes.
@@ -41,7 +43,7 @@ if [[ -z "${cp_console}" ]]; then
     exit 2
 fi
 if [[ -z "${cp_products}" ]]; then
-    cp_products="apic ace assetrepo eventstreams tracing"
+    cp_products="apic ace assetrepo eventstreams tracing mq"
 fi
 if [[ -z "${cp_password}" ]]; then
     read -p "Password (${cp_username}): " -s -r cp_password
@@ -349,6 +351,55 @@ function release_event_streams {
     helm install ${chart_repo}/${event_streams_chart} --name ${event_streams_release_name} --namespace ${event_streams_namespace} --values event-streams-values.yaml --tls
 }
 
+# --- MQ ---------------------------------------------------------------
+
+mq_release_name=mq-demo
+mq_namespace=mq
+mq_chart=ibm-mqadvanced-server-integration-prod
+mq_pull_secret=ibm-entitlement-key
+
+mq_values="\
+license: accept
+image:
+  pullSecret: ${mq_pull_secret}
+log:
+  debug: false
+qmPVC:
+  enabled: false
+logPVC:
+  enabled: false
+tls:
+  hostname: ${cp_console}
+trace:
+  strmqm: false
+selectedCluster:
+  - label: local-cluster
+    value: local-cluster
+    ip: ${cp_console}
+    namespace: local-cluster
+queueManager:
+  multiInstance: false
+odTracingConfig:
+  enabled: false
+"
+
+function release_mq {
+    echo "Releasing MQ..."
+    # Validate the environment
+    if ! kubectl get ns ${mq_namespace} > /dev/null 2>&1; then
+      echo "There is no namespace '${mq_namespace}'" 1>&2
+      exit 1
+    fi
+    if ! kubectl get secret ${mq_pull_secret} -n ${mq_namespace} > /dev/null 2>&1; then
+      echo "There is no '${mq_pull_secret}' secret in namespace '${mq_namespace}'" 1>&2
+      exit 1
+    fi
+    # Create the Helm values file
+    echo "${mq_values}" > mq-values.yaml
+    # Create the release
+    helm install ${chart_repo}/${mq_chart} --name ${mq_release_name} --namespace ${mq_namespace} --values mq-values.yaml --tls
+}
+
 # --- Tracing ----------------------------------------------------------
 
 tracing_release_name=tracing-demo
@@ -415,6 +466,8 @@ for product in $cp_products; do
         eventstreams)
             release_event_streams
             ;;
+        mq)
+            release_mq
         tracing)
             release_tracing
             ;;
