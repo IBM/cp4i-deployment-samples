@@ -373,8 +373,7 @@ tls:
 trace:
   strmqm: false
 selectedCluster:
-  -
-    label: local-cluster
+  - label: local-cluster
     value: local-cluster
     ip: ${cp_console}
     namespace: local-cluster
