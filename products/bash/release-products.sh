@@ -468,6 +468,7 @@ for product in $cp_products; do
             ;;
         mq)
             release_mq
+            ;;
         tracing)
             release_tracing
             ;;
