@@ -357,11 +357,8 @@ tracing_chart=ibm-icp4i-tracing-prod
 tracing_pull_secret=ibm-entitlement-key
 tracing_storage=ibmc-block-gold
 navigator_namespace=integration
-stringToReplace=icp-console
-proxyString=icp-proxy
-navigatorString=navigator-integration
-proxyHost=${cp_console/$stringToReplace/$proxyString}
-navigatorHost=${cp_console/$stringToReplace/$navigatorString}
+proxyHost=${cp_console/icp-console/icp-proxy}
+navigatorHost=${cp_console/icp-console/navigator-integration}
 
 tracing_values="\
 configdb:
