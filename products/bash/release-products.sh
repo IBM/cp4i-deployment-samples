@@ -25,6 +25,7 @@
 # 6. Products deploy in the background so may not be fully ready when the script
 #    completes.
 #
+export apic_chart_version=1.0.5
 
 function usage {
     echo "Usage: $0 <console> [products...]"
@@ -238,6 +239,8 @@ function release_apic {
     kubectl create secret generic ${apic_helm_secret} -n ${apic_namespace} --from-file=cert.pem=${HELM_HOME}/cert.pem --from-file=ca.pem=${HELM_HOME}/ca.pem --from-file=key.pem=${HELM_HOME}/key.pem
     # Create the Helm values file
     echo "${apic_values}" > apic-values.yaml
+    # Download fixed version of the APIC chart
+    wget -q https://github.com/IBM/charts/blob/master/repo/entitled/ibm-apiconnect-icp4i-prod-${apic_chart_version}.tgz
     # Create the release
     helm install ${chart_repo}/${apic_chart} --name ${apic_release_name} --namespace ${apic_namespace} --values apic-values.yaml --tls
 }
