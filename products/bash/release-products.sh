@@ -380,7 +380,8 @@ selectedCluster:
 queueManager:
   multiInstance: false
 odTracingConfig:
-  enabled: false
+  enabled: true
+  odTracingNamespace: tracing
 "
 
 function release_mq {
