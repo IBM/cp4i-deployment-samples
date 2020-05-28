@@ -356,6 +356,7 @@ function release_event_streams {
 mq_release_name=mq-demo
 mq_namespace=mq
 mq_chart=ibm-mqadvanced-server-integration-prod
+mq_version=6.0.0
 mq_pull_secret=ibm-entitlement-key
 
 mq_values="\
@@ -391,14 +392,31 @@ function release_mq {
       echo "There is no namespace '${mq_namespace}'" 1>&2
       exit 1
     fi
+
     if ! kubectl get secret ${mq_pull_secret} -n ${mq_namespace} > /dev/null 2>&1; then
       echo "There is no '${mq_pull_secret}' secret in namespace '${mq_namespace}'" 1>&2
       exit 1
     fi
+
+    if ! wget -q https://github.com/IBM/charts/raw/master/repo/entitled/${mq_chart}-${mq_version}.tgz; then
+      echo "Failed to download ${mq_chart}-${mq_version}.tgz from https://github.com/IBM/charts/raw/master/repo/entitled" 1>&2
+      exit 1
+    fi
+    
+    if ! tar -xvf ./${mq_chart}-${mq_version}.tgz; then
+      echo "Failed to untar ${mq_chart}-${mq_version}.tgz"
+      exit 1
+    fi
+
+    if ! patch -d ./${mq_chart}/templates < ./mq/stateful-set-no-probes.patch; then
+      echo "Failed to patch stateful-set.yaml"
+      exit 1
+    fi
+
     # Create the Helm values file
     echo "${mq_values}" > mq-values.yaml
     # Create the release
-    helm install ${chart_repo}/${mq_chart} --name ${mq_release_name} --namespace ${mq_namespace} --values mq-values.yaml --tls
+    helm install ./${mq_chart} --name ${mq_release_name} --namespace ${mq_namespace} --values mq-values.yaml --tls
 }
 
 # --- Tracing ----------------------------------------------------------

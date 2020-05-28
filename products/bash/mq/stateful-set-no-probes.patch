@@ -1,0 +1,47 @@
+--- stateful-set.yaml	2020-03-30 21:12:32.000000000 +0100
++++ stateful-set-no-probes.yaml	2020-05-28 10:46:09.000000000 +0100
+@@ -198,22 +198,6 @@
+             requests:
+               cpu: 256m
+               memory: 128Mi
+-          # Set liveness probe to determine agent is running
+-          readinessProbe:
+-            httpGet:
+-              path: /?service=health
+-              port: 5778
+-            initialDelaySeconds: {{ .Values.odTracingConfig.odAgentReadinessProbe.initialDelaySeconds }}
+-            periodSeconds: {{ .Values.odTracingConfig.odAgentReadinessProbe.periodSeconds }}
+-            timeoutSeconds: {{ .Values.odTracingConfig.odAgentReadinessProbe.timeoutSeconds }}
+-            failureThreshold: {{ .Values.odTracingConfig.odAgentReadinessProbe.failureThreshold }}
+-          livenessProbe:
+-            tcpSocket:
+-              port: 5778
+-            initialDelaySeconds: {{ .Values.odTracingConfig.odAgentLivenessProbe.initialDelaySeconds }}
+-            periodSeconds: {{ .Values.odTracingConfig.odAgentLivenessProbe.periodSeconds }}
+-            timeoutSeconds: {{ .Values.odTracingConfig.odAgentLivenessProbe.timeoutSeconds }}
+-            failureThreshold: {{ .Values.odTracingConfig.odAgentLivenessProbe.failureThreshold }}
+           # sidecar - od collector
+         - name: ibm-mq-od-tracing-collector
+           image: "{{ regexReplaceAll "(^cp\\.(stg\\.)?icr\\.io/)" .Values.odTracingConfig.odCollectorImageRepository "${1}cp/icp4i/mq/" }}:{{ .Values.odTracingConfig.odCollectorImageTag }}-amd64"
+@@ -281,21 +265,6 @@
+             capabilities:
+               drop:
+                 - ALL
+-          # Set liveness probe to determine collector is running
+-          readinessProbe:
+-            httpGet:
+-              port: 14269
+-            initialDelaySeconds: {{ .Values.odTracingConfig.odCollectorReadinessProbe.initialDelaySeconds }}
+-            periodSeconds: {{ .Values.odTracingConfig.odCollectorReadinessProbe.periodSeconds }}
+-            timeoutSeconds: {{ .Values.odTracingConfig.odCollectorReadinessProbe.timeoutSeconds }}
+-            failureThreshold: {{ .Values.odTracingConfig.odCollectorReadinessProbe.failureThreshold }}
+-          livenessProbe:
+-            tcpSocket:
+-              port: 14987
+-            initialDelaySeconds: {{ .Values.odTracingConfig.odCollectorLivenessProbe.initialDelaySeconds }}
+-            periodSeconds: {{ .Values.odTracingConfig.odCollectorLivenessProbe.periodSeconds }}
+-            timeoutSeconds: {{ .Values.odTracingConfig.odCollectorLivenessProbe.timeoutSeconds }}
+-            failureThreshold: {{ .Values.odTracingConfig.odCollectorLivenessProbe.failureThreshold }}
+         {{- end }}
+         - name: qmgr
+           image: "{{ regexReplaceAll "(^cp\\.(stg\\.)?icr\\.io/)" .Values.image.repository "${1}cp/icp4i/mq/" }}:{{ .Values.image.tag }}-amd64"
