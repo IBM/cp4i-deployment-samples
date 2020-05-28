@@ -25,8 +25,6 @@
 # 6. Products deploy in the background so may not be fully ready when the script
 #    completes.
 #
-export apic_chart_version=1.0.5
-
 function usage {
     echo "Usage: $0 <console> [products...]"
 }
@@ -179,6 +177,7 @@ function release_ace_designer {
 apic_release_name=apic-demo
 apic_namespace=apic
 apic_chart=ibm-apiconnect-icp4i-prod
+apic_chart_version=1.0.5
 apic_helm_secret=apic-helm-tls
 apic_pull_secret=ibm-entitlement-key
 apic_storage_class=ibmc-block-gold
@@ -240,7 +239,7 @@ function release_apic {
     # Create the Helm values file
     echo "${apic_values}" > apic-values.yaml
     # Download fixed version of the APIC chart
-    wget -q https://github.com/IBM/charts/blob/master/repo/entitled/ibm-apiconnect-icp4i-prod-${apic_chart_version}.tgz
+   # wget -q https://github.com/IBM/charts/blob/master/repo/entitled/ibm-apiconnect-icp4i-prod-${apic_chart_version}.tgz
     # Create the release
     helm install ${chart_repo}/${apic_chart} --name ${apic_release_name} --namespace ${apic_namespace} --values apic-values.yaml --tls
 }

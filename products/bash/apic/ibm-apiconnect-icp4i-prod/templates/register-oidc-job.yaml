@@ -1,0 +1,89 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: "{{ template "ibm-apiconnect-cip.register-oidc.fullname" . }}-{{ .Release.Revision}}"
+  labels:
+{{ include "ibm-apiconnect-cip.labels" . | indent 4 }}
+    component: apic-register-oidc
+spec:
+  backoffLimit: 5
+  template:
+    metadata:
+      labels:
+{{ include "ibm-apiconnect-cip.labels" . | indent 8 }}
+        component: apic-register-oidc
+      annotations:
+{{ include "ibm-apiconnect-cip.annotations" . | indent 8 }}
+    spec:
+      serviceAccountName: {{ template "ibm-apiconnect-cip.serviceAccountName" . }}
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: beta.kubernetes.io/arch
+                operator: In
+                values:
+                  - {{ .Values.operator.arch }}
+      hostNetwork: false
+      hostPID: false
+      hostIPC: false
+      securityContext:
+{{ include "ibm-apiconnect-cip.podSecurityContext" . | indent 8 }}
+      restartPolicy: Never
+      initContainers:
+        - name: wait
+{{- if .Values.operator.registry }}
+          image: {{ regexReplaceAll "/$" .Values.operator.registry "" }}/{{ .Values.operator.image }}:{{ .Values.operator.tag }}
+{{- else }}
+          image: {{ regexReplaceAll "/$" .Values.global.registry "" }}/{{ .Values.operator.image }}:{{ .Values.operator.tag }}
+{{- end }}
+          imagePullPolicy: {{ .Values.operator.pullPolicy }}
+          command: [ "bash", "-c", "sleep 180" ]
+          resources:
+{{ include "ibm-apiconnect-cip.resources" . | indent 12 }}
+          securityContext:
+{{ include "ibm-apiconnect-cip.securityContext" . | indent 12 }}
+        - name: "cluster-wait"
+{{- if .Values.operator.registry }}
+          image: {{ regexReplaceAll "/$" .Values.operator.registry "" }}/{{ .Values.operator.image }}:{{ .Values.operator.tag }}
+{{- else }}
+          image: {{ regexReplaceAll "/$" .Values.global.registry "" }}/{{ .Values.operator.image }}:{{ .Values.operator.tag }}
+{{- end }}
+          imagePullPolicy: {{ index .Values.operator.pullPolicy }}
+          command: ["bash", "-c", "until [ \"$(kubectl get apiconnectcluster {{ .Release.Name }}-apic-cluster -o json | jq .status.Ready)\" == \"true\" ]; do echo waiting for cluster to be ready; sleep 60; done;"]
+          resources:
+{{ include "ibm-apiconnect-cip.resources" . | indent 12 }}
+          securityContext:
+{{ include "ibm-apiconnect-cip.securityContext" . | indent 12 }}
+      containers:
+        - name: "register-oidc"
+{{- if .Values.operator.registry }}
+          image: {{ regexReplaceAll "/$" .Values.operator.registry "" }}/{{ .Values.operator.image }}:{{ .Values.operator.tag }}
+{{- else }}
+          image: {{ regexReplaceAll "/$" .Values.global.registry "" }}/{{ .Values.operator.image }}:{{ .Values.operator.tag }}
+{{- end }}
+          imagePullPolicy: {{ .Values.operator.pullPolicy }}
+{{- if .Release.IsInstall }}
+          command: [ "/home/apic/init-files/register-oidc.sh", "install"]
+{{- else }}
+          command: [ "/home/apic/init-files/register-oidc.sh", "upgrade"]
+{{- end }}
+          resources:
+{{ include "ibm-apiconnect-cip.resources" . | indent 12 }}
+          securityContext:
+{{ include "ibm-apiconnect-cip.securityContext" . | indent 12 }}
+          workingDir: /home/apic
+          volumeMounts:
+          - name: init-files
+            mountPath: "/home/apic/init-files"      
+      volumes:    
+      - name: init-files
+        projected:
+          sources:
+          - configMap:
+              name: {{ template "ibm-apiconnect-cip.init-files.fullname" . }}
+              items:
+                - key: register-oidc
+                  path: register-oidc.sh
+                  mode: 0750

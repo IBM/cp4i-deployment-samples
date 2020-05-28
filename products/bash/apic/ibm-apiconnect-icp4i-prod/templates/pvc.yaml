@@ -1,0 +1,14 @@
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: {{ .Release.Name }}-project
+  labels:
+{{ include "ibm-apiconnect-cip.labels" . | indent 4 }}
+    component: apic-project
+spec:
+  storageClassName: "{{ .Values.global.storageClass }}"
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi

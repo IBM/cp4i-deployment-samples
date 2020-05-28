@@ -1,0 +1,25 @@
+{{- if .Capabilities.APIVersions.Has "monitoringcontroller.cloud.ibm.com/v1" -}}
+apiVersion: monitoringcontroller.cloud.ibm.com/v1
+kind: MonitoringDashboard
+metadata:
+  name: {{ template "ibm-apiconnect-cip.fullname" . }}-grafana-apic
+  labels:
+{{ include "ibm-apiconnect-cip.labels" . | indent 4 }}
+    component: apic-grafana
+spec:
+  enabled: true
+  data: |-
+{{ .Files.Get "ibm_cloud_pak/pak_extensions/dashboards/apiconnect-grafana.json" | indent 4 }}
+---
+apiVersion: monitoringcontroller.cloud.ibm.com/v1
+kind: MonitoringDashboard
+metadata:
+  name: {{ template "ibm-apiconnect-cip.fullname" . }}-grafana-dp
+  labels:
+{{ include "ibm-apiconnect-cip.labels" . | indent 4 }}
+    component: apic-grafana-dp
+spec:
+  enabled: true
+  data: |-
+{{ .Files.Get "ibm_cloud_pak/pak_extensions/dashboards/datapower-grafana.json" | indent 4 }}
+{{- end }}
