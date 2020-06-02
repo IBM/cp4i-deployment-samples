@@ -559,17 +559,17 @@ function release_tracing {
     #   exit 1
     # fi
 
-    echo "Old stateful-set.yaml"
-    cat ${tracing_chart}/templates/stateful-set.yaml.bak
-    if ! sed '/OD_ES_KEYSTORE_PASSWORD/i \
-      \          - name: "OD_SAMPLING_POLICY_DEFAULT_SAMPLE_PERCENT" \
-      \            value: "100" \
-      ' ${tracing_chart}/templates/stateful-set.yaml.bak > /tmp/stateful-set.yaml; then
-      echo "Failed to insert OD_SAMPLING_POLICY_DEFAULT_SAMPLE_PERCENT into stateful-set.yaml"
-      exit 1
-    fi
-    echo "New stateful-set.yaml"
-    cat /tmp/stateful-set.yaml
+    # echo "Old stateful-set.yaml"
+    # cat ${tracing_chart}/templates/stateful-set.yaml.bak
+    # if ! sed '/OD_ES_KEYSTORE_PASSWORD/i \
+    #   \          - name: "OD_SAMPLING_POLICY_DEFAULT_SAMPLE_PERCENT" \
+    #   \            value: "100" \
+    #   ' ${tracing_chart}/templates/stateful-set.yaml.bak > /tmp/stateful-set.yaml; then
+    #   echo "Failed to insert OD_SAMPLING_POLICY_DEFAULT_SAMPLE_PERCENT into stateful-set.yaml"
+    #   exit 1
+    # fi
+    # echo "New stateful-set.yaml"
+    # cat /tmp/stateful-set.yaml
 
     # if ! rm ${tracing_chart}/templates/stateful-set.yaml.bak; then
     #   echo "Failed to delete stateful-set.yaml.bak"
