@@ -582,7 +582,8 @@ function release_tracing {
 
 # ----------------------------------------------------------------------
 
-tracing_enabled=false
+# Default to tracing disabled
+tracing_enabled=${tracing_enabled:-false}
 
 for product in $cp_products; do
     case $product in
