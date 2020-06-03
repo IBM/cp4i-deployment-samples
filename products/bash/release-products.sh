@@ -546,35 +546,23 @@ function release_tracing {
       exit 1
     fi
 
-    # if ! mv ${tracing_chart}/templates/stateful-set.yaml ${tracing_chart}/templates/stateful-set.yaml.bak; then
-    #   echo "Failed to rename stateful-set.yaml to stateful-set.yaml.bak"
-    #   exit 1
-    # fi
+    if ! mv ${tracing_chart}/templates/stateful-set.yaml ${tracing_chart}/templates/stateful-set.yaml.bak; then
+      echo "Failed to rename stateful-set.yaml to stateful-set.yaml.bak"
+      exit 1
+    fi
 
-    # if ! sed '/OD_ES_KEYSTORE_PASSWORD/i \
-    #   \          - name: "OD_SAMPLING_POLICY_DEFAULT_SAMPLE_PERCENT" \
-    #   \            value: "100" \
-    #   ' ${tracing_chart}/templates/stateful-set.yaml.bak > ${tracing_chart}/templates/stateful-set.yaml; then
-    #   echo "Failed to insert OD_SAMPLING_POLICY_DEFAULT_SAMPLE_PERCENT into stateful-set.yaml"
-    #   exit 1
-    # fi
+    if ! sed '/OD_ES_KEYSTORE_PASSWORD/i \
+\          - name: "OD_SAMPLING_POLICY_DEFAULT_SAMPLE_PERCENT" \
+\            value: "100" \
+' ${tracing_chart}/templates/stateful-set.yaml.bak > ${tracing_chart}/templates/stateful-set.yaml; then
+      echo "Failed to insert OD_SAMPLING_POLICY_DEFAULT_SAMPLE_PERCENT into stateful-set.yaml"
+      exit 1
+    fi
 
-    # echo "Old stateful-set.yaml"
-    # cat ${tracing_chart}/templates/stateful-set.yaml.bak
-    # if ! sed '/OD_ES_KEYSTORE_PASSWORD/i \
-    #   \          - name: "OD_SAMPLING_POLICY_DEFAULT_SAMPLE_PERCENT" \
-    #   \            value: "100" \
-    #   ' ${tracing_chart}/templates/stateful-set.yaml.bak > /tmp/stateful-set.yaml; then
-    #   echo "Failed to insert OD_SAMPLING_POLICY_DEFAULT_SAMPLE_PERCENT into stateful-set.yaml"
-    #   exit 1
-    # fi
-    # echo "New stateful-set.yaml"
-    # cat /tmp/stateful-set.yaml
-
-    # if ! rm ${tracing_chart}/templates/stateful-set.yaml.bak; then
-    #   echo "Failed to delete stateful-set.yaml.bak"
-    #   exit 1
-    # fi
+    if ! rm ${tracing_chart}/templates/stateful-set.yaml.bak; then
+      echo "Failed to delete stateful-set.yaml.bak"
+      exit 1
+    fi
 
     # Create the release
     helm install ${tracing_chart}/ --name ${tracing_release_name} --namespace ${tracing_namespace} --values tracing-values.yaml --tls
