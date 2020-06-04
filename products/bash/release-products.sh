@@ -183,7 +183,7 @@ function register_tracing_application {
 
 # --- ACE Dashboard ----------------------------------------------------
 
-ace_dashboard_release_name=ace-dashboard-demo
+ace_dashboard_release_name=ace-dashboard-demo-dev
 ace_dashboard_namespace=ace
 ace_dashboard_chart=ibm-ace-dashboard-icp4i-prod
 ace_dashboard_helm_secret=ace-helm-secret
@@ -438,7 +438,7 @@ function release_event_streams {
 }
 
 # --- MQ ---------------------------------------------------------------
-mq_release_name=mq-demo
+mq_release_name=mq-demo-dev
 mq_namespace=mq
 mq_chart=ibm-mqadvanced-server-integration-prod
 mq_pull_secret=ibm-entitlement-key
