@@ -580,7 +580,7 @@ function install_postgres {
   NAMESPACE=openshift
   DATABASE_SERVICE_NAME=postgresql
   POSTGRESQL_USER=admin
-  POSTGRESQL_USER=password
+  POSTGRESQL_PASSWORD=password
   POSTGRESQL_DATABASE=sampledb
   VOLUME_CAPACITY=1Gi
   POSTGRESQL_VERSION=10
