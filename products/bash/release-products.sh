@@ -23,6 +23,8 @@
 #    assetrepo    Asset Repository
 #    eventstreams Event Streams
 #    mq           MQ
+#    tracing      Tracing
+#    postgres     PostgreSQL
 #
 # 6. Products deploy in the background so may not be fully ready when the script
 #    completes.
@@ -43,7 +45,7 @@ if [[ -z "${cp_console}" ]]; then
     exit 2
 fi
 if [[ -z "${cp_products}" ]]; then
-    cp_products="apic ace assetrepo eventstreams tracing mq"
+    cp_products="apic ace assetrepo eventstreams tracing mq postgres"
 fi
 if [[ -z "${cp_password}" ]]; then
     read -p "Password (${cp_username}): " -s -r cp_password
@@ -568,6 +570,27 @@ function release_tracing {
     helm install ${tracing_chart}/ --name ${tracing_release_name} --namespace ${tracing_namespace} --values tracing-values.yaml --tls
 }
 
+# --- Postgres ---------------------------------------------------------
+
+function install_postgres {
+  cat << EOF > postgres.env
+  MEMORY_LIMIT=2Gi
+  NAMESPACE=openshift
+  DATABASE_SERVICE_NAME=postgresql
+  POSTGRESQL_USER=admin
+  POSTGRESQL_USER=password
+  POSTGRESQL_DATABASE=sampledb
+  VOLUME_CAPACITY=1Gi
+  POSTGRESQL_VERSION=10
+EOF
+
+  oc process -n openshift postgresql-persistent --param-file=postgres.env > postgres.yaml
+  oc create namespace postgres
+  oc project postgres
+  oc apply -f postgres.yaml
+}
+
+
 # ----------------------------------------------------------------------
 
 # Default to tracing disabled
@@ -603,6 +626,9 @@ for product in $cp_products; do
             release_mq ${tracing_enabled}
             ;;
         tracing)
+            ;;
+        postgres)
+            install_postgres
             ;;
         *)
             echo "Unknown product: ${product}"
