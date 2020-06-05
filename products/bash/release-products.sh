@@ -573,6 +573,8 @@ function release_tracing {
 # --- Postgres ---------------------------------------------------------
 
 function install_postgres {
+  echo "Installing PostgreSQL..."
+
   cat << EOF > postgres.env
   MEMORY_LIMIT=2Gi
   NAMESPACE=openshift
