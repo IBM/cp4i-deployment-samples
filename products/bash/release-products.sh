@@ -583,7 +583,7 @@ function install_postgres {
   POSTGRESQL_PASSWORD=password
   POSTGRESQL_DATABASE=sampledb
   VOLUME_CAPACITY=1Gi
-  POSTGRESQL_VERSION=10
+  POSTGRESQL_VERSION=9.6
 EOF
 
   oc process -n openshift postgresql-persistent --param-file=postgres.env > postgres.yaml
