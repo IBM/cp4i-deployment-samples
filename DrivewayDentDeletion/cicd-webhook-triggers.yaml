@@ -1,0 +1,272 @@
+apiVersion: tekton.dev/v1alpha1
+kind: PipelineResource
+metadata:
+  name: git-source
+spec:
+  type: git
+  params:
+    - name: revision
+      value: dent-deletion
+    - name: url
+      value: https://github.com/IBM/cp4i-deployment-samples.git
+
+# ---
+
+# apiVersion: tekton.dev/v1alpha1
+# kind: PipelineResource
+# metadata:
+#   name: docker-image
+# spec:
+#   type: image
+#   params:
+#     - name: url
+#       #change this to the cluster's icp-console route
+#       value: default-route-openshift-image-registry.kbcl5-230239-ec111ed5d7db435e1c5eeeb4400d693f-0000.eu-gb.containers.appdomain.cloud
+
+---
+
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: build-push-docker-image
+spec:
+  # params:
+  #   - name: pathToDockerFile
+  #     type: string
+  #     description: The path to the dockerfile to build
+  #     default: $(resources.inputs.git-source.path)/products/cicd/DOCKERFILE
+  #   - name: pathToContext
+  #     type: string
+  #     description: |
+  #       The build context used by Kaniko
+  #       (https://github.com/GoogleContainerTools/kaniko#kaniko-build-contexts)
+  #     default: $(resources.inputs.git-source.path)/products/cicd
+  #   - name: bar_file_name
+  #     type: string
+  #     description: Bar file name
+  #   - name: imageNameTag
+  #     type: string
+  #     description: The name and the tag of the image to build
+  #   - name: imageNamespace
+  #     type: string
+  #     description: Namespace to push built image to
+  resources:
+    inputs:
+      - name: git-source
+        type: git
+    # outputs:
+    #   - name: docker-image
+    #     type: image
+  steps:
+    - name: build-and-push
+      image: gcr.io/kaniko-project/executor:latest
+      env:
+        - name: "DOCKER_CONFIG"
+          value: "/tekton/home/.docker/"
+      command:
+        - /kaniko/executor
+      args:
+        # - --dockerfile=$(params.pathToDockerFile)
+        - --dockerfile=/workspace/git-source/DrivewayDentDeletion/DOCKERFILE
+        - --destination=default-route-openshift-image-registry.kbcl5-230239-ec111ed5d7db435e1c5eeeb4400d693f-0000.eu-gb.containers.appdomain.cloud/ace/ace1:latest
+        # - --context=$(params.pathToContext)
+        - --context=/workspace/git-source/DrivewayDentDeletion/
+        # - --build-arg=$(params.bar_file_name)
+        - --verbosity=debug
+        - --log-timestamp
+        - --insecure-registry=default-route-openshift-image-registry.kbcl5-230239-ec111ed5d7db435e1c5eeeb4400d693f-0000.eu-gb.containers.appdomain.cloud
+      securityContext:
+        runAsUser: 0
+
+---
+
+apiVersion: tekton.dev/v1alpha1
+kind: Pipeline
+metadata:
+  name: ace-pipeline
+  namespace: ace
+spec:
+  # params:
+  #   - name: pathToDockerFile
+  #     type: string
+  #     description: The path to the dockerfile to build
+  #     default: $(resources.git-source.path)/products/cicd/DOCKERFILE
+  #   - name: pathToContext
+  #     type: string
+  #     description: |
+  #       The build context used by Kaniko
+  #       (https://github.com/GoogleContainerTools/kaniko#kaniko-build-contexts)
+  #     default: $(resources.git-source.path)/products/cicd
+  #   - name: bar_file_name
+  #     type: string
+  #     description: Bar file name
+  #   - name: imageNameTag
+  #     type: string
+  #     description: The name and the tag of the image to build
+  #   - name: imageNamespace
+  #     type: string
+  #     description: Namespace to push built image to
+  resources:
+    - name: git-source
+      type: git
+    # - name: docker-image
+    #   type: image
+  tasks:
+    - name: ace-run
+      taskRef:
+        name: build-push-docker-image
+      # params:
+      #   - name: pathToDockerFile
+      #     value: "$(params.pathToDockerFile)"
+      #   - name: pathToContext
+      #     value: "$(params.pathToContext)"
+      #   - name: bar_file_name
+      #     value: "$(params.bar_file_name)"
+      #   - name: imageNameTag
+      #     value: "$(params.imageNameTag)"
+      #   - name: imageNamespace
+      #     value: "$(params.imageNamespace)"
+      resources:
+        inputs:
+          - name: git-source
+            resource: git-source
+        # outputs:
+        #   - name: docker-image
+        #     resource: docker-image
+
+---
+
+apiVersion: triggers.tekton.dev/v1alpha1
+kind: TriggerTemplate
+metadata:
+  name: ace-cicd-triggertemplate
+spec:
+  # params:
+  # - name: git-repo-url
+  #   description: The git repository url
+  # - name: git-revision
+  #   description: The git revision
+  #   default: master
+  # - name: git-repo-name
+  #   description: The name of the deployment to be created / patched
+  # - name: pathToDockerFile
+  #   description: Path to the docker file
+  # - name: pathToContext
+  #   description: Context path
+  # - name: bar_file_name
+  #   description: default bar file name
+  resourcetemplates:
+  - apiVersion: tekton.dev/v1alpha1
+    kind: PipelineRun
+    metadata:
+      name: cicd-$(params.git-repo-name)-pipelinerun-$(uid)
+      namespace: ace
+    spec:
+      pipelineRef:
+        name: ace-pipeline
+      serviceAccountName: cicd-ace-sa
+      resources:
+      - name: git-source
+        resourceRef:
+          name: cicd-$(params.git-repo-name)-git-repo-$(uid)
+      # - name: docker-image
+      #   resourceRef:
+      #     name: cicd-$(params.git-repo-name)-image-$(uid)
+      # params:
+      # - name: pathToDockerFile
+      #   value: /workspace/git-source/products/cicd/DOCKERFILE
+      # - name: pathToContext
+      #   value: /workspace/git-source/products/cicd #configure: may change according to your source
+      # - name: bar_file_name
+      #   value: bar_file_name=simpleGET.bar #this filename should be in the format "bar_file_name=<actual_bar_file_name_with_extension>"
+
+---
+
+apiVersion: triggers.tekton.dev/v1alpha1
+kind: TriggerBinding
+metadata:
+  name: ace-cicd-triggerbinding
+  namespace: ace
+spec:
+  params:
+  - name: git-repo-url
+    value: https://github.com/IBM/cp4i-deployment-samples.git
+  - name: git-repo-name
+    value: cp4i-deployment-samples
+  - name: git-revision
+    value: dent-deletion
+
+---
+
+apiVersion: triggers.tekton.dev/v1alpha1
+kind: EventListener
+metadata:
+  name: ace-cicd-trigger
+spec:
+  serviceAccountName: cicd-ace-sa
+  triggers:
+  - bindings:
+    - name: ace-cicd-triggerbinding
+    template:
+      name: ace-cicd-triggertemplate
+
+---
+kind: Role
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: tekton-triggers-role
+rules:
+- apiGroups: [""]
+  resources: ["pods", "configmaps"]
+  verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+- apiGroups:
+  - triggers.tekton.dev
+  resources:
+  - eventlisteners
+  - triggerbindings
+  - triggertemplates
+  - pipelineresources
+  verbs:
+  - get
+  - list
+  - watch
+  - create
+  - update
+  - patch
+  - delete
+- apiGroups:
+  - tekton.dev
+  resources:
+  - pipelines
+  - tasks
+  - pipelineruns
+  - pipelineresources
+  - secrets
+  verbs:
+  - create
+  - get
+  - list
+  - watch
+
+---
+
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: cicd-ace-sa
+secrets:
+  - name: cicd-ace
+
+---
+
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: tekton-triggers-rolebinding
+subjects:
+- kind: ServiceAccount
+  name: cicd-ace-sa
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: tekton-triggers-role
