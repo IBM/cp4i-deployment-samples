@@ -1,6 +1,7 @@
 # Prerequisites
 These will be automatically created as part of the 1-click demo preparation:
 - Tekton Pipelines v0.12.1 installed on cluster
+- Tekton Triggers v0.5.0 installed on cluster
 - An instance of Postgres 9.6
 - A DrivewayDentDeletion database with required tables
 - Secret for ACE API to connect to MQ and Postgres
