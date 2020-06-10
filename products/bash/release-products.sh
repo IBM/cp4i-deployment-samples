@@ -698,7 +698,7 @@ while [ ! $retry_count -eq $startup_retries ] && [ "$everything_ready" = false ]
   fi
 done
 
-if [ "$everything_ready" = false]; then
+if [ "$everything_ready" = false ]; then
   echo "Failed due to retries exceeded while waiting for releases..."
   exit 1
 else
