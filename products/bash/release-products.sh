@@ -23,8 +23,6 @@
 #    assetrepo    Asset Repository
 #    eventstreams Event Streams
 #    mq           MQ
-#    tracing      Tracing
-#    postgres     PostgreSQL
 #
 # 6. Products deploy in the background so may not be fully ready when the script
 #    completes.
@@ -45,7 +43,7 @@ if [[ -z "${cp_console}" ]]; then
     exit 2
 fi
 if [[ -z "${cp_products}" ]]; then
-    cp_products="apic ace assetrepo eventstreams tracing mq postgres"
+    cp_products="apic ace assetrepo eventstreams tracing mq"
 fi
 if [[ -z "${cp_password}" ]]; then
     read -p "Password (${cp_username}): " -s -r cp_password
@@ -570,29 +568,6 @@ function release_tracing {
     helm install ${tracing_chart}/ --name ${tracing_release_name} --namespace ${tracing_namespace} --values tracing-values.yaml --tls
 }
 
-# --- Postgres ---------------------------------------------------------
-
-function install_postgres {
-  echo "Installing PostgreSQL..."
-
-  cat << EOF > postgres.env
-  MEMORY_LIMIT=2Gi
-  NAMESPACE=openshift
-  DATABASE_SERVICE_NAME=postgresql
-  POSTGRESQL_USER=admin
-  POSTGRESQL_PASSWORD=password
-  POSTGRESQL_DATABASE=sampledb
-  VOLUME_CAPACITY=1Gi
-  POSTGRESQL_VERSION=9.6
-EOF
-
-  oc process -n openshift postgresql-persistent --param-file=postgres.env > postgres.yaml
-  oc create namespace postgres
-  oc project postgres
-  oc apply -f postgres.yaml
-}
-
-
 # ----------------------------------------------------------------------
 
 # Default to tracing disabled
@@ -629,9 +604,6 @@ for product in $cp_products; do
             ;;
         tracing)
             ;;
-        postgres)
-            install_postgres
-            ;;
         *)
             echo "Unknown product: ${product}"
             ;;
@@ -649,6 +621,85 @@ if ${tracing_enabled}; then
               ;;
       esac
   done
+fi
+
+function is_release_ready {
+  release_name=${1}
+  release_status=$(helm status ${release_name} --tls -o json | jq -r '.info.status.code')
+
+  if [ $release_status -eq 1 ]; then
+    echo "${release_name} is released and ready!"
+    return 1
+  else
+    return 0
+  fi
+}
+
+startup_retries=30  
+retry_interval=20
+retry_count=0
+everything_ready=false
+
+while [ ! $retry_count -eq $startup_retries ] && [ "$everything_ready" = false ]; do
+  everything_ready=true
+  for product in $cp_products; do
+    case $product in
+        ace)
+            if is_release_ready ${ace_designer_release_name}; then
+              echo "${ace_designer_release_name} is not ready!"
+              everything_ready=false
+            fi
+            if is_release_ready ${ace_dashboard_release_name}; then
+              echo "${ace_dashboard_release_name} is not ready!"
+              everything_ready=false
+            fi
+            ;;
+        apic)
+            if is_release_ready ${apic_release_name}; then
+              echo "${apic_release_name} is not ready!"
+              everything_ready=false
+            fi
+            ;;
+        assetrepo)
+            if is_release_ready ${asset_repo_release_name}; then
+              echo "${asset_repo_release_name} is not ready!"
+              everything_ready=false
+            fi
+            ;;
+        eventstreams)
+            if is_release_ready ${event_streams_release_name}; then
+              echo "${event_streams_release_name} is not ready!"
+              everything_ready=false
+            fi
+            ;;
+        mq)
+            if is_release_ready ${mq_release_name}; then
+              echo "${mq_release_name} is not ready!"
+              everything_ready=false
+            fi
+            ;;
+        tracing)
+            if is_release_ready ${tracing_release_name}; then
+              echo "${tracing_release_name} is not ready!"
+              everything_ready=false
+            fi
+            ;; 
+        *)
+            echo "Unknown product: ${product}"
+            ;;
+    esac
+  done
+
+  if [ "$everything_ready" = false ]; then
+    sleep $retry_interval
+    retry_count=$((retry_count+1))
+    echo "Releases not ready, retrying... ${retry_count} attempts out of ${startup_retries}."
+  fi
+done
+
+if [ "$everything_ready" = false]; then
+  echo "Failed due to retries exceeded while waiting for releases..."
+  exit 1
 fi
 
 cloudctl logout
