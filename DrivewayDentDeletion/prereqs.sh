@@ -2,9 +2,8 @@
 export NAMESPACE=driveway-dent-deletion
 
 oc apply --filename https://storage.googleapis.com/tekton-releases/pipeline/previous/v0.12.1/release.yaml
-oc wait -n tekton-pipelines --for=condition=available deployment --timeout=20m tekton-pipelines-controller tekton-pipelines-webhook
-
 oc apply -f https://storage.googleapis.com/tekton-releases/triggers/previous/v0.5.0/release.yaml
+oc wait -n tekton-pipelines --for=condition=available deployment --timeout=20m tekton-pipelines-controller tekton-pipelines-webhook tekton-triggers-controller tekton-triggers-webhook
 
 oc create namespace ${NAMESPACE}
 oc adm policy add-scc-to-group privileged system:serviceaccounts:$NAMESPACE
