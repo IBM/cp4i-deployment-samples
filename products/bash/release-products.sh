@@ -641,6 +641,7 @@ retry_count=0
 everything_ready=false
 
 while [ ! $retry_count -eq $startup_retries ] && [ "$everything_ready" = false ]; do
+  echo "Checking releases"
   everything_ready=true
   for product in $cp_products; do
     case $product in
@@ -700,6 +701,8 @@ done
 if [ "$everything_ready" = false]; then
   echo "Failed due to retries exceeded while waiting for releases..."
   exit 1
+else
+  echo "Capabilities succesfully released!"
 fi
 
 cloudctl logout
