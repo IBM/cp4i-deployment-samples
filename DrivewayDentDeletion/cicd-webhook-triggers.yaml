@@ -4,6 +4,19 @@ metadata:
   name: cicd-ace-sa
 secrets:
   - name: cicd-ace
+imagePullSecrets:
+  - name: ibm-entitlement-key
+
+---
+
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: cicd-mq-sa
+secrets:
+  - name: cicd-mq
+imagePullSecrets:
+  - name: ibm-entitlement-key
 
 ---
 
@@ -17,7 +30,8 @@ spec:
     - name: revision
       value: dent-deletion
     - name: url
-      value: https://github.com/IBM/cp4i-deployment-samples.git
+      # value: https://github.com/IBM/cp4i-deployment-samples.git
+      value: https://github.com/Kinshuk1993/cp4i-deployment-samples.git
 
 ---
 
@@ -31,7 +45,7 @@ spec:
       - name: git-source
         type: git
   steps:
-    - name: build-and-push
+    - name: build-and-push-ace
       image: gcr.io/kaniko-project/executor:latest
       env:
         - name: "DOCKER_CONFIG"
@@ -41,7 +55,36 @@ spec:
       args:
         - --context=/workspace/git-source/DrivewayDentDeletion/ace-api
         - --dockerfile=/workspace/git-source/DrivewayDentDeletion/ace-api/Dockerfile
-        - --destination=image-registry.openshift-image-registry.svc:5000/ace/ace2:latest
+        - --destination=image-registry.openshift-image-registry.svc:5000/ace/ace1:latest
+        - --verbosity=debug
+        - --log-timestamp
+        - --skip-tls-verify
+      securityContext:
+        runAsUser: 0
+
+---
+
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: build-push-mq-api-docker-image
+spec:
+  resources:
+    inputs:
+      - name: git-source
+        type: git
+  steps:
+    - name: build-and-push-mq
+      image: gcr.io/kaniko-project/executor:latest
+      env:
+        - name: "DOCKER_CONFIG"
+          value: "/tekton/home/.docker/"
+      command:
+        - /kaniko/executor
+      args:
+        - --context=/workspace/git-source/DrivewayDentDeletion/ace-api
+        - --dockerfile=/workspace/git-source/DrivewayDentDeletion/ace-api/Dockerfile
+        - --destination=image-registry.openshift-image-registry.svc:5000/mq/mq1:latest
         - --verbosity=debug
         - --log-timestamp
         - --skip-tls-verify
@@ -53,7 +96,7 @@ spec:
 apiVersion: tekton.dev/v1alpha1
 kind: Pipeline
 metadata:
-  name: main-pipeline
+  name: main-pipeline-ace
 spec:
   resources:
     - name: git-source
@@ -62,6 +105,25 @@ spec:
     - name: ace-api-run
       taskRef:
         name: build-push-ace-api-docker-image
+      resources:
+        inputs:
+          - name: git-source
+            resource: git-source
+
+---
+
+apiVersion: tekton.dev/v1alpha1
+kind: Pipeline
+metadata:
+  name: main-pipeline-mq
+spec:
+  resources:
+    - name: git-source
+      type: git
+  tasks:
+    - name: mq-api-run
+      taskRef:
+        name: build-push-mq-api-docker-image
       resources:
         inputs:
           - name: git-source
@@ -78,11 +140,23 @@ spec:
   - apiVersion: tekton.dev/v1alpha1
     kind: PipelineRun
     metadata:
-      name: main-pipelinerun-$(uid)
+      name: main-pipelinerun-ace-$(uid)
     spec:
       pipelineRef:
-        name: main-pipeline
+        name: main-pipeline-ace
       serviceAccountName: cicd-ace-sa
+      resources:
+      - name: git-source
+        resourceRef:
+          name: git-source
+  - apiVersion: tekton.dev/v1alpha1
+    kind: PipelineRun
+    metadata:
+      name: main-pipelinerun-mq-$(uid)
+    spec:
+      pipelineRef:
+        name: main-pipeline-mq
+      serviceAccountName: cicd-mq-sa
       resources:
       - name: git-source
         resourceRef:
@@ -147,6 +221,8 @@ metadata:
 subjects:
 - kind: ServiceAccount
   name: cicd-ace-sa
+- kind: ServiceAccount
+  name: cicd-mq-sa
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: Role

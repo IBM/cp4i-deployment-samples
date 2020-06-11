@@ -12,7 +12,8 @@ These will be automatically created as part of the 1-click demo preparation:
 These steps will need to be documented in the demo docs:
 - Fork/clone the repo
 - Apply yaml to create the pipeline, configured to use the forked repo
-- Run a command to get the url for the trigger
+- Run the command `oc expose svc el-main-trigger` to expose the event listener service
+- Run the command `echo "$(oc  get route el-main-trigger --template='http://{{.spec.host}}')"` to get the url for the trigger
 - Add the trigger url to the repo as a webhook, which triggers an initial run of the pipeline.
 
 # Pipelines
