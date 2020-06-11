@@ -37,8 +37,7 @@ spec:
     - name: revision
       value: dent-deletion
     - name: url
-      # value: https://github.com/IBM/cp4i-deployment-samples.git
-      value: https://github.com/Kinshuk1993/cp4i-deployment-samples.git
+      value: https://github.com/IBM/cp4i-deployment-samples.git
 
 ---
 
