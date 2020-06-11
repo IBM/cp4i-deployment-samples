@@ -24,7 +24,7 @@ spec:
 apiVersion: tekton.dev/v1beta1
 kind: Task
 metadata:
-  name: build-push-docker-image
+  name: build-push-ace-api-docker-image
 spec:
   resources:
     inputs:
@@ -39,9 +39,9 @@ spec:
       command:
         - /kaniko/executor
       args:
-        - --dockerfile=/workspace/git-source/DrivewayDentDeletion/DOCKERFILE
+        - --context=/workspace/git-source/DrivewayDentDeletion/ace-api
+        - --dockerfile=/workspace/git-source/DrivewayDentDeletion/ace-api/Dockerfile
         - --destination=image-registry.openshift-image-registry.svc:5000/ace/ace2:latest
-        - --context=/workspace/git-source/DrivewayDentDeletion/
         - --verbosity=debug
         - --log-timestamp
         - --skip-tls-verify
@@ -53,15 +53,15 @@ spec:
 apiVersion: tekton.dev/v1alpha1
 kind: Pipeline
 metadata:
-  name: ace-pipeline
+  name: main-pipeline
 spec:
   resources:
     - name: git-source
       type: git
   tasks:
-    - name: ace-run
+    - name: ace-api-run
       taskRef:
-        name: build-push-docker-image
+        name: build-push-ace-api-docker-image
       resources:
         inputs:
           - name: git-source
@@ -72,19 +72,16 @@ spec:
 apiVersion: triggers.tekton.dev/v1alpha1
 kind: TriggerTemplate
 metadata:
-  name: ace-cicd-triggertemplate
+  name: main-triggertemplate
 spec:
-  params:
-  - name: git-repo-name
-    description: The name of the deployment to be created / patched
   resourcetemplates:
   - apiVersion: tekton.dev/v1alpha1
     kind: PipelineRun
     metadata:
-      name: cicd-$(params.git-repo-name)-pipelinerun-$(uid)
+      name: main-pipelinerun-$(uid)
     spec:
       pipelineRef:
-        name: ace-pipeline
+        name: main-pipeline
       serviceAccountName: cicd-ace-sa
       resources:
       - name: git-source
@@ -94,27 +91,14 @@ spec:
 ---
 
 apiVersion: triggers.tekton.dev/v1alpha1
-kind: TriggerBinding
-metadata:
-  name: ace-cicd-triggerbinding
-spec:
-  params:
-  - name: git-repo-name
-    value: cp4i-deployment-samples
-
----
-
-apiVersion: triggers.tekton.dev/v1alpha1
 kind: EventListener
 metadata:
-  name: ace-cicd-trigger
+  name: main-trigger
 spec:
   serviceAccountName: cicd-ace-sa
   triggers:
-  - bindings:
-    - name: ace-cicd-triggerbinding
-    template:
-      name: ace-cicd-triggertemplate
+  - template:
+      name: main-triggertemplate
 
 ---
 kind: Role
