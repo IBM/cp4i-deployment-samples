@@ -11,7 +11,6 @@ apiVersion: tekton.dev/v1alpha1
 kind: PipelineResource
 metadata:
   name: git-source
-  namespace: driveway-dent-deletion
 spec:
   type: git
   params:
@@ -26,7 +25,6 @@ apiVersion: tekton.dev/v1beta1
 kind: Task
 metadata:
   name: build-push-docker-image
-  namespace: driveway-dent-deletion
 spec:
   resources:
     inputs:
@@ -46,7 +44,6 @@ spec:
         - --context=/workspace/git-source/DrivewayDentDeletion/
         - --verbosity=debug
         - --log-timestamp
-        - --insecure-registry=image-registry.openshift-image-registry.svc:5000/ace/ace2:latest
         - --skip-tls-verify
       securityContext:
         runAsUser: 0
@@ -57,7 +54,6 @@ apiVersion: tekton.dev/v1alpha1
 kind: Pipeline
 metadata:
   name: ace-pipeline
-  namespace: driveway-dent-deletion
 spec:
   resources:
     - name: git-source
@@ -86,7 +82,6 @@ spec:
     kind: PipelineRun
     metadata:
       name: cicd-$(params.git-repo-name)-pipelinerun-$(uid)
-      namespace: driveway-dent-deletion
     spec:
       pipelineRef:
         name: ace-pipeline
@@ -102,7 +97,6 @@ apiVersion: triggers.tekton.dev/v1alpha1
 kind: TriggerBinding
 metadata:
   name: ace-cicd-triggerbinding
-  namespace: driveway-dent-deletion
 spec:
   params:
   - name: git-repo-name
@@ -114,7 +108,6 @@ apiVersion: triggers.tekton.dev/v1alpha1
 kind: EventListener
 metadata:
   name: ace-cicd-trigger
-  namespace: driveway-dent-deletion
 spec:
   serviceAccountName: cicd-ace-sa
   triggers:
@@ -128,7 +121,6 @@ kind: Role
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
   name: tekton-triggers-role
-  namespace: driveway-dent-deletion
 rules:
 - apiGroups: [""]
   resources: ["pods", "configmaps"]
@@ -168,7 +160,6 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
   name: tekton-triggers-rolebinding
-  namespace: driveway-dent-deletion
 subjects:
 - kind: ServiceAccount
   name: cicd-ace-sa
