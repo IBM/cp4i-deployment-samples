@@ -23,3 +23,5 @@ do
     --docker-server=$DOCKER_REGISTRY --docker-username=$username --docker-password=$password \
     --dry-run -o yaml | oc apply -f -
 done
+
+oc get secret -n mq ibm-entitlement-key --export -o yaml | oc apply -n=${NAMESPACE} -f -
