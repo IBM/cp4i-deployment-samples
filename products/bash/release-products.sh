@@ -1,5 +1,13 @@
 #!/bin/bash
+#******************************************************************************
+# Licensed Materials - Property of IBM
+# (c) Copyright IBM Corporation 2020. All Rights Reserved.
 #
+# Note to U.S. Government Users Restricted Rights:
+# Use, duplication or disclosure restricted by GSA ADP Schedule
+# Contract with IBM Corp.
+#******************************************************************************
+
 # INSTRUCTIONS
 # ------------
 #
@@ -13,18 +21,27 @@
 #       export CP_USERNAME=<username>
 #       export CP_PASSWORD=<password>
 #
-# 4. It will release all supported products by default;
+# 4. You can specify release names for each product using the environment variables:
+#       export ACE_DASHBOARD_RELEASE_NAME=<ace-dashboard-release-name>
+#       export ACE_DESIGNER_RELEASE_NAME=<ace-designer-release-name>
+#       export APIC_RELEASE_NAME=<apic-release-name>
+#       export ASSET_REPO_RELEASE_NAME=<asset-repo-release-name>
+#       export EVENT_STREAMS_RELEASE_NAME=<event-streams-release-name>
+#       export MQ_RELEASE_NAME=<mq-release-name>
+#       export TRACING_RELEASE_NAME=<tracing-release-name>
+#
+# 5. It will release all supported products by default;
 #    to release specific products, add them to the command line, e.g:
 #       ./release-products.sh <console> ace
 #
-# 5. Supported products are:
+# 6. Supported products are:
 #    ace          App Connect Dashboard & App Connect Designer
 #    apic         API Connect
 #    assetrepo    Asset Repository
 #    eventstreams Event Streams
 #    mq           MQ
 #
-# 6. Products deploy in the background so may not be fully ready when the script
+# 7. Products deploy in the background so may not be fully ready when the script
 #    completes.
 #
 
@@ -183,7 +200,7 @@ function register_tracing_application {
 
 # --- ACE Dashboard ----------------------------------------------------
 
-ace_dashboard_release_name=ace-dashboard-demo-dev
+ace_dashboard_release_name=${ACE_DASHBOARD_RELEASE_NAME:-ace-dashboard-demo-dev}
 ace_dashboard_namespace=ace
 ace_dashboard_chart=ibm-ace-dashboard-icp4i-prod
 ace_dashboard_helm_secret=ace-helm-secret
@@ -222,7 +239,7 @@ function release_ace_dashboard {
 
 # --- ACE Designer -----------------------------------------------------
 
-ace_designer_release_name=ace-designer-demo
+ace_designer_release_name=${ACE_DESIGNER_RELEASE_NAME:-ace-designer-demo}
 ace_designer_namespace=ace
 ace_designer_chart=ibm-app-connect-designer-icp4i
 ace_designer_pull_secret=ibm-entitlement-key
@@ -262,7 +279,7 @@ function release_ace_designer {
 
 # --- APIC -------------------------------------------------------------
 
-apic_release_name=apic-demo
+apic_release_name=${APIC_RELEASE_NAME:-apic-demo}
 apic_namespace=apic
 apic_chart=ibm-apiconnect-icp4i-prod
 apic_helm_secret=apic-helm-tls
@@ -331,7 +348,7 @@ function release_apic {
 
 # --- Asset Repo -------------------------------------------------------
 
-asset_repo_release_name=asset-repo-demo
+asset_repo_release_name=${ASSET_REPO_RELEASE_NAME:-asset-repo-demo}
 asset_repo_namespace=assetrepo
 asset_repo_chart=ibm-icp4i-asset-repo-prod
 asset_repo_pull_secret=ibm-entitlement-key
@@ -375,7 +392,7 @@ function release_asset_repo {
 
 # --- Event Streams ----------------------------------------------------
 
-event_streams_release_name=event-streams-demo
+event_streams_release_name=${EVENT_STREAMS_RELEASE_NAME:-event-streams-demo}
 event_streams_namespace=eventstreams
 event_streams_chart=ibm-eventstreams-icp4i-prod
 event_streams_pull_secret=ibm-entitlement-key
@@ -435,10 +452,13 @@ function release_event_streams {
     echo "${event_streams_values}" > event-streams-values.yaml
     # Create the release
     helm install ${chart_repo}/${event_streams_chart} --name ${event_streams_release_name} --namespace ${event_streams_namespace} --values event-streams-values.yaml --tls
+    helm install ibm-entitled-charts/ibm-eventstreams-icp4i-prod --name event-streams-demo --namespace eventstreams --values event-streams-values.yaml --tls
+    helm repo add ibm-entitled-charts https://raw.githubusercontent.com/IBM/charts/master/repo/entitled/
 }
 
 # --- MQ ---------------------------------------------------------------
-mq_release_name=mq-demo-dev
+
+mq_release_name=${MQ_RELEASE_NAME:-mq-demo-dev}
 mq_namespace=mq
 mq_chart=ibm-mqadvanced-server-integration-prod
 mq_pull_secret=ibm-entitlement-key
@@ -491,7 +511,7 @@ function release_mq {
 
 # --- Tracing ----------------------------------------------------------
 
-tracing_release_name=tracing-demo
+tracing_release_name=${TRACING_RELEASE_NAME:-tracing-demo}
 tracing_namespace=tracing
 tracing_chart=ibm-icp4i-tracing-prod
 tracing_version=1.0.2
@@ -621,88 +641,6 @@ if ${tracing_enabled}; then
               ;;
       esac
   done
-fi
-
-function is_release_ready {
-  release_name=${1}
-  release_status=$(helm status ${release_name} --tls -o json | jq -r '.info.status.code')
-
-  if [ $release_status -eq 1 ]; then
-    echo "${release_name} is released and ready!"
-    return 1
-  else
-    return 0
-  fi
-}
-
-startup_retries=30  
-retry_interval=20
-retry_count=0
-everything_ready=false
-
-while [ ! $retry_count -eq $startup_retries ] && [ "$everything_ready" = false ]; do
-  echo "Checking releases"
-  everything_ready=true
-  for product in $cp_products; do
-    case $product in
-        ace)
-            if is_release_ready ${ace_designer_release_name}; then
-              echo "${ace_designer_release_name} is not ready!"
-              everything_ready=false
-            fi
-            if is_release_ready ${ace_dashboard_release_name}; then
-              echo "${ace_dashboard_release_name} is not ready!"
-              everything_ready=false
-            fi
-            ;;
-        apic)
-            if is_release_ready ${apic_release_name}; then
-              echo "${apic_release_name} is not ready!"
-              everything_ready=false
-            fi
-            ;;
-        assetrepo)
-            if is_release_ready ${asset_repo_release_name}; then
-              echo "${asset_repo_release_name} is not ready!"
-              everything_ready=false
-            fi
-            ;;
-        eventstreams)
-            if is_release_ready ${event_streams_release_name}; then
-              echo "${event_streams_release_name} is not ready!"
-              everything_ready=false
-            fi
-            ;;
-        mq)
-            if is_release_ready ${mq_release_name}; then
-              echo "${mq_release_name} is not ready!"
-              everything_ready=false
-            fi
-            ;;
-        tracing)
-            if is_release_ready ${tracing_release_name}; then
-              echo "${tracing_release_name} is not ready!"
-              everything_ready=false
-            fi
-            ;; 
-        *)
-            echo "Unknown product: ${product}"
-            ;;
-    esac
-  done
-
-  if [ "$everything_ready" = false ]; then
-    sleep $retry_interval
-    retry_count=$((retry_count+1))
-    echo "Releases not ready, retrying... ${retry_count} attempts out of ${startup_retries}."
-  fi
-done
-
-if [ "$everything_ready" = false ]; then
-  echo "Failed due to retries exceeded while waiting for releases..."
-  exit 1
-else
-  echo "Capabilities succesfully released!"
 fi
 
 cloudctl logout
