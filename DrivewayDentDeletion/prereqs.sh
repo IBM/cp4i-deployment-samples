@@ -21,5 +21,5 @@ do
 
   oc create -n $NAMESPACE secret docker-registry cicd-${image_project} \
     --docker-server=$DOCKER_REGISTRY --docker-username=$username --docker-password=$password \
-    --dry-run=client -o yaml | oc apply -f -
+    --dry-run -o yaml | oc apply -f -
 done
