@@ -35,7 +35,8 @@ spec:
     - name: revision
       value: dent-deletion
     - name: url
-      value: https://github.com/IBM/cp4i-deployment-samples.git
+      # value: https://github.com/IBM/cp4i-deployment-samples.git
+      value: https://github.com/Kinshuk1993/cp4i-deployment-samples.git
 
 ---
 
@@ -67,6 +68,58 @@ spec:
         - --skip-tls-verify
       securityContext:
         runAsUser: 0
+
+---
+
+apiVersion: tekton.dev/v1alpha1
+kind: Task
+metadata:
+  name: helm-deploy-task
+spec:
+  steps:
+  - args:
+    - install
+    - ibm-ace-server-icp4i-prod
+    - --debug
+    - -n
+    - ace-server-icp4i-prod
+    - --namespace
+    - ace
+    - --repo
+    - https://raw.githubusercontent.com/IBM/charts/master/repo/entitled/
+    - --set
+    - image.aceonly=image-registry.openshift-image-registry.svc:5000/ace/ace-api:latest,image.pullPolicy=Always,license=accept,aceonly.replicaCount=1
+    - --generate-name
+    image: alpine/helm
+    env:
+      - name: KUBECONFIG
+        value: /app/kubeconfig
+      - name: HELM_TLS_CA_CERT
+        valueFrom:
+          secretKeyRef:
+            name: task-helm-tls
+            key: ca
+      - name: HELM_TLS_CERT
+        valueFrom:
+          secretKeyRef:
+            name: task-helm-tls
+            key: cert
+      - name: HELM_TLS_KEY
+        valueFrom:
+          secretKeyRef:
+            name: task-helm-tls
+            key: key
+    volumeMounts:
+     - name: kubeconfig
+       mountPath: /app
+    name: helm-deploy
+    resources: {}
+    securityContext:
+      runAsUser: 0
+  volumes:
+    - name: kubeconfig
+      secret:
+        secretName: cluster-kubeconfig
 
 ---
 
@@ -124,6 +177,11 @@ spec:
         inputs:
           - name: git-source
             resource: git-source
+    - name: helm-deploy-task-pipeline
+      runAfter:
+        - ace-api-run
+      taskRef:
+        name: helm-deploy-task
 
 ---
 
