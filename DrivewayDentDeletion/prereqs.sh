@@ -1,5 +1,8 @@
 #!/bin/bash
 export NAMESPACE=driveway-dent-deletion
+export ER_REGISTRY=$(oc get secret -n mq ibm-entitlement-key -o json | jq -r '.data.".dockerconfigjson"' | base64 --decode | jq -r '.auths' | jq 'keys[]' | tr -d '"')
+export ER_USERNAME=$(oc get secret -n mq ibm-entitlement-key -o json | jq -r '.data.".dockerconfigjson"' | base64 --decode | jq -r '.auths."cp.icr.io".username')
+export ER_PASSWORD=$(oc get secret -n mq ibm-entitlement-key -o json | jq -r '.data.".dockerconfigjson"' | base64 --decode | jq -r '.auths."cp.icr.io".password')
 
 oc apply --filename https://storage.googleapis.com/tekton-releases/pipeline/previous/v0.12.1/release.yaml
 oc apply -f https://storage.googleapis.com/tekton-releases/triggers/previous/v0.5.0/release.yaml
@@ -24,4 +27,20 @@ do
     --dry-run -o yaml | oc apply -f -
 done
 
-oc get secret -n mq ibm-entitlement-key --export -o yaml | oc apply -n=${NAMESPACE} -f -
+# oc get secret -n mq ibm-entitlement-key --export -o yaml | oc apply -n=${NAMESPACE} -f -
+
+  cat << EOF | oc apply --namespace ${NAMESPACE} -f -
+apiVersion: v1
+kind: Secret
+metadata:
+  name: er-pull-secret
+  annotations:
+    tekton.dev/docker-0: ${ER_REGISTRY}
+type: kubernetes.io/basic-auth
+stringData:
+  username: ${ER_USERNAME}
+  password: ${ER_PASSWORD}
+EOF
+
+# oc create secret generic cluster-kubeconfig --from-file=kubeconfig=/root/kubeconfig.yaml
+# oc create secret generic task-helm-tls --from-file=key=$HELM_HOME/key.pem --from-file=cert=$HELM_HOME/cert.pem --from-file=ca=ca.pem --dry-run -o yaml | oc apply -f -
