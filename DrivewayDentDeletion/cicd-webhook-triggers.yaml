@@ -11,8 +11,7 @@ metadata:
   name: cicd-ace-sa
 secrets:
   - name: cicd-ace
-imagePullSecrets:
-  - name: ibm-entitlement-key
+  - name: er-pull-secret
 
 ---
 
@@ -22,8 +21,7 @@ metadata:
   name: cicd-mq-sa
 secrets:
   - name: cicd-mq
-imagePullSecrets:
-  - name: ibm-entitlement-key
+  - name: er-pull-secret
 
 ---
 
@@ -37,7 +35,8 @@ spec:
     - name: revision
       value: dent-deletion
     - name: url
-      value: https://github.com/IBM/cp4i-deployment-samples.git
+      # value: https://github.com/IBM/cp4i-deployment-samples.git
+      value: https://github.com/Kinshuk1993/cp4i-deployment-samples.git
 
 ---
 
@@ -61,9 +60,11 @@ spec:
       args:
         - --context=/workspace/git-source/DrivewayDentDeletion/ace-api
         - --dockerfile=/workspace/git-source/DrivewayDentDeletion/ace-api/Dockerfile
-        - --destination=image-registry.openshift-image-registry.svc:5000/ace/ace1:latest
+        - --destination=image-registry.openshift-image-registry.svc:5000/ace/ace2:latest
         - --verbosity=debug
         - --log-timestamp
+        - --single-snapshot
+        - --snapshotMode=time
         - --skip-tls-verify
       securityContext:
         runAsUser: 0
@@ -88,11 +89,13 @@ spec:
       command:
         - /kaniko/executor
       args:
-        - --context=/workspace/git-source/DrivewayDentDeletion/ace-api
-        - --dockerfile=/workspace/git-source/DrivewayDentDeletion/ace-api/Dockerfile
-        - --destination=image-registry.openshift-image-registry.svc:5000/mq/mq1:latest
+        - --context=/workspace/git-source/DrivewayDentDeletion/mq
+        - --dockerfile=/workspace/git-source/DrivewayDentDeletion/mq/Dockerfile
+        - --destination=image-registry.openshift-image-registry.svc:5000/mq/mq2:latest
         - --verbosity=debug
         - --log-timestamp
+        - --single-snapshot
+        - --snapshotMode=time
         - --skip-tls-verify
       securityContext:
         runAsUser: 0
