@@ -27,8 +27,6 @@ do
     --dry-run -o yaml | oc apply -f -
 done
 
-# oc get secret -n mq ibm-entitlement-key --export -o yaml | oc apply -n=${NAMESPACE} -f -
-
   cat << EOF | oc apply --namespace ${NAMESPACE} -f -
 apiVersion: v1
 kind: Secret
@@ -42,5 +40,5 @@ stringData:
   password: ${ER_PASSWORD}
 EOF
 
-# oc create secret generic cluster-kubeconfig --from-file=kubeconfig=/root/kubeconfig.yaml
-# oc create secret generic task-helm-tls --from-file=key=$HELM_HOME/key.pem --from-file=cert=$HELM_HOME/cert.pem --from-file=ca=ca.pem --dry-run -o yaml | oc apply -f -
+oc create secret generic cluster-kubeconfig --from-file=kubeconfig=/root/kubeconfig.yaml
+oc create secret generic task-helm-tls --from-file=key=$HELM_HOME/key.pem --from-file=cert=$HELM_HOME/cert.pem --from-file=ca=ca.pem --dry-run -o yaml | oc apply -f -
