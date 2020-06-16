@@ -60,7 +60,7 @@ spec:
       args:
         - --context=/workspace/git-source/DrivewayDentDeletion/ace-api
         - --dockerfile=/workspace/git-source/DrivewayDentDeletion/ace-api/Dockerfile
-        - --destination=image-registry.openshift-image-registry.svc:5000/ace/ace1:latest-amd64
+        - --destination=image-registry.openshift-image-registry.svc:5000/ace/ace-ddd-api:latest-amd64
         - --verbosity=debug
         - --log-timestamp
         - --skip-tls-verify
@@ -72,7 +72,7 @@ spec:
 apiVersion: tekton.dev/v1alpha1
 kind: Task
 metadata:
-  name: helm-deploy-task-ace
+  name: helm-deploy-task-ace-api
 spec:
   steps:
   - args:
@@ -86,7 +86,7 @@ spec:
     - --repo
     - https://raw.githubusercontent.com/IBM/charts/master/repo/entitled/
     - --set
-    - image.aceonly=image-registry.openshift-image-registry.svc:5000/ace/ace1:latest,image.pullPolicy=Always,license=accept,aceonly.replicaCount=1
+    - image.aceonly=image-registry.openshift-image-registry.svc:5000/ace/ace-ddd-api:latest,image.pullPolicy=Always,license=accept,aceonly.replicaCount=1,integrationServer.configurationSecret=ace-ddd-dev-creds
     - --generate-name
     image: alpine/helm
     env:
@@ -141,7 +141,7 @@ spec:
       args:
         - --context=/workspace/git-source/DrivewayDentDeletion/mq
         - --dockerfile=/workspace/git-source/DrivewayDentDeletion/mq/Dockerfile
-        - --destination=image-registry.openshift-image-registry.svc:5000/mq/mq1:latest
+        - --destination=image-registry.openshift-image-registry.svc:5000/mq/mq-ddd:latest-amd64
         - --verbosity=debug
         - --log-timestamp
         - --skip-tls-verify
@@ -173,11 +173,11 @@ spec:
         inputs:
           - name: git-source
             resource: git-source
-    - name: ace-helm-deploy
+    - name: ace-api-helm-deploy
       runAfter:
         - ace-api-run
       taskRef:
-        name: helm-deploy-task-ace
+        name: helm-deploy-task-ace-api
 
 ---
 
@@ -199,7 +199,7 @@ spec:
           serviceAccountName: cicd-ace-sa
         - taskName: mq-api-run
           serviceAccountName: cicd-mq-sa
-        - taskName: ace-helm-deploy
+        - taskName: ace-api-helm-deploy
           serviceAccountName: cicd-ace-sa
       resources:
       - name: git-source
