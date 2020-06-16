@@ -109,7 +109,7 @@ spec:
             key: key
     volumeMounts:
      - name: kubeconfig
-       mountPath: /app
+       mountPath: /app  
     name: helm-deploy
     resources: {}
     securityContext:
@@ -124,7 +124,7 @@ spec:
 apiVersion: tekton.dev/v1beta1
 kind: Task
 metadata:
-  name: build-push-mq-api-docker-image
+  name: build-push-mq-docker-image
 spec:
   resources:
     inputs:
@@ -151,6 +151,63 @@ spec:
 ---
 
 apiVersion: tekton.dev/v1alpha1
+kind: Task
+metadata:
+  name: helm-deploy-task-mq
+spec:
+  steps:
+  - args:
+    - install
+    - ibm-mqadvanced-server-integration-prod
+    - --debug
+    - -n
+    - mq-icp4i-prod
+    - --namespace
+    - mq
+    - --repo
+    - https://raw.githubusercontent.com/IBM/charts/master/repo/entitled/
+    - --set
+    - image.repository=image-registry.openshift-image-registry.svc:5000/mq/mq-ddd,image.tag=latest,image.pullPolicy=Always,license=accept,image.pullSecret=cicd-mq,qmPVC.enabled=false,logPVC.enabled=false,tls.hostname=,trace.strmqm=false,queueManager.multiInstance=false,odTracingConfig.enabled=false,odTracingConfig.odTracingNamespace=tracing
+    - --generate-name
+    image: alpine/helm
+    env:
+      - name: KUBECONFIG
+        value: /app/kubeconfig
+      - name: HELM_TLS_CA_CERT
+        valueFrom:
+          secretKeyRef:
+            name: task-helm-tls
+            key: ca
+      - name: HELM_TLS_CERT
+        valueFrom:
+          secretKeyRef:
+            name: task-helm-tls
+            key: cert
+      - name: HELM_TLS_KEY
+        valueFrom:
+          secretKeyRef:
+            name: task-helm-tls
+            key: key
+    volumeMounts:
+     - name: kubeconfig
+       mountPath: /app
+#      - name: configmap_mq
+#        mountPath: /app 
+    name: helm-deploy
+    resources: {}
+    securityContext:
+      runAsUser: 0
+  volumes:
+    - name: kubeconfig
+      secret:
+        secretName: cluster-kubeconfig
+#     - name: "$(params.volumeName)"
+#       configMap:
+#         name: "$(params.CFGNAME)"
+
+---
+
+apiVersion: tekton.dev/v1alpha1
 kind: Pipeline
 metadata:
   name: main-pipeline
@@ -159,25 +216,30 @@ spec:
     - name: git-source
       type: git
   tasks:
-    - name: ace-api-run
+    - name: ace-api-build
       taskRef:
         name: build-push-ace-api-docker-image
       resources:
         inputs:
           - name: git-source
             resource: git-source
-    - name: mq-api-run
+    - name: mq-build
       taskRef:
-        name: build-push-mq-api-docker-image
+        name: build-push-mq-docker-image
       resources:
         inputs:
           - name: git-source
             resource: git-source
     - name: ace-api-helm-deploy
       runAfter:
-        - ace-api-run
+        - ace-api-build
       taskRef:
         name: helm-deploy-task-ace-api
+    - name: mq-helm-deploy
+      runAfter:
+        - mq-build
+      taskRef:
+        name: helm-deploy-task-mq
 
 ---
 
