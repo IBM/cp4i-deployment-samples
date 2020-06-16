@@ -147,3 +147,16 @@ if [ $? -eq 0 ] ; then
     ChrisCost INTEGER,
     ChrisDate DATE);'
 fi
+
+echo "Creating configmap for the env-vars for mq deploy"
+export icp_console=$(oc get route -n kube-system icp-console  -o jsonpath='{.spec.host}')
+
+cat << EOF | oc apply --namespace ${NAMESPACE} -f -
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: env-configmap
+data:
+  # we can add more values if needed
+  icp_console: ${icp_console}
+EOF
