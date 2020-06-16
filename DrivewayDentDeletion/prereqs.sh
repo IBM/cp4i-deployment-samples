@@ -48,7 +48,7 @@ stringData:
 EOF
 
 echo "Fetching kubeconfig of cluster and creating secret"
-export HOME=$(echo ~)
+export HOME=~
 echo $HOME
 oc config view --flatten=true --minify=true > $HOME/kubeconfig.yaml
 oc create -n $NAMESPACE secret generic cluster-kubeconfig --from-file=kubeconfig=${HOME}/kubeconfig.yaml
