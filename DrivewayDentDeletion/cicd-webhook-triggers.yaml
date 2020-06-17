@@ -76,19 +76,19 @@ metadata:
 spec:
   steps:
   - args:
-    - install
+    - upgrade
+    - ace-ddd-api-dev
     - ibm-ace-server-icp4i-prod
-    - --debug
-    - -n
-    - ace-server-icp4i-prod
-    - --namespace
-    - ace
     - --repo
     - https://raw.githubusercontent.com/IBM/charts/master/repo/entitled/
+    - --namespace
+    - ace
     - --set
-    - image.aceonly=image-registry.openshift-image-registry.svc:5000/ace/ace-ddd-api:latest,image.pullPolicy=Always,license=accept,aceonly.replicaCount=1,integrationServer.configurationSecret=ace-ddd-dev-creds
-    - --generate-name
-    image: alpine/helm
+    - image.pullPolicy=Always,image.aceonly=image-registry.openshift-image-registry.svc:5000/ace/ace-ddd-api:latest,aceonly.replicaCount=1,license=accept,integrationServer.configurationSecret=ace-ddd-dev-creds
+    - --tls
+    - --install
+    - --debug
+    image: alpine/helm:2.12.3
     env:
       - name: KUBECONFIG
         value: /app/kubeconfig
@@ -157,19 +157,19 @@ metadata:
 spec:
   steps:
   - args:
-    - install
+    - upgrade
+    - mq-ddd-dev
     - ibm-mqadvanced-server-integration-prod
-    - --debug
-    - -n
-    - mq-icp4i-prod
-    - --namespace
-    - mq
     - --repo
     - https://raw.githubusercontent.com/IBM/charts/master/repo/entitled/
+    - --namespace
+    - mq
     - --set
-    - image.repository=image-registry.openshift-image-registry.svc:5000/mq/mq-ddd,image.tag=latest,image.pullPolicy=Always,license=accept,image.pullSecret=cicd-mq,qmPVC.enabled=false,logPVC.enabled=false,trace.strmqm=false,queueManager.multiInstance=false,odTracingConfig.enabled=false,odTracingConfig.odTracingNamespace=tracing,tls.hostname=${ICP_CONSOLE}
-    - --generate-name
-    image: alpine/helm
+    - license=accept,log.debug=false,qmPVC.enabled=false,logPVC.enabled=false,tls.hostname=${ICP_CONSOLE},trace.strmqm=false,selectedCluster[0].label=local-cluster,selectedCluster[0].value=local-cluster,selectedCluster[0].ip=${ICP_CONSOLE},selectedCluster[0].namespace=local-cluster,queueManager.multiInstance=false,odTracingConfig.enabled=false,odTracingConfig.odTracingNamespace=tracing,pki.keys[0].name=default,pki.keys[0].secret.secretName=mqcert,pki.keys[0].secret.items[0]=tls.key,pki.keys[0].secret.items[0]=tls.crt,image.repository=image-registry.openshift-image-registry.svc:5000/mq/mq-ddd,image.tag=latest,image.pullPolicy=Always
+    - --tls
+    - --install
+    - --debug
+    image: alpine/helm:2.12.3
     env:
       - name: KUBECONFIG
         value: /app/kubeconfig
