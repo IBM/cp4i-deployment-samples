@@ -421,11 +421,6 @@ spec:
     env:
       - name: KUBECONFIG
         value: /app/kubeconfig
-      - name: ICP_CONSOLE
-        valueFrom:
-          configMapKeyRef:
-            name: env-configmap
-            key: icp_console
       - name: HELM_TLS_CA_CERT
         value: /app/helm/ca.pem
       - name: HELM_TLS_CERT
