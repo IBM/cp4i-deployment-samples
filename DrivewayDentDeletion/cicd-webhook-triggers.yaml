@@ -1,3 +1,18 @@
+apiVersion: tekton.dev/v1alpha1
+kind: PipelineResource
+metadata:
+  name: git-source
+spec:
+  type: git
+  params:
+    - name: revision
+      value: dent-deletion
+    - name: url
+      # value: https://github.com/IBM/cp4i-deployment-samples.git
+      value: https://github.com/Kinshuk1993/cp4i-deployment-samples.git
+
+---
+
 apiVersion: v1
 kind: ServiceAccount
 metadata:
@@ -22,21 +37,6 @@ metadata:
 secrets:
   - name: cicd-mq
   - name: er-pull-secret
-
----
-
-apiVersion: tekton.dev/v1alpha1
-kind: PipelineResource
-metadata:
-  name: git-source
-spec:
-  type: git
-  params:
-    - name: revision
-      value: dent-deletion
-    - name: url
-      # value: https://github.com/IBM/cp4i-deployment-samples.git
-      value: https://github.com/Kinshuk1993/cp4i-deployment-samples.git
 
 ---
 
