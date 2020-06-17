@@ -1,5 +1,5 @@
 #!/bin/bash
-export NAMESPACE=driveway-dent-deletion
+export NAMESPACE=driveway-dent-deletion10
 export ER_REGISTRY=$(oc get secret -n mq ibm-entitlement-key -o json | jq -r '.data.".dockerconfigjson"' | base64 --decode | jq -r '.auths' | jq 'keys[]' | tr -d '"')
 export ER_USERNAME=$(oc get secret -n mq ibm-entitlement-key -o json | jq -r '.data.".dockerconfigjson"' | base64 --decode | jq -r '.auths."cp.icr.io".username')
 export ER_PASSWORD=$(oc get secret -n mq ibm-entitlement-key -o json | jq -r '.data.".dockerconfigjson"' | base64 --decode | jq -r '.auths."cp.icr.io".password')
@@ -70,7 +70,15 @@ if [ ! -f $HELM_HOME/key.pem ] || [ ! -f $HELM_HOME/cert.pem ] || [ ! -f $HELM_H
 fi
 
 echo "Creating helm tls secret for helm install"
-oc create -n $NAMESPACE secret generic task-helm-tls --from-file=key=$HELM_HOME/key.pem --from-file=cert=$HELM_HOME/cert.pem --from-file=ca=$HELM_HOME/ca.pem --dry-run -o yaml | oc apply -f -
+oc create -n $NAMESPACE secret generic task-helm-tls \
+  --from-file=key.pem=$HELM_HOME/key.pem \
+  --from-file=cert.pem=$HELM_HOME/cert.pem \
+  --from-file=ca.pem=$HELM_HOME/ca.pem \
+  --dry-run -o yaml | oc apply -f -
+
+oc create -n $NAMESPACE secret generic task-helm-repositories \
+  --from-file=repositories.yaml=repositories.yaml \
+  --dry-run -o yaml | oc apply -f -
 
 cat << EOF | oc apply -f -
 kind: Secret

@@ -9,7 +9,8 @@ spec:
       value: dent-deletion
     - name: url
       # value: https://github.com/IBM/cp4i-deployment-samples.git
-      value: https://github.com/Kinshuk1993/cp4i-deployment-samples.git
+      # value: https://github.com/Kinshuk1993/cp4i-deployment-samples.git
+      value: {{FORKED_REPO}}
 
 ---
 
@@ -93,23 +94,18 @@ spec:
       - name: KUBECONFIG
         value: /app/kubeconfig
       - name: HELM_TLS_CA_CERT
-        valueFrom:
-          secretKeyRef:
-            name: task-helm-tls
-            key: ca
+        value: /app/helm/ca.pem
       - name: HELM_TLS_CERT
-        valueFrom:
-          secretKeyRef:
-            name: task-helm-tls
-            key: cert
+        value: /app/helm/cert.pem
       - name: HELM_TLS_KEY
-        valueFrom:
-          secretKeyRef:
-            name: task-helm-tls
-            key: key
+        value: /app/helm/key.pem
     volumeMounts:
      - name: kubeconfig
        mountPath: /app
+     - name: helm-tls
+       mountPath: /app/helm
+     - name: helm-repositories
+       mountPath: /tekton/home/.helm/repository
     name: helm-deploy
     resources: {}
     securityContext:
@@ -118,6 +114,12 @@ spec:
     - name: kubeconfig
       secret:
         secretName: cluster-kubeconfig
+    - name: helm-tls
+      secret:
+        secretName: task-helm-tls
+    - name: helm-repositories
+      secret:
+        secretName: task-helm-repositories
 
 ---
 
@@ -165,7 +167,7 @@ spec:
     - --namespace
     - mq
     - --set
-    - license=accept,log.debug=false,qmPVC.enabled=false,logPVC.enabled=false,tls.hostname=${ICP_CONSOLE},trace.strmqm=false,selectedCluster[0].label=local-cluster,selectedCluster[0].value=local-cluster,selectedCluster[0].ip=${ICP_CONSOLE},selectedCluster[0].namespace=local-cluster,queueManager.multiInstance=false,odTracingConfig.enabled=false,odTracingConfig.odTracingNamespace=tracing,pki.keys[0].name=default,pki.keys[0].secret.secretName=mqcert,pki.keys[0].secret.items[0]=tls.key,pki.keys[0].secret.items[0]=tls.crt,image.repository=image-registry.openshift-image-registry.svc:5000/mq/mq-ddd,image.tag=latest,image.pullPolicy=Always
+    - license=accept,log.debug=false,qmPVC.enabled=false,logPVC.enabled=false,tls.hostname={{CP_CONSOLE}},trace.strmqm=false,selectedCluster[0].label=local-cluster,selectedCluster[0].value=local-cluster,selectedCluster[0].ip={{CP_CONSOLE}},selectedCluster[0].namespace=local-cluster,queueManager.multiInstance=false,odTracingConfig.enabled=false,odTracingConfig.odTracingNamespace=tracing,pki.keys[0].name=default,pki.keys[0].secret.secretName=mqcert,pki.keys[0].secret.items[0]=tls.key,pki.keys[0].secret.items[0]=tls.crt,image.repository=image-registry.openshift-image-registry.svc:5000/mq/mq-ddd,image.tag=latest,image.pullPolicy=Always
     - --tls
     - --install
     - --debug
@@ -179,23 +181,18 @@ spec:
             name: env-configmap
             key: icp_console
       - name: HELM_TLS_CA_CERT
-        valueFrom:
-          secretKeyRef:
-            name: task-helm-tls
-            key: ca
+        value: /app/helm/ca.pem
       - name: HELM_TLS_CERT
-        valueFrom:
-          secretKeyRef:
-            name: task-helm-tls
-            key: cert
+        value: /app/helm/cert.pem
       - name: HELM_TLS_KEY
-        valueFrom:
-          secretKeyRef:
-            name: task-helm-tls
-            key: key
+        value: /app/helm/key.pem
     volumeMounts:
      - name: kubeconfig
        mountPath: /app
+     - name: helm-tls
+       mountPath: /app/helm
+     - name: helm-repositories
+       mountPath: /tekton/home/.helm/repository
     name: helm-deploy
     resources: {}
     securityContext:
@@ -204,6 +201,12 @@ spec:
     - name: kubeconfig
       secret:
         secretName: cluster-kubeconfig
+    - name: helm-tls
+      secret:
+        secretName: task-helm-tls
+    - name: helm-repositories
+      secret:
+        secretName: task-helm-repositories
 
 ---
 
