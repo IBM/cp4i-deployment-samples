@@ -119,42 +119,42 @@ while [ ! $retry_count -eq $startup_retries ] && [ "$everything_ready" = false ]
   for product in $cp_products; do
     case $product in
         ace)
-            if is_release_ready ${ace_designer_release_name}; then
-              echo "${ace_designer_release_name} is not ready!"
+            if is_release_ready ${ACE_DESIGNER_RELEASE_NAME}; then
+              echo "${ACE_DESIGNER_RELEASE_NAME} is not ready!"
               everything_ready=false
             fi
-            if is_release_ready ${ace_dashboard_release_name}; then
-              echo "${ace_dashboard_release_name} is not ready!"
+            if is_release_ready ${ACE_DASHBOARD_RELEASE_NAME}; then
+              echo "${ACE_DASHBOARD_RELEASE_NAME} is not ready!"
               everything_ready=false
             fi
             ;;
         apic)
-            if is_release_ready ${apic_release_name}; then
-              echo "${apic_release_name} is not ready!"
+            if is_release_ready ${APIC_RELEASE_NAME}; then
+              echo "${APIC_RELEASE_NAME} is not ready!"
               everything_ready=false
             fi
             ;;
         assetrepo)
-            if is_release_ready ${asset_repo_release_name}; then
-              echo "${asset_repo_release_name} is not ready!"
+            if is_release_ready ${ASSET_REPO_RELEASE_NAME}; then
+              echo "${ASSET_REPO_RELEASE_NAME} is not ready!"
               everything_ready=false
             fi
             ;;
         eventstreams)
-            if is_release_ready ${event_streams_release_name}; then
-              echo "${event_streams_release_name} is not ready!"
+            if is_release_ready ${EVENT_STREAMS_RELEASE_NAME}; then
+              echo "${EVENT_STREAMS_RELEASE_NAME} is not ready!"
               everything_ready=false
             fi
             ;;
         mq)
-            if is_release_ready ${mq_release_name}; then
-              echo "${mq_release_name} is not ready!"
+            if is_release_ready ${MQ_RELEASE_NAME}; then
+              echo "${MQ_RELEASE_NAME} is not ready!"
               everything_ready=false
             fi
             ;;
         tracing)
-            if is_release_ready ${tracing_release_name}; then
-              echo "${tracing_release_name} is not ready!"
+            if is_release_ready ${TRACING_RELEASE_NAME}; then
+              echo "${TRACING_RELEASE_NAME} is not ready!"
               everything_ready=false
             fi
             ;; 
