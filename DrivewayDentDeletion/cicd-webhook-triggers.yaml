@@ -109,7 +109,7 @@ spec:
             key: key
     volumeMounts:
      - name: kubeconfig
-       mountPath: /app  
+       mountPath: /app
     name: helm-deploy
     resources: {}
     securityContext:
@@ -257,9 +257,9 @@ spec:
       pipelineRef:
         name: main-pipeline
       serviceAccountNames:
-        - taskName: ace-api-run
+        - taskName: ace-api-build
           serviceAccountName: cicd-ace-sa
-        - taskName: mq-api-run
+        - taskName: mq-build
           serviceAccountName: cicd-mq-sa
         - taskName: ace-api-helm-deploy
           serviceAccountName: cicd-ace-sa
