@@ -13,10 +13,11 @@ These steps will need to be documented in the demo docs:
 - Fork/clone the repo
 - Apply yaml to create the pipeline, configured to use the forked repo
 ```
-oc project driveway-dent-deletion10
+oc project driveway-dent-deletion
+export BRANCH=master
 export FORKED_REPO=https://github.com/IBM/cp4i-deployment-samples.git
 export CP_CONSOLE=$(oc get route -n kube-system icp-console  -o jsonpath='{.spec.host}')
-cat cicd-webhook-triggers.yaml | sed "s#{{FORKED_REPO}}#$FORKED_REPO#g;" | sed "s#{{CP_CONSOLE}}#$CP_CONSOLE#g;" | oc apply -f -
+cat cicd-webhook-triggers.yaml | sed "s#{{FORKED_REPO}}#$FORKED_REPO#g;" | sed "s#{{BRANCH}}#$BRANCH#g;" | sed "s#{{CP_CONSOLE}}#$CP_CONSOLE#g;" | oc apply -f -
 ```
 - Run the command `echo "$(oc  get route el-main-trigger --template='http://{{.spec.host}}')"` to get the url for the trigger
 - Add the trigger url to the repo as a webhook, which triggers an initial run of the pipeline.

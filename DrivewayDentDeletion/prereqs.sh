@@ -135,23 +135,22 @@ oc create secret generic -n ace ace-ddd-dev-creds \
   --from-file=policyDescriptor=/tmp/policyDescriptor.xml \
   --dry-run -o yaml | oc apply -f -
 
-echo "Checking if postgres pod name exists before configuring database"
-oc get pod -n postgres -l name=postgresql -o jsonpath='{.items[].metadata.name}' 2> /dev/null
-if [ $? -eq 0 ] ; then
-  echo "Postgres exists and configuring database now"
-  oc exec -n postgres -it $(oc get pod -n postgres -l name=postgresql -o jsonpath='{.items[].metadata.name}') \
-    -- psql -U admin -d sampledb -c \
-  'CREATE TABLE QUOTES (
-    QuoteID SERIAL PRIMARY KEY NOT NULL,
-    Name VARCHAR(100),
-    EMail VARCHAR(100),
-    Address VARCHAR(100),
-    USState VARCHAR(100),
-    LicensePlate VARCHAR(100),
-    ACMECost INTEGER,
-    ACMEDate DATE,
-    BernieCost INTEGER,
-    BernieDate DATE,
-    ChrisCost INTEGER,
-    ChrisDate DATE);'
-fi
+echo "Waiting for postgres to be ready"
+oc wait -n postgres --for=condition=available deploymentconfig --timeout=20m postgresql
+
+echo "Creating quotes table in postgres samepledb"
+oc exec -n postgres -it $(oc get pod -n postgres -l name=postgresql -o jsonpath='{.items[].metadata.name}') \
+  -- psql -U admin -d sampledb -c \
+'CREATE TABLE QUOTES (
+  QuoteID SERIAL PRIMARY KEY NOT NULL,
+  Name VARCHAR(100),
+  EMail VARCHAR(100),
+  Address VARCHAR(100),
+  USState VARCHAR(100),
+  LicensePlate VARCHAR(100),
+  ACMECost INTEGER,
+  ACMEDate DATE,
+  BernieCost INTEGER,
+  BernieDate DATE,
+  ChrisCost INTEGER,
+  ChrisDate DATE);'
