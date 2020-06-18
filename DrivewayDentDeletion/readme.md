@@ -5,12 +5,11 @@ Integration Servers and 1 MQ server. Future versions of this demo will build
 upon this.
 
 # Prerequisites
-A [script](prereqs.sh) is provided to setup the prerequisited for this demo
+A [script](prereqs.sh) is provided to setup the prerequisits for this demo
 and this script is automatically run as part of the 1-click demo preparation.
 The script sets up the following:
 - Installs Tekton Pipelines v0.12.1
 - Installs Tekton Triggers v0.5.0
-- Installs Postgres 9.6
 - Creates a `driveway-dent-deletion` project to be used for the demo
 - Creates secrets to allow the pipeline to push images to the `ace`/`mq` projects
 - Creates a secret to allow the pipeline to pull from the entitled registry
@@ -29,7 +28,11 @@ These steps will need to be documented in the demo docs:
   export BRANCH=master
   export FORKED_REPO=https://github.com/IBM/cp4i-deployment-samples.git
   export CP_CONSOLE=$(oc get route -n kube-system icp-console  -o jsonpath='{.spec.host}')
-  cat cicd-webhook-triggers.yaml | sed "s#{{FORKED_REPO}}#$FORKED_REPO#g;" | sed "s#{{BRANCH}}#$BRANCH#g;" | sed "s#{{CP_CONSOLE}}#$CP_CONSOLE#g;" | oc apply -f -
+  cat cicd-webhook-triggers.yaml | \
+    sed "s#{{FORKED_REPO}}#$FORKED_REPO#g;" | \
+    sed "s#{{BRANCH}}#$BRANCH#g;" | \
+    sed "s#{{CP_CONSOLE}}#$CP_CONSOLE#g;" | \
+    oc apply -f -
   ```
 - Run the following command to get the URL for the trigger:
   ```
@@ -43,5 +46,3 @@ These steps will need to be documented in the demo docs:
   pipeline.
 - Build tasks: Each of these tasks builds an images and pushes it to the cluster's local OpenShift Image Registry. The latest dockerfile and related files (bar files) are pulled from the forked git repo.
 - Deploy to dev tasks: Each of these tasks invokes helm to deploy/upgrade the deployments using the newly built image.
-- Await dev rollout: Waits for the deployments to complete rolling out so the new images are running on all replicas. Note that for this stage to complete the liveness probe for the newly deployed images has passed.
-- Test dev: Runs a rudimentary test to ensure the new deployments are working.
