@@ -1,26 +1,41 @@
+# Overview
+This dir is for a demo name "Driveway Dent Deletion". The initial version of this
+demo uses a Tekton pipeline to build images and deploy them for 4 App Connect
+Integration Servers and 1 MQ server. Future versions of this demo will build
+upon this.
+
 # Prerequisites
-These will be automatically created as part of the 1-click demo preparation:
-- Tekton Pipelines v0.12.1 installed on cluster
-- Tekton Triggers v0.5.0 installed on cluster
-- An instance of Postgres 9.6
-- A DrivewayDentDeletion database with required tables
-- Secret for ACE API to connect to MQ and Postgres
-- Secret for MQ to connect to Acme's/Bernie's/Chris' ACE
-- Secret for Acme's/Bernie's/Chris' ACE to connect to MQ
+A [script](prereqs.sh) is provided to setup the prerequisited for this demo
+and this script is automatically run as part of the 1-click demo preparation.
+The script sets up the following:
+- Installs Tekton Pipelines v0.12.1
+- Installs Tekton Triggers v0.5.0
+- Installs Postgres 9.6
+- Creates a `driveway-dent-deletion` project to be used for the demo
+- Creates secrets to allow the pipeline to push images to the `ace`/`mq` projects
+- Creates a secret to allow the pipeline to pull from the entitled registry
+- Creates secrets to allow the pipeline to run helm against the CP4I tiller
+- Creates a TLS secret to secure connections to MQ
+- Creates a secret to allow the App Connect Integration Servers to connect to MQ
+- Creates a `quotes` table in the Postgres sampledb database
 
 # User steps
 These steps will need to be documented in the demo docs:
 - Fork/clone the repo
-- Apply yaml to create the pipeline, configured to use the forked repo
-```
-oc project driveway-dent-deletion
-export BRANCH=master
-export FORKED_REPO=https://github.com/IBM/cp4i-deployment-samples.git
-export CP_CONSOLE=$(oc get route -n kube-system icp-console  -o jsonpath='{.spec.host}')
-cat cicd-webhook-triggers.yaml | sed "s#{{FORKED_REPO}}#$FORKED_REPO#g;" | sed "s#{{BRANCH}}#$BRANCH#g;" | sed "s#{{CP_CONSOLE}}#$CP_CONSOLE#g;" | oc apply -f -
-```
-- Run the command `echo "$(oc  get route el-main-trigger --template='http://{{.spec.host}}')"` to get the url for the trigger
-- Add the trigger url to the repo as a webhook, which triggers an initial run of the pipeline.
+- Apply yaml to create the pipeline, configured to use the forked repo. Set
+`FORKED_REPO` to the URL for your repo.
+  ```
+  oc project driveway-dent-deletion
+  export BRANCH=master
+  export FORKED_REPO=https://github.com/IBM/cp4i-deployment-samples.git
+  export CP_CONSOLE=$(oc get route -n kube-system icp-console  -o jsonpath='{.spec.host}')
+  cat cicd-webhook-triggers.yaml | sed "s#{{FORKED_REPO}}#$FORKED_REPO#g;" | sed "s#{{BRANCH}}#$BRANCH#g;" | sed "s#{{CP_CONSOLE}}#$CP_CONSOLE#g;" | oc apply -f -
+  ```
+- Run the following command to get the URL for the trigger:
+  ```
+  echo "$(oc  get route el-main-trigger --template='http://{{.spec.host}}')"
+  ```
+- Add the trigger URL to the repo as a webhook, which triggers an initial run of the pipeline.
 
 # Pipelines
 ![Overview of aaS](media/dev-pipeline.svg)
