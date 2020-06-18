@@ -1,0 +1,629 @@
+apiVersion: tekton.dev/v1alpha1
+kind: PipelineResource
+metadata:
+  name: git-source
+spec:
+  type: git
+  params:
+    - name: revision
+      value: "{{BRANCH}}"
+    - name: url
+      value: "{{FORKED_REPO}}"
+
+---
+
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: cicd-el
+
+---
+
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: cicd-ace-sa
+secrets:
+  - name: cicd-ace
+  - name: er-pull-secret
+
+---
+
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: cicd-mq-sa
+secrets:
+  - name: cicd-mq
+  - name: er-pull-secret
+
+---
+
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: build-push-ace-api-docker-image
+spec:
+  resources:
+    inputs:
+      - name: git-source
+        type: git
+  steps:
+    - name: build-and-push-ace
+      image: gcr.io/kaniko-project/executor:latest
+      env:
+        - name: "DOCKER_CONFIG"
+          value: "/tekton/home/.docker/"
+      command:
+        - /kaniko/executor
+      args:
+        - --context=/workspace/git-source/DrivewayDentDeletion/ace-api
+        - --dockerfile=/workspace/git-source/DrivewayDentDeletion/ace-api/Dockerfile
+        - --destination=image-registry.openshift-image-registry.svc:5000/ace/ace-ddd-api:latest-amd64
+        - --verbosity=debug
+        - --log-timestamp
+        - --skip-tls-verify
+      securityContext:
+        runAsUser: 0
+
+---
+
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: build-push-ace-acme-docker-image
+spec:
+  resources:
+    inputs:
+      - name: git-source
+        type: git
+  steps:
+    - name: build-and-push-ace
+      image: gcr.io/kaniko-project/executor:latest
+      env:
+        - name: "DOCKER_CONFIG"
+          value: "/tekton/home/.docker/"
+      command:
+        - /kaniko/executor
+      args:
+        - --context=/workspace/git-source/DrivewayDentDeletion/ace-acme
+        - --dockerfile=/workspace/git-source/DrivewayDentDeletion/ace-acme/Dockerfile
+        - --destination=image-registry.openshift-image-registry.svc:5000/ace/ace-ddd-acme:latest-amd64
+        - --verbosity=debug
+        - --log-timestamp
+        - --skip-tls-verify
+      securityContext:
+        runAsUser: 0
+
+---
+
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: build-push-ace-bernie-docker-image
+spec:
+  resources:
+    inputs:
+      - name: git-source
+        type: git
+  steps:
+    - name: build-and-push-ace
+      image: gcr.io/kaniko-project/executor:latest
+      env:
+        - name: "DOCKER_CONFIG"
+          value: "/tekton/home/.docker/"
+      command:
+        - /kaniko/executor
+      args:
+        - --context=/workspace/git-source/DrivewayDentDeletion/ace-bernie
+        - --dockerfile=/workspace/git-source/DrivewayDentDeletion/ace-bernie/Dockerfile
+        - --destination=image-registry.openshift-image-registry.svc:5000/ace/ace-ddd-bernie:latest-amd64
+        - --verbosity=debug
+        - --log-timestamp
+        - --skip-tls-verify
+      securityContext:
+        runAsUser: 0
+
+---
+
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: build-push-ace-chris-docker-image
+spec:
+  resources:
+    inputs:
+      - name: git-source
+        type: git
+  steps:
+    - name: build-and-push-ace
+      image: gcr.io/kaniko-project/executor:latest
+      env:
+        - name: "DOCKER_CONFIG"
+          value: "/tekton/home/.docker/"
+      command:
+        - /kaniko/executor
+      args:
+        - --context=/workspace/git-source/DrivewayDentDeletion/ace-chris
+        - --dockerfile=/workspace/git-source/DrivewayDentDeletion/ace-chris/Dockerfile
+        - --destination=image-registry.openshift-image-registry.svc:5000/ace/ace-ddd-chris:latest-amd64
+        - --verbosity=debug
+        - --log-timestamp
+        - --skip-tls-verify
+      securityContext:
+        runAsUser: 0
+
+---
+
+apiVersion: tekton.dev/v1alpha1
+kind: Task
+metadata:
+  name: helm-deploy-task-ace-api
+spec:
+  steps:
+  - args:
+    - upgrade
+    - ace-ddd-api-dev
+    - ibm-ace-server-icp4i-prod
+    - --repo
+    - https://raw.githubusercontent.com/IBM/charts/master/repo/entitled/
+    - --namespace
+    - ace
+    - --set
+    - image.pullPolicy=Always,image.aceonly=image-registry.openshift-image-registry.svc:5000/ace/ace-ddd-api:latest,aceonly.replicaCount=1,license=accept,integrationServer.configurationSecret=ace-ddd-dev-creds
+    - --tls
+    - --install
+    - --debug
+    image: alpine/helm:2.12.3
+    env:
+      - name: KUBECONFIG
+        value: /app/kubeconfig
+      - name: HELM_TLS_CA_CERT
+        value: /app/helm/ca.pem
+      - name: HELM_TLS_CERT
+        value: /app/helm/cert.pem
+      - name: HELM_TLS_KEY
+        value: /app/helm/key.pem
+    volumeMounts:
+     - name: kubeconfig
+       mountPath: /app
+     - name: helm-tls
+       mountPath: /app/helm
+     - name: helm-repositories
+       mountPath: /tekton/home/.helm/repository
+    name: helm-deploy
+    resources: {}
+    securityContext:
+      runAsUser: 0
+  volumes:
+    - name: kubeconfig
+      secret:
+        secretName: cluster-kubeconfig
+    - name: helm-tls
+      secret:
+        secretName: task-helm-tls
+    - name: helm-repositories
+      secret:
+        secretName: task-helm-repositories
+
+---
+
+apiVersion: tekton.dev/v1alpha1
+kind: Task
+metadata:
+  name: helm-deploy-task-ace-acme
+spec:
+  steps:
+  - args:
+    - upgrade
+    - ace-ddd-acme-dev
+    - ibm-ace-server-icp4i-prod
+    - --repo
+    - https://raw.githubusercontent.com/IBM/charts/master/repo/entitled/
+    - --namespace
+    - ace
+    - --set
+    - image.pullPolicy=Always,image.aceonly=image-registry.openshift-image-registry.svc:5000/ace/ace-ddd-acme:latest,aceonly.replicaCount=1,license=accept,integrationServer.configurationSecret=ace-ddd-dev-creds
+    - --tls
+    - --install
+    - --debug
+    image: alpine/helm:2.12.3
+    env:
+      - name: KUBECONFIG
+        value: /app/kubeconfig
+      - name: HELM_TLS_CA_CERT
+        value: /app/helm/ca.pem
+      - name: HELM_TLS_CERT
+        value: /app/helm/cert.pem
+      - name: HELM_TLS_KEY
+        value: /app/helm/key.pem
+    volumeMounts:
+     - name: kubeconfig
+       mountPath: /app
+     - name: helm-tls
+       mountPath: /app/helm
+     - name: helm-repositories
+       mountPath: /tekton/home/.helm/repository
+    name: helm-deploy
+    resources: {}
+    securityContext:
+      runAsUser: 0
+  volumes:
+    - name: kubeconfig
+      secret:
+        secretName: cluster-kubeconfig
+    - name: helm-tls
+      secret:
+        secretName: task-helm-tls
+    - name: helm-repositories
+      secret:
+        secretName: task-helm-repositories
+
+---
+
+apiVersion: tekton.dev/v1alpha1
+kind: Task
+metadata:
+  name: helm-deploy-task-ace-bernie
+spec:
+  steps:
+  - args:
+    - upgrade
+    - ace-ddd-bernie-dev
+    - ibm-ace-server-icp4i-prod
+    - --repo
+    - https://raw.githubusercontent.com/IBM/charts/master/repo/entitled/
+    - --namespace
+    - ace
+    - --set
+    - image.pullPolicy=Always,image.aceonly=image-registry.openshift-image-registry.svc:5000/ace/ace-ddd-bernie:latest,aceonly.replicaCount=1,license=accept,integrationServer.configurationSecret=ace-ddd-dev-creds
+    - --tls
+    - --install
+    - --debug
+    image: alpine/helm:2.12.3
+    env:
+      - name: KUBECONFIG
+        value: /app/kubeconfig
+      - name: HELM_TLS_CA_CERT
+        value: /app/helm/ca.pem
+      - name: HELM_TLS_CERT
+        value: /app/helm/cert.pem
+      - name: HELM_TLS_KEY
+        value: /app/helm/key.pem
+    volumeMounts:
+     - name: kubeconfig
+       mountPath: /app
+     - name: helm-tls
+       mountPath: /app/helm
+     - name: helm-repositories
+       mountPath: /tekton/home/.helm/repository
+    name: helm-deploy
+    resources: {}
+    securityContext:
+      runAsUser: 0
+  volumes:
+    - name: kubeconfig
+      secret:
+        secretName: cluster-kubeconfig
+    - name: helm-tls
+      secret:
+        secretName: task-helm-tls
+    - name: helm-repositories
+      secret:
+        secretName: task-helm-repositories
+
+---
+
+apiVersion: tekton.dev/v1alpha1
+kind: Task
+metadata:
+  name: helm-deploy-task-ace-chris
+spec:
+  steps:
+  - args:
+    - upgrade
+    - ace-ddd-chris-dev
+    - ibm-ace-server-icp4i-prod
+    - --repo
+    - https://raw.githubusercontent.com/IBM/charts/master/repo/entitled/
+    - --namespace
+    - ace
+    - --set
+    - image.pullPolicy=Always,image.aceonly=image-registry.openshift-image-registry.svc:5000/ace/ace-ddd-chris:latest,aceonly.replicaCount=1,license=accept,integrationServer.configurationSecret=ace-ddd-dev-creds
+    - --tls
+    - --install
+    - --debug
+    image: alpine/helm:2.12.3
+    env:
+      - name: KUBECONFIG
+        value: /app/kubeconfig
+      - name: HELM_TLS_CA_CERT
+        value: /app/helm/ca.pem
+      - name: HELM_TLS_CERT
+        value: /app/helm/cert.pem
+      - name: HELM_TLS_KEY
+        value: /app/helm/key.pem
+    volumeMounts:
+     - name: kubeconfig
+       mountPath: /app
+     - name: helm-tls
+       mountPath: /app/helm
+     - name: helm-repositories
+       mountPath: /tekton/home/.helm/repository
+    name: helm-deploy
+    resources: {}
+    securityContext:
+      runAsUser: 0
+  volumes:
+    - name: kubeconfig
+      secret:
+        secretName: cluster-kubeconfig
+    - name: helm-tls
+      secret:
+        secretName: task-helm-tls
+    - name: helm-repositories
+      secret:
+        secretName: task-helm-repositories
+
+---
+
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: build-push-mq-docker-image
+spec:
+  resources:
+    inputs:
+      - name: git-source
+        type: git
+  steps:
+    - name: build-and-push-mq
+      image: gcr.io/kaniko-project/executor:latest
+      env:
+        - name: "DOCKER_CONFIG"
+          value: "/tekton/home/.docker/"
+      command:
+        - /kaniko/executor
+      args:
+        - --context=/workspace/git-source/DrivewayDentDeletion/mq
+        - --dockerfile=/workspace/git-source/DrivewayDentDeletion/mq/Dockerfile
+        - --destination=image-registry.openshift-image-registry.svc:5000/mq/mq-ddd:latest-amd64
+        - --verbosity=debug
+        - --log-timestamp
+        - --skip-tls-verify
+      securityContext:
+        runAsUser: 0
+
+---
+
+apiVersion: tekton.dev/v1alpha1
+kind: Task
+metadata:
+  name: helm-deploy-task-mq
+spec:
+  steps:
+  - args:
+    - upgrade
+    - mq-ddd-dev
+    - ibm-mqadvanced-server-integration-prod
+    - --repo
+    - https://raw.githubusercontent.com/IBM/charts/master/repo/entitled/
+    - --namespace
+    - mq
+    - --set
+    - license=accept,log.debug=false,qmPVC.enabled=false,logPVC.enabled=false,tls.hostname={{CP_CONSOLE}},trace.strmqm=false,selectedCluster[0].label=local-cluster,selectedCluster[0].value=local-cluster,selectedCluster[0].ip={{CP_CONSOLE}},selectedCluster[0].namespace=local-cluster,queueManager.multiInstance=false,odTracingConfig.enabled=false,odTracingConfig.odTracingNamespace=tracing,pki.keys[0].name=default,pki.keys[0].secret.secretName=mqcert,pki.keys[0].secret.items[0]=tls.key,pki.keys[0].secret.items[0]=tls.crt,image.repository=image-registry.openshift-image-registry.svc:5000/mq/mq-ddd,image.tag=latest,image.pullPolicy=Always
+    - --tls
+    - --install
+    - --debug
+    image: alpine/helm:2.12.3
+    env:
+      - name: KUBECONFIG
+        value: /app/kubeconfig
+      - name: HELM_TLS_CA_CERT
+        value: /app/helm/ca.pem
+      - name: HELM_TLS_CERT
+        value: /app/helm/cert.pem
+      - name: HELM_TLS_KEY
+        value: /app/helm/key.pem
+    volumeMounts:
+     - name: kubeconfig
+       mountPath: /app
+     - name: helm-tls
+       mountPath: /app/helm
+     - name: helm-repositories
+       mountPath: /tekton/home/.helm/repository
+    name: helm-deploy
+    resources: {}
+    securityContext:
+      runAsUser: 0
+  volumes:
+    - name: kubeconfig
+      secret:
+        secretName: cluster-kubeconfig
+    - name: helm-tls
+      secret:
+        secretName: task-helm-tls
+    - name: helm-repositories
+      secret:
+        secretName: task-helm-repositories
+
+---
+
+apiVersion: tekton.dev/v1alpha1
+kind: Pipeline
+metadata:
+  name: main-pipeline
+spec:
+  resources:
+    - name: git-source
+      type: git
+  tasks:
+    - name: ace-api-build
+      taskRef:
+        name: build-push-ace-api-docker-image
+      resources:
+        inputs:
+          - name: git-source
+            resource: git-source
+    - name: ace-acme-build
+      taskRef:
+        name: build-push-ace-acme-docker-image
+      resources:
+        inputs:
+          - name: git-source
+            resource: git-source
+    - name: ace-bernie-build
+      taskRef:
+        name: build-push-ace-bernie-docker-image
+      resources:
+        inputs:
+          - name: git-source
+            resource: git-source
+    - name: ace-chris-build
+      taskRef:
+        name: build-push-ace-chris-docker-image
+      resources:
+        inputs:
+          - name: git-source
+            resource: git-source
+    - name: mq-build
+      taskRef:
+        name: build-push-mq-docker-image
+      resources:
+        inputs:
+          - name: git-source
+            resource: git-source
+    - name: ace-api-helm-deploy
+      runAfter:
+        - ace-api-build
+      taskRef:
+        name: helm-deploy-task-ace-api
+    - name: ace-acme-helm-deploy
+      runAfter:
+        - ace-acme-build
+      taskRef:
+        name: helm-deploy-task-ace-acme
+    - name: ace-bernie-helm-deploy
+      runAfter:
+        - ace-bernie-build
+      taskRef:
+        name: helm-deploy-task-ace-bernie
+    - name: ace-chris-helm-deploy
+      runAfter:
+        - ace-chris-build
+      taskRef:
+        name: helm-deploy-task-ace-chris
+    - name: mq-helm-deploy
+      runAfter:
+        - mq-build
+      taskRef:
+        name: helm-deploy-task-mq
+
+---
+
+apiVersion: triggers.tekton.dev/v1alpha1
+kind: TriggerTemplate
+metadata:
+  name: main-triggertemplate
+spec:
+  resourcetemplates:
+  - apiVersion: tekton.dev/v1alpha1
+    kind: PipelineRun
+    metadata:
+      name: main-pipelinerun-$(uid)
+    spec:
+      pipelineRef:
+        name: main-pipeline
+      serviceAccountNames:
+        - taskName: ace-api-build
+          serviceAccountName: cicd-ace-sa
+        - taskName: ace-acme-build
+          serviceAccountName: cicd-ace-sa
+        - taskName: ace-bernie-build
+          serviceAccountName: cicd-ace-sa
+        - taskName: ace-chris-build
+          serviceAccountName: cicd-ace-sa
+        - taskName: mq-build
+          serviceAccountName: cicd-mq-sa
+        - taskName: ace-api-helm-deploy
+          serviceAccountName: cicd-ace-sa
+        - taskName: ace-acme-helm-deploy
+          serviceAccountName: cicd-ace-sa
+        - taskName: ace-bernie-helm-deploy
+          serviceAccountName: cicd-ace-sa
+        - taskName: ace-chris-helm-deploy
+          serviceAccountName: cicd-ace-sa
+        - taskName: mq-helm-deploy
+          serviceAccountName: cicd-mq-sa
+      resources:
+      - name: git-source
+        resourceRef:
+          name: git-source
+
+---
+
+apiVersion: triggers.tekton.dev/v1alpha1
+kind: EventListener
+metadata:
+  name: main-trigger
+spec:
+  serviceAccountName: cicd-el
+  triggers:
+  - template:
+      name: main-triggertemplate
+
+---
+
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  creationTimestamp: null
+  labels:
+    app.kubernetes.io/managed-by: EventListener
+    app.kubernetes.io/part-of: Triggers
+    eventlistener: main-trigger
+  name: el-main-trigger
+spec:
+  host: ""
+  port:
+    targetPort: http-listener
+  to:
+    kind: ""
+    name: el-main-trigger
+    weight: null
+status:
+  ingress: null
+
+---
+
+kind: Role
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: tekton-triggers-role
+rules:
+# Permissions for every EventListener deployment to function
+- apiGroups: ["triggers.tekton.dev"]
+  resources: ["eventlisteners", "triggerbindings", "triggertemplates"]
+  verbs: ["get"]
+- apiGroups: [""]
+  # secrets are only needed for Github/Gitlab interceptors, serviceaccounts only for per trigger authorization
+  resources: ["configmaps", "secrets", "serviceaccounts"]
+  verbs: ["get", "list", "watch"]
+# Permissions to create resources in associated TriggerTemplates
+- apiGroups: ["tekton.dev"]
+  resources: ["pipelineruns", "pipelineresources", "taskruns"]
+  verbs: ["create"]
+
+---
+
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: tekton-triggers-rolebinding
+subjects:
+- kind: ServiceAccount
+  name: cicd-el
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: tekton-triggers-role
