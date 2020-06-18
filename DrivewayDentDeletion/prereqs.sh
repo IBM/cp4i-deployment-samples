@@ -1,4 +1,6 @@
 #!/bin/bash
+cd "$(dirname $0)"
+
 export NAMESPACE=driveway-dent-deletion
 export ER_REGISTRY=$(oc get secret -n mq ibm-entitlement-key -o json | jq -r '.data.".dockerconfigjson"' | base64 --decode | jq -r '.auths' | jq 'keys[]' | tr -d '"')
 export ER_USERNAME=$(oc get secret -n mq ibm-entitlement-key -o json | jq -r '.data.".dockerconfigjson"' | base64 --decode | jq -r '.auths."cp.icr.io".username')
@@ -47,30 +49,33 @@ stringData:
   password: ${ER_PASSWORD}
 EOF
 
+mkdir -p ${PWD}/tmp
 echo "Fetching kubeconfig of cluster and creating secret"
-export HOME=~
-echo $HOME
-oc config view --flatten=true --minify=true > $HOME/kubeconfig.yaml
-oc create -n $NAMESPACE secret generic cluster-kubeconfig --from-file=kubeconfig=${HOME}/kubeconfig.yaml
+oc config view --flatten=true --minify=true > ${PWD}/tmp/kubeconfig.yaml
+oc create -n $NAMESPACE secret generic cluster-kubeconfig --from-file=kubeconfig=${PWD}/tmp/kubeconfig.yaml --dry-run -o yaml | oc apply -f -
 
-if [ -z "$HELM_HOME" ]; then
-   echo "HELM_HOME doesn't exist, creating one now"
-   export HELM_HOME=${HOME}/.helm
-   mkdir -p ${HELM_HOME}
-fi
-if [ ! -f $HELM_HOME/key.pem ] || [ ! -f $HELM_HOME/cert.pem ] || [ ! -f $HELM_HOME/ca.pem ]; then
-   echo "Fetching ca.crt and ca.key for your cluster"
-   kubectl -n kube-system get secret cluster-ca-cert -o jsonpath='{.data.tls\.crt}' | base64 --decode > $HELM_HOME/ca.crt
-   kubectl -n kube-system get secret cluster-ca-cert -o jsonpath='{.data.tls\.key}' | base64 --decode > $HELM_HOME/ca.key
-   echo "key.pem does not exist in $HELM_HOME, creating key.pem and cert.pem, ca.pem using the new key.pem"
-   openssl genrsa -out $HELM_HOME/key.pem 4096
-   openssl req -new -key $HELM_HOME/key.pem -out $HELM_HOME/csr.pem -subj "/C=US/ST=New York/L=Armonk/O=IBM Cloud Private/CN=admin"
-   openssl x509 -req -in $HELM_HOME/csr.pem -extensions v3_usr -CA $HELM_HOME/ca.crt -CAkey $HELM_HOME/ca.key -CAcreateserial -out $HELM_HOME/cert.pem
-   openssl x509 -in $HELM_HOME/ca.crt -out $HELM_HOME/ca.pem -outform PEM
-fi
+export HELM_HOME=${PWD}/tmp/.helm
+mkdir -p ${HELM_HOME}
+echo "Fetching ca.crt and ca.key for your cluster"
+kubectl -n kube-system get secret cluster-ca-cert -o jsonpath='{.data.tls\.crt}' | base64 --decode > $HELM_HOME/ca.crt
+kubectl -n kube-system get secret cluster-ca-cert -o jsonpath='{.data.tls\.key}' | base64 --decode > $HELM_HOME/ca.key
+
+echo "key.pem does not exist in $HELM_HOME, creating key.pem and cert.pem, ca.pem using the new key.pem"
+openssl genrsa -out $HELM_HOME/key.pem 4096
+openssl req -new -key $HELM_HOME/key.pem -out $HELM_HOME/csr.pem -subj "/C=US/ST=New York/L=Armonk/O=IBM Cloud Private/CN=admin"
+openssl x509 -req -in $HELM_HOME/csr.pem -extensions v3_usr -CA $HELM_HOME/ca.crt -CAkey $HELM_HOME/ca.key -CAcreateserial -out $HELM_HOME/cert.pem
+openssl x509 -in $HELM_HOME/ca.crt -out $HELM_HOME/ca.pem -outform PEM
 
 echo "Creating helm tls secret for helm install"
-oc create -n $NAMESPACE secret generic task-helm-tls --from-file=key=$HELM_HOME/key.pem --from-file=cert=$HELM_HOME/cert.pem --from-file=ca=$HELM_HOME/ca.pem --dry-run -o yaml | oc apply -f -
+oc create -n $NAMESPACE secret generic task-helm-tls \
+  --from-file=key.pem=$HELM_HOME/key.pem \
+  --from-file=cert.pem=$HELM_HOME/cert.pem \
+  --from-file=ca.pem=$HELM_HOME/ca.pem \
+  --dry-run -o yaml | oc apply -f -
+
+oc create -n $NAMESPACE secret generic task-helm-repositories \
+  --from-file=repositories.yaml=repositories.yaml \
+  --dry-run -o yaml | oc apply -f -
 
 cat << EOF | oc apply -f -
 kind: Secret
@@ -127,23 +132,22 @@ oc create secret generic -n ace ace-ddd-dev-creds \
   --from-file=policyDescriptor=/tmp/policyDescriptor.xml \
   --dry-run -o yaml | oc apply -f -
 
-echo "Checking if postgres pod name exists before configuring database"
-oc get pod -n postgres -l name=postgresql -o jsonpath='{.items[].metadata.name}' 2> /dev/null
-if [ $? -eq 0 ] ; then
-  echo "Postgres exists and configuring database now"
-  oc exec -n postgres -it $(oc get pod -n postgres -l name=postgresql -o jsonpath='{.items[].metadata.name}') \
-    -- psql -U admin -d sampledb -c \
-  'CREATE TABLE QUOTES (
-    QuoteID SERIAL PRIMARY KEY NOT NULL,
-    Name VARCHAR(100),
-    EMail VARCHAR(100),
-    Address VARCHAR(100),
-    USState VARCHAR(100),
-    LicensePlate VARCHAR(100),
-    ACMECost INTEGER,
-    ACMEDate DATE,
-    BernieCost INTEGER,
-    BernieDate DATE,
-    ChrisCost INTEGER,
-    ChrisDate DATE);'
-fi
+echo "Waiting for postgres to be ready"
+oc wait -n postgres --for=condition=available deploymentconfig --timeout=20m postgresql
+
+echo "Creating quotes table in postgres samepledb"
+oc exec -n postgres -it $(oc get pod -n postgres -l name=postgresql -o jsonpath='{.items[].metadata.name}') \
+  -- psql -U admin -d sampledb -c \
+'CREATE TABLE QUOTES (
+  QuoteID SERIAL PRIMARY KEY NOT NULL,
+  Name VARCHAR(100),
+  EMail VARCHAR(100),
+  Address VARCHAR(100),
+  USState VARCHAR(100),
+  LicensePlate VARCHAR(100),
+  ACMECost INTEGER,
+  ACMEDate DATE,
+  BernieCost INTEGER,
+  BernieDate DATE,
+  ChrisCost INTEGER,
+  ChrisDate DATE);'
