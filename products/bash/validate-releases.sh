@@ -19,32 +19,16 @@
 #       export CP_USERNAME=<username>
 #       export CP_PASSWORD=<password>
 #
-# 3. You can specify release names for each product using the environment variables:
-#       export ACE_DASHBOARD_RELEASE_NAME=<ace-dashboard-release-name>
-#       export ACE_DESIGNER_RELEASE_NAME=<ace-designer-release-name>
-#       export APIC_RELEASE_NAME=<apic-release-name>
-#       export ASSET_REPO_RELEASE_NAME=<asset-repo-release-name>
-#       export EVENT_STREAMS_RELEASE_NAME=<event-streams-release-name>
-#       export MQ_RELEASE_NAME=<mq-release-name>
-#       export TRACING_RELEASE_NAME=<tracing-release-name>
 #
-# 4. It will release all supported products by default;
-#    to release specific products, add them to the command line, e.g:
-#       ./validate-releases.sh <console> ace
-#
-# 5. Supported products are:
-#    ace          App Connect Dashboard & App Connect Designer
-#    apic         API Connect
-#    assetrepo    Asset Repository
-#    eventstreams Event Streams
-#    mq           MQ
+# 3. To release specific products, add them to the command line, e.g:
+#       ./validate-releases.sh <console> mq-demo ace-demo
 
 function usage {
     echo "Usage: $0 <console> [products...]"
 }
 
 cp_console="$1"
-cp_products="${@:2}"
+cp_releases="${@:2}"
 
 cp_username=${CP_USERNAME:-admin}
 cp_password=${CP_PASSWORD}
@@ -53,8 +37,9 @@ if [[ -z "${cp_console}" ]]; then
     usage
     exit 2
 fi
-if [[ -z "${cp_products}" ]]; then
-    cp_products="apic ace assetrepo eventstreams tracing mq"
+if [[ -z "${cp_releases}" ]]; then
+    echo "No releases specified, validation complete."
+    exit 1
 fi
 if [[ -z "${cp_password}" ]]; then
     read -p "Password (${cp_username}): " -s -r cp_password
@@ -116,52 +101,11 @@ everything_ready=false
 while [ ! $retry_count -eq $startup_retries ] && [ "$everything_ready" = false ]; do
   echo "Checking releases"
   everything_ready=true
-  for product in $cp_products; do
-    case $product in
-        ace)
-            if is_release_ready ${ACE_DESIGNER_RELEASE_NAME}; then
-              echo "${ACE_DESIGNER_RELEASE_NAME} is not ready!"
-              everything_ready=false
-            fi
-            if is_release_ready ${ACE_DASHBOARD_RELEASE_NAME}; then
-              echo "${ACE_DASHBOARD_RELEASE_NAME} is not ready!"
-              everything_ready=false
-            fi
-            ;;
-        apic)
-            if is_release_ready ${APIC_RELEASE_NAME}; then
-              echo "${APIC_RELEASE_NAME} is not ready!"
-              everything_ready=false
-            fi
-            ;;
-        assetrepo)
-            if is_release_ready ${ASSET_REPO_RELEASE_NAME}; then
-              echo "${ASSET_REPO_RELEASE_NAME} is not ready!"
-              everything_ready=false
-            fi
-            ;;
-        eventstreams)
-            if is_release_ready ${EVENT_STREAMS_RELEASE_NAME}; then
-              echo "${EVENT_STREAMS_RELEASE_NAME} is not ready!"
-              everything_ready=false
-            fi
-            ;;
-        mq)
-            if is_release_ready ${MQ_RELEASE_NAME}; then
-              echo "${MQ_RELEASE_NAME} is not ready!"
-              everything_ready=false
-            fi
-            ;;
-        tracing)
-            if is_release_ready ${TRACING_RELEASE_NAME}; then
-              echo "${TRACING_RELEASE_NAME} is not ready!"
-              everything_ready=false
-            fi
-            ;; 
-        *)
-            echo "Unknown product: ${product}"
-            ;;
-    esac
+  for release in $cp_releases; do
+    if is_release_ready ${release}; then
+      echo "${release} is not ready!"
+      everything_ready=false
+    fi
   done
 
   if [ "$everything_ready" = false ]; then
@@ -175,5 +119,5 @@ if [ "$everything_ready" = false ]; then
   echo "Failed due to retries exceeded while waiting for releases..."
   exit 1
 else
-  echo "Capabilities succesfully released!"
+  echo "Everything succesfully released!"
 fi

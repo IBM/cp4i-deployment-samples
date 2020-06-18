@@ -40,6 +40,8 @@
 #    assetrepo    Asset Repository
 #    eventstreams Event Streams
 #    mq           MQ
+#    tracing      Tracing
+#    postgres     PostgreSQL
 #
 # 7. Products deploy in the background so may not be fully ready when the script
 #    completes.
@@ -60,7 +62,7 @@ if [[ -z "${cp_console}" ]]; then
     exit 2
 fi
 if [[ -z "${cp_products}" ]]; then
-    cp_products="apic ace assetrepo eventstreams tracing mq"
+    cp_products="apic ace assetrepo eventstreams tracing mq postgres"
 fi
 if [[ -z "${cp_password}" ]]; then
     read -p "Password (${cp_username}): " -s -r cp_password
@@ -452,8 +454,6 @@ function release_event_streams {
     echo "${event_streams_values}" > event-streams-values.yaml
     # Create the release
     helm install ${chart_repo}/${event_streams_chart} --name ${event_streams_release_name} --namespace ${event_streams_namespace} --values event-streams-values.yaml --tls
-    helm install ibm-entitled-charts/ibm-eventstreams-icp4i-prod --name event-streams-demo --namespace eventstreams --values event-streams-values.yaml --tls
-    helm repo add ibm-entitled-charts https://raw.githubusercontent.com/IBM/charts/master/repo/entitled/
 }
 
 # --- MQ ---------------------------------------------------------------
@@ -588,6 +588,28 @@ function release_tracing {
     helm install ${tracing_chart}/ --name ${tracing_release_name} --namespace ${tracing_namespace} --values tracing-values.yaml --tls
 }
 
+# --- Postgres ---------------------------------------------------------
+
+function install_postgres {
+  echo "Installing PostgreSQL..."
+
+  cat << EOF > postgres.env
+  MEMORY_LIMIT=2Gi
+  NAMESPACE=openshift
+  DATABASE_SERVICE_NAME=postgresql
+  POSTGRESQL_USER=admin
+  POSTGRESQL_PASSWORD=password
+  POSTGRESQL_DATABASE=sampledb
+  VOLUME_CAPACITY=1Gi
+  POSTGRESQL_VERSION=9.6
+EOF
+
+  oc process -n openshift postgresql-persistent --param-file=postgres.env > postgres.yaml
+  oc create namespace postgres
+  oc project postgres
+  oc apply -f postgres.yaml
+}
+
 # ----------------------------------------------------------------------
 
 # Default to tracing disabled
@@ -623,6 +645,9 @@ for product in $cp_products; do
             release_mq ${tracing_enabled}
             ;;
         tracing)
+            ;;
+        postgres)
+            install_postgres
             ;;
         *)
             echo "Unknown product: ${product}"
