@@ -20,7 +20,7 @@
 #       export CP_PASSWORD=<password>
 #
 #
-# 3. To release specific products, add them to the command line, e.g:
+# 3. To validate specific products, add them to the command line, e.g:
 #       ./validate-releases.sh <console> mq-demo ace-demo
 
 function usage {
