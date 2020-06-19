@@ -93,7 +93,8 @@ function is_release_ready {
   fi
 }
 
-startup_retries=30  
+# Retry for up to 20 minutes
+startup_retries=60
 retry_interval=20
 retry_count=0
 everything_ready=false
