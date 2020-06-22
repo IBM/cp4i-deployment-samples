@@ -37,11 +37,12 @@ retry_interval=5
 
 while true; do
   # POST
+  echo -e "\nPOST request..."
   post_response=$(curl -w "%{http_code}" -X POST ${cp_console}/quote -d "{\"Name\": \"Mickey Mouse\",\"EMail\": \"MickeyMouse@us.ibm.com\",\"Address\": \"30DisneyLand\",\"USState\": \"FL\",\"LicensePlate\": \"MMM123\",\"DentLocations\": [{\"PanelType\": \"Door\",\"NumberOfDents\": 2},{\"PanelType\": \"Fender\",\"NumberOfDents\": 1}]}")
-  echo -e "\nPOST request"
 
   post_response_code=$(echo "$post_response" | jq '.' | tail -1)
 
+  # The usage of sed here is to prevent an error caused between the -w flag of curl and jq not interacting well
   if [ "$cp_client_platform" == "linux-amd64" ]; then
     quote_id=$(echo "$post_response" | jq '.' | sed '$ d' | jq '.QuoteID')
   else
@@ -56,21 +57,23 @@ while true; do
   fi
 
   # GET
-  get_response=$(curl -w "%{http_code}" -X GET ${cp_console}/quote?QuoteID=${quote_id} | jq '.' | tail -1)
-  echo -e "\nGET request"  
+  echo -e "\nGET request..."  
+  get_response=$(curl -w "%{http_code}" -X GET ${cp_console}/quote?QuoteID=${quote_id})
+  get_response_code=$(echo "$get_response" | jq '.' | tail -1)
 
-  if [ "$get_response" == "200" ]; then
-    echo "SUCCESS - GETed with response: ${get_response}" 
+  if [ "$get_response_code" == "200" ]; then
+    echo "SUCCESS - GETed with response: ${get_response_code}" 
   else
-    echo "FAILED - Error code: ${get_response}"
+    echo "FAILED - Error code: ${get_response_code}"
   fi
 
   # DELETE 
+  echo -e "\nDeleting row from database..."
   oc exec -n postgres -it $(oc get pod -n postgres -l name=postgresql -o jsonpath='{.items[].metadata.name}') \
     -- psql -U admin -d sampledb -c \
   "DELETE FROM quotes WHERE quotes.quoteid = ${quote_id};"
 
-  echo -e "\nLooping...\n----------------------------------\n\n"
+  echo -e "\n--------------------------------------------------------------------\n"
   sleep ${retry_interval}
 done
 
