@@ -11,6 +11,67 @@
 # INSTRUCTIONS
 # ------------
 #
-# 1. Run the script, passing the Cloud Pak console address as argument:
-#       ./release-products.sh icp-console.<your-cluster-domain>
+# 1. Run the script, passing the ACE server's REST API Base URL as an argument:
+#       ./continuous-load.sh <base-url>
+#       e.g. http://ace-ddd-api-dev-http-ace.<cluster-name>.eu-eb.containers.appdomain.cloud/drivewayrepair
 
+function usage {
+    echo "Usage: $0 <base-url>"
+}
+
+cp_console="$1"
+
+if [[ -z "${cp_console}" ]]; then
+    usage
+    exit 2
+fi
+
+cp_client_platform=linux-amd64
+if [[ $(uname) == Darwin ]]; then
+    cp_client_platform=darwin-amd64
+fi
+
+# --- User exited loop -------------------------------------------------
+
+retry_interval=5
+
+while true; do
+  # POST
+  post_response=$(curl -w "%{http_code}" -X POST ${cp_console}/quote -d "{\"Name\": \"Mickey Mouse\",\"EMail\": \"MickeyMouse@us.ibm.com\",\"Address\": \"30DisneyLand\",\"USState\": \"FL\",\"LicensePlate\": \"MMM123\",\"DentLocations\": [{\"PanelType\": \"Door\",\"NumberOfDents\": 2},{\"PanelType\": \"Fender\",\"NumberOfDents\": 1}]}")
+  echo -e "\nPOST request"
+
+  post_response_code=$(echo "$post_response" | jq '.' | tail -1)
+
+  if [ "$cp_client_platform" == "linux-amd64" ]; then
+    quote_id=$(echo "$post_response" | jq '.' | sed '$ d' | jq '.QuoteID')
+  else
+    quote_id=$(echo "$post_response" | jq '.' | sed -e '$ d' | jq '.QuoteID')
+  fi
+
+  if [ "$post_response_code" == "200" ]; then
+    echo "SUCCESS - POSTed with QuoteID: ${quote_id}" 
+  else
+    echo "FAILED - Error code: ${post_response_code}"
+    continue;
+  fi
+
+  # GET
+  get_response=$(curl -w "%{http_code}" -X GET ${cp_console}/quote?QuoteID=${quote_id} | jq '.' | tail -1)
+  echo -e "\nGET request"  
+
+  if [ "$get_response" == "200" ]; then
+    echo "SUCCESS - GETed with response: ${get_response}" 
+  else
+    echo "FAILED - Error code: ${get_response}"
+  fi
+
+  # DELETE 
+  oc exec -n postgres -it $(oc get pod -n postgres -l name=postgresql -o jsonpath='{.items[].metadata.name}') \
+    -- psql -U admin -d sampledb -c \
+  "DELETE FROM quotes WHERE quotes.quoteid = ${quote_id};"
+
+  echo -e "\nLooping...\n----------------------------------\n\n"
+  sleep ${retry_interval}
+done
+
+# ----------------------------------------------------------------------
