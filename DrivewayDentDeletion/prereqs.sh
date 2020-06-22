@@ -58,6 +58,7 @@ EOF
 
 mkdir -p ${PWD}/tmp
 echo "Fetching kubeconfig of cluster and creating secret"
+oc adm policy add-role-to-user admin IAM#icip.task01@uk.ibm.com -n $NAMESPACE
 oc config view --flatten=true --minify=true > ${PWD}/tmp/kubeconfig.yaml
 cat ${PWD}/tmp/kubeconfig.yaml
 oc create -n $NAMESPACE secret generic cluster-kubeconfig --from-file=kubeconfig=${PWD}/tmp/kubeconfig.yaml --dry-run -o yaml | oc apply -f -
