@@ -1,12 +1,12 @@
 #!/bin/bash
 
-echo "Print before"
+echo "Print kubeconfig"
 cat ./kubeconfig.json
+
+echo "Print ca.pem"
+cat ./ca.pem
 
 cd "$(dirname $0)"
-
-echo "Print before"
-cat ./kubeconfig.json
 
 export NAMESPACE=driveway-dent-deletion
 export ER_REGISTRY=$(oc get secret -n mq ibm-entitlement-key -o json | jq -r '.data.".dockerconfigjson"' | base64 --decode | jq -r '.auths' | jq 'keys[]' | tr -d '"')
