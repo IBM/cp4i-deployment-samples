@@ -44,6 +44,10 @@ kind: Task
 metadata:
   name: build-push-ace-api-docker-image
 spec:
+  params:
+    - name: imageTag
+      type: string
+      description: The image tag
   resources:
     inputs:
       - name: git-source
@@ -59,7 +63,7 @@ spec:
       args:
         - --context=/workspace/git-source/DrivewayDentDeletion/ace-api
         - --dockerfile=/workspace/git-source/DrivewayDentDeletion/ace-api/Dockerfile
-        - --destination=image-registry.openshift-image-registry.svc:5000/ace/ace-ddd-api:latest-amd64
+        - --destination=image-registry.openshift-image-registry.svc:5000/ace/ace-ddd-api:$(params.imageTag)-amd64
         - --verbosity=debug
         - --log-timestamp
         - --skip-tls-verify
@@ -73,6 +77,10 @@ kind: Task
 metadata:
   name: build-push-ace-acme-docker-image
 spec:
+  params:
+    - name: imageTag
+      type: string
+      description: The image tag
   resources:
     inputs:
       - name: git-source
@@ -88,7 +96,7 @@ spec:
       args:
         - --context=/workspace/git-source/DrivewayDentDeletion/ace-acme
         - --dockerfile=/workspace/git-source/DrivewayDentDeletion/ace-acme/Dockerfile
-        - --destination=image-registry.openshift-image-registry.svc:5000/ace/ace-ddd-acme:latest-amd64
+        - --destination=image-registry.openshift-image-registry.svc:5000/ace/ace-ddd-acme:$(params.imageTag)-amd64
         - --verbosity=debug
         - --log-timestamp
         - --skip-tls-verify
@@ -102,6 +110,10 @@ kind: Task
 metadata:
   name: build-push-ace-bernie-docker-image
 spec:
+  params:
+    - name: imageTag
+      type: string
+      description: The image tag
   resources:
     inputs:
       - name: git-source
@@ -117,7 +129,7 @@ spec:
       args:
         - --context=/workspace/git-source/DrivewayDentDeletion/ace-bernie
         - --dockerfile=/workspace/git-source/DrivewayDentDeletion/ace-bernie/Dockerfile
-        - --destination=image-registry.openshift-image-registry.svc:5000/ace/ace-ddd-bernie:latest-amd64
+        - --destination=image-registry.openshift-image-registry.svc:5000/ace/ace-ddd-bernie:$(params.imageTag)-amd64
         - --verbosity=debug
         - --log-timestamp
         - --skip-tls-verify
@@ -131,6 +143,10 @@ kind: Task
 metadata:
   name: build-push-ace-chris-docker-image
 spec:
+  params:
+    - name: imageTag
+      type: string
+      description: The image tag
   resources:
     inputs:
       - name: git-source
@@ -146,7 +162,7 @@ spec:
       args:
         - --context=/workspace/git-source/DrivewayDentDeletion/ace-chris
         - --dockerfile=/workspace/git-source/DrivewayDentDeletion/ace-chris/Dockerfile
-        - --destination=image-registry.openshift-image-registry.svc:5000/ace/ace-ddd-chris:latest-amd64
+        - --destination=image-registry.openshift-image-registry.svc:5000/ace/ace-ddd-chris:$(params.imageTag)-amd64
         - --verbosity=debug
         - --log-timestamp
         - --skip-tls-verify
@@ -160,6 +176,10 @@ kind: Task
 metadata:
   name: helm-deploy-task-ace-api
 spec:
+  params:
+    - name: imageTag
+      type: string
+      description: The image tag
   steps:
   - args:
     - upgrade
@@ -170,7 +190,7 @@ spec:
     - --namespace
     - ace
     - --set
-    - image.pullPolicy=Always,image.aceonly=image-registry.openshift-image-registry.svc:5000/ace/ace-ddd-api:latest,aceonly.replicaCount=1,license=accept,integrationServer.configurationSecret=ace-ddd-dev-creds
+    - image.pullPolicy=Always,image.aceonly=image-registry.openshift-image-registry.svc:5000/ace/ace-ddd-api:$(params.imageTag),aceonly.replicaCount=1,license=accept,integrationServer.configurationSecret=ace-ddd-dev-creds
     - --tls
     - --install
     - --debug
@@ -213,6 +233,10 @@ kind: Task
 metadata:
   name: helm-deploy-task-ace-acme
 spec:
+  params:
+    - name: imageTag
+      type: string
+      description: The image tag
   steps:
   - args:
     - upgrade
@@ -223,7 +247,7 @@ spec:
     - --namespace
     - ace
     - --set
-    - image.pullPolicy=Always,image.aceonly=image-registry.openshift-image-registry.svc:5000/ace/ace-ddd-acme:latest,aceonly.replicaCount=1,license=accept,integrationServer.configurationSecret=ace-ddd-dev-creds
+    - image.pullPolicy=Always,image.aceonly=image-registry.openshift-image-registry.svc:5000/ace/ace-ddd-acme:$(params.imageTag),aceonly.replicaCount=1,license=accept,integrationServer.configurationSecret=ace-ddd-dev-creds
     - --tls
     - --install
     - --debug
@@ -266,6 +290,10 @@ kind: Task
 metadata:
   name: helm-deploy-task-ace-bernie
 spec:
+  params:
+    - name: imageTag
+      type: string
+      description: The image tag
   steps:
   - args:
     - upgrade
@@ -276,7 +304,7 @@ spec:
     - --namespace
     - ace
     - --set
-    - image.pullPolicy=Always,image.aceonly=image-registry.openshift-image-registry.svc:5000/ace/ace-ddd-bernie:latest,aceonly.replicaCount=1,license=accept,integrationServer.configurationSecret=ace-ddd-dev-creds
+    - image.pullPolicy=Always,image.aceonly=image-registry.openshift-image-registry.svc:5000/ace/ace-ddd-bernie:$(params.imageTag),aceonly.replicaCount=1,license=accept,integrationServer.configurationSecret=ace-ddd-dev-creds
     - --tls
     - --install
     - --debug
@@ -319,6 +347,10 @@ kind: Task
 metadata:
   name: helm-deploy-task-ace-chris
 spec:
+  params:
+    - name: imageTag
+      type: string
+      description: The image tag
   steps:
   - args:
     - upgrade
@@ -329,7 +361,7 @@ spec:
     - --namespace
     - ace
     - --set
-    - image.pullPolicy=Always,image.aceonly=image-registry.openshift-image-registry.svc:5000/ace/ace-ddd-chris:latest,aceonly.replicaCount=1,license=accept,integrationServer.configurationSecret=ace-ddd-dev-creds
+    - image.pullPolicy=Always,image.aceonly=image-registry.openshift-image-registry.svc:5000/ace/ace-ddd-chris:$(params.imageTag),aceonly.replicaCount=1,license=accept,integrationServer.configurationSecret=ace-ddd-dev-creds
     - --tls
     - --install
     - --debug
@@ -372,6 +404,10 @@ kind: Task
 metadata:
   name: build-push-mq-docker-image
 spec:
+  params:
+    - name: imageTag
+      type: string
+      description: The image tag
   resources:
     inputs:
       - name: git-source
@@ -387,7 +423,7 @@ spec:
       args:
         - --context=/workspace/git-source/DrivewayDentDeletion/mq
         - --dockerfile=/workspace/git-source/DrivewayDentDeletion/mq/Dockerfile
-        - --destination=image-registry.openshift-image-registry.svc:5000/mq/mq-ddd:latest-amd64
+        - --destination=image-registry.openshift-image-registry.svc:5000/mq/mq-ddd:$(params.imageTag)-amd64
         - --verbosity=debug
         - --log-timestamp
         - --skip-tls-verify
@@ -401,6 +437,10 @@ kind: Task
 metadata:
   name: helm-deploy-task-mq
 spec:
+  params:
+    - name: imageTag
+      type: string
+      description: The image tag
   steps:
   - args:
     - upgrade
@@ -411,7 +451,7 @@ spec:
     - --namespace
     - mq
     - --set
-    - license=accept,log.debug=false,qmPVC.enabled=false,logPVC.enabled=false,tls.hostname={{CP_CONSOLE}},trace.strmqm=false,selectedCluster[0].label=local-cluster,selectedCluster[0].value=local-cluster,selectedCluster[0].ip={{CP_CONSOLE}},selectedCluster[0].namespace=local-cluster,queueManager.multiInstance=false,odTracingConfig.enabled=false,odTracingConfig.odTracingNamespace=tracing,pki.keys[0].name=default,pki.keys[0].secret.secretName=mqcert,pki.keys[0].secret.items[0]=tls.key,pki.keys[0].secret.items[0]=tls.crt,image.repository=image-registry.openshift-image-registry.svc:5000/mq/mq-ddd,image.tag=latest,image.pullPolicy=Always
+    - license=accept,log.debug=false,qmPVC.enabled=false,logPVC.enabled=false,tls.hostname={{CP_CONSOLE}},trace.strmqm=false,selectedCluster[0].label=local-cluster,selectedCluster[0].value=local-cluster,selectedCluster[0].ip={{CP_CONSOLE}},selectedCluster[0].namespace=local-cluster,queueManager.multiInstance=false,odTracingConfig.enabled=false,odTracingConfig.odTracingNamespace=tracing,pki.keys[0].name=default,pki.keys[0].secret.secretName=mqcert,pki.keys[0].secret.items[0]=tls.key,pki.keys[0].secret.items[0]=tls.crt,image.repository=image-registry.openshift-image-registry.svc:5000/mq/mq-ddd,image.tag=$(params.imageTag),image.pullPolicy=Always
     - --tls
     - --install
     - --debug
@@ -454,6 +494,10 @@ kind: Pipeline
 metadata:
   name: main-pipeline
 spec:
+  params:
+    - name: imageTag
+      type: string
+      description: The image tag
   resources:
     - name: git-source
       type: git
@@ -461,6 +505,9 @@ spec:
     - name: ace-api-build
       taskRef:
         name: build-push-ace-api-docker-image
+      params:
+        - name: imageTag
+          value: "$(params.imageTag)"
       resources:
         inputs:
           - name: git-source
@@ -468,6 +515,9 @@ spec:
     - name: ace-acme-build
       taskRef:
         name: build-push-ace-acme-docker-image
+      params:
+        - name: imageTag
+          value: "$(params.imageTag)"
       resources:
         inputs:
           - name: git-source
@@ -475,6 +525,9 @@ spec:
     - name: ace-bernie-build
       taskRef:
         name: build-push-ace-bernie-docker-image
+      params:
+        - name: imageTag
+          value: "$(params.imageTag)"
       resources:
         inputs:
           - name: git-source
@@ -482,6 +535,9 @@ spec:
     - name: ace-chris-build
       taskRef:
         name: build-push-ace-chris-docker-image
+      params:
+        - name: imageTag
+          value: "$(params.imageTag)"
       resources:
         inputs:
           - name: git-source
@@ -489,6 +545,9 @@ spec:
     - name: mq-build
       taskRef:
         name: build-push-mq-docker-image
+      params:
+        - name: imageTag
+          value: "$(params.imageTag)"
       resources:
         inputs:
           - name: git-source
@@ -498,26 +557,41 @@ spec:
         - ace-api-build
       taskRef:
         name: helm-deploy-task-ace-api
+      params:
+        - name: imageTag
+          value: "$(params.imageTag)"
     - name: ace-acme-helm-deploy
       runAfter:
         - ace-acme-build
       taskRef:
         name: helm-deploy-task-ace-acme
+      params:
+        - name: imageTag
+          value: "$(params.imageTag)"
     - name: ace-bernie-helm-deploy
       runAfter:
         - ace-bernie-build
       taskRef:
         name: helm-deploy-task-ace-bernie
+      params:
+        - name: imageTag
+          value: "$(params.imageTag)"
     - name: ace-chris-helm-deploy
       runAfter:
         - ace-chris-build
       taskRef:
         name: helm-deploy-task-ace-chris
+      params:
+        - name: imageTag
+          value: "$(params.imageTag)"
     - name: mq-helm-deploy
       runAfter:
         - mq-build
       taskRef:
         name: helm-deploy-task-mq
+      params:
+        - name: imageTag
+          value: "$(params.imageTag)"
 
 ---
 
@@ -559,6 +633,9 @@ spec:
       - name: git-source
         resourceRef:
           name: git-source
+      params:
+      - name: imageTag
+        value: $(uid)
 
 ---
 
