@@ -8,15 +8,20 @@
 # Contract with IBM Corp.
 #******************************************************************************
 #
-# INSTRUCTIONS
-# ------------
+# PARAMETERS:
+#   -a : <api_base_url> (string), base url for the api endpoints 
+#   -t : <retry_interval>, (integer), time in seconds between each load of data
+#   -c : <should_cleanup_table> (true/false), whether to delete all rows from the test table
 #
-# 1. Run the script, passing the ACE server's REST API Base URL as an argument:
-#       ./continuous-load.sh -a <api_base_url> -t <retry_interval> -c <should_cleanup_table>
-#       e.g. -a http://ace-ddd-api-dev-http-ace.<cluster-name>.eu-eb.containers.appdomain.cloud/drivewayrepair -t 5 -c
+# USAGE:
+#   With defaults values
+#     ./continuous-load.sh 
+#
+#   With cleanup and custom retry time
+#     ./continuous-load.sh -t 2 -c
 
 function usage {
-    echo "Usage: $0 -a <api_base_url> -t <retry_interval (numerical time in s)> -c <should_cleanup_table (true/false)>"
+    echo "Usage: $0 -a <api_base_url> -t <retry_interval> -c <should_cleanup_table>"
 }
 
 should_cleanup_table=false
