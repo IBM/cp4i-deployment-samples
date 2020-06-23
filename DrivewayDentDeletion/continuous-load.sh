@@ -12,14 +12,19 @@
 # ------------
 #
 # 1. Run the script, passing the ACE server's REST API Base URL as an argument:
-#       ./continuous-load.sh <base-url>
-#       e.g. http://ace-ddd-api-dev-http-ace.<cluster-name>.eu-eb.containers.appdomain.cloud/drivewayrepair
+#       ./continuous-load.sh <api-base-url> <seconds-between-retries (OPTIONAL)>
+#       e.g. http://ace-ddd-api-dev-http-ace.<cluster-name>.eu-eb.containers.appdomain.cloud/drivewayrepair 5
 
 function usage {
-    echo "Usage: $0 <base-url>"
+    echo "Usage: $0 <api-base-url> <seconds-between-retries>"
 }
 
 cp_console="$1"
+retry_interval=="$2"
+
+if [[ -z "${retry_interval}" ]]; then
+    retry_interval=5
+fi
 
 if [[ -z "${cp_console}" ]]; then
     usage
@@ -33,12 +38,10 @@ fi
 
 # --- User exited loop -------------------------------------------------
 
-retry_interval=5
-
 while true; do
   # POST
   echo -e "\nPOST request..."
-  post_response=$(curl -w "%{http_code}" -X POST ${cp_console}/quote -d "{\"Name\": \"Mickey Mouse\",\"EMail\": \"MickeyMouse@us.ibm.com\",\"Address\": \"30DisneyLand\",\"USState\": \"FL\",\"LicensePlate\": \"MMM123\",\"DentLocations\": [{\"PanelType\": \"Door\",\"NumberOfDents\": 2},{\"PanelType\": \"Fender\",\"NumberOfDents\": 1}]}")
+  post_response=$(curl -s -w "%{http_code}" -X POST ${cp_console}/quote -d "{\"Name\": \"Mickey Mouse\",\"EMail\": \"MickeyMouse@us.ibm.com\",\"Address\": \"30DisneyLand\",\"USState\": \"FL\",\"LicensePlate\": \"MMM123\",\"DentLocations\": [{\"PanelType\": \"Door\",\"NumberOfDents\": 2},{\"PanelType\": \"Fender\",\"NumberOfDents\": 1}]}")
 
   post_response_code=$(echo "$post_response" | jq '.' | tail -1)
 
@@ -50,25 +53,29 @@ while true; do
   fi
 
   if [ "$post_response_code" == "200" ]; then
-    echo "SUCCESS - POSTed with QuoteID: ${quote_id}" 
+    echo "SUCCESS - POSTed with response code: ${post_response_code}, and QuoteID: ${quote_id}" 
   else
     echo "FAILED - Error code: ${post_response_code}"
     continue;
   fi
 
+  echo ${post_response}
+
   # GET
   echo -e "\nGET request..."  
-  get_response=$(curl -w "%{http_code}" -X GET ${cp_console}/quote?QuoteID=${quote_id})
+  get_response=$(curl -s -w "%{http_code}" -X GET ${cp_console}/quote?QuoteID=${quote_id})
   get_response_code=$(echo "$get_response" | jq '.' | tail -1)
 
   if [ "$get_response_code" == "200" ]; then
-    echo "SUCCESS - GETed with response: ${get_response_code}" 
+    echo -e "SUCCESS - GETed with response code: ${get_response_code} \n"
   else
     echo "FAILED - Error code: ${get_response_code}"
   fi
 
+  echo ${get_response} | jq '.'
+
   # DELETE 
-  echo -e "\nDeleting row from database..."
+  echo -e "Deleting row from database..."
   oc exec -n postgres -it $(oc get pod -n postgres -l name=postgresql -o jsonpath='{.items[].metadata.name}') \
     -- psql -U admin -d sampledb -c \
   "DELETE FROM quotes WHERE quotes.quoteid = ${quote_id};"
