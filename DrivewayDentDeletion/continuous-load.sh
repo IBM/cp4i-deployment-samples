@@ -12,7 +12,7 @@
 # ------------
 #
 # 1. Run the script, passing the ACE server's REST API Base URL as an argument:
-#       ./continuous-load.sh -a <api_base_url (REQUIRED)> -t <retry_interval> -c <should_cleanup_table>
+#       ./continuous-load.sh -a <api_base_url> -t <retry_interval> -c <should_cleanup_table>
 #       e.g. -a http://ace-ddd-api-dev-http-ace.<cluster-name>.eu-eb.containers.appdomain.cloud/drivewayrepair -t 5 -c
 
 function usage {
@@ -20,6 +20,7 @@ function usage {
 }
 
 should_cleanup_table=false
+api_base_url=$(echo "http://$(oc get routes -n ace | grep ace-ddd-api-dev-http-ace | awk '{print $2}')/drivewayrepair")
 
 while getopts ":a:t:c" opt; do
   case ${opt} in
@@ -105,5 +106,3 @@ while true; do
   echo -e "\n--------------------------------------------------------------------\n"
   sleep ${retry_interval}
 done
-
-# ----------------------------------------------------------------------
