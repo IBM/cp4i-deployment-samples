@@ -12,21 +12,33 @@
 # ------------
 #
 # 1. Run the script, passing the ACE server's REST API Base URL as an argument:
-#       ./continuous-load.sh <api-base-url> <seconds-between-retries (OPTIONAL)>
-#       e.g. http://ace-ddd-api-dev-http-ace.<cluster-name>.eu-eb.containers.appdomain.cloud/drivewayrepair 5
+#       ./continuous-load.sh -a <api_base_url (REQUIRED)> -t <retry_interval> -c <should_cleanup_table>
+#       e.g. -a http://ace-ddd-api-dev-http-ace.<cluster-name>.eu-eb.containers.appdomain.cloud/drivewayrepair -t 5 -c
 
 function usage {
-    echo "Usage: $0 <api-base-url> <seconds-between-retries>"
+    echo "Usage: $0 -a <api_base_url> -t <retry_interval (numerical time in s)> -c <should_cleanup_table (true/false)>"
 }
 
-cp_console="$1"
-retry_interval="$2"
+should_cleanup_table=false
+
+while getopts ":a:t:c" opt; do
+  case ${opt} in
+    a ) api_base_url="$OPTARG"
+      ;;
+    t ) retry_interval="$OPTARG"
+      ;;
+    c ) should_cleanup_table=true
+      ;;
+    \? ) usage
+      ;;
+  esac
+done
 
 if [[ -z "${retry_interval}" ]]; then
     retry_interval=5
 fi
 
-if [[ -z "${cp_console}" ]]; then
+if [[ -z "${api_base_url}" ]]; then
     usage
     exit 2
 fi
@@ -36,10 +48,23 @@ if [[ $(uname) == Darwin ]]; then
     cp_client_platform=darwin-amd64
 fi
 
+function cleanup_table {
+  table_name="quotes"
+  echo -e "\Clearing '${table_name}' database of all rows..."
+  oc exec -n postgres -it $(oc get pod -n postgres -l name=postgresql -o jsonpath='{.items[].metadata.name}') \
+      -- psql -U admin -d sampledb -c \
+    "TRUNCATE ${table_name};"
+}
+
+# Catches any exit signals for cleanup 
+if [ "$should_cleanup_table" = true ] ; then
+  trap "cleanup_table" EXIT
+fi
+
 while true; do
   # - POST ---
   echo -e "\nPOST request..."
-  post_response=$(curl -s -w " %{http_code}" -X POST ${cp_console}/quote -d "{\"Name\": \"Mickey Mouse\",\"EMail\": \"MickeyMouse@us.ibm.com\",\"Address\": \"30DisneyLand\",\"USState\": \"FL\",\"LicensePlate\": \"MMM123\",\"DentLocations\": [{\"PanelType\": \"Door\",\"NumberOfDents\": 2},{\"PanelType\": \"Fender\",\"NumberOfDents\": 1}]}")
+  post_response=$(curl -s -w " %{http_code}" -X POST ${api_base_url}/quote -d "{\"Name\": \"Mickey Mouse\",\"EMail\": \"MickeyMouse@us.ibm.com\",\"Address\": \"30DisneyLand\",\"USState\": \"FL\",\"LicensePlate\": \"MMM123\",\"DentLocations\": [{\"PanelType\": \"Door\",\"NumberOfDents\": 2},{\"PanelType\": \"Fender\",\"NumberOfDents\": 1}]}")
   post_response_code=$(echo "${post_response##* }") 
 
   if [ "$post_response_code" == "200" ]; then
@@ -53,7 +78,7 @@ while true; do
 
     # - GET ---
     echo -e "\nGET request..."  
-    get_response=$(curl -s -w " %{http_code}" -X GET ${cp_console}/quote?QuoteID=${quote_id})
+    get_response=$(curl -s -w " %{http_code}" -X GET ${api_base_url}/quote?QuoteID=${quote_id})
     get_response_code=$(echo "${get_response##* }")
 
     if [ "$get_response_code" == "200" ]; then
