@@ -37,7 +37,7 @@ if [[ $(uname) == Darwin ]]; then
 fi
 
 while true; do
-  # POST
+  # - POST ---
   echo -e "\nPOST request..."
   post_response=$(curl -s -w " %{http_code}" -X POST ${cp_console}/quote -d "{\"Name\": \"Mickey Mouse\",\"EMail\": \"MickeyMouse@us.ibm.com\",\"Address\": \"30DisneyLand\",\"USState\": \"FL\",\"LicensePlate\": \"MMM123\",\"DentLocations\": [{\"PanelType\": \"Door\",\"NumberOfDents\": 2},{\"PanelType\": \"Fender\",\"NumberOfDents\": 1}]}")
   post_response_code=$(echo "${post_response##* }") 
@@ -51,7 +51,7 @@ while true; do
     fi
     echo "SUCCESS - POSTed with response code: ${post_response_code}, and QuoteID: ${quote_id}" 
 
-    # GET
+    # - GET ---
     echo -e "\nGET request..."  
     get_response=$(curl -s -w " %{http_code}" -X GET ${cp_console}/quote?QuoteID=${quote_id})
     get_response_code=$(echo "${get_response##* }")
@@ -59,6 +59,7 @@ while true; do
     if [ "$get_response_code" == "200" ]; then
       echo -e "SUCCESS - GETed with response code: ${get_response_code}, and Response Body:\n"
       if [ "$cp_client_platform" == "linux-amd64" ]; then
+        # The usage of sed here is to prevent an error caused between the -w flag of curl and jq not interacting well
         echo ${get_response} | jq '.' | sed '$ d'
       else
         echo ${get_response} | jq '.' | sed -e '$ d'
@@ -67,13 +68,13 @@ while true; do
       echo "FAILED - Error code: ${get_response_code}"
     fi
 
-    # DELETE 
+    # - DELETE ---
     echo -e "\nDeleting row from database..."
     oc exec -n postgres -it $(oc get pod -n postgres -l name=postgresql -o jsonpath='{.items[].metadata.name}') \
       -- psql -U admin -d sampledb -c \
     "DELETE FROM quotes WHERE quotes.quoteid = ${quote_id};"
   else
-    echo "FAILED - Error code: ${post_response_code}" # End of POST
+    echo "FAILED - Error code: ${post_response_code}" # Failure catch during POST
   fi
 
   echo -e "\n--------------------------------------------------------------------\n"
