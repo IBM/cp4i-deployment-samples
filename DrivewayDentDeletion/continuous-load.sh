@@ -14,6 +14,8 @@
 #   -c : <should_cleanup_table> (true/false), whether to delete all rows from the test table
 #
 # USAGE:
+#   CAUTION - running without <should_cleanup_table> enabled can result in data leftover in the postgres table
+#
 #   With defaults values
 #     ./continuous-load.sh 
 #
@@ -26,6 +28,7 @@ function usage {
 
 should_cleanup_table=false
 api_base_url=$(echo "http://$(oc get routes -n ace | grep ace-ddd-api-dev-http-ace | awk '{print $2}')/drivewayrepair")
+retry_interval=5
 
 while getopts ":a:t:c" opt; do
   case ${opt} in
@@ -39,15 +42,6 @@ while getopts ":a:t:c" opt; do
       ;;
   esac
 done
-
-if [[ -z "${retry_interval}" ]]; then
-    retry_interval=5
-fi
-
-if [[ -z "${api_base_url}" ]]; then
-    usage
-    exit 2
-fi
 
 cp_client_platform=linux-amd64
 if [[ $(uname) == Darwin ]]; then
