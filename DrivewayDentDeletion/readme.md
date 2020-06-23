@@ -38,7 +38,7 @@ These steps will need to be documented in the demo docs:
   ```
   echo "$(oc  get route el-main-trigger --template='http://{{.spec.host}}')"
   ```
-- Add the trigger URL to the repo as a webhook, which triggers an initial run of the pipeline.
+- Add the trigger URL to the repo as a webhook with the `Content type` as `application/json`, which triggers an initial run of the pipeline.
 
 # Pipelines
 ![Overview of aaS](media/dev-pipeline.svg)
