@@ -1,11 +1,5 @@
 #!/bin/bash
 
-echo "Print kubeconfig"
-cat ./kubeconfig.json
-
-echo "Print ca.pem"
-cat ./ca.pem
-
 cd "$(dirname $0)"
 
 export NAMESPACE=driveway-dent-deletion
@@ -61,7 +55,6 @@ mkdir -p ${PWD}/tmp
 echo "Fetching kubeconfig of cluster and creating secret"
 oc adm policy add-role-to-user admin $CURRENT_USER -n $NAMESPACE
 oc config view --flatten=true --minify=true > ${PWD}/tmp/kubeconfig.yaml
-cat ${PWD}/tmp/kubeconfig.yaml
 oc create -n $NAMESPACE secret generic cluster-kubeconfig --from-file=kubeconfig=${PWD}/tmp/kubeconfig.yaml --dry-run -o yaml | oc apply -f -
 
 export HELM_HOME=${PWD}/tmp/.helm
