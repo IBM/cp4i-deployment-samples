@@ -20,7 +20,7 @@ function usage {
 }
 
 cp_console="$1"
-retry_interval=="$2"
+retry_interval="$2"
 
 if [[ -z "${retry_interval}" ]]; then
     retry_interval=5
@@ -36,49 +36,45 @@ if [[ $(uname) == Darwin ]]; then
     cp_client_platform=darwin-amd64
 fi
 
-# --- User exited loop -------------------------------------------------
-
 while true; do
   # POST
   echo -e "\nPOST request..."
-  post_response=$(curl -s -w "%{http_code}" -X POST ${cp_console}/quote -d "{\"Name\": \"Mickey Mouse\",\"EMail\": \"MickeyMouse@us.ibm.com\",\"Address\": \"30DisneyLand\",\"USState\": \"FL\",\"LicensePlate\": \"MMM123\",\"DentLocations\": [{\"PanelType\": \"Door\",\"NumberOfDents\": 2},{\"PanelType\": \"Fender\",\"NumberOfDents\": 1}]}")
-
-  post_response_code=$(echo "$post_response" | jq '.' | tail -1)
-
-  # The usage of sed here is to prevent an error caused between the -w flag of curl and jq not interacting well
-  if [ "$cp_client_platform" == "linux-amd64" ]; then
-    quote_id=$(echo "$post_response" | jq '.' | sed '$ d' | jq '.QuoteID')
-  else
-    quote_id=$(echo "$post_response" | jq '.' | sed -e '$ d' | jq '.QuoteID')
-  fi
+  post_response=$(curl -s -w " %{http_code}" -X POST ${cp_console}/quote -d "{\"Name\": \"Mickey Mouse\",\"EMail\": \"MickeyMouse@us.ibm.com\",\"Address\": \"30DisneyLand\",\"USState\": \"FL\",\"LicensePlate\": \"MMM123\",\"DentLocations\": [{\"PanelType\": \"Door\",\"NumberOfDents\": 2},{\"PanelType\": \"Fender\",\"NumberOfDents\": 1}]}")
+  post_response_code=$(echo "${post_response##* }") 
 
   if [ "$post_response_code" == "200" ]; then
+    # The usage of sed here is to prevent an error caused between the -w flag of curl and jq not interacting well
+    if [ "$cp_client_platform" == "linux-amd64" ]; then
+      quote_id=$(echo "$post_response" | jq '.' | sed '$ d' | jq '.QuoteID')
+    else
+      quote_id=$(echo "$post_response" | jq '.' | sed -e '$ d' | jq '.QuoteID')
+    fi
     echo "SUCCESS - POSTed with response code: ${post_response_code}, and QuoteID: ${quote_id}" 
+
+    # GET
+    echo -e "\nGET request..."  
+    get_response=$(curl -s -w " %{http_code}" -X GET ${cp_console}/quote?QuoteID=${quote_id})
+    get_response_code=$(echo "${get_response##* }")
+
+    if [ "$get_response_code" == "200" ]; then
+      echo -e "SUCCESS - GETed with response code: ${get_response_code}, and Response Body:\n"
+      if [ "$cp_client_platform" == "linux-amd64" ]; then
+        echo ${get_response} | jq '.' | sed '$ d'
+      else
+        echo ${get_response} | jq '.' | sed -e '$ d'
+      fi
+    else
+      echo "FAILED - Error code: ${get_response_code}"
+    fi
+
+    # DELETE 
+    echo -e "\nDeleting row from database..."
+    oc exec -n postgres -it $(oc get pod -n postgres -l name=postgresql -o jsonpath='{.items[].metadata.name}') \
+      -- psql -U admin -d sampledb -c \
+    "DELETE FROM quotes WHERE quotes.quoteid = ${quote_id};"
   else
-    echo "FAILED - Error code: ${post_response_code}"
-    continue;
+    echo "FAILED - Error code: ${post_response_code}" # End of POST
   fi
-
-  echo ${post_response}
-
-  # GET
-  echo -e "\nGET request..."  
-  get_response=$(curl -s -w "%{http_code}" -X GET ${cp_console}/quote?QuoteID=${quote_id})
-  get_response_code=$(echo "$get_response" | jq '.' | tail -1)
-
-  if [ "$get_response_code" == "200" ]; then
-    echo -e "SUCCESS - GETed with response code: ${get_response_code} \n"
-  else
-    echo "FAILED - Error code: ${get_response_code}"
-  fi
-
-  echo ${get_response} | jq '.'
-
-  # DELETE 
-  echo -e "Deleting row from database..."
-  oc exec -n postgres -it $(oc get pod -n postgres -l name=postgresql -o jsonpath='{.items[].metadata.name}') \
-    -- psql -U admin -d sampledb -c \
-  "DELETE FROM quotes WHERE quotes.quoteid = ${quote_id};"
 
   echo -e "\n--------------------------------------------------------------------\n"
   sleep ${retry_interval}
