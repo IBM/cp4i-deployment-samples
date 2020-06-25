@@ -76,7 +76,7 @@ while true; do
     else
       quote_id=$(echo "$post_response" | jq '.' | sed -e '$ d' | jq '.QuoteID')
     fi
-    echo "SUCCESS - POSTed with response code: ${post_response_code}, and QuoteID: ${quote_id}" 
+    echo -e "SUCCESS - POSTed with response code: ${post_response_code}, QuoteID: ${quote_id}, and Response Body:\n${post_response}" # TODO tidy this output
 
     # - GET ---
     echo -e "\nGET request..."  
