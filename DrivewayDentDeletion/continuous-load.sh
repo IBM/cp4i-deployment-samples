@@ -7,6 +7,8 @@
 # Use, duplication or disclosure restricted by GSA ADP Schedule
 # Contract with IBM Corp.
 #******************************************************************************
+# PREREQUISITES:
+#   - Logged into cluster on the OC CLI (https://docs.openshift.com/container-platform/4.4/cli_reference/openshift_cli/getting-started-cli.html)
 #
 # PARAMETERS:
 #   -a : <api_base_url> (string), base url for the api endpoints 
