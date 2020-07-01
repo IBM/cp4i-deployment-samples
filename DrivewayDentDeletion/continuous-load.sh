@@ -92,7 +92,13 @@ while true; do
 
     if [ "$get_response_code" == "200" ]; then
       echo -e "SUCCESS - GETed with response code: ${get_response_code}, and Response Body:\n"
-      echo ${get_response} | jq '.' | sed $os_sed_flag '$ d'
+
+      if [ "$condensed_info" = true ] ; then
+        # The usage of sed here is to prevent an error caused between the -w flag of curl and jq not interacting well
+        echo ${get_response} | jq '.' | sed $os_sed_flag '$ d' | jq '.[0] | { QuoteID: .QuoteID, Email: .Email }'
+      else
+        echo ${get_response} | jq '.' | sed $os_sed_flag '$ d'
+      fi  
     else
       echo "FAILED - Error code: ${get_response_code}"
     fi
