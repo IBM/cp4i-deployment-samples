@@ -11,11 +11,11 @@
 #   - Logged into cluster on the OC CLI (https://docs.openshift.com/container-platform/4.4/cli_reference/openshift_cli/getting-started-cli.html)
 #
 # PARAMETERS:
-#   -a : <api_base_url> (string), base url for the api endpoints 
-#   -t : <retry_interval>, (integer), time in seconds between each load of data
-#   -c : <should_cleanup_table> (true/false), whether to delete all rows from the test table
-#   -i : <condensed_info> (true/false), whether to show the full post response or a condensed version
-#   -s : <save_row_after_run> (true/false), whether to save each row in the database after a run or delete it
+#   -a : <api_base_url> (string), base url for the api endpoints - DEFAULT: the result of (oc get routes -n ace | grep ace-ddd-api-dev-http-ace | awk '{print $2}')/drivewayrepair")
+#   -t : <retry_interval>, (integer), time in seconds between each load of data - DEFAULT: 5 (seconds)
+#   -c : <should_cleanup_table> (true/false), whether to delete all rows from the test table - DEFAULT: false
+#   -i : <condensed_info> (true/false), whether to show the full post response or a condensed version - DEFAULT: false
+#   -s : <save_row_after_run> (true/false), whether to save each row in the database after a run or delete it DEFAULT: false
 #
 # USAGE:
 #   CAUTION - running without <should_cleanup_table> enabled can result in data leftover in the postgres table
