@@ -14,6 +14,7 @@
 #   -a : <api_base_url> (string), base url for the api endpoints 
 #   -t : <retry_interval>, (integer), time in seconds between each load of data
 #   -c : <should_cleanup_table> (true/false), whether to delete all rows from the test table
+#   -i : <full_info> (true/false), whether to show the full post response or a condensed version
 #
 # USAGE:
 #   CAUTION - running without <should_cleanup_table> enabled can result in data leftover in the postgres table
@@ -25,20 +26,23 @@
 #     ./continuous-load.sh -t 2 -c
 
 function usage {
-    echo "Usage: $0 -a <api_base_url> -t <retry_interval> -c <should_cleanup_table>"
+    echo "Usage: $0 -a <api_base_url> -t <retry_interval> -c <should_cleanup_table> -i <full_info>"
 }
 
 should_cleanup_table=false
+full_info=false
 api_base_url=$(echo "http://$(oc get routes -n ace | grep ace-ddd-api-dev-http-ace | awk '{print $2}')/drivewayrepair")
 retry_interval=5
 
-while getopts ":a:t:c" opt; do
+while getopts "a:t:ci" opt; do
   case ${opt} in
     a ) api_base_url="$OPTARG"
       ;;
     t ) retry_interval="$OPTARG"
       ;;
     c ) should_cleanup_table=true
+      ;;
+    i ) full_info=true
       ;;
     \? ) usage
       ;;
@@ -67,7 +71,7 @@ while true; do
   # - POST ---
   echo -e "\nPOST request..."
   post_response=$(curl -s -w " %{http_code}" -X POST ${api_base_url}/quote -d "{\"Name\": \"Mickey Mouse\",\"EMail\": \"MickeyMouse@us.ibm.com\",\"Address\": \"30DisneyLand\",\"USState\": \"FL\",\"LicensePlate\": \"MMM123\",\"DentLocations\": [{\"PanelType\": \"Door\",\"NumberOfDents\": 2},{\"PanelType\": \"Fender\",\"NumberOfDents\": 1}]}")
-  post_response_code=$(echo "${post_response##* }") 
+  post_response_code=$(echo "${post_response##* }")
 
   if [ "$post_response_code" == "200" ]; then
     # The usage of sed here is to prevent an error caused between the -w flag of curl and jq not interacting well
@@ -76,7 +80,23 @@ while true; do
     else
       quote_id=$(echo "$post_response" | jq '.' | sed -e '$ d' | jq '.QuoteID')
     fi
-    echo -e "SUCCESS - POSTed with response code: ${post_response_code}, QuoteID: ${quote_id}, and Response Body:\n${post_response}" # TODO tidy this output
+
+    echo -e "SUCCESS - POSTed with response code: ${post_response_code}, QuoteID: ${quote_id}, and Response Body:\n"
+    if [ "$full_info" = true ] ; then
+      if [ "$cp_client_platform" == "linux-amd64" ]; then
+      # The usage of sed here is to prevent an error caused between the -w flag of curl and jq not interacting well
+        echo ${post_response} | jq '.' | sed '$ d' | jq '{ QuoteID: .QuoteID, Versions: .Versions }'
+      else
+        echo ${post_response} | jq '.' | sed -e '$ d' | jq '{ QuoteID: .QuoteID, Versions: .Versions }'
+      fi
+    else
+      if [ "$cp_client_platform" == "linux-amd64" ]; then
+      # The usage of sed here is to prevent an error caused between the -w flag of curl and jq not interacting well
+        echo ${post_response} | jq '.' | sed '$ d'
+      else
+        echo ${post_response} | jq '.' | sed -e '$ d'
+      fi
+    fi
 
     # - GET ---
     echo -e "\nGET request..."  
