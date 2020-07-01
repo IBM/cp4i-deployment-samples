@@ -49,9 +49,9 @@ while getopts "a:t:ci" opt; do
   esac
 done
 
-cp_client_platform=linux-amd64
+os_sed_flag=""
 if [[ $(uname) == Darwin ]]; then
-    cp_client_platform=darwin-amd64
+    os_sed_flag="-e"
 fi
 
 function cleanup_table {
@@ -75,27 +75,14 @@ while true; do
 
   if [ "$post_response_code" == "200" ]; then
     # The usage of sed here is to prevent an error caused between the -w flag of curl and jq not interacting well
-    if [ "$cp_client_platform" == "linux-amd64" ]; then
-      quote_id=$(echo "$post_response" | jq '.' | sed '$ d' | jq '.QuoteID')
-    else
-      quote_id=$(echo "$post_response" | jq '.' | sed -e '$ d' | jq '.QuoteID')
-    fi
+    quote_id=$(echo "$post_response" | jq '.' | sed $os_sed_flag '$ d' | jq '.QuoteID')
 
     echo -e "SUCCESS - POSTed with response code: ${post_response_code}, QuoteID: ${quote_id}, and Response Body:\n"
     if [ "$condensed_info" = true ] ; then
-      if [ "$cp_client_platform" == "linux-amd64" ]; then
-      # The usage of sed here is to prevent an error caused between the -w flag of curl and jq not interacting well
-        echo ${post_response} | jq '.' | sed '$ d' | jq '{ QuoteID: .QuoteID, Versions: .Versions }'
-      else
-        echo ${post_response} | jq '.' | sed -e '$ d' | jq '{ QuoteID: .QuoteID, Versions: .Versions }'
-      fi
+    # The usage of sed here is to prevent an error caused between the -w flag of curl and jq not interacting well
+      echo ${post_response} | jq '.' | sed $os_sed_flag '$ d' | jq '{ QuoteID: .QuoteID, Versions: .Versions }'
     else
-      if [ "$cp_client_platform" == "linux-amd64" ]; then
-      # The usage of sed here is to prevent an error caused between the -w flag of curl and jq not interacting well
-        echo ${post_response} | jq '.' | sed '$ d'
-      else
-        echo ${post_response} | jq '.' | sed -e '$ d'
-      fi
+      echo ${post_response} | jq '.' | sed $os_sed_flag '$ d'
     fi
 
     # - GET ---
@@ -105,12 +92,7 @@ while true; do
 
     if [ "$get_response_code" == "200" ]; then
       echo -e "SUCCESS - GETed with response code: ${get_response_code}, and Response Body:\n"
-      if [ "$cp_client_platform" == "linux-amd64" ]; then
-        # The usage of sed here is to prevent an error caused between the -w flag of curl and jq not interacting well
-        echo ${get_response} | jq '.' | sed '$ d'
-      else
-        echo ${get_response} | jq '.' | sed -e '$ d'
-      fi
+      echo ${get_response} | jq '.' | sed $os_sed_flag '$ d'
     else
       echo "FAILED - Error code: ${get_response_code}"
     fi
