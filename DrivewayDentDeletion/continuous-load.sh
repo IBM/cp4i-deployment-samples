@@ -14,7 +14,7 @@
 #   -a : <api_base_url> (string), base url for the api endpoints 
 #   -t : <retry_interval>, (integer), time in seconds between each load of data
 #   -c : <should_cleanup_table> (true/false), whether to delete all rows from the test table
-#   -i : <full_info> (true/false), whether to show the full post response or a condensed version
+#   -i : <condensed_info> (true/false), whether to show the full post response or a condensed version
 #
 # USAGE:
 #   CAUTION - running without <should_cleanup_table> enabled can result in data leftover in the postgres table
@@ -26,11 +26,11 @@
 #     ./continuous-load.sh -t 2 -c
 
 function usage {
-    echo "Usage: $0 -a <api_base_url> -t <retry_interval> -c <should_cleanup_table> -i <full_info>"
+    echo "Usage: $0 -a <api_base_url> -t <retry_interval> -c <should_cleanup_table> -i <condensed_info>"
 }
 
 should_cleanup_table=false
-full_info=false
+condensed_info=false
 api_base_url=$(echo "http://$(oc get routes -n ace | grep ace-ddd-api-dev-http-ace | awk '{print $2}')/drivewayrepair")
 retry_interval=5
 
@@ -42,7 +42,7 @@ while getopts "a:t:ci" opt; do
       ;;
     c ) should_cleanup_table=true
       ;;
-    i ) full_info=true
+    i ) condensed_info=true
       ;;
     \? ) usage
       ;;
@@ -82,7 +82,7 @@ while true; do
     fi
 
     echo -e "SUCCESS - POSTed with response code: ${post_response_code}, QuoteID: ${quote_id}, and Response Body:\n"
-    if [ "$full_info" = true ] ; then
+    if [ "$condensed_info" = true ] ; then
       if [ "$cp_client_platform" == "linux-amd64" ]; then
       # The usage of sed here is to prevent an error caused between the -w flag of curl and jq not interacting well
         echo ${post_response} | jq '.' | sed '$ d' | jq '{ QuoteID: .QuoteID, Versions: .Versions }'
