@@ -190,7 +190,7 @@ spec:
     - --namespace
     - ace
     - --set
-    - image.pullPolicy=Always,image.aceonly=image-registry.openshift-image-registry.svc:5000/ace/ace-ddd-api:$(params.imageTag),aceonly.replicaCount=2,license=accept,integrationServer.configurationSecret=ace-ddd-dev-creds
+    - image.pullPolicy=Always,image.aceonly=image-registry.openshift-image-registry.svc:5000/ace/ace-ddd-api:$(params.imageTag),aceonly.replicaCount=1,license=accept,integrationServer.configurationSecret=ace-ddd-dev-creds
     - --tls
     - --install
     - --debug
