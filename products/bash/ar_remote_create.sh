@@ -144,7 +144,7 @@ echo "token=$token"
 echo "remote=$remote"
 
 
-curl -X POST --insecure -v https://$ar_path/api/remotes/test -d "$remote" -H "Content-Type: application/json" -H "Authorization: Bearer $token" -o ./ar_create_tmp/remote-status.log 
+curl -X POST --insecure -v https://$ar_path/api/remotes/test -d "$remote" -H "Content-Type: application/json" -H "Authorization: Bearer $token" -o ./ar_create_tmp/remote-status.log
 
 
 test_remote $ar_path $token "$remote"
