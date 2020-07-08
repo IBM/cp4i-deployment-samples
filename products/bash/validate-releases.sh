@@ -10,43 +10,34 @@
 #
 # INSTRUCTIONS
 # ------------
-#
-# 1. Run the script, passing the Cloud Pak console address as argument:
-#       ./validate-releases.sh icp-console.<your-cluster-domain>
-#
-# 2. It will use 'admin' to login to the console, and prompt for the password;
-#    you can change the username or set the password in the environment:
-#       export CP_USERNAME=<username>
-#       export CP_PASSWORD=<password>
-#
-#
-# 3. To validate specific products, add them to the command line, e.g:
-#       ./validate-releases.sh <console> mq-demo ace-demo
+# To validate specific products, add the release name followed by the product to the command line, e.g:
+#       ./validate-releases.sh mq-demo mq ace-demo ace
 
 function usage {
-    echo "Usage: $0 <console> [products...]"
+    echo "Usage: $0 [products...]"
 }
 
-cp_console="$1"
-cp_releases="${@:2}"
+cp_releases=()
 
-cp_username=${CP_USERNAME:-admin}
-cp_password=${CP_PASSWORD}
+while getopts "n:m:d:e:r:" opt; do
+  case ${opt} in
+    n ) cp_releases+=("$OPTARG^PlatformNavigator")
+      ;;
+    m ) cp_releases+=("$OPTARG^QueueManager")
+      ;;
+    d ) cp_releases+=("$OPTARG^Dashboard")
+      ;;
+    e ) cp_releases+=("$OPTARG^Designer")
+      ;;
+    r ) cp_releases+=("$OPTARG^AssetRepository")
+      ;;
+    \? ) usage
+      ;;
+  esac
+done
 
-if [[ -z "${cp_console}" ]]; then
-    usage
-    exit 2
-fi
 if [[ -z "${cp_releases}" ]]; then
     echo "No releases specified, validation complete."
-    exit 1
-fi
-if [[ -z "${cp_password}" ]]; then
-    read -p "Password (${cp_username}): " -s -r cp_password
-    echo
-fi
-if [[ -z "${cp_password}" ]]; then
-    echo "No password was provided for the '${cp_username}' user" 1>&2
     exit 1
 fi
 
@@ -57,39 +48,36 @@ fi
 
 cd "$(dirname $0)"
 
-mkdir -p auth bin helm
+mkdir -p auth bin
 
-export HELM_HOME=${PWD}/helm
-export KUBECONFIG=${PWD}/auth/kubeconfig
+export KUBECONFIG=~/.kube/config
 export PATH=${PWD}/bin:${PATH}
-
-# Download client tools
-echo "Downloading tools..."
-curl -k -sS -o bin/kubectl https://${cp_console}/api/cli/kubectl-${cp_client_platform}
-curl -k -sS -o bin/cloudctl https://${cp_console}/api/cli/cloudctl-${cp_client_platform}
-curl -k -sS https://${cp_console}/api/cli/helm-${cp_client_platform}.tar.gz | \
-    tar xzf - -C bin --strip-components=1 ${cp_client_platform}/helm
 
 chmod +x bin/*
 
-# Initialise Helm
-helm init --client-only
-
-# Login to the cluster
-if ! cloudctl login -a https://${cp_console} -u ${cp_username} -p "${cp_password}" -n default --skip-ssl-validation; then
-    echo "Unable to login to the console as user '${cp_username}' with the given password" 1>&2
-    exit 1
-fi
-
 function is_release_ready {
   release_name=${1}
-  release_status=$(helm status ${release_name} --tls -o json | jq -r '.info.status.code')
+  release_type=${2}
+  release_status=$(oc get ${release_type} ${release_name} -o json | jq -r '.status.conditions')
 
-  if [ $release_status -eq 1 ]; then
-    echo "${release_name} is released and ready!"
-    return 1
-  else
+  echo "Checking $release_name with type $release_type..."
+
+  if [[ -z "$release_status" ]]; then
+    echo "Nothing returned from ${release_name}"
     return 0
+  fi
+
+  statusFieldReleaseStatus=$(echo -e $release_status | jq '.[0].status' | awk '{print tolower($0)}' | tr -d '"')
+  typeFieldReleaseStatus=$(echo -e $release_status | jq '.[0].type' | awk '{print tolower($0)}' | tr -d '"')
+
+  if [[ "$statusFieldReleaseStatus" == "true" && "$typeFieldReleaseStatus" == "ready" ]]; then
+    echo "SUCCESS: ${release_name} is released and ready!"
+    return 1
+  fi
+
+  if [[ "$release_status" == "[]" ]]; then
+    echo "SUCCESS: Empty status, ${release_name} is released and ready!"
+    return 1
   fi
 }
 
@@ -100,10 +88,16 @@ retry_count=0
 everything_ready=false
 
 while [ ! $retry_count -eq $startup_retries ] && [ "$everything_ready" = false ]; do
-  echo "Checking releases"
+  echo "Checking releases..."
   everything_ready=true
-  for release in $cp_releases; do
-    if is_release_ready ${release}; then
+  for release in "${cp_releases[@]}"; do  
+    # Parsing out name from typea
+    IFS='^'
+    read -a releasearr <<< "$release"
+    release_name_parsed=$(echo ${releasearr[0]})
+    release_type_parsed=$(echo ${releasearr[1]})
+
+    if is_release_ready ${release_name_parsed} ${release_type_parsed}; then
       echo "${release} is not ready!"
       everything_ready=false
     fi
@@ -114,6 +108,7 @@ while [ ! $retry_count -eq $startup_retries ] && [ "$everything_ready" = false ]
     retry_count=$((retry_count+1))
     echo "Releases not ready, retrying... ${retry_count} attempts out of ${startup_retries}."
   fi
+  echo -e "----------------------------------------\n"
 done
 
 if [ "$everything_ready" = false ]; then
