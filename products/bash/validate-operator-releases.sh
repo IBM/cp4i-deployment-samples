@@ -10,8 +10,15 @@
 #
 # INSTRUCTIONS
 # ------------
-# To validate specific products, add the release name followed by the product to the command line, e.g:
-#       ./validate-releases.sh mq-demo mq ace-demo ace
+# To validate specific products, add the flag for your product, followed by the release name to the command line, e.g:
+#       ./validate-releases.sh -m mq-demo -d ace-dashboard-demo
+#
+# Full parameter list:
+#   -n : CP4I Platform Navigator
+#   -m : MQ Queue Manager
+#   -d : ACE Dashboard
+#   -e : ACE Designer
+#   -r : CP4I Asset Repository
 
 function usage {
     echo "Usage: $0 [products...]"
