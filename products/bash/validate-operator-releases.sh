@@ -11,7 +11,7 @@
 # INSTRUCTIONS
 # ------------
 # To validate specific products, add the flag for your product, followed by the release name to the command line, e.g:
-#       ./validate-releases.sh -m mq-demo -d ace-dashboard-demo
+#       ./validate-operator-releases.sh -m mq-demo -d ace-dashboard-demo -m mq-dev-demo
 #
 # Full parameter list:
 #   -n : CP4I Platform Navigator
@@ -48,20 +48,6 @@ if [[ -z "${cp_releases}" ]]; then
     exit 1
 fi
 
-cp_client_platform=linux-amd64
-if [[ $(uname) == Darwin ]]; then
-    cp_client_platform=darwin-amd64
-fi
-
-cd "$(dirname $0)"
-
-mkdir -p auth bin
-
-export KUBECONFIG=~/.kube/config
-export PATH=${PWD}/bin:${PATH}
-
-chmod +x bin/*
-
 function is_release_ready {
   release_name=${1}
   release_type=${2}
@@ -97,7 +83,7 @@ everything_ready=false
 while [ ! $retry_count -eq $startup_retries ] && [ "$everything_ready" = false ]; do
   echo "Checking releases..."
   everything_ready=true
-  for release in "${cp_releases[@]}"; do  
+  for release in "${cp_releases[@]}"; do
     # Parsing out name from typea
     IFS='^'
     read -a releasearr <<< "$release"
