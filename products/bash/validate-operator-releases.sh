@@ -51,9 +51,9 @@ fi
 function is_release_ready {
   release_name=${1}
   release_type=${2}
-  release_status=$(oc get ${release_type} ${release_name} -o json | jq -r '.status.conditions')
+  echo -e "\nChecking $release_name with type $release_type..."
 
-  echo "Checking $release_name with type $release_type..."
+  release_status=$(oc get ${release_type} ${release_name} -o json | jq -r '.status.conditions')
 
   if [[ -z "$release_status" ]]; then
     echo "Nothing returned from ${release_name}"
@@ -91,7 +91,7 @@ while [ ! $retry_count -eq $startup_retries ] && [ "$everything_ready" = false ]
     release_type_parsed=$(echo ${releasearr[1]})
 
     if is_release_ready ${release_name_parsed} ${release_type_parsed}; then
-      echo "${release} is not ready!"
+      echo "${release_name_parsed} is not ready!"
       everything_ready=false
     fi
   done
