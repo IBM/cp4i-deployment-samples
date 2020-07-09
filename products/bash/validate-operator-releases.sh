@@ -75,8 +75,6 @@ function is_release_ready {
     echo "SUCCESS: Empty status, ${release_name} is released and ready!"
     return 1
   fi
-
-  return 0
 }
 
 # Retry for up to 20 minutes
