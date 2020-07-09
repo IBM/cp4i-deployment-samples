@@ -48,22 +48,25 @@ if [[ -z "${cp_releases}" ]]; then
     exit 1
 fi
 
+function get_status_conditions {
+  oc get ${release_type} ${release_name} -o json | jq -r '.status.conditions'
+}
+
 function is_release_ready {
   release_name=${1}
   release_type=${2}
   echo -e "\nChecking $release_name with type $release_type..."
 
-  release_status=$(oc get ${release_type} ${release_name} -o json | jq -r '.status.conditions')
-
+  release_status=$(get_status_conditions)
+  
   if [[ -z "$release_status" ]]; then
     echo "Nothing returned from ${release_name}"
     return 0
   fi
+  
+  ready_status=$(echo $release_status | jq '.[] | select (.type | ascii_downcase == "ready") | .status | ascii_downcase'| tr -d '"')
 
-  statusFieldReleaseStatus=$(echo -e $release_status | jq '.[0].status' | awk '{print tolower($0)}' | tr -d '"')
-  typeFieldReleaseStatus=$(echo -e $release_status | jq '.[0].type' | awk '{print tolower($0)}' | tr -d '"')
-
-  if [[ "$statusFieldReleaseStatus" == "true" && "$typeFieldReleaseStatus" == "ready" ]]; then
+  if [[ "$ready_status" == "true" ]]; then
     echo "SUCCESS: ${release_name} is released and ready!"
     return 1
   fi
@@ -72,6 +75,8 @@ function is_release_ready {
     echo "SUCCESS: Empty status, ${release_name} is released and ready!"
     return 1
   fi
+
+  return 0
 }
 
 # Retry for up to 20 minutes
