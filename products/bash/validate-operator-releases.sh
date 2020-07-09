@@ -58,15 +58,16 @@ function is_release_ready {
   echo -e "\nChecking $release_name with type $release_type..."
 
   release_status=$(get_status_conditions)
-  
+
   if [[ -z "$release_status" ]]; then
     echo "Nothing returned from ${release_name}"
     return 0
   fi
   
   ready_status=$(echo $release_status | jq '.[] | select (.type | ascii_downcase == "ready") | .status | ascii_downcase'| tr -d '"')
+  deployed_status=$(echo $release_status | jq '.[] | select (.type | ascii_downcase == "deployed") | .status | ascii_downcase'| tr -d '"')
 
-  if [[ "$ready_status" == "true" ]]; then
+  if [[ "$ready_status" == "true" || "$deployed_status" == "true" ]]; then
     echo "SUCCESS: ${release_name} is released and ready!"
     return 1
   fi
