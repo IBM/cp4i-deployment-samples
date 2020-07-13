@@ -28,7 +28,7 @@
 #
 namespace="cp4i"
 
-while getopts "n:r:b:d" opt; do
+while getopts "n:" opt; do
   case ${opt} in
     n ) namespace="$OPTARG"
       ;;
