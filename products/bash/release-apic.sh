@@ -54,3 +54,17 @@ spec:
     use: nonproduction
   profile: n3xc4.m16
 EOF
+
+time=0
+while [ ! "$(oc get cm ${release_name}-a7s-mtls-gw)" ]; do
+  if [ $time -gt 30 ]; then
+    echo "ERROR: No configmap called ${release_name}-a7s-mtls-gw was found"
+    exit 1
+  fi
+  echo "INFO: Waiting for configmap ${release_name}-a7s-mtls-gw Waited ${time} minute(s)."
+  time=$((time+1))
+  sleep 60
+done
+
+oc get cm ${release_name}-a7s-mtls-gw -o yaml | sed "s#server_names_hash_bucket_size 128#server_names_hash_bucket_size 256#g"| oc apply -f-
+
