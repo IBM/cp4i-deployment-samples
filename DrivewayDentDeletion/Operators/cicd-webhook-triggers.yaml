@@ -67,6 +67,7 @@ spec:
         - --verbosity=debug
         - --log-timestamp
         - --skip-tls-verify
+        - --cleanup
       securityContext:
         runAsUser: 0
 
@@ -100,6 +101,7 @@ spec:
         - --verbosity=debug
         - --log-timestamp
         - --skip-tls-verify
+        - --cleanup
       securityContext:
         runAsUser: 0
 
@@ -133,6 +135,7 @@ spec:
         - --verbosity=debug
         - --log-timestamp
         - --skip-tls-verify
+        - --cleanup
       securityContext:
         runAsUser: 0
 
@@ -166,6 +169,7 @@ spec:
         - --verbosity=debug
         - --log-timestamp
         - --skip-tls-verify
+        - --cleanup
       securityContext:
         runAsUser: 0
 
@@ -427,6 +431,7 @@ spec:
         - --verbosity=debug
         - --log-timestamp
         - --skip-tls-verify
+        - --cleanup
       securityContext:
         runAsUser: 0
 
