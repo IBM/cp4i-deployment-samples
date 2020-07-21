@@ -28,7 +28,7 @@ These steps will need to be documented in the demo docs:
   export BRANCH=master
   export FORKED_REPO=https://github.com/IBM/cp4i-deployment-samples.git
   export CP_CONSOLE=$(oc get route -n kube-system icp-console  -o jsonpath='{.spec.host}')
-  cat cicd-webhook-triggers.yaml | \
+  cat Helm/cicd-webhook-triggers.yaml | \
     sed "s#{{FORKED_REPO}}#$FORKED_REPO#g;" | \
     sed "s#{{BRANCH}}#$BRANCH#g;" | \
     sed "s#{{CP_CONSOLE}}#$CP_CONSOLE#g;" | \

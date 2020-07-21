@@ -61,8 +61,8 @@ spec:
       command:
         - /kaniko/executor
       args:
-        - --context=/workspace/git-source/DrivewayDentDeletion/ace-api
-        - --dockerfile=/workspace/git-source/DrivewayDentDeletion/ace-api/Dockerfile
+        - --context=/workspace/git-source/DrivewayDentDeletion/Bar_files/ace-api
+        - --dockerfile=/workspace/git-source/DrivewayDentDeletion/Helm/Dockerfiles/ACE-API.Dockerfile
         - --destination=image-registry.openshift-image-registry.svc:5000/ace/ace-ddd-api:$(params.imageTag)-amd64
         - --verbosity=debug
         - --log-timestamp
@@ -94,8 +94,8 @@ spec:
       command:
         - /kaniko/executor
       args:
-        - --context=/workspace/git-source/DrivewayDentDeletion/ace-acme
-        - --dockerfile=/workspace/git-source/DrivewayDentDeletion/ace-acme/Dockerfile
+        - --context=/workspace/git-source/DrivewayDentDeletion/Bar_files/ace-acme
+        - --dockerfile=/workspace/git-source/DrivewayDentDeletion/Helm/Dockerfiles/ACE-Acme.Dockerfile
         - --destination=image-registry.openshift-image-registry.svc:5000/ace/ace-ddd-acme:$(params.imageTag)-amd64
         - --verbosity=debug
         - --log-timestamp
@@ -127,8 +127,8 @@ spec:
       command:
         - /kaniko/executor
       args:
-        - --context=/workspace/git-source/DrivewayDentDeletion/ace-bernie
-        - --dockerfile=/workspace/git-source/DrivewayDentDeletion/ace-bernie/Dockerfile
+        - --context=/workspace/git-source/DrivewayDentDeletion/Bar_files/ace-bernie
+        - --dockerfile=/workspace/git-source/DrivewayDentDeletion/Helm/Dockerfiles/ACE-Bernie.Dockerfile
         - --destination=image-registry.openshift-image-registry.svc:5000/ace/ace-ddd-bernie:$(params.imageTag)-amd64
         - --verbosity=debug
         - --log-timestamp
@@ -160,8 +160,8 @@ spec:
       command:
         - /kaniko/executor
       args:
-        - --context=/workspace/git-source/DrivewayDentDeletion/ace-chris
-        - --dockerfile=/workspace/git-source/DrivewayDentDeletion/ace-chris/Dockerfile
+        - --context=/workspace/git-source/DrivewayDentDeletion/Bar_files/ace-chris
+        - --dockerfile=/workspace/git-source/DrivewayDentDeletion/Helm/Dockerfiles/ACE-Chris.Dockerfile
         - --destination=image-registry.openshift-image-registry.svc:5000/ace/ace-ddd-chris:$(params.imageTag)-amd64
         - --verbosity=debug
         - --log-timestamp
@@ -421,8 +421,8 @@ spec:
       command:
         - /kaniko/executor
       args:
-        - --context=/workspace/git-source/DrivewayDentDeletion/mq
-        - --dockerfile=/workspace/git-source/DrivewayDentDeletion/mq/Dockerfile
+        - --context=/workspace/git-source/DrivewayDentDeletion/Helm/Dockerfiles
+        - --dockerfile=/workspace/git-source/DrivewayDentDeletion/Helm/Dockerfiles/MQ.Dockerfile
         - --destination=image-registry.openshift-image-registry.svc:5000/mq/mq-ddd:$(params.imageTag)-amd64
         - --verbosity=debug
         - --log-timestamp
