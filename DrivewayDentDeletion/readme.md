@@ -46,8 +46,3 @@ These steps will need to be documented in the demo docs:
   pipeline.
 - Build tasks: Each of these tasks builds an images and pushes it to the cluster's local OpenShift Image Registry. The latest dockerfile and related files (bar files) are pulled from the forked git repo.
 - Deploy to dev tasks: Each of these tasks invokes helm to deploy/upgrade the deployments using the newly built image.
-
-# Known Issues
-- APIC fails to install on a cluster when the hostname is too long. If you keep your OCP cluster name within 16 characters and APIC component's URL prefixes under 8-10 characters, there won't be any issue.
-
-- On APIC, if your capability's release name and project name lengths combined are greater than 14, you get an error with: `CR name + namespace must be less than 15 characters in length.` When using these samples we provide a release name of length 4, so ensure that a project name less than 11 is used! 
