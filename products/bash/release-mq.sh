@@ -21,7 +21,7 @@
 #     ./release-mq.sh
 #
 #   Overriding the namespace and release-name
-#     ./release-mq -n cp4i-prod -r prod
+#     ./release-mq.sh -n cp4i-prod -r prod
 
 
 function usage {
