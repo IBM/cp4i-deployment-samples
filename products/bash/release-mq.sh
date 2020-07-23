@@ -15,27 +15,30 @@
 # PARAMETERS:
 #   -n : <namespace> (string), Defaults to "cp4i"
 #   -r : <release-name> (string), Defaults to "demo"
+#   -i : <image-name> (string), Defaults to "image-registry.openshift-image-registry.svc:5000/cp4i/mq-ddd"
 #
 # USAGE:
 #   With defaults values
 #     ./release-mq.sh
 #
 #   Overriding the namespace and release-name
-#     ./release-mq.sh -n cp4i-prod -r prod
-
+#     ./release-mq -n cp4i -r demo -i image-registry.openshift-image-registry.svc:5000/cp4i/mq-ddd:some-tag
 
 function usage {
-    echo "Usage: $0 -n <namespace> -r <release-name>"
+    echo "Usage: $0 -n <namespace> -r <release-name> -i <image-name>"
 }
 
 namespace="cp4i"
 release_name="demo"
+image_name="image-registry.openshift-image-registry.svc:5000/cp4i/mq-ddd"
 
-while getopts "n:r:" opt; do
+while getopts "n:r:i:" opt; do
   case ${opt} in
     n ) namespace="$OPTARG"
       ;;
     r ) release_name="$OPTARG"
+      ;;
+    i ) image_name="$OPTARG"
       ;;
     \? ) usage; exit
       ;;
@@ -54,6 +57,8 @@ spec:
     license: L-RJON-BN7PN3
     use: NonProduction
   queueManager:
+    image: ${image_name}
+    imagePullPolicy: Always
     name: QUICKSTART
     storage:
       queueManager:
