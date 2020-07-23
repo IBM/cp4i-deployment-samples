@@ -4,7 +4,8 @@ metadata:
   name: cicd-pipeline
 secrets:
   - name: ibm-entitlement-key
-# ibm-entitlement-key used to pull images from ER in dockerfiles
+# ibm-entitlement-key used to pull images from ER in Dockerfiles
+# As this is a single namespace deployment we don't need multiple service accounts for every product
 
 ---
 
@@ -203,7 +204,6 @@ spec:
           - name: git-source
             resource: git-source
 
-
 ---
 
 apiVersion: triggers.tekton.dev/v1alpha1
@@ -221,17 +221,17 @@ spec:
         name: main-pipeline
       serviceAccountNames:
         - taskName: build-mq
-          serviceAccountName: cicd-mq-sa
+          serviceAccountName: cicd-pipeline
         - taskName: deploy-mq
-          serviceAccountName: cicd-mq-sa
+          serviceAccountName: cicd-pipeline
         - taskName: deploy-ace-int-server-ace-api
-          serviceAccountName: cicd-ace-sa
+          serviceAccountName: cicd-pipeline
         - taskName: deploy-ace-int-server-ace-chris
-          serviceAccountName: cicd-ace-sa
+          serviceAccountName: cicd-pipeline
         - taskName: deploy-ace-int-server-ace-acme
-          serviceAccountName: cicd-ace-sa
+          serviceAccountName: cicd-pipeline
         - taskName: deploy-ace-int-server-ace-bernie
-          serviceAccountName: cicd-ace-sa
+          serviceAccountName: cicd-pipeline
       resources:
       - name: git-source
         resourceRef:
@@ -283,15 +283,13 @@ rules:
   resources: ["eventlisteners", "triggerbindings", "triggertemplates"]
   verbs: ["get"]
 - apiGroups: [""]
-  # secrets are only needed for Github/Gitlab interceptors, serviceaccounts only for per trigger authorization
+# secrets are only needed for Github/Gitlab interceptors, serviceaccounts only for per trigger authorization
   resources: ["configmaps", "secrets", "serviceaccounts"]
   verbs: ["get", "list", "watch"]
 # Permissions to create resources in associated TriggerTemplates
 - apiGroups: ["tekton.dev"]
   resources: ["pipelineruns", "pipelineresources", "taskruns"]
   verbs: ["create"]
-
-# As this is a single namespace deployment we don't need multiple service accounts
 
 ---
 
@@ -308,6 +306,7 @@ roleRef:
   name: tekton-triggers-role
 
 ---
+
 # Ace Integration Service account configuration
 kind: Role
 apiVersion: rbac.authorization.k8s.io/v1
@@ -321,28 +320,20 @@ rules:
 
 ---
 
-apiVersion: v1
-kind: ServiceAccount
-metadata:
-  name: cicd-ace-sa
-secrets:
-  - name: ibm-entitlement-key
-
----
-
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
   name: ace-int-srv-rolebinding
 subjects:
 - kind: ServiceAccount
-  name: cicd-ace-sa
+  name: cicd-pipeline
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: Role
   name: ace-int-srv-role
 
 ---
+
 # Ace Integration Service account configuration
 kind: Role
 apiVersion: rbac.authorization.k8s.io/v1
@@ -356,25 +347,14 @@ rules:
 
 ---
 
-apiVersion: v1
-kind: ServiceAccount
-metadata:
-  name: cicd-mq-sa
-secrets:
-  - name: ibm-entitlement-key
-
----
-
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
   name: mq-rolebinding
 subjects:
 - kind: ServiceAccount
-  name: cicd-mq-sa
+  name: cicd-pipeline
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: Role
   name: mq-role
-
----

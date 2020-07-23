@@ -24,7 +24,6 @@ done
 echo "INFO: Namespace= ${namespace}"
 cd "$(dirname $0)"
 
-
 echo "INFO: Installing tekton and its pre-reqs"
 oc apply --filename https://storage.googleapis.com/tekton-releases/pipeline/previous/v0.12.1/release.yaml
 echo "INFO: Installing tekton triggers"
@@ -65,8 +64,15 @@ EOF
 echo "INFO: Listing the files in ${PWD}/DefaultPolicies"
 ls ${PWD}/DefaultPolicies
 
-#echo "INFO: Installing the zip utility"
-#yum -y install zip
+# echo "INFO: Installing the zip utility depending on OS"
+# if [[ "$OSTYPE" == "linux-gnu"* ]]; then
+#   yum -y install zip
+# elif [[ "$OSTYPE" == "darwin"* ]]; then
+#   /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)"
+#   brew install zip
+# else
+#   yum -y install zip
+# fi
 
 zip -r DefaultPolicies/policyproject.zip DefaultPolicies/
 
