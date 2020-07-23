@@ -56,7 +56,7 @@ spec:
 EOF
 
 time=0
-while [ ! "$(oc get cm ${release_name}-a7s-mtls-gw)" ]; do
+while [ ! "$(oc get cm -n ${namespace} ${release_name}-a7s-mtls-gw)" ]; do
   if [ $time -gt 30 ]; then
     echo "ERROR: No configmap called ${release_name}-a7s-mtls-gw was found"
     exit 1
@@ -66,5 +66,5 @@ while [ ! "$(oc get cm ${release_name}-a7s-mtls-gw)" ]; do
   sleep 60
 done
 
-oc get cm ${release_name}-a7s-mtls-gw -o yaml | sed "s#server_names_hash_bucket_size 128#server_names_hash_bucket_size 256#g"| oc apply -f-
+oc get cm -n ${namespace} ${release_name}-a7s-mtls-gw -o yaml | sed "s#server_names_hash_bucket_size 128#server_names_hash_bucket_size 256#g"| oc apply -f-
 
