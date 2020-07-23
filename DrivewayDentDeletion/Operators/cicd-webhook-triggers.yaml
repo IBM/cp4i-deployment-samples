@@ -11,11 +11,45 @@ spec:
       value: "{{FORKED_REPO}}"
 
 ---
-#Task to deploy ace-integration-server
+
 apiVersion: tekton.dev/v1beta1
 kind: Task
 metadata:
-  name: deploy-ace-int-server
+  name: build-push-mq-docker-image
+spec:
+  params:
+    - name: imageTag
+      type: string
+      description: The image tag
+  resources:
+    inputs:
+      - name: git-source
+        type: git
+  steps:
+    - name: build-and-push-mq
+      image: gcr.io/kaniko-project/executor:latest
+      env:
+        - name: "DOCKER_CONFIG"
+          value: "/tekton/home/.docker/"
+      command:
+        - /kaniko/executor
+      args:
+        - --context=/workspace/git-source/DrivewayDentDeletion/Operators
+        - --dockerfile=/workspace/git-source/DrivewayDentDeletion/Operators/Dockerfiles/MQ.Dockerfile
+        - --destination=image-registry.openshift-image-registry.svc:5000/mq/mq-ddd:$(params.imageTag)
+        - --verbosity=debug
+        - --log-timestamp
+        - --skip-tls-verify
+        - --cleanup
+      securityContext:
+        runAsUser: 0
+
+---
+
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: deploy-mq-task
 spec:
   params:
     - name: imageTag
@@ -24,9 +58,9 @@ spec:
     - name: imageName
       type: string
       description: The image name
-    - name: releasename
+    - name: releaseName
       type: string
-      description: release name of integration server deployment
+      description: release name of queue manager deployment
   resources:
     inputs:
       - name: git-source
@@ -34,8 +68,36 @@ spec:
   steps:
     - name: oc
       image: quay.io/openshift/origin-cli:latest
-      script: "/workspace/git-source/DrivewayDentDeletion/ace-bernie/release-ace-is.sh -n {{NAMESPACE}} -r $(params.releasename) -e image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}/$(params.imageName):$(params.imageTag)"
+      script: "/workspace/git-source/products/bash/release-mq.sh -n {{NAMESPACE}} -r $(params.releaseName) -i image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}/$(params.imageName):$(params.imageTag)"
+
 ---
+
+#Task to deploy ace-integration-server
+# apiVersion: tekton.dev/v1beta1
+# kind: Task
+# metadata:
+#   name: deploy-ace-int-server
+# spec:
+#   params:
+#     - name: imageTag
+#       type: string
+#       description: The image tag
+#     - name: imageName
+#       type: string
+#       description: The image name
+#     - name: releaseName
+#       type: string
+#       description: release name of integration server deployment
+#   resources:
+#     inputs:
+#       - name: git-source
+#         type: git
+#   steps:
+#     - name: oc
+#       image: quay.io/openshift/origin-cli:latest
+#       script: "/workspace/git-source/DrivewayDentDeletion/ace-bernie/release-ace-is.sh -n {{NAMESPACE}} -r $(params.releaseName) -e image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}/$(params.imageName):$(params.imageTag)"
+
+# ---
 
 apiVersion: tekton.dev/v1alpha1
 kind: Pipeline
@@ -50,63 +112,88 @@ spec:
     - name: git-source
       type: git
   tasks:
-    - name: deploy-ace-int-server-ace-api
+    - name: build-mq
       taskRef:
-        name: deploy-ace-int-server
+        name: build-push-mq-docker-image
       params:
         - name: imageTag
           value: "$(params.imageTag)"
-        - name: imageName
-          value: "ace-api"
-        - name: releasename
-          value: "ace-api-int-srv"
       resources:
         inputs:
           - name: git-source
             resource: git-source
-    - name: deploy-ace-int-server-ace-bernie
+    - name: deploy-mq
+      runAfter:
+        - build-mq
       taskRef:
-        name: deploy-ace-int-server
+        name: deploy-mq-task
       params:
         - name: imageTag
           value: "$(params.imageTag)"
         - name: imageName
-          value: "ace-bernie"
-        - name: releasename
-          value: "ace-bernie-int-srv"
+          value: "mq-ddd"
+        - name: releaseName
+          value: "mq-ddd-qm"
       resources:
         inputs:
           - name: git-source
             resource: git-source
-    - name: deploy-ace-int-server-ace-acme
-      taskRef:
-        name: deploy-ace-int-server
-      params:
-        - name: imageTag
-          value: "$(params.imageTag)"
-        - name: imageName
-          value: "ace-acme"
-        - name: releasename
-          value: "ace-acme-int-srv"
-      resources:
-        inputs:
-          - name: git-source
-            resource: git-source
-    - name: deploy-ace-int-server-ace-chris
-      taskRef:
-        name: deploy-ace-int-server
-      params:
-        - name: imageTag
-          value: "$(params.imageTag)"
-        - name: imageName
-          value: "ace-chris"
-        - name: releasename
-          value: "ace-chris-int-srv"
-      resources:
-        inputs:
-          - name: git-source
-            resource: git-source
-
+    # - name: deploy-ace-int-server-ace-api
+    #   taskRef:
+    #     name: deploy-ace-int-server
+    #   params:
+    #     - name: imageTag
+    #       value: "$(params.imageTag)"
+    #     - name: imageName
+    #       value: "ace-api"
+    #     - name: releaseName
+    #       value: "ace-api-int-srv"
+    #   resources:
+    #     inputs:
+    #       - name: git-source
+    #         resource: git-source
+    # - name: deploy-ace-int-server-ace-bernie
+    #   taskRef:
+    #     name: deploy-ace-int-server
+    #   params:
+    #     - name: imageTag
+    #       value: "$(params.imageTag)"
+    #     - name: imageName
+    #       value: "ace-bernie"
+    #     - name: releaseName
+    #       value: "ace-bernie-int-srv"
+    #   resources:
+    #     inputs:
+    #       - name: git-source
+    #         resource: git-source
+    # - name: deploy-ace-int-server-ace-acme
+    #   taskRef:
+    #     name: deploy-ace-int-server
+    #   params:
+    #     - name: imageTag
+    #       value: "$(params.imageTag)"
+    #     - name: imageName
+    #       value: "ace-acme"
+    #     - name: releaseName
+    #       value: "ace-acme-int-srv"
+    #   resources:
+    #     inputs:
+    #       - name: git-source
+    #         resource: git-source
+    # - name: deploy-ace-int-server-ace-chris
+    #   taskRef:
+    #     name: deploy-ace-int-server
+    #   params:
+    #     - name: imageTag
+    #       value: "$(params.imageTag)"
+    #     - name: imageName
+    #       value: "ace-chris"
+    #     - name: releaseName
+    #       value: "ace-chris-int-srv"
+    #   resources:
+    #     inputs:
+    #       - name: git-source
+    #         resource: git-source
 
 ---
 
@@ -124,13 +211,17 @@ spec:
       pipelineRef:
         name: main-pipeline
       serviceAccountNames:
-        - taskName: deploy-ace-int-server-ace-api
+        # - taskName: deploy-ace-int-server-ace-api
+        #   serviceAccountName: cicd-pipeline
+        # - taskName: deploy-ace-int-server-ace-chris
+        #   serviceAccountName: cicd-pipeline
+        # - taskName: deploy-ace-int-server-ace-acme
+        #   serviceAccountName: cicd-pipeline
+        # - taskName: deploy-ace-int-server-ace-bernie
+        #   serviceAccountName: cicd-pipeline
+        - taskName: build-mq
           serviceAccountName: cicd-pipeline
-        - taskName: deploy-ace-int-server-ace-chris
-          serviceAccountName: cicd-pipeline
-        - taskName: deploy-ace-int-server-ace-acme
-          serviceAccountName: cicd-pipeline
-        - taskName: deploy-ace-int-server-ace-bernie
+        - taskName: deploy-mq
           serviceAccountName: cicd-pipeline
       resources:
       - name: git-source
@@ -157,7 +248,6 @@ spec:
 apiVersion: route.openshift.io/v1
 kind: Route
 metadata:
-  creationTimestamp: null
   labels:
     app.kubernetes.io/managed-by: EventListener
     app.kubernetes.io/part-of: Triggers
@@ -170,9 +260,7 @@ spec:
   to:
     kind: ""
     name: el-main-trigger
-    weight: null
-status:
-  ingress: null
+    weight: 0
 
 ---
 
@@ -181,34 +269,28 @@ apiVersion: rbac.authorization.k8s.io/v1
 metadata:
   name: tekton-triggers-role
 rules:
-# Permissions for every EventListener deployment to function
 - apiGroups: ["triggers.tekton.dev"]
   resources: ["eventlisteners", "triggerbindings", "triggertemplates"]
   verbs: ["get"]
 - apiGroups: [""]
-  # secrets are only needed for Github/Gitlab interceptors, serviceaccounts only for per trigger authorization
   resources: ["configmaps", "secrets", "serviceaccounts"]
   verbs: ["get", "list", "watch"]
-# Permissions to create resources in associated TriggerTemplates
 - apiGroups: ["tekton.dev"]
   resources: ["pipelineruns", "pipelineresources", "taskruns"]
   verbs: ["create"]
-# Permissions for appconnect integration server
 - apiGroups: ["appconnect.ibm.com"]
   resources: ["designerauthorings", "dashboards", "switchservers", "configurations", "integrationservers"]
   verbs: ["create", "delete", "get", "list", "patch", "update", "watch"]
-# add your api-group, resources and verbs here
 
-
-# As this is a single namespace deployment we don't need multiple service accounts
 ---
+
 apiVersion: v1
 kind: ServiceAccount
 metadata:
   name: cicd-pipeline
 secrets:
   - name: ibm-entitlement-key
-# ibm-entitlement-key used to pull images from ER in dockerfiles
+
 ---
 
 apiVersion: rbac.authorization.k8s.io/v1
