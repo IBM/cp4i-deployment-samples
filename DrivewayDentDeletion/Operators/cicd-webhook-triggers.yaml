@@ -221,17 +221,17 @@ spec:
         name: main-pipeline
       serviceAccountNames:
         - taskName: build-mq
-          serviceAccountName: cicd-pipeline
+          serviceAccountName: cicd-mq-sa
         - taskName: deploy-mq
-          serviceAccountName: cicd-pipeline
+          serviceAccountName: cicd-mq-sa
         - taskName: deploy-ace-int-server-ace-api
-          serviceAccountName: cicd-pipeline
+          serviceAccountName: cicd-ace-sa
         - taskName: deploy-ace-int-server-ace-chris
-          serviceAccountName: cicd-pipeline
+          serviceAccountName: cicd-ace-sa
         - taskName: deploy-ace-int-server-ace-acme
-          serviceAccountName: cicd-pipeline
+          serviceAccountName: cicd-ace-sa
         - taskName: deploy-ace-int-server-ace-bernie
-          serviceAccountName: cicd-pipeline
+          serviceAccountName: cicd-ace-sa
       resources:
       - name: git-source
         resourceRef:
@@ -320,13 +320,22 @@ rules:
 
 ---
 
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: cicd-ace-sa
+secrets:
+  - name: ibm-entitlement-key
+
+---
+
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
   name: ace-int-srv-rolebinding
 subjects:
 - kind: ServiceAccount
-  name: cicd-pipeline
+  name: cicd-ace-sa
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: Role
@@ -347,14 +356,23 @@ rules:
 
 ---
 
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: cicd-mq-sa
+secrets:
+  - name: ibm-entitlement-key
+
+---
+
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
   name: mq-rolebinding
 subjects:
 - kind: ServiceAccount
-  name: cicd-pipeline
+  name: cicd-mq-sa
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: Role
-  name: mq-role
+  name: mq-qm-role
