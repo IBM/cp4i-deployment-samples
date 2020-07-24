@@ -32,6 +32,16 @@ oc apply -f https://storage.googleapis.com/tekton-releases/triggers/previous/v0.
 echo "INFO: Waiting for tekton and triggers deployment to finish..."
 oc wait -n tekton-pipelines --for=condition=available deployment --timeout=20m tekton-pipelines-controller tekton-pipelines-webhook tekton-triggers-controller tekton-triggers-webhook
 
+echo "Creating secrets to push images to openshift local registry"
+export DOCKER_REGISTRY="image-registry.openshift-image-registry.svc:5000"
+export username=image-bot
+kubectl -n ${namespace} create serviceaccount image-bot
+oc -n ${namespace} policy add-role-to-user registry-editor system:serviceaccount:${namespace}:image-bot
+export password="$(oc -n ${namespace} serviceaccounts get-token image-bot)"
+oc create -n $namespace secret docker-registry cicd-${namespace} \
+  --docker-server=$DOCKER_REGISTRY --docker-username=$username --docker-password=$password \
+  --dry-run -o yaml | oc apply -f -
+
 # Creating a new secret as the type of entitlement key is 'kubernetes.io/dockerconfigjson' but we need secret of type 'kubernetes.io/basic-auth' to pull imags from the ER
 export ER_REGISTRY=$(oc get secret -n ${namespace} ibm-entitlement-key -o json | jq -r '.data.".dockerconfigjson"' | base64 --decode | jq -r '.auths' | jq 'keys[]' | tr -d '"')
 export ER_USERNAME=$(oc get secret -n ${namespace} ibm-entitlement-key -o json | jq -r '.data.".dockerconfigjson"' | base64 --decode | jq -r '.auths."cp.icr.io".username')

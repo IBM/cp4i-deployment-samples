@@ -4,6 +4,7 @@ metadata:
   name: cicd-pipeline
 secrets:
   - name: er-pull-secret
+  - name: cicd-{{NAMESPACE}}
 # er-pull-secret used to pull images from ER in Dockerfiles
 # As this is a single namespace deployment we don't need multiple service accounts for every product
 
@@ -340,6 +341,14 @@ spec:
           serviceAccountName: cicd-mq-sa
         - taskName: deploy-mq
           serviceAccountName: cicd-mq-sa
+        - taskName: build-ace-int-server-ace-api
+          serviceAccountName: cicd-ace-sa
+        - taskName: build-ace-int-server-ace-bernie
+          serviceAccountName: cicd-ace-sa
+        - taskName: build-ace-int-server-ace-acme
+          serviceAccountName: cicd-ace-sa
+        - taskName: build-ace-int-server-ace-chris
+          serviceAccountName: cicd-ace-sa
         - taskName: deploy-ace-int-server-ace-api
           serviceAccountName: cicd-ace-sa
         - taskName: deploy-ace-int-server-ace-chris
@@ -442,6 +451,7 @@ metadata:
   name: cicd-ace-sa
 secrets:
   - name: er-pull-secret
+  - name: cicd-{{NAMESPACE}}
 
 ---
 
@@ -478,6 +488,7 @@ metadata:
   name: cicd-mq-sa
 secrets:
   - name: er-pull-secret
+  - name: cicd-{{NAMESPACE}}
 
 ---
 
