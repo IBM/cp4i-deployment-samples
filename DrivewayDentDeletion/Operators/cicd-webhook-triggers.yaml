@@ -385,7 +385,7 @@ spec:
   to:
     kind: ""
     name: el-main-trigger
-    weight: 0
+    weight: null
 
 ---
 
