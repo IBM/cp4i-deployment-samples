@@ -81,6 +81,8 @@ spec:
     - name: oc
       image: quay.io/openshift/origin-cli:latest
       script: "/workspace/git-source/products/bash/release-mq.sh -n {{NAMESPACE}} -r $(params.releaseName) -i image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}/$(params.imageName):$(params.imageTag)"
+      securityContext:
+        runAsUser: 0
 
 ---
 

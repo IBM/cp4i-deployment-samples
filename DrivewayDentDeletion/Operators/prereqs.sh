@@ -12,7 +12,7 @@ function usage {
 }
 
 namespace="cp4i"
-while getopts "n" opt; do
+while getopts "n:" opt; do
   case ${opt} in
     n ) namespace="$OPTARG"
       ;;
