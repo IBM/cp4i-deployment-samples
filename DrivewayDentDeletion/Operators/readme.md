@@ -24,7 +24,7 @@ These steps will need to be documented in the demo docs:
 - Apply yaml to create the pipeline, configured to use the forked repo. Set
 `FORKED_REPO` to the URL for your repo.
   ```
-  oc project driveway-dent-deletion
+  oc project <NAMESPACE>
   export BRANCH=master
   export FORKED_REPO=https://github.com/IBM/cp4i-deployment-samples.git
   export CP_CONSOLE=$(oc get route -n kube-system icp-console  -o jsonpath='{.spec.host}')
@@ -32,6 +32,7 @@ These steps will need to be documented in the demo docs:
     sed "s#{{FORKED_REPO}}#$FORKED_REPO#g;" | \
     sed "s#{{BRANCH}}#$BRANCH#g;" | \
     sed "s#{{CP_CONSOLE}}#$CP_CONSOLE#g;" | \
+    sed "s#{{NAMESPACE}}#$NAMESPACE#g;" | \
     oc apply -f -
   ```
 - Run the following command to get the URL for the trigger:

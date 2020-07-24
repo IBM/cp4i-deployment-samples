@@ -21,6 +21,7 @@ while getopts "n" opt; do
   esac
 done
 
+oc adm policy add-scc-to-group privileged system:serviceaccounts:$namespace
 echo "INFO: Namespace= ${namespace}"
 cd "$(dirname $0)"
 
@@ -30,6 +31,25 @@ echo "INFO: Installing tekton triggers"
 oc apply -f https://storage.googleapis.com/tekton-releases/triggers/previous/v0.5.0/release.yaml
 echo "INFO: Waiting for tekton and triggers deployment to finish..."
 oc wait -n tekton-pipelines --for=condition=available deployment --timeout=20m tekton-pipelines-controller tekton-pipelines-webhook tekton-triggers-controller tekton-triggers-webhook
+
+# Creating a new secret as the type of entitlement key is 'kubernetes.io/dockerconfigjson' but we need secret of type 'kubernetes.io/basic-auth' to pull imags from the ER
+export ER_REGISTRY=$(oc get secret -n ${namespace} ibm-entitlement-key -o json | jq -r '.data.".dockerconfigjson"' | base64 --decode | jq -r '.auths' | jq 'keys[]' | tr -d '"')
+export ER_USERNAME=$(oc get secret -n ${namespace} ibm-entitlement-key -o json | jq -r '.data.".dockerconfigjson"' | base64 --decode | jq -r '.auths."cp.icr.io".username')
+export ER_PASSWORD=$(oc get secret -n ${namespace} ibm-entitlement-key -o json | jq -r '.data.".dockerconfigjson"' | base64 --decode | jq -r '.auths."cp.icr.io".password')
+
+echo "Creating secret to pull base images from Entitled Registry"
+cat << EOF | oc apply --namespace ${namespace} -f -
+apiVersion: v1
+kind: Secret
+metadata:
+  name: er-pull-secret
+  annotations:
+    tekton.dev/docker-0: ${ER_REGISTRY}
+type: kubernetes.io/basic-auth
+stringData:
+  username: ${ER_USERNAME}
+  password: ${ER_PASSWORD}
+EOF
 
 mkdir -p ${PWD}/tmp
 mkdir -p ${PWD}/DefaultPolicies

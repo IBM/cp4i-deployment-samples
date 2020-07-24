@@ -3,8 +3,8 @@ kind: ServiceAccount
 metadata:
   name: cicd-pipeline
 secrets:
-  - name: ibm-entitlement-key
-# ibm-entitlement-key used to pull images from ER in Dockerfiles
+  - name: er-pull-secret
+# er-pull-secret used to pull images from ER in Dockerfiles
 # As this is a single namespace deployment we don't need multiple service accounts for every product
 
 ---
@@ -441,7 +441,7 @@ kind: ServiceAccount
 metadata:
   name: cicd-ace-sa
 secrets:
-  - name: ibm-entitlement-key
+  - name: er-pull-secret
 
 ---
 
@@ -477,7 +477,7 @@ kind: ServiceAccount
 metadata:
   name: cicd-mq-sa
 secrets:
-  - name: ibm-entitlement-key
+  - name: er-pull-secret
 
 ---
 
