@@ -47,7 +47,7 @@ spec:
       args:
         - --context=/workspace/git-source/DrivewayDentDeletion/Operators
         - --dockerfile=/workspace/git-source/DrivewayDentDeletion/Operators/Dockerfiles/MQ.Dockerfile
-        - --destination=image-registry.openshift-image-registry.svc:5000/mq/mq-ddd:$(params.imageTag)
+        - --destination=image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}/mq-ddd:$(params.imageTag)
         - --verbosity=debug
         - --log-timestamp
         - --skip-tls-verify
@@ -82,6 +82,47 @@ spec:
       script: "/workspace/git-source/products/bash/release-mq.sh -n {{NAMESPACE}} -r $(params.releaseName) -i image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}/$(params.imageName):$(params.imageTag)"
 
 ---
+
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: build-push-ace-is-docker-images
+spec:
+  params:
+    - name: imageTag
+      type: string
+      description: The image tag
+    - name: imageName
+      type: string
+      description: The image name
+    - name: dockerFile
+      type: string
+      description: Name of the dockerfile
+  resources:
+    inputs:
+      - name: git-source
+        type: git
+  steps:
+    - name: build-and-push-ace-is
+      image: gcr.io/kaniko-project/executor:latest
+      env:
+        - name: "DOCKER_CONFIG"
+          value: "/tekton/home/.docker/"
+      command:
+        - /kaniko/executor
+      args:
+        - --context=/workspace/git-source/DrivewayDentDeletion/Operators
+        - --dockerfile=/workspace/git-source/DrivewayDentDeletion/Operators/Dockerfiles/$(params.dockerFile)
+        - --destination=image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}/$(params.imageName):$(params.imageTag)
+        - --verbosity=debug
+        - --log-timestamp
+        - --skip-tls-verify
+        - --cleanup
+      securityContext:
+        runAsUser: 0
+
+---
+
 #Task to deploy ace-integration-server
 apiVersion: tekton.dev/v1beta1
 kind: Task
@@ -143,6 +184,62 @@ spec:
           value: "mq-ddd"
         - name: releaseName
           value: "mq-ddd-qm"
+      resources:
+        inputs:
+          - name: git-source
+            resource: git-source
+    - name: build-ace-int-server-ace-api
+      taskRef:
+        name: build-push-ace-is-docker-images
+      params:
+        - name: imageTag
+          value: "$(params.imageTag)"
+        - name: imageName
+          value: "ace-api"
+        - name: dockerFile
+          value: "ACE-API.Dockerfile"
+      resources:
+        inputs:
+          - name: git-source
+            resource: git-source
+    - name: build-ace-int-server-ace-acme
+      taskRef:
+        name: build-push-ace-is-docker-images
+      params:
+        - name: imageTag
+          value: "$(params.imageTag)"
+        - name: imageName
+          value: "ace-acme"
+        - name: dockerFile
+          value: "ACE-Acme.Dockerfile"
+      resources:
+        inputs:
+          - name: git-source
+            resource: git-source
+    - name: build-ace-int-server-ace-bernie
+      taskRef:
+        name: build-push-ace-is-docker-images
+      params:
+        - name: imageTag
+          value: "$(params.imageTag)"
+        - name: imageName
+          value: "ace-bernie"
+        - name: dockerFile
+          value: "ACE-Bernie.Dockerfile"
+      resources:
+        inputs:
+          - name: git-source
+            resource: git-source
+    - name: build-ace-int-server-ace-chris
+      taskRef:
+        name: build-push-ace-is-docker-images
+      params:
+        - name: imageTag
+          value: "$(params.imageTag)"
+        - name: imageName
+          value: "ace-chris"
+        - name: dockerFile
+          value: "ACE-Chris.Dockerfile"
       resources:
         inputs:
           - name: git-source
