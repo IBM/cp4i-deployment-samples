@@ -111,7 +111,7 @@ spec:
       command:
         - /kaniko/executor
       args:
-        - --context=/workspace/git-source/DrivewayDentDeletion/Operators
+        - --context=/workspace/git-source/DrivewayDentDeletion/
         - --dockerfile=/workspace/git-source/DrivewayDentDeletion/Operators/Dockerfiles/$(params.dockerFile)
         - --destination=image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}/$(params.imageName):$(params.imageTag)
         - --verbosity=debug
