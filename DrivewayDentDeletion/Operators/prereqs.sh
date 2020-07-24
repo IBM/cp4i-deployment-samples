@@ -77,7 +77,7 @@ ls ${PWD}/DefaultPolicies
 zip -r DefaultPolicies/policyproject.zip DefaultPolicies/
 
 echo "INFO: encoding the policy project"
-temp=$(base64 ${PWD}/DefaultPolicies/policyproject.zip)
+temp=$(base64 --wrap=0 ${PWD}/DefaultPolicies/policyproject.zip)
 
 configyaml="\
 apiVersion: appconnect.ibm.com/v1beta1
