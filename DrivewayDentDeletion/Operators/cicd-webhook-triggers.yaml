@@ -98,6 +98,9 @@ spec:
     - name: dockerFile
       type: string
       description: Name of the dockerfile
+    - name: contextPath
+      type: string
+      description: dockerfile context 
   resources:
     inputs:
       - name: git-source
@@ -111,7 +114,7 @@ spec:
       command:
         - /kaniko/executor
       args:
-        - --context=/workspace/git-source/DrivewayDentDeletion/
+        - --context=/workspace/git-source/DrivewayDentDeletion/Bar_files/$(params.contextPath)
         - --dockerfile=/workspace/git-source/DrivewayDentDeletion/Operators/Dockerfiles/$(params.dockerFile)
         - --destination=image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}/$(params.imageName):$(params.imageTag)
         - --verbosity=debug
@@ -198,6 +201,8 @@ spec:
           value: "ace-api"
         - name: dockerFile
           value: "ACE-API.Dockerfile"
+        - name: contextPath
+          value: "ace-api"
       resources:
         inputs:
           - name: git-source
@@ -212,6 +217,8 @@ spec:
           value: "ace-acme"
         - name: dockerFile
           value: "ACE-Acme.Dockerfile"
+        - name: contextPath
+          value: "ace-acme"
       resources:
         inputs:
           - name: git-source
@@ -226,6 +233,8 @@ spec:
           value: "ace-bernie"
         - name: dockerFile
           value: "ACE-Bernie.Dockerfile"
+        - name: contextPath
+          value: "ace-bernie"
       resources:
         inputs:
           - name: git-source
@@ -240,11 +249,15 @@ spec:
           value: "ace-chris"
         - name: dockerFile
           value: "ACE-Chris.Dockerfile"
+        - name: contextPath
+          value: "ace-chris"
       resources:
         inputs:
           - name: git-source
             resource: git-source
     - name: deploy-ace-int-server-ace-api
+      runAfter:
+        - build-ace-int-server-ace-api
       taskRef:
         name: deploy-ace-int-server
       params:
@@ -259,6 +272,8 @@ spec:
           - name: git-source
             resource: git-source
     - name: deploy-ace-int-server-ace-bernie
+      runAfter:
+        - build-ace-int-server-ace-bernie
       taskRef:
         name: deploy-ace-int-server
       params:
@@ -273,6 +288,8 @@ spec:
           - name: git-source
             resource: git-source
     - name: deploy-ace-int-server-ace-acme
+      runAfter:
+        - build-ace-int-server-ace-acme
       taskRef:
         name: deploy-ace-int-server
       params:
@@ -287,6 +304,8 @@ spec:
           - name: git-source
             resource: git-source
     - name: deploy-ace-int-server-ace-chris
+      runAfter:
+        - build-ace-int-server-ace-chris
       taskRef:
         name: deploy-ace-int-server
       params:
