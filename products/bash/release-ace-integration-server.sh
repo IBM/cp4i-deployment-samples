@@ -12,7 +12,7 @@
 # PARAMETERS:
 #   -n : <namespace> (string), Defaults to "cp4i"
 #   -r : <is-release-name> (string), Defaults to "ace-is"
-#   -e : <is-image-name> (string), Defaults to "image-registry.openshift-image-registry.svc:5000/cp4i/ace-11.0.0.9-r2:new-1"
+#   -i : <is-image-name> (string), Defaults to "image-registry.openshift-image-registry.svc:5000/cp4i/ace-11.0.0.9-r2:new-1"
 #
 # USAGE:
 #   With defaults values
@@ -28,13 +28,13 @@ function usage {
 namespace="cp4i"
 is_release_name="ace-is"
 is_image_name="image-registry.openshift-image-registry.svc:5000/cp4i/ace-11.0.0.9-r2:new-1"
-while getopts "n:r:e:" opt; do
+while getopts "n:r:i:" opt; do
   case ${opt} in
     n ) namespace="$OPTARG"
       ;;
     r ) is_release_name="$OPTARG"
       ;;
-    e ) is_image_name="$OPTARG"
+    i ) is_image_name="$OPTARG"
       ;;
     \? ) usage; exit
       ;;

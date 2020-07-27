@@ -41,16 +41,16 @@ export NAMESPACE=cp4i1
 export BRANCH=build-deploy-mq-op
 export FORKED_REPO=https://github.com/IBM/cp4i-deployment-samples.git
 
-tkn resource delete --all -f
-tkn tasks delete --all -f
-tkn taskruns delete --all -f
-tkn pipelines delete --all -f
-tkn pipelineruns delete --all -f
-tkn eventlisteners delete --all -f
-tkn triggerbindings delete --all -f
-tkn triggertemplate delete --all -f
-oc delete rolebinding tekton-triggers-rolebinding
-oc delete role tekton-triggers-role
+# tkn resource delete --all -f
+# tkn tasks delete --all -f
+# tkn taskruns delete --all -f
+# tkn pipelines delete --all -f
+# tkn pipelineruns delete --all -f
+# tkn eventlisteners delete --all -f
+# tkn triggerbindings delete --all -f
+# tkn triggertemplate delete --all -f
+# oc delete rolebinding tekton-triggers-rolebinding
+# oc delete role tekton-triggers-role
 
 # oc apply -f cicd-webhook-triggers.yaml
 
@@ -59,7 +59,12 @@ cat cicd-webhook-triggers.yaml | \
   sed "s#{{BRANCH}}#$BRANCH#g;" | \
   sed "s#{{NAMESPACE}}#$NAMESPACE#g;" | \
   oc apply -f -
-curl $(echo "$(oc get route el-main-trigger --template='http://{{.spec.host}}')")
+
+# curl $(echo "$(oc get route el-main-trigger --template='http://{{.spec.host}}')")
+
+export URL=$(echo "$(oc get route el-main-trigger --template='http://{{.spec.host}}')")
+
+curl $URL
 
 tkn pr logs $(tkn pr ls | grep Running | awk '{print $1}') -f
 

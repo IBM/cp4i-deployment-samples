@@ -139,6 +139,8 @@ spec:
           - name: git-source
             resource: git-source
     - name: build-ace-int-server-ace-api
+      # runAfter:
+      #   - build-mq
       taskRef:
         name: build-push-docker-image
       params:
@@ -155,6 +157,8 @@ spec:
           - name: git-source
             resource: git-source
     - name: build-ace-int-server-ace-acme
+      runAfter:
+        - build-ace-int-server-ace-api
       taskRef:
         name: build-push-docker-image
       params:
@@ -171,6 +175,8 @@ spec:
           - name: git-source
             resource: git-source
     - name: build-ace-int-server-ace-bernie
+      runAfter:
+        - build-ace-int-server-ace-acme
       taskRef:
         name: build-push-docker-image
       params:
@@ -187,6 +193,8 @@ spec:
           - name: git-source
             resource: git-source
     - name: build-ace-int-server-ace-chris
+      runAfter:
+        - build-ace-int-server-ace-bernie
       taskRef:
         name: build-push-docker-image
       params:
@@ -212,7 +220,7 @@ spec:
           value: "$(params.imageTag)"
         - name: imageName
           value: "ace-api"
-        - name: releasename
+        - name: releaseName
           value: "ace-api-int-srv"
         - name: releaseScript
           value: release-ace-integration-server.sh
@@ -230,7 +238,7 @@ spec:
           value: "$(params.imageTag)"
         - name: imageName
           value: "ace-bernie"
-        - name: releasename
+        - name: releaseName
           value: "ace-bernie-int-srv"
         - name: releaseScript
           value: release-ace-integration-server.sh
@@ -248,7 +256,7 @@ spec:
           value: "$(params.imageTag)"
         - name: imageName
           value: "ace-acme"
-        - name: releasename
+        - name: releaseName
           value: "ace-acme-int-srv"
         - name: releaseScript
           value: release-ace-integration-server.sh
@@ -266,7 +274,7 @@ spec:
           value: "$(params.imageTag)"
         - name: imageName
           value: "ace-chris"
-        - name: releasename
+        - name: releaseName
           value: "ace-chris-int-srv"
         - name: releaseScript
           value: release-ace-integration-server.sh
