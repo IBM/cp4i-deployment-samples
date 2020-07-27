@@ -24,66 +24,21 @@ spec:
 
 ---
 
-# apiVersion: tekton.dev/v1alpha1
-# kind: Task
-# metadata:
-#   name: buildah
-# spec:
-#   inputs:
-#     params:
-#     - description: Path to the Dockerfile to build.
-#       name: DOCKERFILE
-#       type: string
-#     - description: Output docker image
-#       name: image
-#       type: string
-#     - description: Image tag
-#       name: imageTag
-#       type: string
-#     resources:
-#     - name: git-source
-#       type: git
-#   steps:
-#     - command:
-#         - buildah
-#         - bud
-#         - '--tls-verify=false'
-#         - '--layers'
-#         - '-f'
-#         - '/workspace/git-source/DrivewayDentDeletion/Operators/Dockerfiles/$(inputs.params.DOCKERFILE)'
-#         - '-t'
-#         - '$(inputs.params.image):$(inputs.params.imageTag)'
-#         - '/workspace/git-source/DrivewayDentDeletion/Operators/Dockerfiles'
-#       image: quay.io/buildah/stable:v1.15.0
-#       name: build
-#       securityContext:
-#         privileged: true
-#       workingDir: /workspace/git-source
-      
-
-#     - name: build
-#       image: quay.io/buildah/stable
-#       securityContext:
-#         runAsUser: 0
-#         privileged: true
-#       command:
-#         - sh
-#         - -c
-#         - "cd /workspace/git-source/DrivewayDentDeletion/Operators/Dockerfiles && \
-#            buildah --storage-driver=vfs build-using-dockerfile -f /workspace/git-source/DrivewayDentDeletion/Operators/Dockerfiles/MQ.Dockerfile -t $(params.imageTag) . && \           
-#            buildah --storage-driver=vfs push --tls-verify=false --creds=anyone:$(cat /var/run/secrets/kubernetes.io/serviceaccount/token) $(params.imageTag) image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}/mq-ddd
-#           "
-# ---
-
 apiVersion: tekton.dev/v1beta1
 kind: Task
 metadata:
-  name: build-push-mq-docker-image
+  name: build-push-docker-image
 spec:
   params:
+    - name: imageName
+      type: string
+      description: The image name
     - name: imageTag
       type: string
       description: The image tag
+    - name: dockerfile
+      type: string
+      description: The dockerfile
   resources:
     inputs:
       - name: git-source
@@ -98,37 +53,37 @@ spec:
         - sh
         - -c
         - "cd /workspace/git-source/DrivewayDentDeletion/Operators/Dockerfiles && \
-           buildah --storage-driver=vfs build-using-dockerfile -f /workspace/git-source/DrivewayDentDeletion/Operators/Dockerfiles/MQ.Dockerfile -t image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}/mq-ddd:$(params.imageTag) . && \           
-           buildah --storage-driver=vfs push --tls-verify=false image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}/mq-ddd:$(params.imageTag)
+           buildah --storage-driver=vfs build-using-dockerfile -f /workspace/git-source/DrivewayDentDeletion/Operators/Dockerfiles/$(params.dockerfile) -t image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}/$(params.imageName):$(params.imageTag) . && \
+           buildah --storage-driver=vfs push --tls-verify=false image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}/$(params.imageName):$(params.imageTag)
           "
 
 ---
 
-# apiVersion: tekton.dev/v1beta1
-# kind: Task
-# metadata:
-#   name: deploy-mq-task
-# spec:
-#   params:
-#     - name: imageTag
-#       type: string
-#       description: The image tag
-#     - name: imageName
-#       type: string
-#       description: The image name
-#     - name: releaseName
-#       type: string
-#       description: release name of queue manager deployment
-#   resources:
-#     inputs:
-#       - name: git-source
-#         type: git
-#   steps:
-#     - name: oc
-#       image: quay.io/openshift/origin-cli:latest
-#       script: "/workspace/git-source/products/bash/release-mq.sh -n {{NAMESPACE}} -r $(params.releaseName) -i image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}/$(params.imageName):$(params.imageTag)"
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: deploy-mq-task
+spec:
+  params:
+    - name: imageTag
+      type: string
+      description: The image tag
+    - name: imageName
+      type: string
+      description: The image name
+    - name: releaseName
+      type: string
+      description: release name of queue manager deployment
+  resources:
+    inputs:
+      - name: git-source
+        type: git
+  steps:
+    - name: oc
+      image: quay.io/openshift/origin-cli:latest
+      script: "/workspace/git-source/products/bash/release-mq.sh -n {{NAMESPACE}} -r $(params.releaseName) -i image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}/$(params.imageName):$(params.imageTag)"
 
-# ---
+---
 
 # apiVersion: tekton.dev/v1beta1
 # kind: Task
@@ -147,7 +102,7 @@ spec:
 #       description: Name of the dockerfile
 #     - name: contextPath
 #       type: string
-#       description: dockerfile context 
+#       description: dockerfile context
 #   resources:
 #     inputs:
 #       - name: git-source
@@ -173,32 +128,32 @@ spec:
 
 # ---
 
-# #Task to deploy ace-integration-server
-# apiVersion: tekton.dev/v1beta1
-# kind: Task
-# metadata:
-#   name: deploy-ace-int-server
-# spec:
-#   params:
-#     - name: imageTag
-#       type: string
-#       description: The image tag
-#     - name: imageName
-#       type: string
-#       description: The image name
-#     - name: releasename
-#       type: string
-#       description: release name of integration server deployment
-#   resources:
-#     inputs:
-#       - name: git-source
-#         type: git
-#   steps:
-#     - name: oc
-#       image: quay.io/openshift/origin-cli:latest
-#       script: "/workspace/git-source/products/bash/release-ace-integration-server.sh -n {{NAMESPACE}} -r $(params.releasename) -e image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}/$(params.imageName):$(params.imageTag)"
+#Task to deploy ace-integration-server
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: deploy-ace-int-server
+spec:
+  params:
+    - name: imageTag
+      type: string
+      description: The image tag
+    - name: imageName
+      type: string
+      description: The image name
+    - name: releasename
+      type: string
+      description: release name of integration server deployment
+  resources:
+    inputs:
+      - name: git-source
+        type: git
+  steps:
+    - name: oc
+      image: quay.io/openshift/origin-cli:latest
+      script: "/workspace/git-source/products/bash/release-ace-integration-server.sh -n {{NAMESPACE}} -r $(params.releasename) -e image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}/$(params.imageName):$(params.imageTag)"
 
-# ---
+---
 
 apiVersion: tekton.dev/v1alpha1
 kind: Pipeline
@@ -215,15 +170,14 @@ spec:
   tasks:
     - name: build-mq
       taskRef:
-        name: build-push-mq-docker-image
-        # name: buildah
+        name: build-push-docker-image
       params:
+        - name: imageName
+          value: "mq-ddd"
         - name: imageTag
           value: "$(params.imageTag)"
-        # - name: DOCKERFILE
-        #   value: "MQ.Dockerfile"
-        # - name: image
-        #   value: "image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}/mq-ddd"
+        - name: dockerfile
+          value: "MQ.Dockerfile"
       resources:
         inputs:
           - name: git-source
@@ -391,8 +345,8 @@ spec:
       serviceAccountNames:
         - taskName: build-mq
           serviceAccountName: cicd-mq-sa
-        # - taskName: deploy-mq
-        #   serviceAccountName: cicd-mq-sa
+        - taskName: deploy-mq
+          serviceAccountName: cicd-mq-sa
         # - taskName: build-ace-int-server-ace-api
         #   serviceAccountName: cicd-ace-sa
         # - taskName: build-ace-int-server-ace-bernie
