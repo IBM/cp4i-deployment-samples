@@ -24,97 +24,83 @@ spec:
 
 ---
 
-apiVersion: tekton.dev/v1alpha1
+# apiVersion: tekton.dev/v1alpha1
+# kind: Task
+# metadata:
+#   name: buildah
+# spec:
+#   inputs:
+#     params:
+#     - description: Path to the Dockerfile to build.
+#       name: DOCKERFILE
+#       type: string
+#     - description: Output docker image
+#       name: image
+#       type: string
+#     - description: Image tag
+#       name: imageTag
+#       type: string
+#     resources:
+#     - name: git-source
+#       type: git
+#   steps:
+#     - command:
+#         - buildah
+#         - bud
+#         - '--tls-verify=false'
+#         - '--layers'
+#         - '-f'
+#         - '/workspace/git-source/DrivewayDentDeletion/Operators/Dockerfiles/$(inputs.params.DOCKERFILE)'
+#         - '-t'
+#         - '$(inputs.params.image):$(inputs.params.imageTag)'
+#         - '/workspace/git-source/DrivewayDentDeletion/Operators/Dockerfiles'
+#       image: quay.io/buildah/stable:v1.15.0
+#       name: build
+#       securityContext:
+#         privileged: true
+#       workingDir: /workspace/git-source
+      
+
+#     - name: build
+#       image: quay.io/buildah/stable
+#       securityContext:
+#         runAsUser: 0
+#         privileged: true
+#       command:
+#         - sh
+#         - -c
+#         - "cd /workspace/git-source/DrivewayDentDeletion/Operators/Dockerfiles && \
+#            buildah --storage-driver=vfs build-using-dockerfile -f /workspace/git-source/DrivewayDentDeletion/Operators/Dockerfiles/MQ.Dockerfile -t $(params.imageTag) . && \           
+#            buildah --storage-driver=vfs push --tls-verify=false --creds=anyone:$(cat /var/run/secrets/kubernetes.io/serviceaccount/token) $(params.imageTag) image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}/mq-ddd
+#           "
+# ---
+
+apiVersion: tekton.dev/v1beta1
 kind: Task
 metadata:
-  name: buildah
+  name: build-push-mq-docker-image
 spec:
-  inputs:
-    params:
-      - description: Path to the Dockerfile to build.
-        name: DOCKERFILE
-        type: string
-      - description: Output docker image
-        name: image
-        type: string
-      - description: Image tag
-        name: imageTag
-        type: string
-    resources:
+  params:
+    - name: imageTag
+      type: string
+      description: The image tag
+  resources:
+    inputs:
       - name: git-source
         type: git
   steps:
-    - command:
-        - buildah
-        - bud
-        - '--tls-verify=false'
-        - '--layers'
-        - '-f'
-        - '/workspace/git-source/DrivewayDentDeletion/Operators/Dockerfiles/$(input.params.DOCKERFILE)'
-        - '-t'
-        - $(input.param.image):$(input.param.imageTag)
-        - .
-      image: quay.io/buildah/stable:v1.15.0
-      name: build
+    - name: build
+      image: quay.io/buildah/stable
       securityContext:
+        runAsUser: 0
         privileged: true
-      # volumeMounts:
-      #   - mountPath: /var/lib/containers
-      #     name: varlibcontainers
-      workingDir: /workspace/git-source
-    # - command:
-    #     - buildah
-    #     - push
-    #     - '--tls-verify=verify'
-    #     - $(outputs.resources.image.url)
-    #     - 'docker://$(outputs.resources.image.url)'
-    #   image: $(inputs.params.BUILDER_IMAGE)
-    #   name: push
-    #   resources: {}
-    #   securityContext:
-    #     privileged: true
-    #   volumeMounts:
-    #     - mountPath: /var/lib/containers
-    #       name: varlibcontainers
-    #   workingDir: /workspace/source
-  # volumes:
-  #   - emptyDir: {}
-  #     name: varlibcontainers
-
----
-
-# apiVersion: tekton.dev/v1beta1
-# kind: Task
-# metadata:
-#   name: build-push-mq-docker-image
-# spec:
-#   params:
-#     - name: imageTag
-#       type: string
-#       description: The image tag
-#   resources:
-#     inputs:
-#       - name: git-source
-#         type: git
-#   steps:
-#     - name: build-and-push-mq
-#       image: gcr.io/kaniko-project/executor:latest
-#       securityContext:
-#         runAsUser: 0
-#       env:
-#         - name: "DOCKER_CONFIG"
-#           value: "/tekton/home/.docker/"
-#       command:
-#         - /kaniko/executor
-#       args:
-#         - --context=/workspace/git-source/DrivewayDentDeletion/Operators/Dockerfiles
-#         - --dockerfile=/workspace/git-source/DrivewayDentDeletion/Operators/Dockerfiles/MQ.Dockerfile
-#         - --destination=image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}/mq-ddd:$(params.imageTag)
-#         - --verbosity=debug
-#         - --log-timestamp
-#         - --skip-tls-verify
-#         - --cleanup
-
+      command:
+        - sh
+        - -c
+        - "cd /workspace/git-source/DrivewayDentDeletion/Operators/Dockerfiles && \
+           buildah --storage-driver=vfs build-using-dockerfile -f /workspace/git-source/DrivewayDentDeletion/Operators/Dockerfiles/MQ.Dockerfile -t image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}/mq-ddd:$(params.imageTag) . && \           
+           buildah --storage-driver=vfs push --tls-verify=false --creds=anyone:$(cat /var/run/secrets/kubernetes.io/serviceaccount/token) image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}/mq-ddd:$(params.imageTag)
+          "
 
 ---
 
@@ -142,7 +128,7 @@ spec:
 #       image: quay.io/openshift/origin-cli:latest
 #       script: "/workspace/git-source/products/bash/release-mq.sh -n {{NAMESPACE}} -r $(params.releaseName) -i image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}/$(params.imageName):$(params.imageTag)"
 
----
+# ---
 
 # apiVersion: tekton.dev/v1beta1
 # kind: Task
@@ -185,7 +171,7 @@ spec:
 #       securityContext:
 #         runAsUser: 0
 
----
+# ---
 
 # #Task to deploy ace-integration-server
 # apiVersion: tekton.dev/v1beta1
@@ -212,7 +198,7 @@ spec:
 #       image: quay.io/openshift/origin-cli:latest
 #       script: "/workspace/git-source/products/bash/release-ace-integration-server.sh -n {{NAMESPACE}} -r $(params.releasename) -e image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}/$(params.imageName):$(params.imageTag)"
 
----
+# ---
 
 apiVersion: tekton.dev/v1alpha1
 kind: Pipeline
@@ -229,15 +215,15 @@ spec:
   tasks:
     - name: build-mq
       taskRef:
-        # name: build-push-mq-docker-image
-        name: buildah
+        name: build-push-mq-docker-image
+        # name: buildah
       params:
         - name: imageTag
           value: "$(params.imageTag)"
-        - name: DOCKERFILE
-          value: "MQ.Dockerfile"
-        - name: image
-          value: "image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}/mq-ddd"
+        # - name: DOCKERFILE
+        #   value: "MQ.Dockerfile"
+        # - name: image
+        #   value: "image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}/mq-ddd"
       resources:
         inputs:
           - name: git-source
@@ -429,7 +415,7 @@ spec:
           name: git-source
       params:
       - name: imageTag
-          value: "$(params.imageTag)"
+        value: $(uid)
 
 ---
 
