@@ -48,7 +48,7 @@ spec:
         type: git
   steps:
     - name: build
-      image: quay.io/buildah/stable
+      image: quay.io/buildah/stable:latest
       securityContext:
         runAsUser: 0
         privileged: true
@@ -56,7 +56,7 @@ spec:
         - sh
         - -c
         - "cd /workspace/git-source/DrivewayDentDeletion/Operators/Dockerfiles && \
-           buildah --storage-driver=vfs build-using-dockerfile -f /workspace/git-source/DrivewayDentDeletion/Operators/Dockerfiles/$(params.dockerfile) -t image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}/$(params.imageName):$(params.imageTag) /workspace/git-source/DrivewayDentDeletion/$(params.contextPath) && \
+           buildah --log-level info --storage-driver=vfs build-using-dockerfile -f /workspace/git-source/DrivewayDentDeletion/Operators/Dockerfiles/$(params.dockerfile) -t image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}/$(params.imageName):$(params.imageTag) /workspace/git-source/DrivewayDentDeletion/$(params.contextPath) && \
            buildah --storage-driver=vfs push --tls-verify=false image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}/$(params.imageName):$(params.imageTag)
           "
 
@@ -131,7 +131,7 @@ spec:
         - name: imageName
           value: "mq-ddd"
         - name: releaseName
-          value: "mq-ddd-qm"
+          value: "mq-ddd-qm-$(params.imageTag)"
         - name: releaseScript
           value: release-mq.sh
       resources:
@@ -175,8 +175,8 @@ spec:
           - name: git-source
             resource: git-source
     - name: build-ace-int-server-ace-bernie
-      runAfter:
-        - build-ace-int-server-ace-acme
+      # runAfter:
+      #   - build-ace-int-server-ace-chris
       taskRef:
         name: build-push-docker-image
       params:
@@ -194,7 +194,7 @@ spec:
             resource: git-source
     - name: build-ace-int-server-ace-chris
       runAfter:
-        - build-ace-int-server-ace-bernie
+        - deploy-mq
       taskRef:
         name: build-push-docker-image
       params:
@@ -221,7 +221,7 @@ spec:
         - name: imageName
           value: "ace-api"
         - name: releaseName
-          value: "ace-api-int-srv"
+          value: "ace-api-int-srv-$(params.imageTag)"
         - name: releaseScript
           value: release-ace-integration-server.sh
       resources:
@@ -239,7 +239,7 @@ spec:
         - name: imageName
           value: "ace-bernie"
         - name: releaseName
-          value: "ace-bernie-int-srv"
+          value: "ace-bernie-int-srv-$(params.imageTag)"
         - name: releaseScript
           value: release-ace-integration-server.sh
       resources:
@@ -257,7 +257,7 @@ spec:
         - name: imageName
           value: "ace-acme"
         - name: releaseName
-          value: "ace-acme-int-srv"
+          value: "ace-acme-int-srv-$(params.imageTag)"
         - name: releaseScript
           value: release-ace-integration-server.sh
       resources:
@@ -275,7 +275,7 @@ spec:
         - name: imageName
           value: "ace-chris"
         - name: releaseName
-          value: "ace-chris-int-srv"
+          value: "ace-chris-int-srv-$(params.imageTag)"
         - name: releaseScript
           value: release-ace-integration-server.sh
       resources:
