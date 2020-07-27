@@ -37,18 +37,30 @@
 # oc create secret docker-registry cicd-ace --docker-server=$DOCKER_REGISTRY --docker-username=$username --docker-password=$password
 
 
-tkn resource delete --all -f
-tkn tasks delete --all -f
-tkn taskruns delete --all -f
-tkn pipelines delete --all -f
-tkn pipelineruns delete --all -f
-tkn eventlisteners delete --all -f
-tkn triggerbindings delete --all -f
-tkn triggertemplate delete --all -f
-oc delete rolebinding tekton-triggers-rolebinding
-oc delete role tekton-triggers-role
+# tkn resource delete --all -f
+# tkn tasks delete --all -f
+# tkn taskruns delete --all -f
+# tkn pipelines delete --all -f
+# tkn pipelineruns delete --all -f
+# tkn eventlisteners delete --all -f
+# tkn triggerbindings delete --all -f
+# tkn triggertemplate delete --all -f
+# oc delete rolebinding tekton-triggers-rolebinding
+# oc delete role tekton-triggers-role
 
-oc apply -f cicd-webhook-triggers.yaml
+# oc apply -f cicd-webhook-triggers.yaml
+
+
+cat cicd-webhook-triggers.yaml | \
+  sed "s#{{FORKED_REPO}}#$FORKED_REPO#g;" | \
+  sed "s#{{BRANCH}}#$BRANCH#g;" | \
+  sed "s#{{CP_CONSOLE}}#$CP_CONSOLE#g;" | \
+  sed "s#{{NAMESPACE}}#$NAMESPACE#g;" | \
+  oc apply -f -
+curl $(echo "$(oc get route el-main-trigger --template='http://{{.spec.host}}')")
+
+tkn pr logs $(tkn pr ls | grep Running | awk '{print $1}') -f
+
 
 
 # EXECCUTOR COMMAND Usage:

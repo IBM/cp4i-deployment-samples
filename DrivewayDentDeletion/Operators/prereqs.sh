@@ -98,7 +98,7 @@ ls ${PWD}/DefaultPolicies
 # if [[ "$OSTYPE" == "linux-gnu"* ]]; then
 #   yum -y install zip
 # elif [[ "$OSTYPE" == "darwin"* ]]; then
-#   /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)"
+#   ./"$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)"
 #   brew install zip
 # else
 #   yum -y install zip
@@ -107,7 +107,13 @@ ls ${PWD}/DefaultPolicies
 zip -r DefaultPolicies/policyproject.zip DefaultPolicies/
 
 echo "INFO: encoding the policy project"
-temp=$(base64 --wrap=0 ${PWD}/DefaultPolicies/policyproject.zip)
+if [[ "$OSTYPE" == "linux-gnu"* ]]; then
+  temp=$(base64 --wrap=0 ${PWD}/DefaultPolicies/policyproject.zip)
+elif [[ "$OSTYPE" == "darwin"* ]]; then
+  temp=$(base64 ${PWD}/DefaultPolicies/policyproject.zip)
+else
+  temp=$(base64 --wrap=0 ${PWD}/DefaultPolicies/policyproject.zip)
+fi
 
 configyaml="\
 apiVersion: appconnect.ibm.com/v1beta1
