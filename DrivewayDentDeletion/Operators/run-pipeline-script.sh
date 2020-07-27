@@ -37,22 +37,22 @@
 # oc create secret docker-registry cicd-ace --docker-server=$DOCKER_REGISTRY --docker-username=$username --docker-password=$password
 
 
-# tkn resource delete --all -f
-# tkn tasks delete --all -f
-# tkn taskruns delete --all -f
-# tkn pipelines delete --all -f
-# tkn pipelineruns delete --all -f
-# tkn eventlisteners delete --all -f
-# tkn triggerbindings delete --all -f
-# tkn triggertemplate delete --all -f
-# oc delete rolebinding tekton-triggers-rolebinding
-# oc delete role tekton-triggers-role
-
-# oc apply -f cicd-webhook-triggers.yaml
-
 export NAMESPACE=cp4i1
 export BRANCH=build-deploy-mq-op
 export FORKED_REPO=https://github.com/IBM/cp4i-deployment-samples.git
+
+tkn resource delete --all -f
+tkn tasks delete --all -f
+tkn taskruns delete --all -f
+tkn pipelines delete --all -f
+tkn pipelineruns delete --all -f
+tkn eventlisteners delete --all -f
+tkn triggerbindings delete --all -f
+tkn triggertemplate delete --all -f
+oc delete rolebinding tekton-triggers-rolebinding
+oc delete role tekton-triggers-role
+
+# oc apply -f cicd-webhook-triggers.yaml
 
 cat cicd-webhook-triggers.yaml | \
   sed "s#{{FORKED_REPO}}#$FORKED_REPO#g;" | \
