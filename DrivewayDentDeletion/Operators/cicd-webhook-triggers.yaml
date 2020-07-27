@@ -99,7 +99,7 @@ spec:
         - -c
         - "cd /workspace/git-source/DrivewayDentDeletion/Operators/Dockerfiles && \
            buildah --storage-driver=vfs build-using-dockerfile -f /workspace/git-source/DrivewayDentDeletion/Operators/Dockerfiles/MQ.Dockerfile -t image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}/mq-ddd:$(params.imageTag) . && \           
-           buildah --storage-driver=vfs push --tls-verify=false --creds=anyone:$(cat /var/run/secrets/kubernetes.io/serviceaccount/token) image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}/mq-ddd:$(params.imageTag)
+           buildah --storage-driver=vfs push --tls-verify=false image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}/mq-ddd:$(params.imageTag)
           "
 
 ---
