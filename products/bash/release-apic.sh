@@ -15,6 +15,7 @@
 # PARAMETERS:
 #   -n : <namespace> (string), Defaults to "cp4i"
 #   -r : <release-name> (string), Defaults to "demo"
+#   -t : optional flag to enable tracing
 #
 # USAGE:
 #   With defaults values
@@ -24,17 +25,19 @@
 #     ./release-apic -n cp4i-prod -r prod
 
 function usage {
-    echo "Usage: $0 -n <namespace> -r <release-name>"
+    echo "Usage: $0 -n <namespace> -r <release-name> [-t]"
 }
 
 namespace="cp4i"
 release_name="demo"
 
-while getopts "n:r:" opt; do
+while getopts "n:r:t" opt; do
   case ${opt} in
     n ) namespace="$OPTARG"
       ;;
     r ) release_name="$OPTARG"
+      ;;
+    t ) tracing=true
       ;;
     \? ) usage; exit
       ;;
@@ -53,6 +56,10 @@ spec:
     accept: true
     use: nonproduction
   profile: n3xc4.m16
+  gateway:
+    openTracing:
+      enabled: ${tracing}
+      odTracingNamespace: ${namespace}
 EOF
 
 time=0
