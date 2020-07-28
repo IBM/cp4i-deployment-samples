@@ -43,7 +43,6 @@ done
 
 set -e
 
-# TODO Make this a parameter
 NAMESPACE="${namespace}"
 PORG_ADMIN_EMAIL=${PORG_ADMIN_EMAIL:-"cp4i-admin@apiconnect.net"} # update to recipient of portal site creation email
 ACE_REGISTRATION_SECRET_NAME="ace-v11-service-creds" # corresponds to registration obj currently hard-coded in configmap
@@ -54,11 +53,9 @@ MAIL_SERVER_PORT=${MAIL_SERVER_PORT:-"2525"}
 MAIL_SERVER_USERNAME=${MAIL_SERVER_USERNAME:-"<your-username>"}
 MAIL_SERVER_PASSWORD=${MAIL_SERVER_PASSWORD:-"<your-password>"}
 
-
 echo "Waiting for APIC installation to complete..."
 for i in `seq 1 60`; do
-  # TODO Use release_name in this?
-  APIC_STATUS=$(kubectl get apiconnectcluster.apiconnect.ibm.com -n $NAMESPACE | tail -1 | awk '{print $3}')
+  APIC_STATUS=$(kubectl get apiconnectcluster.apiconnect.ibm.com -n $NAMESPACE ${release_name} -ojsonpath='{.status.phase}')
   if [ "$APIC_STATUS" == "Ready" ]; then
     echo "[OK] APIC is ready"
     break
@@ -74,18 +71,14 @@ echo "Pod listing for information"
 kubectl get pod -n $NAMESPACE
 
 # obtain cloud manager credentials secret name
-# TODO use release name here?
-CLOUD_MANAGER_CREDS_SECRET=$(kubectl get secrets -n $NAMESPACE | grep -m1 mgmt-admin-pass | awk '{print $1}')
-CLOUD_MANAGER_PASS=$(oc get secret -n $NAMESPACE $CLOUD_MANAGER_CREDS_SECRET -o json | jq -r .data.password | base64 --decode)
+CLOUD_MANAGER_PASS=$(oc get secret -n $NAMESPACE "${release_name}-mgmt-admin-pass" -ojsonpath='{.data.password}' | base64 --decode)
 
 # obtain endpoint info from APIC v10 routes
-ENDPOINTS=$(kubectl get routes -n $NAMESPACE | awk '{print $2}')
-
-APIM_UI_EP=$(echo $ENDPOINTS | tr ' ' '\n' | grep mgmt-api-manager)
-CMC_UI_EP=$(echo $ENDPOINTS | tr ' ' '\n' | grep mgmt-admin)
-C_API_EP=$(echo $ENDPOINTS | tr ' ' '\n' | grep mgmt-consumer-api)
-API_EP=$(echo $ENDPOINTS | tr ' ' '\n' | grep mgmt-platform-api)
-PTL_WEB_EP=$(echo $ENDPOINTS | tr ' ' '\n' | grep ptl-portal-web)
+APIM_UI_EP=$(oc get route -n $NAMESPACE ${release_name}-mgmt-api-manager -ojsonpath='{.spec.host}')
+CMC_UI_EP=$(oc get route -n $NAMESPACE ${release_name}-mgmt-admin -ojsonpath='{.spec.host}')
+C_API_EP=$(oc get route -n $NAMESPACE ${release_name}-mgmt-consumer-api -ojsonpath='{.spec.host}')
+API_EP=$(oc get route -n $NAMESPACE ${release_name}-mgmt-platform-api -ojsonpath='{.spec.host}')
+PTL_WEB_EP=$(oc get route -n $NAMESPACE ${release_name}-ptl-portal-web -ojsonpath='{.spec.host}')
 
 # create the k8s resources
 echo "Applying manifests"
@@ -94,7 +87,7 @@ apiVersion: v1
 kind: ServiceAccount
 metadata:
   namespace: ${NAMESPACE}
-  name: apic-configurator-post-install-sa
+  name: ${release_name}-apic-configurator-post-install-sa
 imagePullSecrets:
 - name: ibm-entitlement-key
 ---
@@ -102,7 +95,7 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
   namespace: ${NAMESPACE}
-  name: apic-configurator-post-install-role
+  name: ${release_name}-apic-configurator-post-install-role
 rules:
 - apiGroups:
   - ""
@@ -117,21 +110,21 @@ kind: RoleBinding
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
   namespace: ${NAMESPACE}
-  name: apic-configurator-post-install-rolebinding
+  name: ${release_name}-apic-configurator-post-install-rolebinding
 subjects:
 - kind: ServiceAccount
-  name: apic-configurator-post-install-sa
+  name: ${release_name}-apic-configurator-post-install-sa
   namespace: ${NAMESPACE}
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: Role
-  name: apic-configurator-post-install-role
+  name: ${release_name}-apic-configurator-post-install-role
 ---
 apiVersion: v1
 kind: Secret
 metadata:
   namespace: ${NAMESPACE}
-  name: default-mail-server-creds
+  name: ${release_name}-default-mail-server-creds
 type: Opaque
 stringData:
   default-mail-server-creds.yaml: |-
@@ -145,7 +138,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   namespace: ${NAMESPACE}
-  name: configurator-base
+  name: ${release_name}-configurator-base
 data:
   configurator-base.yaml: |-
     logger:
@@ -172,14 +165,14 @@ data:
         username: admin
         password: ${CLOUD_MANAGER_PASS}
       provider:
-        secret_name: cp4i-admin-creds
+        secret_name: ${PROVIDER_SECRET_NAME}
     registrations:
       - registration:
           name: 'ace-v11'
           client_type: 'toolkit'
           client_id: 'ace-v11'
           client_secret: 'myclientid123'
-        secret_name: ace-v11-service-creds
+        secret_name: ${ACE_REGISTRATION_SECRET_NAME}
     mail_servers:
       - title: "Default Mail Server"
         name: default-mail-server
@@ -197,7 +190,7 @@ data:
             last_name: Administrator
             email: ${PORG_ADMIN_EMAIL}
             # email: cp4i-admin@apiconnect.net
-          secret_name: cp4i-admin-creds
+          secret_name: ${PROVIDER_SECRET_NAME}
     orgs:
       - org:
           name: demoorg
@@ -234,7 +227,7 @@ metadata:
   labels:
     app: apic-configurator-post-install
   namespace: ${NAMESPACE}
-  name: apic-configurator-post-install
+  name: ${release_name}-apic-configurator-post-install
 spec:
   backoffLimit: 1
   template:
@@ -242,7 +235,7 @@ spec:
       labels:
         app: apic-configurator-post-install
     spec:
-      serviceAccountName: apic-configurator-post-install-sa
+      serviceAccountName: ${release_name}-apic-configurator-post-install-sa
       restartPolicy: Never
       containers:
         - name: configurator
@@ -255,12 +248,12 @@ spec:
           projected:
             sources:
             - configMap:
-                name: configurator-base
+                name: ${release_name}-configurator-base
                 items:
                   - key: configurator-base.yaml
                     path: overrides/configurator-base.yaml
             - secret:
-                name: default-mail-server-creds
+                name: ${release_name}-default-mail-server-creds
                 items:
                   - key: default-mail-server-creds.yaml
                     path: overrides/default-mail-server-creds.yaml
@@ -268,14 +261,14 @@ EOF
 
 # wait for the job to complete
 echo "Waiting for configurator job to complete"
-kubectl wait --for=condition=complete --timeout=300s -n $NAMESPACE job/apic-configurator-post-install
+kubectl wait --for=condition=complete --timeout=300s -n $NAMESPACE job/${release_name}-apic-configurator-post-install
 
 # pull together any necessary info from in-cluster resources
 PROVIDER_CREDENTIALS=$(kubectl get secret $PROVIDER_SECRET_NAME -n $NAMESPACE -o json | jq .data)
 ACE_CREDENTIALS=$(kubectl get secret $ACE_REGISTRATION_SECRET_NAME -n $NAMESPACE -o json | jq .data)
 
 for i in `seq 1 60`; do
-  PORTAL_WWW_POD=$(kubectl get pods -n $NAMESPACE | grep -m1 'ptl.*www' | awk '{print $1}')
+  PORTAL_WWW_POD=$(kubectl get pods -n $NAMESPACE | grep -m1 "${release_name}-ptl.*www" | awk '{print $1}')
   PORTAL_SITE_UUID=$(kubectl exec -n $NAMESPACE -it $PORTAL_WWW_POD -c admin /opt/ibm/bin/list_sites | awk '{print $1}')
   PORTAL_SITE_RESET_URL=$(kubectl exec -n $NAMESPACE -it $PORTAL_WWW_POD -c admin /opt/ibm/bin/site_login_link $PORTAL_SITE_UUID | tail -1)
   if [[ "$PORTAL_SITE_RESET_URL" =~ "https://$PTL_WEB_EP" ]]; then
