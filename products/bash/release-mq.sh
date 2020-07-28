@@ -15,6 +15,7 @@
 # PARAMETERS:
 #   -n : <namespace> (string), Defaults to "cp4i"
 #   -r : <release-name> (string), Defaults to "demo"
+#   -t : <tracing> (string), Defaults to 'false'
 #
 # USAGE:
 #   With defaults values
