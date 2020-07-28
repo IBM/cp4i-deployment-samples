@@ -89,8 +89,13 @@ fi
 ar_path=""
 until [[ "$ar_path" == *"$desiredResponseContent"* ]]; do
   echo "Waiting for asset repo route to be created, attempt number: $i..."
-  ar_path=`oc get routes -n $NAMESPACE | grep -i ${RELEASE_NAME} | awk '{ print $2 }'`
+  if [["$USING_OPERATORS" == "true"]]; then
+  ar_path=`oc get route -n $NAMESPACE -l app.kubernetes.io/instance=$RELEASE_NAME -o json | jq '.items | .[1].spec.host' -r`
   ((i=i+1))
+  else
+  ar_path=`oc get route -n ${namespace} -l release=${releaseName} -o json | jq '.items | .[0].spec.host' -r`
+  ((i=i+1))
+  fi
   if [[ "$retries" -eq "$i" ]]; then
     echo "Error: Asset repository route could not be found"
     exit 1
