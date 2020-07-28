@@ -26,20 +26,20 @@
 
 
 function usage {
-    echo "Usage: $0 -n <namespace> -r <release-name> -t <tracing>"
+    echo "Usage: $0 -n <namespace> -r <release-name> [-t]"
 }
 
 namespace="cp4i"
 release_name="demo"
 tracing="false"
 
-while getopts "n:r:t:" opt; do
+while getopts "n:r:t" opt; do
   case ${opt} in
     n ) namespace="$OPTARG"
       ;;
     r ) release_name="$OPTARG"
       ;;
-    t ) tracing="$OPTARG"
+    t ) tracing="true"
       ;;
     \? ) usage; exit
       ;;

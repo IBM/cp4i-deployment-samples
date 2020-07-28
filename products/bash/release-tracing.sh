@@ -242,7 +242,8 @@ cat << EOF
     "version": "2020.2.1-0"
   }
 }
-EOF)
+EOF
+)
 fi
 
 if [[ "$dry_run" == "true" ]]; then
