@@ -15,7 +15,7 @@
 # PARAMETERS:
 #   -n : <namespace> (string), Defaults to "cp4i"
 #   -r : <release-name> (string), Defaults to "demo"
-#   -t : <tracing> (string), Defaults to 'false'
+#   -t : optional flag to enable tracing
 #
 # USAGE:
 #   With defaults values
@@ -39,7 +39,7 @@ while getopts "n:r:t" opt; do
       ;;
     r ) release_name="$OPTARG"
       ;;
-    t ) tracing="true"
+    t ) tracing=true
       ;;
     \? ) usage; exit
       ;;
