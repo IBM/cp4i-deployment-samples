@@ -25,17 +25,20 @@
 
 
 function usage {
-    echo "Usage: $0 -n <namespace> -r <release-name>"
+    echo "Usage: $0 -n <namespace> -r <release-name> -t <tracing>"
 }
 
 namespace="cp4i"
 release_name="demo"
+tracing="false"
 
-while getopts "n:r:" opt; do
+while getopts "n:r:t:" opt; do
   case ${opt} in
     n ) namespace="$OPTARG"
       ;;
     r ) release_name="$OPTARG"
+      ;;
+    t ) tracing="$OPTARG"
       ;;
     \? ) usage; exit
       ;;
@@ -68,4 +71,7 @@ spec:
   version: 9.1.5.0-r2
   web:
     enabled: true
+  tracing:
+    enabled: ${tracing}
+    namespace: ${namespace}
 EOF
