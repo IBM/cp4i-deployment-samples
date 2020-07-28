@@ -71,8 +71,6 @@ function is_release_ready {
   deployed_status=$(echo $release_status | jq '.[] | select (.type | ascii_downcase == "deployed") | .status | ascii_downcase'| tr -d '"')
   warning_status=$(echo $release_status | jq '.[] | select (.type | ascii_downcase == "warning" | not)')
 
-  echo $warning_status
-
   if [[ "$ready_status" == "true" || "$deployed_status" == "true" ]]; then
     echo "SUCCESS: ${release_name} is released and ready!"
     return 1
