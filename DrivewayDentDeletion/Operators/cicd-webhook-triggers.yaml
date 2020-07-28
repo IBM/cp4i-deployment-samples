@@ -76,7 +76,7 @@ spec:
       description: The image name
     - name: releaseName
       type: string
-      description: release name of queue manager deployment
+      description: release name of the deployment
     - name: releaseScript
       type: string
       description: release name of script
@@ -111,7 +111,7 @@ spec:
         - name: imageName
           value: "mq-ddd"
         - name: imageTag
-          value: "$(params.imageTag)"
+          value: "latest"
         - name: dockerfile
           value: "MQ.Dockerfile"
         - name: contextPath
@@ -131,7 +131,7 @@ spec:
         - name: imageName
           value: "mq-ddd"
         - name: releaseName
-          value: "mq-ddd-qm-$(params.imageTag)"
+          value: "mq-ddd-qm"
         - name: releaseScript
           value: release-mq.sh
       resources:
@@ -221,7 +221,7 @@ spec:
         - name: imageName
           value: "ace-api"
         - name: releaseName
-          value: "ace-api-int-srv-$(params.imageTag)"
+          value: "ace-api-int-srv"
         - name: releaseScript
           value: release-ace-integration-server.sh
       resources:
@@ -239,7 +239,7 @@ spec:
         - name: imageName
           value: "ace-bernie"
         - name: releaseName
-          value: "ace-bernie-int-srv-$(params.imageTag)"
+          value: "ace-bernie-int-srv"
         - name: releaseScript
           value: release-ace-integration-server.sh
       resources:
@@ -257,7 +257,7 @@ spec:
         - name: imageName
           value: "ace-acme"
         - name: releaseName
-          value: "ace-acme-int-srv-$(params.imageTag)"
+          value: "ace-acme-int-srv"
         - name: releaseScript
           value: release-ace-integration-server.sh
       resources:
@@ -275,7 +275,7 @@ spec:
         - name: imageName
           value: "ace-chris"
         - name: releaseName
-          value: "ace-chris-int-srv-$(params.imageTag)"
+          value: "ace-chris-int-srv"
         - name: releaseScript
           value: release-ace-integration-server.sh
       resources:

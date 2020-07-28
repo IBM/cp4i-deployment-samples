@@ -19,9 +19,10 @@ The script sets up the following:
 These steps will need to be documented in the demo docs:
 - Fork/clone the repo
 - Apply yaml to create the pipeline, configured to use the forked repo. Set
-`FORKED_REPO` to the URL for your repo.
+`FORKED_REPO` to the URL for your repo and change the `<NAMESPACE>` to the namespace of 1-click install in which you want the pipeline to run.
   ```
-  oc project <NAMESPACE>
+  export NAMESPACE=<NAMESPACE>
+  oc project $NAMESPACE
   export BRANCH=master
   export FORKED_REPO=https://github.com/IBM/cp4i-deployment-samples.git
   cat cicd-webhook-triggers.yaml | \

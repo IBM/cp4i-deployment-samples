@@ -59,7 +59,7 @@ spec:
     accept: true
     license: L-AMYG-BQ2E4U
     use: CloudPakForIntegrationProduction
-  replicas: 3
+  replicas: 2
   router:
     timeout: 120s
   service:
