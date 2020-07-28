@@ -19,6 +19,7 @@
 #   -d : ACE Dashboard
 #   -e : ACE Designer
 #   -r : CP4I Asset Repository
+#   -s : Event Streams
 
 function usage {
     echo "Usage: $0 [products...]"
@@ -26,7 +27,7 @@ function usage {
 
 cp_releases=()
 
-while getopts "n:m:d:e:r:" opt; do
+while getopts "n:m:d:e:r:s:" opt; do
   case ${opt} in
     n ) cp_releases+=("$OPTARG^PlatformNavigator")
       ;;
@@ -37,6 +38,8 @@ while getopts "n:m:d:e:r:" opt; do
     e ) cp_releases+=("$OPTARG^Designer")
       ;;
     r ) cp_releases+=("$OPTARG^AssetRepository")
+      ;;
+    s ) cp_releases+=("$OPTARG^EventStreams")
       ;;
     \? ) usage
       ;;
@@ -66,13 +69,16 @@ function is_release_ready {
   
   ready_status=$(echo $release_status | jq '.[] | select (.type | ascii_downcase == "ready") | .status | ascii_downcase'| tr -d '"')
   deployed_status=$(echo $release_status | jq '.[] | select (.type | ascii_downcase == "deployed") | .status | ascii_downcase'| tr -d '"')
+  warning_status=$(echo $release_status | jq '.[] | select (.type | ascii_downcase == "warning" | not)')
+
+  echo $warning_status
 
   if [[ "$ready_status" == "true" || "$deployed_status" == "true" ]]; then
     echo "SUCCESS: ${release_name} is released and ready!"
     return 1
   fi
 
-  if [[ "$release_status" == "[]" ]]; then
+  if [[ "$warning_status" == "" ]]; then
     echo "SUCCESS: Empty status, ${release_name} is released and ready!"
     return 1
   fi
