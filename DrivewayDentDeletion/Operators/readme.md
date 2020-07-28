@@ -10,12 +10,9 @@ and this script is automatically run as part of the 1-click demo preparation.
 The script sets up the following:
 - Installs Tekton Pipelines v0.12.1
 - Installs Tekton Triggers v0.5.0
-- Creates a `driveway-dent-deletion` project to be used for the demo
-- Creates secrets to allow the pipeline to push images to the `ace`/`mq` projects
+- Creates a project to be used for the demo (default `cp4i`).
+- Creates secrets to allow the pipeline to push images to the above project (default `cp4i`).
 - Creates a secret to allow the pipeline to pull from the entitled registry
-- Creates secrets to allow the pipeline to run helm against the CP4I tiller
-- Creates a TLS secret to secure connections to MQ
-- Creates a secret to allow the App Connect Integration Servers to connect to MQ
 - Creates a `quotes` table in the Postgres sampledb database
 
 # User steps
