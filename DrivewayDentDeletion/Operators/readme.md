@@ -27,7 +27,6 @@ These steps will need to be documented in the demo docs:
   cat cicd-webhook-triggers.yaml | \
     sed "s#{{FORKED_REPO}}#$FORKED_REPO#g;" | \
     sed "s#{{BRANCH}}#$BRANCH#g;" | \
-    sed "s#{{CP_CONSOLE}}#$CP_CONSOLE#g;" | \
     sed "s#{{NAMESPACE}}#$NAMESPACE#g;" | \
     oc apply -f -
   ```
