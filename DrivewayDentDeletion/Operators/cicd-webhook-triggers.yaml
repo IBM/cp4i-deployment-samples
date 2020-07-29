@@ -1,14 +1,14 @@
-# apiVersion: v1
-# kind: LimitRange
-# metadata:
-#   name: limit-ephemeral-storage-per-container-tekton-buildah
-# spec:
-#   limits:
-#   - min:
-#       ephemeral-storage: "5Gi"
-#     type: Container
+apiVersion: v1
+kind: LimitRange
+metadata:
+  name: limit-ephemeral-storage-per-container-tekton-buildah
+spec:
+  limits:
+  - min:
+      ephemeral-storage: "5Gi"
+    type: Container
 
-# ---
+---
 
 apiVersion: v1
 kind: ServiceAccount
@@ -67,9 +67,11 @@ spec:
       command:
         - sh
         - -c
-        - "cd /workspace/git-source/DrivewayDentDeletion/Operators/Dockerfiles && \
+        - "du -chd1 /var && \
+           cd /workspace/git-source/DrivewayDentDeletion/Operators/Dockerfiles && \
            buildah --log-level error --storage-driver=vfs build-using-dockerfile -f /workspace/git-source/DrivewayDentDeletion/Operators/Dockerfiles/$(params.dockerfile) -t image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}/$(params.imageName):$(params.imageTag) /workspace/git-source/DrivewayDentDeletion/$(params.contextPath) && \
-           buildah --log-level error --storage-driver=vfs push --tls-verify=false image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}/$(params.imageName):$(params.imageTag)
+           buildah --log-level error --storage-driver=vfs push --tls-verify=false image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}/$(params.imageName):$(params.imageTag) && \
+           du -chd1 /var
           "
 
 ---
