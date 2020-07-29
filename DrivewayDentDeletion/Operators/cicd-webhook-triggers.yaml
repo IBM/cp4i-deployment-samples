@@ -5,7 +5,7 @@ metadata:
 spec:
   limits:
   - min:
-      ephemeral-storage: "20Gi"
+      ephemeral-storage: "5Gi"
     type: Container
 
 ---
