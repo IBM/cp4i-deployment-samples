@@ -659,7 +659,6 @@ spec:
 apiVersion: route.openshift.io/v1
 kind: Route
 metadata:
-  creationTimestamp: null
   labels:
     app.kubernetes.io/managed-by: EventListener
     app.kubernetes.io/part-of: Triggers
@@ -673,8 +672,6 @@ spec:
     kind: ""
     name: el-main-trigger
     weight: null
-status:
-  ingress: null
 
 ---
 

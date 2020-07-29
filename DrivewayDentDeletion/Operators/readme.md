@@ -10,28 +10,25 @@ and this script is automatically run as part of the 1-click demo preparation.
 The script sets up the following:
 - Installs Tekton Pipelines v0.12.1
 - Installs Tekton Triggers v0.5.0
-- Creates a `driveway-dent-deletion` project to be used for the demo
-- Creates secrets to allow the pipeline to push images to the `ace`/`mq` projects
+- Creates a project to be used for the demo (default `cp4i`).
+- Creates secrets to allow the pipeline to push images to the above project (default `cp4i`).
 - Creates a secret to allow the pipeline to pull from the entitled registry
-- Creates secrets to allow the pipeline to run helm against the CP4I tiller
-- Creates a TLS secret to secure connections to MQ
-- Creates a secret to allow the App Connect Integration Servers to connect to MQ
 - Creates a `quotes` table in the Postgres sampledb database
 
 # User steps
 These steps will need to be documented in the demo docs:
 - Fork/clone the repo
 - Apply yaml to create the pipeline, configured to use the forked repo. Set
-`FORKED_REPO` to the URL for your repo.
+`FORKED_REPO` to the URL for your repo and change the `<NAMESPACE>` to the namespace of 1-click install in which you want the pipeline to run.
   ```
-  oc project driveway-dent-deletion
+  export NAMESPACE=<NAMESPACE>
+  oc project $NAMESPACE
   export BRANCH=master
   export FORKED_REPO=https://github.com/IBM/cp4i-deployment-samples.git
-  export CP_CONSOLE=$(oc get route -n kube-system icp-console  -o jsonpath='{.spec.host}')
   cat cicd-webhook-triggers.yaml | \
     sed "s#{{FORKED_REPO}}#$FORKED_REPO#g;" | \
     sed "s#{{BRANCH}}#$BRANCH#g;" | \
-    sed "s#{{CP_CONSOLE}}#$CP_CONSOLE#g;" | \
+    sed "s#{{NAMESPACE}}#$NAMESPACE#g;" | \
     oc apply -f -
   ```
 - Run the following command to get the URL for the trigger:

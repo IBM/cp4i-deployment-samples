@@ -14,7 +14,9 @@
 #
 # PARAMETERS:
 #   -n : <namespace> (string), Defaults to "cp4i"
-#   -r : <release-name> (string), Defaults to "demo"
+#   -r : <release_name> (string), Defaults to "demo"
+#   -i : <image_name> (string)
+#   -q : <qm_name> (string), Defaults to "QUICKSTART"
 #   -t : optional flag to enable tracing
 #
 # USAGE:
@@ -22,22 +24,25 @@
 #     ./release-mq.sh
 #
 #   Overriding the namespace and release-name
-#     ./release-mq.sh -n cp4i-prod -r prod
-
+#     ./release-mq -n cp4i -r demo -i image-registry.openshift-image-registry.svc:5000/cp4i/mq-ddd -q mq-qm
 
 function usage {
-    echo "Usage: $0 -n <namespace> -r <release-name> [-t]"
+    echo "Usage: $0 -n <namespace> -r <release_name> -i <image_name> -q <qm_name> [-t]"
 }
 
 namespace="cp4i"
 release_name="demo"
+qm_name="QUICKSTART"
 tracing="false"
-
-while getopts "n:r:t" opt; do
+while getopts "n:r:i:q:t" opt; do
   case ${opt} in
     n ) namespace="$OPTARG"
       ;;
     r ) release_name="$OPTARG"
+      ;;
+    i ) image_name="$OPTARG"
+      ;;
+    q ) qm_name="$OPTARG"
       ;;
     t ) tracing=true
       ;;
@@ -45,6 +50,8 @@ while getopts "n:r:t" opt; do
       ;;
   esac
 done
+
+if [ -z $image_name ]; then
 
 cat << EOF | oc apply -f -
 apiVersion: mq.ibm.com/v1beta1
@@ -58,7 +65,7 @@ spec:
     license: L-RJON-BN7PN3
     use: NonProduction
   queueManager:
-    name: QUICKSTART
+    name: ${qm_name}
     storage:
       queueManager:
         type: ephemeral
@@ -76,3 +83,37 @@ spec:
     enabled: ${tracing}
     namespace: ${namespace}
 EOF
+
+else
+
+cat << EOF | oc apply -f -
+apiVersion: mq.ibm.com/v1beta1
+kind: QueueManager
+metadata:
+  name: ${release_name}
+  namespace: ${namespace}
+spec:
+  license:
+    accept: true
+    license: L-RJON-BN7PN3
+    use: NonProduction
+  queueManager:
+    image: ${image_name}
+    imagePullPolicy: Always
+    name: ${qm_name}
+    storage:
+      queueManager:
+        type: ephemeral
+  template:
+    pod:
+      containers:
+        - env:
+            - name: MQSNOAUT
+              value: 'yes'
+          name: qmgr
+  version: 9.1.5.0-r2
+  web:
+    enabled: true
+EOF
+
+fi
