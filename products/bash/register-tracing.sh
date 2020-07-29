@@ -28,6 +28,9 @@
 #
 namespace="cp4i"
 
+SCRIPT_DIR="$(dirname $0)"
+echo "Current Dir: $SCRIPT_DIR"
+
 while getopts "n:" opt; do
   case ${opt} in
     n ) namespace="$OPTARG"
@@ -89,7 +92,7 @@ fi
 echo "Copying NameSpaceAutoRegistration.jar into tracing pod..."
 # Loop/retry here, pod exists but ui-manager container may not be ready
 for i in `seq 1 60`; do
-  if oc cp -n ${namespace} ./tracing/NameSpaceAutoRegistration.jar ${TRACING_POD}:/tmp -c ui-manager; then
+  if oc cp -n ${namespace} ${SCRIPT_DIR}/tracing/NameSpaceAutoRegistration.jar ${TRACING_POD}:/tmp -c ui-manager; then
     echo "Jar copied"
 		break
   else
