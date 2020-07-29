@@ -17,6 +17,7 @@
 #   -r : <release_name> (string), Defaults to "demo"
 #   -i : <image_name> (string)
 #   -q : <qm_name> (string), Defaults to "QUICKSTART"
+#   -t : optional flag to enable tracing
 #
 # USAGE:
 #   With defaults values
@@ -26,14 +27,14 @@
 #     ./release-mq -n cp4i -r demo -i image-registry.openshift-image-registry.svc:5000/cp4i/mq-ddd -q mq-qm
 
 function usage {
-    echo "Usage: $0 -n <namespace> -r <release_name> -i <image_name> -q <qm_name>"
+    echo "Usage: $0 -n <namespace> -r <release_name> -i <image_name> -q <qm_name> [-t]"
 }
 
 namespace="cp4i"
 release_name="demo"
 qm_name="QUICKSTART"
-
-while getopts "n:r:i:q:" opt; do
+tracing="false"
+while getopts "n:r:i:q:t" opt; do
   case ${opt} in
     n ) namespace="$OPTARG"
       ;;
@@ -42,6 +43,8 @@ while getopts "n:r:i:q:" opt; do
     i ) image_name="$OPTARG"
       ;;
     q ) qm_name="$OPTARG"
+      ;;
+    t ) tracing=true
       ;;
     \? ) usage; exit
       ;;
@@ -76,6 +79,9 @@ spec:
   version: 9.1.5.0-r2
   web:
     enabled: true
+  tracing:
+    enabled: ${tracing}
+    namespace: ${namespace}
 EOF
 
 else
