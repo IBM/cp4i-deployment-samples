@@ -30,6 +30,7 @@ function usage {
 
 namespace="cp4i"
 release_name="demo"
+tracing="false"
 
 while getopts "n:r:t" opt; do
   case ${opt} in
