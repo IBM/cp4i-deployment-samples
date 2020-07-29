@@ -127,7 +127,7 @@ spec:
         name: deploy-task
       params:
         - name: imageTag
-          value: "$(params.imageTag)"
+          value: "latest"
         - name: imageName
           value: "mq-ddd"
         - name: releaseName
