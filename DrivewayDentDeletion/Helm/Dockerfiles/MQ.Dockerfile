@@ -1,11 +1,11 @@
 FROM cp.icr.io/cp/icp4i/mq/ibm-mqadvanced-server-integration:9.1.4.0-r1-amd64
 RUN echo -e "\
-DEFINE QLOCAL('AccidentIn') \n\
-DEFINE QLOCAL('AccidentOut') \n\
-DEFINE QLOCAL('BumperIn') \n\
-DEFINE QLOCAL('BumperOut') \n\
-DEFINE QLOCAL('CrumpledIn') \n\
-DEFINE QLOCAL('CrumpledOut') \n\
+DEFINE QLOCAL('AccidentIn') DEFPSIST(YES)\n\
+DEFINE QLOCAL('AccidentOut') DEFPSIST(YES)\n\
+DEFINE QLOCAL('BumperIn') DEFPSIST(YES)\n\
+DEFINE QLOCAL('BumperOut') DEFPSIST(YES)\n\
+DEFINE QLOCAL('CrumpledIn') DEFPSIST(YES)\n\
+DEFINE QLOCAL('CrumpledOut') DEFPSIST(YES)\n\
 DEFINE CHANNEL(ACE_SVRCONN) CHLTYPE(SVRCONN) TRPTYPE(TCP) MCAUSER('mqm') \n\
 SET CHLAUTH(ACE_SVRCONN) TYPE(BLOCKUSER) ACTION(REPLACE) USERLIST('nobody') \n\
 alter qmgr CONNAUTH('') \n\

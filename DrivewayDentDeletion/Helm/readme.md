@@ -36,7 +36,11 @@ These steps will need to be documented in the demo docs:
   ```
 - Run the following command to get the URL for the trigger:
   ```
-  echo "$(oc  get route el-main-trigger --template='http://{{.spec.host}}')"
+  echo "$(oc  get route -n driveway-dent-deletion el-main-trigger --template='http://{{.spec.host}}')"
+  ```
+  or the following to manually trigger a pipeline run:
+  ```
+  curl $(oc  get route -n driveway-dent-deletion el-main-trigger --template='http://{{.spec.host}}')
   ```
 - Add the trigger URL to the repo as a webhook with the `Content type` as `application/json`, which triggers an initial run of the pipeline.
 
