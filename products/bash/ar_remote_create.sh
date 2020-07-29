@@ -2,9 +2,11 @@
 
 ## !! This script uses internal and undocumented APIs they are subject to change at any point, do not use in production.
 
+USING_OPERATORS=false
+
 ### Inputs
-help="Usage $0 \n-a required: common-services-url e.g. https://icp_console... \n-u required: username \n-p required: password  \n-r optional: release-name \n-n optional: namespace \n-g optional: git_remote_url \n-t optional: remote name \n-d optional: remote desc"
-while getopts "r:n:a:u:p:t:g:d:" opt; do
+help="Usage $0 \n-a required: common-services-url e.g. https://icp_console... \n-u required: username \n-p required: password  \n-r optional: release-name \n-n optional: namespace \n-g optional: git_remote_url \n-t optional: remote name \n-d optional: remote desc\n-o: Using operators version of asset repo"
+while getopts "r:n:a:u:p:t:g:d:o" opt; do
   case ${opt} in
     r ) RELEASE_NAME="$OPTARG"
       ;;
@@ -21,6 +23,8 @@ while getopts "r:n:a:u:p:t:g:d:" opt; do
     t ) REMOTE_NAME="$OPTARG"
       ;;
     d ) REMOTE_DESC="$OPTARG"
+      ;;
+    o ) USING_OPERATORS=true
       ;;
     \? ) echo -e $help
     ;;
@@ -60,7 +64,7 @@ echo "- Generating access token for user at $icpConsoleUrl"
 token_response=`curl --insecure -s -X POST -H "Content-Type: application/x-www-form-urlencoded" -d "grant_type=password&scope=openid&username=$cp4iuser&password=$cp4ipwd" $icpConsoleUrl/idprovider/v1/auth/identitytoken`
 token=""
 
-if [[ ! -z "$token_response" ]]; then 
+if [[ ! -z "$token_response" ]]; then
   if jq -e '.access_token' >/dev/null 2>&1 <<<"$token_response"; then
       token=`jq -r '.access_token' <<< "$token_response"`
   else
@@ -76,11 +80,20 @@ echo "=== Checking the route has been created ==="
 i=1
 retries=30
 interval=10
-desiredResponseContent="$RELEASE_NAME-$NAMESPACE"
+if [[ "$USING_OPERATORS" == "true" ]]; then
+  desiredResponseContent="$RELEASE_NAME-ibm-ar-$NAMESPACE"
+else
+  desiredResponseContent="$RELEASE_NAME-$NAMESPACE"
+fi
+
 ar_path=""
 until [[ "$ar_path" == *"$desiredResponseContent"* ]]; do
   echo "Waiting for asset repo route to be created, attempt number: $i..."
-  ar_path=`oc get routes -n $NAMESPACE | grep -i ${RELEASE_NAME} | awk '{ print $2 }'`
+  if [[ "$USING_OPERATORS" == "true" ]]; then
+    ar_path=`oc get ar $RELEASE_NAME -o json | jq -r '.status.endpoints[] | select ( .name == "ui").uri'`
+  else
+    ar_path=`oc get route -n $NAMESPACE -l release=$RELEASE_NAME -o json | jq '.items | .[0].spec.host' -r`
+  fi
   ((i=i+1))
   if [[ "$retries" -eq "$i" ]]; then
     echo "Error: Asset repository route could not be found"
@@ -164,11 +177,11 @@ if [[ ! $create_response =~ 200 ]]; then
     cat ./ar_create_tmp/catalog_create.json
     exit 1
 fi
-catalogId=`jq '.id' ./ar_create_tmp/catalog_create.json -r` 
+catalogId=`jq '.id' ./ar_create_tmp/catalog_create.json -r`
 # sleeping here because of enventual consistency bug with catalog creation
 sleep 5
 printf "$tick "
-echo "Catalog created with id: $catalogId"  
+echo "Catalog created with id: $catalogId"
 
 
 ## Fetch remote config for a catalog
@@ -199,6 +212,6 @@ if [[ ! $create_response =~ 201 ]]; then
     exit 1
 fi
 printf "$tick "
-echo "Git remote created."   
+echo "Git remote created."
 echo "=== Asset repository initialised with a git remote ==="
 rm -rf ./ar_create_tmp
