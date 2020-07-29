@@ -71,7 +71,7 @@ cat << EOF > ${PWD}/DefaultPolicies/default.policyxml
 <policies>
   <policy policyType="MQEndpoint" policyName="MQEndpointPolicy" policyTemplate="MQEndpoint">
     <connection>CLIENT</connection>
-    <destinationQueueManagerName>mqddddev</destinationQueueManagerName>
+    <destinationQueueManagerName>QUICKSTART</destinationQueueManagerName>
     <queueManagerHostname>mq-ddd-qm-ibm-mq</queueManagerHostname>
     <listenerPortNumber>1414</listenerPortNumber>
     <channelName>ACE_SVRCONN</channelName>
