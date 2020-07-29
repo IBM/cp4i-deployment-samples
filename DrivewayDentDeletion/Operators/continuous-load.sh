@@ -16,6 +16,7 @@
 #   -c : <should_cleanup_table> (true/false), whether to delete all rows from the test table - DEFAULT: false
 #   -i : <condensed_info> (true/false), whether to show the full post response or a condensed version - DEFAULT: false
 #   -s : <save_row_after_run> (true/false), whether to save each row in the database after a run or delete it DEFAULT: false
+#   -n : <namespace> (string), Defaults to "cp4i"
 #
 # USAGE:
 #   CAUTION - running without <should_cleanup_table> enabled can result in data leftover in the postgres table
@@ -27,37 +28,45 @@
 #     ./continuous-load.sh -t 2 -c
 
 function usage() {
-  echo "Usage: $0 -a <api_base_url> -t <retry_interval> -c -i -s"
+  echo "Usage: $0 -n <namespace> -a <api_base_url> -t <retry_interval> -c -i -s"
 }
 
+namespace="cp4i"
 should_cleanup_table=false
 condensed_info=false
 save_row_after_run=false
-api_base_url=$(echo "http://$(oc get routes -n ace | grep ace-ddd-api-dev-http-ace | awk '{print $2}')/drivewayrepair")
 retry_interval=5
 
-while getopts "a:t:cis" opt; do
+while getopts "n:a:t:cis" opt; do
   case ${opt} in
-  a)
-    api_base_url="$OPTARG"
-    ;;
-  t)
-    retry_interval="$OPTARG"
-    ;;
-  c)
-    should_cleanup_table=true
-    ;;
-  i)
-    condensed_info=true
-    ;;
-  s)
-    save_row_after_run=true
-    ;;
-  \?)
-    usage
-    ;;
+    n ) namespace="$OPTARG"
+      ;;
+    a)
+      api_base_url="$OPTARG"
+      ;;
+    t)
+      retry_interval="$OPTARG"
+      ;;
+    c)
+      should_cleanup_table=true
+      ;;
+    i)
+      condensed_info=true
+      ;;
+    s)
+      save_row_after_run=true
+      ;;
+    \?)
+      usage
+      ;;
   esac
 done
+
+if [ -z "${api_base_url}" ]; then
+  api_base_url=$(echo "http://$(oc get routes -n ${namespace} | grep ace-api-int-srv-http | grep -v ace-api-int-srv-https | awk '{print $2}')/drivewayrepair")
+fi
+
+echo $api_base_url
 
 os_sed_flag=""
 if [[ $(uname) == Darwin ]]; then
