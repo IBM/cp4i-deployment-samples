@@ -68,8 +68,8 @@ spec:
         - sh
         - -c
         - "cd /workspace/git-source/DrivewayDentDeletion/Operators/Dockerfiles && \
-           buildah --log-level info --storage-driver=vfs build-using-dockerfile -f /workspace/git-source/DrivewayDentDeletion/Operators/Dockerfiles/$(params.dockerfile) -t image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}/$(params.imageName):$(params.imageTag) /workspace/git-source/DrivewayDentDeletion/$(params.contextPath) && \
-           buildah --storage-driver=vfs push --tls-verify=false image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}/$(params.imageName):$(params.imageTag)
+           buildah --log-level error --storage-driver=vfs build-using-dockerfile -f /workspace/git-source/DrivewayDentDeletion/Operators/Dockerfiles/$(params.dockerfile) -t image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}/$(params.imageName):$(params.imageTag) /workspace/git-source/DrivewayDentDeletion/$(params.contextPath) && \
+           buildah --log-level error --storage-driver=vfs push --tls-verify=false image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}/$(params.imageName):$(params.imageTag)
           "
 
 ---
