@@ -1,12 +1,51 @@
+# # https://github.com/tektoncd/pipeline/blob/edc453934a183d44fde739dc24d6ca6b25cdeb6b/config/config-artifact-pvc.yaml
+# apiVersion: v1
+# kind: ConfigMap
+# metadata:
+#   name: config-artifact-pvc
+#   labels:
+#     app.kubernetes.io/instance: default
+#     app.kubernetes.io/part-of: tekton-pipelines
+# data:
+#   # size of the PVC volume
+#   size: 30Gi
+
+#   # storage class of the PVC volume
+#   storageClassName: default
+
+# ---
+
+# # https://github.com/IBM/loyalty/blob/d3a6b5e56b9a74cd050abfdcc1402ec9d1af8d26/pipelines/loyalty-pvc.yaml
+# apiVersion: v1
+# kind: PersistentVolumeClaim
+# metadata:
+#   name: buildah-pvc
+# spec:
+#   resources:
+#     requests:
+#       storage: 50Gi
+#   volumeMode: Filesystem
+#   storageClassName: ibmc-file-gold
+#   accessModes:
+#     - ReadWriteMany
+#   persistentVolumeReclaimPolicy: Retain
+
+# ---
+
+# https://github.com/IBM/loyalty/blob/d3a6b5e56b9a74cd050abfdcc1402ec9d1af8d26/pipelines/loyalty-pvc.yaml
 apiVersion: v1
-kind: LimitRange
+kind: PersistentVolumeClaim
 metadata:
-  name: limit-ephemeral-storage-per-container-tekton-buildah
+  name: buildah-pvc1
 spec:
-  limits:
-  - min:
-      ephemeral-storage: "5Gi"
-    type: Container
+  resources:
+    requests:
+      storage: 50Gi
+  volumeMode: Filesystem
+  storageClassName: ibmc-block-gold
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
 
 ---
 
@@ -41,6 +80,9 @@ kind: Task
 metadata:
   name: build-push-docker-image
 spec:
+  workspaces:
+  - name: buildah-ws
+    readOnly: false
   params:
     - name: imageTag
       type: string
@@ -67,12 +109,17 @@ spec:
       command:
         - sh
         - -c
-        - "du -chd1 /var && \
-           cd /workspace/git-source/DrivewayDentDeletion/Operators/Dockerfiles && \
-           buildah --log-level error --storage-driver=vfs build-using-dockerfile -f /workspace/git-source/DrivewayDentDeletion/Operators/Dockerfiles/$(params.dockerfile) -t image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}/$(params.imageName):$(params.imageTag) /workspace/git-source/DrivewayDentDeletion/$(params.contextPath) && \
-           buildah --log-level error --storage-driver=vfs push --tls-verify=false image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}/$(params.imageName):$(params.imageTag) && \
-           du -chd1 /var
+        - "cd /workspace/git-source/DrivewayDentDeletion/Operators/Dockerfiles && \
+           buildah --storage-driver=vfs build-using-dockerfile -f /workspace/git-source/DrivewayDentDeletion/Operators/Dockerfiles/$(params.dockerfile) -t image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}/$(params.imageName):$(params.imageTag) --squash --layers --force-rm --loglevel 2 /workspace/git-source/DrivewayDentDeletion/$(params.contextPath) && \
+           buildah --storage-driver=vfs push --tls-verify=false image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}/$(params.imageName):$(params.imageTag)
           "
+      volumeMounts:
+      - name: buildahpvc
+        mountPath: /var/lib
+  volumes:
+  - name: buildahpvc
+    persistentVolumeClaim:
+      claimName: buildah-pvc1
 
 ---
 
@@ -117,10 +164,15 @@ spec:
   resources:
     - name: git-source
       type: git
+  workspaces:
+    - name: local-buildah
   tasks:
     - name: build-mq
       taskRef:
         name: build-push-docker-image
+      workspaces:
+        - name: buildah-ws
+          workspace: local-buildah
       params:
         - name: imageName
           value: "mq-ddd"
@@ -157,6 +209,9 @@ spec:
       #   - build-mq
       taskRef:
         name: build-push-docker-image
+      workspaces:
+        - name: buildah-ws
+          workspace: local-buildah
       params:
         - name: imageTag
           value: "$(params.imageTag)"
@@ -175,6 +230,9 @@ spec:
       #   - build-ace-int-server-ace-api
       taskRef:
         name: build-push-docker-image
+      workspaces:
+        - name: buildah-ws
+          workspace: local-buildah
       params:
         - name: imageTag
           value: "$(params.imageTag)"
@@ -193,6 +251,9 @@ spec:
       #   - build-ace-int-server-ace-chris
       taskRef:
         name: build-push-docker-image
+      workspaces:
+        - name: buildah-ws
+          workspace: local-buildah
       params:
         - name: imageTag
           value: "$(params.imageTag)"
@@ -211,6 +272,9 @@ spec:
       #   - deploy-mq
       taskRef:
         name: build-push-docker-image
+      workspaces:
+        - name: buildah-ws
+          workspace: local-buildah
       params:
         - name: imageTag
           value: "$(params.imageTag)"
@@ -337,6 +401,10 @@ spec:
       - name: git-source
         resourceRef:
           name: git-source
+      workspaces:
+      - name: local-buildah
+        persistentVolumeClaim:
+          claimName: buildah-pvc1
       params:
       - name: imageTag
         value: $(uid)
