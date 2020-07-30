@@ -163,7 +163,7 @@ data:
             - 'org:manage'
             - 'my:view'
         username: admin
-        password: ${CLOUD_MANAGER_PASS}
+        password: "${CLOUD_MANAGER_PASS}"
       provider:
         secret_name: ${PROVIDER_SECRET_NAME}
     registrations:
