@@ -81,7 +81,7 @@ spec:
           "
       volumeMounts:
       - name: buildahpvc
-        mountPath: /var/lib/containers/storage
+        mountPath: /cache
   volumes:
   - name: buildahpvc
     persistentVolumeClaim:
