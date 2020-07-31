@@ -71,7 +71,7 @@ echo "Pod listing for information"
 kubectl get pod -n $NAMESPACE
 
 # obtain cloud manager credentials secret name
-CLOUD_MANAGER_PASS=$(oc get secret -n $NAMESPACE "${release_name}-mgmt-admin-pass" -ojsonpath='{.data.password}' | base64 --decode)
+CLOUD_MANAGER_PASS="$(oc get secret -n $NAMESPACE "${release_name}-mgmt-admin-pass" -ojsonpath='{.data.password}' | base64 --decode)"
 
 # obtain endpoint info from APIC v10 routes
 APIM_UI_EP=$(oc get route -n $NAMESPACE ${release_name}-mgmt-api-manager -ojsonpath='{.spec.host}')
