@@ -68,35 +68,35 @@ fi
 
 echo "API base URL: $api_base_url"
 
-# Check if the integration pods for ACE and MQ are available
-time=0
-numberOfDemoPods=$(oc get pods | grep -E 'mq-ddd-qm|ace-api-int-srv|ace-bernie-int-srv|ace-acme-int-srv|ace-chris-int-srv' | wc -l | xargs)
-while [ "$numberOfDemoPods" != "9" ]; do
-  if [ $time -gt 5 ]; then
-    echo "ERROR: All Integration demo pods for ace/mq not found"
-    exit 1
-  fi
-  echo "Waiting upto 10 minutes for all integration demo pods to appear"
-  numberOfDemoPods=$(oc get pods | grep -E 'mq-ddd-qm|ace-api-int-srv|ace-bernie-int-srv|ace-acme-int-srv|ace-chris-int-srv' | wc -l | xargs)
-  sleep 20
-done
+# # Check if the integration pods for ACE and MQ are available
+# time=0
+# numberOfDemoPods=$(oc get pods | grep -E 'mq-ddd-qm|ace-api-int-srv|ace-bernie-int-srv|ace-acme-int-srv|ace-chris-int-srv' | wc -l | xargs)
+# while [ "$numberOfDemoPods" != "9" ]; do
+#   if [ $time -gt 5 ]; then
+#     echo "ERROR: All Integration demo pods for ace/mq not found"
+#     exit 1
+#   fi
+#   echo "Waiting upto 10 minutes for all integration demo pods to appear"
+#   numberOfDemoPods=$(oc get pods | grep -E 'mq-ddd-qm|ace-api-int-srv|ace-bernie-int-srv|ace-acme-int-srv|ace-chris-int-srv' | wc -l | xargs)
+#   sleep 20
+# done
 
-echo "All demo pods are available, going ahead to wait for them to be in ready and running state..."
+# echo "All demo pods are available, going ahead to wait for them to be in ready and running state..."
 
-# Check if the integration pods for ACE and MQ are in Ready and Running state
-time=0
-numberOfReadyRunningDemoPods=$(oc get pods | grep -E 'mq-ddd-qm|ace-api-int-srv|ace-bernie-int-srv|ace-acme-int-srv|ace-chris-int-srv' | grep 1/1 | awk '{print $3}' | wc -l | xargs)
-while [ "$numberOfReadyRunningDemoPods" != "9" ]; do
-  if [ $time -gt 5 ]; then
-    echo "ERROR: Integration demo pods for ace/mq not in Running state'"
-    exit 1
-  fi
-  echo "Waiting upto 5 minutes for all integration demo pods to be in Ready and Running state"
-  numberOfReadyRunningDemoPods=$(oc get pods | grep -E 'mq-ddd-qm|ace-api-int-srv|ace-bernie-int-srv|ace-acme-int-srv|ace-chris-int-srv' | grep 1/1 | awk '{print $3}' | wc -l | xargs)
-  sleep 20
-done
+# # Check if the integration pods for ACE and MQ are in Ready and Running state
+# time=0
+# numberOfReadyRunningDemoPods=$(oc get pods | grep -E 'mq-ddd-qm|ace-api-int-srv|ace-bernie-int-srv|ace-acme-int-srv|ace-chris-int-srv' | grep 1/1 | awk '{print $3}' | wc -l | xargs)
+# while [ "$numberOfReadyRunningDemoPods" != "9" ]; do
+#   if [ $time -gt 5 ]; then
+#     echo "ERROR: Integration demo pods for ace/mq not in Running state'"
+#     exit 1
+#   fi
+#   echo "Waiting upto 5 minutes for all integration demo pods to be in Ready and Running state"
+#   numberOfReadyRunningDemoPods=$(oc get pods | grep -E 'mq-ddd-qm|ace-api-int-srv|ace-bernie-int-srv|ace-acme-int-srv|ace-chris-int-srv' | grep 1/1 | awk '{print $3}' | wc -l | xargs)
+#   sleep 20
+# done
 
-echo "All demo pods are up, ready and in running state, going ahead with continuous load testing..."
+# echo "All demo pods are up, ready and in running state, going ahead with continuous load testing..."
 
 os_sed_flag=""
 if [[ $(uname) == Darwin ]]; then
