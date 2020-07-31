@@ -2,6 +2,8 @@
 
 ## !! This script uses internal and undocumented APIs they are subject to change at any point, do not use in production.
 
+CURRENT_DIR=$(dirname $0)
+
 USING_OPERATORS=false
 
 ### Inputs
@@ -91,6 +93,7 @@ until [[ "$ar_path" == *"$desiredResponseContent"* ]]; do
   echo "Waiting for asset repo route to be created, attempt number: $i..."
   if [[ "$USING_OPERATORS" == "true" ]]; then
     ar_path=`oc get ar $RELEASE_NAME -o json | jq -r '.status.endpoints[] | select ( .name == "ui").uri'`
+    ${CURRENT_DIR}/fix-cs-dependencies.sh
   else
     ar_path=`oc get route -n $NAMESPACE -l release=$RELEASE_NAME -o json | jq '.items | .[0].spec.host' -r`
   fi
