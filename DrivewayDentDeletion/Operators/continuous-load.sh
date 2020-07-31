@@ -66,7 +66,7 @@ if [ -z "${api_base_url}" ]; then
   api_base_url=$(echo "http://$(oc get routes -n ${namespace} | grep ace-api-int-srv-http | grep -v ace-api-int-srv-https | awk '{print $2}')/drivewayrepair")
 fi
 
-echo $api_base_url
+echo "API base URL: $api_base_url"
 
 os_sed_flag=""
 if [[ $(uname) == Darwin ]]; then
