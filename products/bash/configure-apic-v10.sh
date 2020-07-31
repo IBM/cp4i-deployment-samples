@@ -27,6 +27,8 @@ function usage {
     echo "Usage: $0 -n <namespace> -r <release-name>"
 }
 
+CURRENT_DIR=$(dirname $0)
+
 namespace="cp4i"
 release_name="demo"
 
@@ -61,11 +63,19 @@ for i in `seq 1 60`; do
     break
   else
     echo "Waiting for APIC install to complete (Attempt $i of 60). Status: $APIC_STATUS"
+
+    ${CURRENT_DIR}/fix-cs-dependencies.sh
+
     kubectl get apic,pods -n $NAMESPACE
     echo "Checking again in one minute..."
     sleep 60
   fi
 done
+
+if [ "$APIC_STATUS" != "Ready" ]; then
+  echo "[ERROR] APIC failed to install"
+  exit 1
+fi
 
 echo "Pod listing for information"
 kubectl get pod -n $NAMESPACE
