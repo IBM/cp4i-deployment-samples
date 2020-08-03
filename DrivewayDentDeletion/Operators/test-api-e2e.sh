@@ -71,7 +71,7 @@ if [[ "$jqInstalled" == "false" ]]; then
     /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)"
     brew install jq
   fi
-  echo "Waiting upto 30 minutes for all integration demo pods to be in Ready and Running state. Waited ${time} minute(s)."
+  echo "INFO: Waiting upto 30 minutes for all integration demo pods to be in Ready and Running state. Waited ${time} minute(s)."
   time=$((time + 1))
   numberOfReadyRunningDemoPods=$(oc get pods -n ${namespace} | grep -E "int-srv-${imageTag}|mq-ddd-qm-latest" | grep -v pipelinerun | grep 1/1 | awk '{print $3}' | wc -l | xargs)
   echo "INFO: The integration server pods are:"
@@ -79,14 +79,11 @@ if [[ "$jqInstalled" == "false" ]]; then
   sleep 60
 done
 
-echo "All demo pods are up, ready and in running state, going ahead with testing API..."
+echo "INFO: All demo pods are up, ready and in running state, going ahead with testing API..."
 echo "INFO: The integration server and mq pods are:"
 oc get pods | grep -E "int-srv-${imageTag}|mq-ddd-qm-latest"
 
-echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
-
-# -------------------------------------- TEST E2E API ------------------------------------------
-
+echo -e "\nINFO: POST request..."
 export HOST=http://$(oc get routes -n ${namespace} | grep ace-api-int-srv-http | grep -v ace-api-int-srv-https | awk '{print $2}')/drivewayrepair
 echo "INFO: Host: ${HOST}"
 
@@ -113,9 +110,7 @@ if [ "$post_response_code" == "200" ]; then
     echo ${post_response} | jq '.' | sed $os_sed_flag '$ d'
   fi
 
-  echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------"
-
-  # ------- Get from the database -------
+  # - GET ---
   echo -e "\nINFO: GET request..."
   get_response=$(curl -s -w " %{http_code}" -X GET ${HOST}/quote?QuoteID=${quote_id})
   get_response_code=$(echo "${get_response##* }")
