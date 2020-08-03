@@ -12,6 +12,7 @@
 #   - Logged into cluster on the OC CLI (https://docs.openshift.com/container-platform/4.4/cli_reference/openshift_cli/getting-started-cli.html)
 #
 # PARAMETERS:
+#   -c : <condensed_info> (true/false), whether to show the full post response or a condensed version - DEFAULT: false
 #   -n : <namespace> (string), Defaults to "cp4i"
 #   -t : <imageTag> (string), Default is empty
 #
@@ -38,6 +39,9 @@ while getopts "n:t:c" opt; do
     n ) namespace="$OPTARG"
       ;;
     t ) imageTag="$OPTARG"
+      ;;
+    c)
+      condensed_info=true
       ;;
     \? ) usage; exit
       ;;
@@ -83,79 +87,17 @@ while [ "$numberOfPipelineRunPods" != "10" ]; do
     echo "ERROR: All pipeline run pods did not complete within 15 minutes"
     exit 1
   fi
-
-  mainPipelineRunPodsAceMq=$(oc get pods -n $namespace | grep main-pipelinerun | grep ${imageTag} | grep Completed | grep -v api-test)
-  if [[ $mainPipelineRunPodsAceMq ]]; then
-    echo -e "\nINFO: The current state of pipelinerun pods are:"
-    echo $mainPipelineRunPodsAceMq
-  else
-    echo "No matching pipelinerun pods found for the image tag '$imageTag' yet"
-  fi
-
-  echo -e "\nINFO: Waiting upto 10 minutes for all pipelinerun pods to be completed. Waited ${time} minute(s)."
+  echo "Waiting upto 30 minutes for all integration demo pods to be in Ready and Running state. Waited ${time} minute(s)."
   time=$((time + 1))
-  numberOfPipelineRunPods=$(oc get pods -n $namespace | grep main-pipelinerun | grep ${imageTag} | grep Completed | grep -v api-test | wc -l | xargs)
+  numberOfReadyRunningDemoPods=$(oc get pods -n ${namespace} | grep -E "int-srv-${imageTag}|mq-ddd-qm-latest" | grep -v pipelinerun | grep 1/1 | awk '{print $3}' | wc -l | xargs)
+  echo "INFO: The integration server pods are:"
+  oc get pods | grep -E "int-srv-${imageTag}|mq-ddd-qm-latest"
   sleep 60
 done
 
-echo -e "\nINFO: All pipelinerun pods are completed, going ahead to wait for all related pods to be available...\n"
-echo "INFO: The completed pipeline run pods are:"
-oc get pods -n $namespace | grep main-pipelinerun | grep ${imageTag} | grep Completed | grep -v api-test
-
-echo -e "\nINFO: Checking if the integration pods for ACE and MQ are available..."
-# Check if the integration pods for ACE and MQ are available
-time=0
-numberOfAceMQDemoPods=$(oc get pods -n $namespace | grep -E 'mq-ddd-qm|ace-api-int-srv|ace-bernie-int-srv|ace-acme-int-srv|ace-chris-int-srv' | wc -l | xargs)
-while [ "$numberOfAceMQDemoPods" != "$totalDemoPods" ]; do
-  if [ $time -gt 10 ]; then
-    echo "ERROR: All Integration demo pods for ace/mq not found"
-    exit 1
-  fi
-
-  if [[ $(oc get pods -n $namespace | grep -E 'mq-ddd-qm|ace-api-int-srv|ace-bernie-int-srv|ace-acme-int-srv|ace-chris-int-srv') ]]; then
-    echo -e "\nINFO: The available ACE and MQ pods are:"
-    oc get pods -n $namespace | grep -E 'mq-ddd-qm|ace-api-int-srv|ace-bernie-int-srv|ace-acme-int-srv|ace-chris-int-srv'
-  else
-    echo "No matching available demo pods found for ACE/MQ yet.."
-  fi
-
-  echo -e "\nINFO: Waiting upto 10 minutes for all ACE and MQ deom pods to appear. Waited ${time} minute(s)."
-  time=$((time + 1))
-  numberOfAceMQDemoPods=$(oc get pods -n $namespace | grep -E 'mq-ddd-qm|ace-api-int-srv|ace-bernie-int-srv|ace-acme-int-srv|ace-chris-int-srv' | wc -l | xargs)
-  sleep 60
-done
-
-echo -e "\nINFO: All ACE and MQ demo pods are available, going ahead to wait for them to be in ready and running state...\n"
-echo "INFO: All available ACE and MQ demo pods are:"
-oc get pods -n $namespace | grep -E 'mq-ddd-qm|ace-api-int-srv|ace-bernie-int-srv|ace-acme-int-srv|ace-chris-int-srv'
-
-# Check if the integration pods for ACE and MQ are in Ready and Running state
-time=0
-numberOfReadyRunningAceMQDemoPods=$(oc get pods -n $namespace | grep -E 'mq-ddd-qm|ace-api-int-srv|ace-bernie-int-srv|ace-acme-int-srv|ace-chris-int-srv' | grep 1/1 | grep Running | awk '{print $3}' | wc -l | xargs)
-while [ "$numberOfReadyRunningAceMQDemoPods" != "$totalDemoPods" ]; do
-  if [ $time -gt 10 ]; then
-    echo "ERROR: Integration demo pods for ace/mq not in Running state"
-    exit 1
-  fi
-
-  if [[ $(oc get pods -n $namespace | grep -E 'mq-ddd-qm|ace-api-int-srv|ace-bernie-int-srv|ace-acme-int-srv|ace-chris-int-srv' | grep 1/1 | grep Running) ]]; then
-    echo -e "\nINFO: The Ready and Running ACE and MQ demo pods are:"
-    oc get pods -n $namespace | grep -E 'mq-ddd-qm|ace-api-int-srv|ace-bernie-int-srv|ace-acme-int-srv|ace-chris-int-srv' | grep 1/1 | grep Running
-  else
-    echo "No matching demo pods found for ACE/MQ in ready and running state yet..."
-  fi
-
-  echo -e "\nINFO: Waiting upto 10 minutes for all integration demo pods to be in Ready and Running state. Waited ${time} minute(s)."
-  time=$((time + 1))
-  numberOfReadyRunningAceMQDemoPods=$(oc get pods -n $namespace | grep -E 'mq-ddd-qm|ace-api-int-srv|ace-bernie-int-srv|ace-acme-int-srv|ace-chris-int-srv' | grep 1/1 | grep Running | awk '{print $3}' | wc -l | xargs)
-  sleep 60
-done
-
-echo -e "\nINFO: All demo pods are up, ready and in running state, going ahead with continuous load testing...\n"
-echo "INFO: All Ready and Running ACE and MQ demo pods are:"
-oc get pods -n $namespace | grep -E 'mq-ddd-qm|ace-api-int-srv|ace-bernie-int-srv|ace-acme-int-srv|ace-chris-int-srv' | grep 1/1 | grep Running
-
-echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
+echo "All demo pods are up, ready and in running state, going ahead with testing API..."
+echo "INFO: The integration server and mq pods are:"
+oc get pods | grep -E "int-srv-${imageTag}|mq-ddd-qm-latest"
 
 # Waiting for all ace pods to be deployed with the new image
 echo "INFO: Waiting for all ACE demo pods to be deployed with the new image .."
@@ -221,10 +163,12 @@ if [ "$post_response_code" == "200" ]; then
   quote_id=$(echo "$post_response" | jq '.' | sed $os_sed_flag '$ d' | jq '.QuoteID')
 
   echo -e "INFO: SUCCESS - POSTed with response code: ${post_response_code}, QuoteID: ${quote_id}, and Response Body:\n"
-  # The usage of sed here is to prevent an error caused between the -w flag of curl and jq not interacting well
-  echo ${post_response} | jq '.' | sed $os_sed_flag '$ d'
-
-  echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------"
+  if [ "$condensed_info" = true ]; then
+    # The usage of sed here is to prevent an error caused between the -w flag of curl and jq not interacting well
+    echo ${post_response} | jq '.' | sed $os_sed_flag '$ d' | jq '{ QuoteID: .QuoteID, Versions: .Versions }'
+  else
+    echo ${post_response} | jq '.' | sed $os_sed_flag '$ d'
+  fi
 
   # Get from the database ---
   echo -e "\nINFO: GET request..."
@@ -232,32 +176,23 @@ if [ "$post_response_code" == "200" ]; then
   get_response_code=$(echo "${get_response##* }")
 
   if [ "$get_response_code" == "200" ]; then
-    echo -e "INFO: SUCCESS - GET with response code: ${get_response_code}, and Response Body:\n"
-    # The usage of sed here is to prevent an error caused between the -w flag of curl and jq not interacting well
-    echo ${get_response} | jq '.' | sed $os_sed_flag '$ d'
+    echo -e "INFO: SUCCESS - GETed with response code: ${get_response_code}, and Response Body:\n"
+
+    if [ "$condensed_info" = true ]; then
+      # The usage of sed here is to prevent an error caused between the -w flag of curl and jq not interacting well
+      echo ${get_response} | jq '.' | sed $os_sed_flag '$ d' | jq '.[0] | { QuoteID: .QuoteID, Email: .Email }'
+    else
+      echo ${get_response} | jq '.' | sed $os_sed_flag '$ d'
+    fi
   else
     echo "ERROR: FAILED - Error code: ${get_response_code}"
-    exit 1
   fi
 
-  echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------"
-  # Delete from the database
   echo -e "INFO: \nDeleting row from database..."
-  echo "INFO: Deleting the row with quote id $quote_id from the database"
-  oc exec -n postgres -it $(oc get pod -n postgres -l name=postgresql -o jsonpath='{.items[].metadata.name}') \
-    -- psql -U admin -d sampledb -c \
-    "DELETE FROM quotes WHERE quotes.quoteid=${quote_id};"
-
-  echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------"
-  echo "INFO: Select and print the row from database with '$quote_id' to confirm deletion"
-  # Get row to confirm deletion
   oc exec -n postgres -it $(oc get pod -n postgres -l name=postgresql -o jsonpath='{.items[].metadata.name}') \
     -- psql -U admin -d sampledb -c \
     "SELECT * FROM quotes WHERE quotes.quoteid=${quote_id};"
 
 else
-  # Failure catch during POST
-  echo "ERROR: Post request failed - Error code: ${post_response_code}"
-  exit 1
+  echo "ERROR: FAILED - Error code: ${post_response_code}" # Failure catch during POST
 fi
-echo -e "----------------------------------------------------------------------------------------------------------------------------------------------------------"
