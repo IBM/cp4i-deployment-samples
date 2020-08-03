@@ -27,7 +27,7 @@ spec:
 apiVersion: tekton.dev/v1beta1
 kind: Task
 metadata:
-  name: build-push-docker-image
+  name: build-task
 spec:
   params:
     - name: imageTag
@@ -56,8 +56,8 @@ spec:
         - sh
         - -c
         - "cd /workspace/git-source/DrivewayDentDeletion/Operators/Dockerfiles && \
-           buildah --log-level info --storage-driver=vfs build-using-dockerfile -f /workspace/git-source/DrivewayDentDeletion/Operators/Dockerfiles/$(params.dockerfile) -t image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}/$(params.imageName):$(params.imageTag) /workspace/git-source/DrivewayDentDeletion/$(params.contextPath) && \
-           buildah --storage-driver=vfs push --tls-verify=false image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}/$(params.imageName):$(params.imageTag)
+           buildah --storage-driver vfs build-using-dockerfile -f /workspace/git-source/DrivewayDentDeletion/Operators/Dockerfiles/$(params.dockerfile) -t image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}/$(params.imageName):$(params.imageTag) /workspace/git-source/DrivewayDentDeletion/$(params.contextPath) && \
+           buildah --storage-driver vfs push --tls-verify=false image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}/$(params.imageName):$(params.imageTag)
           "
 
 ---
@@ -106,7 +106,7 @@ spec:
   tasks:
     - name: build-mq
       taskRef:
-        name: build-push-docker-image
+        name: build-task
       params:
         - name: imageName
           value: "mq-ddd"
@@ -139,10 +139,8 @@ spec:
           - name: git-source
             resource: git-source
     - name: build-ace-int-server-ace-api
-      # runAfter:
-      #   - build-mq
       taskRef:
-        name: build-push-docker-image
+        name: build-task
       params:
         - name: imageTag
           value: "$(params.imageTag)"
@@ -160,7 +158,7 @@ spec:
       runAfter:
         - build-ace-int-server-ace-api
       taskRef:
-        name: build-push-docker-image
+        name: build-task
       params:
         - name: imageTag
           value: "$(params.imageTag)"
@@ -175,10 +173,10 @@ spec:
           - name: git-source
             resource: git-source
     - name: build-ace-int-server-ace-bernie
-      # runAfter:
-      #   - build-ace-int-server-ace-chris
+      runAfter:
+        - build-ace-int-server-ace-acme
       taskRef:
-        name: build-push-docker-image
+        name: build-task
       params:
         - name: imageTag
           value: "$(params.imageTag)"
@@ -194,9 +192,9 @@ spec:
             resource: git-source
     - name: build-ace-int-server-ace-chris
       runAfter:
-        - deploy-mq
+        - build-ace-int-server-ace-bernie
       taskRef:
-        name: build-push-docker-image
+        name: build-task
       params:
         - name: imageTag
           value: "$(params.imageTag)"
