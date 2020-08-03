@@ -92,7 +92,7 @@ ar_path=""
 until [[ "$ar_path" == *"$desiredResponseContent"* ]]; do
   echo "Waiting for asset repo route to be created, attempt number: $i..."
   if [[ "$USING_OPERATORS" == "true" ]]; then
-    ar_path=`oc get ar $RELEASE_NAME -o json | jq -r '.status.endpoints[] | select ( .name == "ui").uri'`
+    ar_path=`oc get ar -n $NAMESPACE $RELEASE_NAME -o json | jq -r '.status.endpoints[] | select ( .name == "ui").uri'`
     ${CURRENT_DIR}/fix-cs-dependencies.sh
   else
     ar_path=`oc get route -n $NAMESPACE -l release=$RELEASE_NAME -o json | jq '.items | .[0].spec.host' -r`
