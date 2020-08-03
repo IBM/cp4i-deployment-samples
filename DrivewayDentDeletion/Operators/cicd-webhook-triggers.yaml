@@ -87,7 +87,28 @@ spec:
   steps:
     - name: oc
       image: quay.io/openshift/origin-cli:latest
-      script: "/workspace/git-source/products/bash/$(params.releaseScript) -n {{NAMESPACE}} -r $(params.releaseName) -i image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}/$(params.imageName):$(params.imageTag)"
+      script: "/workspace/git-source/products/bash/$(params.releaseScript) -n {{NAMESPACE}} -r $(params.releaseName)-$(params.imageTag) -i image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}/$(params.imageName):$(params.imageTag)"
+
+---
+
+Version: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: test-task
+spec:
+  params:
+    - name: imageTag
+      type: string
+      description: The image tag
+  resources:
+    inputs:
+      - name: git-source
+        type: git
+  steps:
+    - name: oc
+      image: quay.io/openshift/origin-cli:latest
+      script: "
+          /workspace/git-source/DrivewayDentDeletion/Operators/test-api-e2e.sh -n {{NAMESPACE}} -t $(params.imageTag)"
 
 ---
 
@@ -276,6 +297,19 @@ spec:
           value: "ace-chris-int-srv"
         - name: releaseScript
           value: release-ace-integration-server.sh
+      resources:
+        inputs:
+          - name: git-source
+            resource: git-source
+    - name: api-test
+      runAfter:
+        - deploy-ace-int-server-ace-chris
+        - deploy-mq
+      taskRef:
+        name: test-task
+      params:
+        - name: imageTag
+          value: "$(params.imageTag)"
       resources:
         inputs:
           - name: git-source
