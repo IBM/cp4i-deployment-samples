@@ -55,7 +55,7 @@ spec:
   appVersion: 10.0.0.0
   license:
     accept: true
-    use: nonproduction
+    use: production
   profile: n3xc4.m16
   gateway:
     openTracing:
