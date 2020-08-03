@@ -91,7 +91,7 @@ spec:
 
 ---
 
-Version: tekton.dev/v1beta1
+apiVersion: tekton.dev/v1beta1
 kind: Task
 metadata:
   name: test-task
@@ -107,8 +107,7 @@ spec:
   steps:
     - name: oc
       image: quay.io/openshift/origin-cli:latest
-      script: "
-          /workspace/git-source/DrivewayDentDeletion/Operators/test-api-e2e.sh -n {{NAMESPACE}} -t $(params.imageTag)"
+      script: "/workspace/git-source/DrivewayDentDeletion/Operators/test-api-e2e.sh -n {{NAMESPACE}} -t $(params.imageTag)"
 
 ---
 
@@ -307,6 +306,9 @@ spec:
       runAfter:
         - deploy-ace-int-server-ace-chris
         - deploy-mq
+        - deploy-ace-int-server-ace-api
+        - deploy-ace-int-server-ace-acme
+        - deploy-ace-int-server-ace-bernie
       taskRef:
         name: test-task
       params:
