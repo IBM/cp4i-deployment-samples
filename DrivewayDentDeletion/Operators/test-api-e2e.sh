@@ -51,7 +51,7 @@ while [ "$numberOfReadyRunningDemoPods" != "9" ]; do
     echo "ERROR: Integration demo pods for ace/mq not in Ready and Running state'"
     exit 1
   fi
-  echo "Waiting upto 30 minutes for all integration demo pods to be in Ready and Running state. Waited ${time} minute(s)."
+  echo "INFO: Waiting upto 30 minutes for all integration demo pods to be in Ready and Running state. Waited ${time} minute(s)."
   time=$((time + 1))
   numberOfReadyRunningDemoPods=$(oc get pods -n ${namespace} | grep -E "int-srv-${imageTag}|mq-ddd-qm-latest" | grep -v pipelinerun | grep 1/1 | awk '{print $3}' | wc -l | xargs)
   echo "INFO: The integration server pods are:"
@@ -59,12 +59,11 @@ while [ "$numberOfReadyRunningDemoPods" != "9" ]; do
   sleep 60
 done
 
-echo "All demo pods are up, ready and in running state, going ahead with testing API..."
+echo "INFO: All demo pods are up, ready and in running state, going ahead with testing API..."
 echo "INFO: The integration server and mq pods are:"
 oc get pods | grep -E "int-srv-${imageTag}|mq-ddd-qm-latest"
 
-
-echo -e "\nPOST request..."
+echo -e "\nINFO: POST request..."
 export HOST=http://$(oc get routes -n ${namespace} | grep ace-api-int-srv-http | grep -v ace-api-int-srv-https | awk '{print $2}')/drivewayrepair
 echo "INFO: Host: ${HOST}"
 # curl -X POST ${HOST}/quote -d "{\"Name\": \"Mickey Mouse\",\"EMail\": \"MickeyMouse@us.ibm.com\",\"Address\": \"30DisneyLand\",\"USState\": \"FL\",\"LicensePlate\": \"MMM123\",\"DentLocations\": [{\"PanelType\": \"Door\",\"NumberOfDents\": 2},{\"PanelType\": \"Fender\",\"NumberOfDents\": 1}]}"
@@ -85,7 +84,7 @@ if [ "$post_response_code" == "200" ]; then
   fi
 
   # - GET ---
-  echo -e "\nGET request..."
+  echo -e "\nINFO: GET request..."
   get_response=$(curl -s -w " %{http_code}" -X GET ${HOST}/quote?QuoteID=${quote_id})
   get_response_code=$(echo "${get_response##* }")
 
