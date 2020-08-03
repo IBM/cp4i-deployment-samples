@@ -87,7 +87,7 @@ while [ "$numberOfPipelineRunPods" != "10" ]; do
     echo "ERROR: All pipeline run pods did not complete within 15 minutes"
     exit 1
   fi
-  echo "Waiting upto 30 minutes for all integration demo pods to be in Ready and Running state. Waited ${time} minute(s)."
+  echo "INFO: Waiting upto 30 minutes for all integration demo pods to be in Ready and Running state. Waited ${time} minute(s)."
   time=$((time + 1))
   numberOfReadyRunningDemoPods=$(oc get pods -n ${namespace} | grep -E "int-srv-${imageTag}|mq-ddd-qm-latest" | grep -v pipelinerun | grep 1/1 | awk '{print $3}' | wc -l | xargs)
   echo "INFO: The integration server pods are:"
@@ -95,60 +95,11 @@ while [ "$numberOfPipelineRunPods" != "10" ]; do
   sleep 60
 done
 
-echo "All demo pods are up, ready and in running state, going ahead with testing API..."
+echo "INFO: All demo pods are up, ready and in running state, going ahead with testing API..."
 echo "INFO: The integration server and mq pods are:"
 oc get pods | grep -E "int-srv-${imageTag}|mq-ddd-qm-latest"
 
-# Waiting for all ace pods to be deployed with the new image
-echo "INFO: Waiting for all ACE demo pods to be deployed with the new image .."
-
-while [ $numberOfMatchesForImageTag -ne $totalDemoPods ]; do
-  if [ $time -gt 10 ]; then
-    echo "ERROR: Timed-out trying to match latest ACE pods deployed with a new image containing the image tag '$imageTag'"
-    exit 1
-  fi
-  numberOfMatchesForImageTag=0
-  for eachAceIntegrationServer in ${allAceIntegrationServers[@]}
-    do
-      allCorrespondingPods=$(oc get pods -n $namespace | grep $eachAceIntegrationServer | grep 1/1 | grep Running | awk '{print $1}')
-      echo -e "\nINFO: For ACE Integration server '$eachAceIntegrationServer':"
-      for eachAcePod in $allCorrespondingPods
-        do
-          imageInPod=$(oc get pod $eachAcePod -n $namespace -o json | jq -r '.spec.containers[0].image')
-          echo "INFO: Image present in the pod '$eachAcePod' is '$imageInPod'"
-          if [[ $imageInPod =~ "$imageTag" ]]; then
-            echo "INFO: Image tag matches.."
-            numberOfMatchesForImageTag=$((numberOfMatchesForImageTag + 1))
-          else
-            echo "INFO: Image tag '$imageTag' is not present in the image of the pod '$eachAcePod'"
-          fi
-      done
-  done
-
-  mqDemoPod=$(oc get pods -n $namespace | grep mq-ddd-qm | awk '{print $1}')
-  echo -e "\nINFO: For MQ demo pod '$mqDemoPod':"
-  demoPodMQImage=$(oc get pod $mqDemoPod -n $namespace -o json | jq -r '.spec.containers[0].image')
-  echo "INFO: Image present in the pod '$mqDemoPod' is '$demoPodMQImage'"
-  if [[ $demoPodMQImage =~ "latest" ]]; then
-    echo "INFO: Image tag matches for MQ demo pod.."
-    numberOfMatchesForImageTag=$((numberOfMatchesForImageTag + 1))
-  else
-    echo "INFO: Image tag 'latest' is not present in the image of the MQ demo pod '$mqDemoPod'"
-  fi
-
-  echo -e "\nINFO: Total ACE and MQ demo pods deployed with new image are: $numberOfMatchesForImageTag"
-  echo -e "\nINFO: All current ACE and MQ demo pods are:"
-  oc get pods -n $namespace | grep -E 'mq-ddd-qm|ace-api-int-srv|ace-bernie-int-srv|ace-acme-int-srv|ace-chris-int-srv'
-  if [[ $numberOfMatchesForImageTag != "$totalDemoPods" ]]; then
-    echo -e "\nINFO: Not all image tags present in all ACE demo pod, retrying for upto 10 minutes for new ACE demo pods te be deployed with new image. Waited ${time} minute(s)."
-    sleep 60
-  else
-    echo -e "\nINFO: All ACE and MQ demo pods have been deployed with the new image"
-  fi
-  time=$((time + 1))
-  echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------"
-done
-
+echo -e "\nINFO: POST request..."
 export HOST=http://$(oc get routes -n ${namespace} | grep ace-api-int-srv-http | grep -v ace-api-int-srv-https | awk '{print $2}')/drivewayrepair
 echo "INFO: Host: ${HOST}"
 
@@ -170,7 +121,7 @@ if [ "$post_response_code" == "200" ]; then
     echo ${post_response} | jq '.' | sed $os_sed_flag '$ d'
   fi
 
-  # Get from the database ---
+  # - GET ---
   echo -e "\nINFO: GET request..."
   get_response=$(curl -s -w " %{http_code}" -X GET ${HOST}/quote?QuoteID=${quote_id})
   get_response_code=$(echo "${get_response##* }")
