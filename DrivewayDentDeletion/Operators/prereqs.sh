@@ -94,16 +94,6 @@ EOF
 echo "INFO: Listing the files in ${PWD}/DefaultPolicies"
 ls ${PWD}/DefaultPolicies
 
-# echo "INFO: Installing the zip utility depending on OS"
-# if [[ "$OSTYPE" == "linux-gnu"* ]]; then
-#   yum -y install zip
-# elif [[ "$OSTYPE" == "darwin"* ]]; then
-#   ./"$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)"
-#   brew install zip
-# else
-#   yum -y install zip
-# fi
-
 zip -r DefaultPolicies/policyproject.zip DefaultPolicies/
 
 echo "INFO: encoding the policy project"
