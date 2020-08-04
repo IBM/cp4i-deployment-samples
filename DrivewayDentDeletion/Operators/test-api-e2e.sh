@@ -49,10 +49,11 @@ while getopts "n:t:c" opt; do
 done
 
 # Install jq for testing
+echo "INFO: Installing jq..."
 wget -O jq https://github.com/stedolan/jq/releases/download/jq-1.6/jq-linux64
 chmod +x ./jq
 cp jq /usr/bin
-jq --version
+echo -e "\nINFO: Installed JQ version is $(jq --version)"
 
 # Find the total number of replicas for ACE integration servers
 allAceIntegrationServers=($(oc get integrationservers -n $namespace | grep ace | awk '{print $1}'))
@@ -60,7 +61,7 @@ for eachAceIntegrationServer in ${allAceIntegrationServers[@]}
   do
     # numberOfeachReplica=$(oc get integrationservers $eachAceIntegrationServer -n $namespace | awk '{print $3}' | sed -n 2p)
     numberOfeachReplica=$(oc get integrationservers $eachAceIntegrationServer -n $namespace -o json | jq -r '.spec.replicas')
-    echo "INFO: Number of Replicas for $eachAceIntegrationServer is $numberOfeachReplica"
+    echo -e "\nINFO: Number of Replicas for $eachAceIntegrationServer is $numberOfeachReplica"
     totalAceReplicas=$(($totalAceReplicas + $numberOfeachReplica))
 done
 totalDemoPods=$(($totalAceReplicas + $totalMQReplicas))
