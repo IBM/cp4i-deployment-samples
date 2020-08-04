@@ -49,7 +49,7 @@ while getopts "n:t:c" opt; do
 done
 
 # Install jq for testing
-yum install -y epel-release
+# yum install -y epel-release
 yum install -y jq
 
 # Find the total number of replicas for ACE integration servers
