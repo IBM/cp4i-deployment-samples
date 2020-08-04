@@ -49,8 +49,12 @@ while getopts "n:t:c" opt; do
 done
 
 # Install jq for testing
-yum install -y epel-release
-yum install -y jq
+# yum install -y epel-release
+# yum install -y jq
+cat /etc/os-release
+lsb_release -a
+hostnamectl
+uname -r
 
 # Find the total number of replicas for ACE integration servers
 allAceIntegrationServers=($(oc get integrationservers -n $namespace | grep ace | awk '{print $1}'))
