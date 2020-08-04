@@ -52,9 +52,9 @@ done
 # yum install -y epel-release
 # yum install -y jq
 cat /etc/os-release
-lsb_release -a
-hostnamectl
-uname -r
+sudo dnf install snapd
+sudo ln -s /var/lib/snapd/snap /snap
+sudo snap install jq
 
 # Find the total number of replicas for ACE integration servers
 allAceIntegrationServers=($(oc get integrationservers -n $namespace | grep ace | awk '{print $1}'))
