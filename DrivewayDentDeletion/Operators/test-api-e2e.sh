@@ -52,11 +52,11 @@ done
 allAceIntegrationServers=($(oc get integrationservers -n $namespace | grep ace | awk '{print $1}'))
 for eachAceIntegrationServer in ${allAceIntegrationServers[@]}  
   do
-    numberOfeachReplica=$(oc get integrationservers $eachAceIntegrationServer -n $namespace -o json | jq -r '.spec.replicas')
+    numberOfeachReplica=$(oc get integrationservers $eachAceIntegrationServer -n $namespace | awk '{print $3}' | sed -n 2p)
     echo "INFO: Number of Replicas for $eachAceIntegrationServer is $numberOfeachReplica"
     totalAceReplicas=$(($totalAceReplicas + $numberOfeachReplica))
 done
-totalDemoPods=$(($totalAceReplicas+$totalMQReplicas))
+totalDemoPods=$(($totalAceReplicas + $totalMQReplicas))
 
 echo "INFO: Total number of ACE and MQ demo pods after deployment should be $totalDemoPods"
 
