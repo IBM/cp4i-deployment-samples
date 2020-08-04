@@ -62,39 +62,39 @@ stringData:
 EOF
 
 mkdir -p ${PWD}/tmp
-mkdir -p ${PWD}/DefaultPolicies
-echo "INFO: Creating policyproject for ace"
-echo "************************************"
-echo "INFO: Creating default.policyxml"
-cat << EOF > ${PWD}/DefaultPolicies/default.policyxml
-<?xml version="1.0" encoding="UTF-8"?>
-<policies>
-  <policy policyType="MQEndpoint" policyName="MQEndpointPolicy" policyTemplate="MQEndpoint">
-    <connection>CLIENT</connection>
-    <destinationQueueManagerName>QUICKSTART</destinationQueueManagerName>
-    <queueManagerHostname>mq-ddd-qm-ibm-mq</queueManagerHostname>
-    <listenerPortNumber>1414</listenerPortNumber>
-    <channelName>ACE_SVRCONN</channelName>
-    <securityIdentity></securityIdentity>
-    <useSSL>false</useSSL>
-    <SSLPeerName></SSLPeerName>
-    <SSLCipherSpec></SSLCipherSpec>
-  </policy>
-</policies>
-EOF
+# mkdir -p ${PWD}/DefaultPolicies
+# echo "INFO: Creating policyproject for ace"
+# echo "************************************"
+# echo "INFO: Creating default.policyxml"
+# cat << EOF > ${PWD}/DefaultPolicies/default.policyxml
+# <?xml version="1.0" encoding="UTF-8"?>
+# <policies>
+#   <policy policyType="MQEndpoint" policyName="MQEndpointPolicy" policyTemplate="MQEndpoint">
+#     <connection>CLIENT</connection>
+#     <destinationQueueManagerName>QUICKSTART</destinationQueueManagerName>
+#     <queueManagerHostname>mq-ddd-qm-ibm-mq</queueManagerHostname>
+#     <listenerPortNumber>1414</listenerPortNumber>
+#     <channelName>ACE_SVRCONN</channelName>
+#     <securityIdentity></securityIdentity>
+#     <useSSL>false</useSSL>
+#     <SSLPeerName></SSLPeerName>
+#     <SSLCipherSpec></SSLCipherSpec>
+#   </policy>
+# </policies>
+# EOF
 
-echo "INFO: Creating policy.descriptor"
-cat << EOF > ${PWD}/DefaultPolicies/policy.descriptor
-<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<ns2:policyProjectDescriptor xmlns="http://com.ibm.etools.mft.descriptor.base" xmlns:ns2="http://com.ibm.etools.mft.descriptor.policyProject">
-  <references/>
-</ns2:policyProjectDescriptor>
-EOF
+# echo "INFO: Creating policy.descriptor"
+# cat << EOF > ${PWD}/DefaultPolicies/policy.descriptor
+# <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+# <ns2:policyProjectDescriptor xmlns="http://com.ibm.etools.mft.descriptor.base" xmlns:ns2="http://com.ibm.etools.mft.descriptor.policyProject">
+#   <references/>
+# </ns2:policyProjectDescriptor>
+# EOF
 
 echo "INFO: Listing the files in ${PWD}/DefaultPolicies"
 ls ${PWD}/DefaultPolicies
 
-zip -r DefaultPolicies/policyproject.zip DefaultPolicies/
+# zip -r DefaultPolicies/policyproject.zip DefaultPolicies/
 
 echo "INFO: encoding the policy project"
 if [[ "$OSTYPE" == "linux-gnu"* ]]; then
