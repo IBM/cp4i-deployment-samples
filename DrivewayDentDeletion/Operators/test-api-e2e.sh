@@ -49,12 +49,9 @@ while getopts "n:t:c" opt; do
 done
 
 # Install jq for testing
-# yum install -y epel-release
-# yum install -y jq
-cat /etc/os-release
-sudo dnf install snapd
-sudo ln -s /var/lib/snapd/snap /snap
-sudo snap install jq
+JQ=/usr/bin/jq
+curl https://stedolan.github.io/jq/download/linux64/jq > $JQ && chmod +x $JQ
+ls -la $JQ
 
 # Find the total number of replicas for ACE integration servers
 allAceIntegrationServers=($(oc get integrationservers -n $namespace | grep ace | awk '{print $1}'))
