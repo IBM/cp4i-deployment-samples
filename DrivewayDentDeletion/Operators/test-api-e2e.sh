@@ -49,10 +49,13 @@ while getopts "n:t:c" opt; do
 done
 
 # Install jq for testing
-JQ=/usr/bin/jq
-# curl https://stedolan.github.io/jq/download/jq-1.6/linux64/jq > $JQ && chmod +x $JQ
-curl https://github.com/stedolan/jq/releases/download/jq-1.6/jq-linux64 > $JQ && chmod +x $JQ
-ls -la $JQ
+# JQ=/usr/bin/jq
+# curl https://stedolan.github.io/jq/download/linux64/jq > $JQ && chmod +x $JQ
+# ls -la $JQ
+dnf install wget
+wget -O jq https://github.com/stedolan/jq/releases/download/jq-1.6/jq-linux64
+chmod +x ./jq
+cp jq /usr/bin
 jq --version
 
 # Find the total number of replicas for ACE integration servers
