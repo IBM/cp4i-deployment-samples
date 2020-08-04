@@ -48,6 +48,8 @@ echo -e "\n---------------------------------------------------------------------
 
 echo "INFO: Image tag: '$imageTag'"
 
+# -------------------------------------- INSTALL JQ ------------------------------------------
+
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
 # Install jq for testing
@@ -56,6 +58,8 @@ wget -O jq https://github.com/stedolan/jq/releases/download/jq-1.6/jq-linux64
 chmod +x ./jq
 cp jq /usr/bin
 echo -e "\nINFO: Installed JQ version is $(jq --version)"
+
+# -------------------------------------- FIND TOTAL ACE REPLICAS DEPLOYED ------------------------------------------
 
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 # Find the total number of replicas for ACE integration servers
@@ -75,7 +79,9 @@ echo -e "\n---------------------------------------------------------------------
 
 echo "INFO: Going ahead to wait for all ACE and MQ pipelinerun pods to be completed..."
 
-# Check if the pipelinerun pods for ACE and MQ have completed or not
+# -------------------------------------- WAIT FOR PIPELINE RUN PODS TO COMPLETE ------------------------------------------
+
+# Check if the pipelinerun pods for ACE and MQ (build and deploy) have completed or not
 time=0
 numberOfPipelineRunPods=$(oc get pods -n $namespace | grep main-pipelinerun | grep ${imageTag} | grep Completed | grep -v api-test | wc -l | xargs)
 while [ "$numberOfPipelineRunPods" != "10" ]; do
@@ -102,6 +108,8 @@ echo -e "\nINFO: All pipelinerun pods are completed, going ahead to wait for all
 echo "INFO: The completed pipeline run pods are:"
 oc get pods -n $namespace | grep main-pipelinerun | grep ${imageTag} | grep Completed | grep -v api-test
 
+# -------------------------------------- CHECK AVAILABLE ACE/MQ DEMO PODS ------------------------------------------
+
 echo -e "\nINFO: Checking if the integration pods for ACE and MQ are available..."
 # Check if the integration pods for ACE and MQ are available
 time=0
@@ -119,7 +127,7 @@ while [ "$numberOfAceMQDemoPods" != "$totalDemoPods" ]; do
     echo "No matching available demo pods found for ACE/MQ yet.."
   fi
   
-  echo -e "\nINFO: Waiting upto 10 minutes for all ACE and MQ deom pods to appear. Waited ${time} minute(s)."
+  echo -e "\nINFO: Waiting upto 10 minutes for all ACE and MQ demo pods to appear. Waited ${time} minute(s)."
   time=$((time + 1))
   numberOfAceMQDemoPods=$(oc get pods -n $namespace | grep -E 'mq-ddd-qm|ace-api-int-srv|ace-bernie-int-srv|ace-acme-int-srv|ace-chris-int-srv' | wc -l | xargs)
   sleep 60
@@ -128,6 +136,8 @@ done
 echo -e "\nINFO: All ACE and MQ demo pods are available, going ahead to wait for them to be in ready and running state...\n"
 echo "INFO: All available ACE and MQ demo pods are:"
 oc get pods -n $namespace | grep -E 'mq-ddd-qm|ace-api-int-srv|ace-bernie-int-srv|ace-acme-int-srv|ace-chris-int-srv'
+
+# -------------------------------------- CHECK AND WAIT FOR READY/RUNNING ACE/MQ DEMO PODS ------------------------------------------
 
 # Check if the integration pods for ACE and MQ are in Ready and Running state
 time=0
@@ -157,8 +167,10 @@ oc get pods -n $namespace | grep -E 'mq-ddd-qm|ace-api-int-srv|ace-bernie-int-sr
 
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
+# -------------------------------------- CHECK FOR NEW IMAGE DEPLOYMENT STATUS ------------------------------------------
+
 # Waiting for all ace pods to be deployed with the new image
-echo "INFO: Waiting for all ACE demo pods to be deployed with the new image .."
+echo "INFO: Checking and waiting for all ACE demo pods to be deployed with the new image .."
 
 while [ $numberOfMatchesForImageTag -ne $totalDemoPods ]; do
   if [ $time -gt 10 ]; then
@@ -207,12 +219,14 @@ while [ $numberOfMatchesForImageTag -ne $totalDemoPods ]; do
   echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------"
 done
 
+# -------------------------------------- TEST E2E API ------------------------------------------
+
 export HOST=http://$(oc get routes -n ${namespace} | grep ace-api-int-srv-http | grep -v ace-api-int-srv-https | awk '{print $2}')/drivewayrepair
 echo "INFO: Host: ${HOST}"
 
-echo -e "\nINFO: Testing E2E API..."
+echo -e "\nINFO: Testing E2E API now..."
 
-# Post to the database
+# ------- Post to the database -------
 post_response=$(curl -s -w " %{http_code}" -X POST ${HOST}/quote -d "{\"Name\": \"Mickey Mouse\",\"EMail\": \"MickeyMouse@us.ibm.com\",\"Address\": \"30DisneyLand\",\"USState\": \"FL\",\"LicensePlate\": \"MMM123\",\"DentLocations\": [{\"PanelType\": \"Door\",\"NumberOfDents\": 2},{\"PanelType\": \"Fender\",\"NumberOfDents\": 1}]}")
 post_response_code=$(echo "${post_response##* }")
 
@@ -220,13 +234,13 @@ if [ "$post_response_code" == "200" ]; then
   # The usage of sed here is to prevent an error caused between the -w flag of curl and jq not interacting well
   quote_id=$(echo "$post_response" | jq '.' | sed $os_sed_flag '$ d' | jq '.QuoteID')
 
-  echo -e "INFO: SUCCESS - POSTed with response code: ${post_response_code}, QuoteID: ${quote_id}, and Response Body:\n"
+  echo -e "INFO: SUCCESS - POST with response code: ${post_response_code}, QuoteID: ${quote_id}, and Response Body:\n"
   # The usage of sed here is to prevent an error caused between the -w flag of curl and jq not interacting well
   echo ${post_response} | jq '.' | sed $os_sed_flag '$ d'
 
   echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------"
 
-  # Get from the database ---
+  # ------- Get from the database -------
   echo -e "\nINFO: GET request..."
   get_response=$(curl -s -w " %{http_code}" -X GET ${HOST}/quote?QuoteID=${quote_id})
   get_response_code=$(echo "${get_response##* }")
@@ -241,7 +255,7 @@ if [ "$post_response_code" == "200" ]; then
   fi
 
   echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------"
-  # Delete from the database
+  # ------- Delete from the database -------
   echo -e "INFO: \nDeleting row from database..."
   echo "INFO: Deleting the row with quote id $quote_id from the database"
   oc exec -n postgres -it $(oc get pod -n postgres -l name=postgresql -o jsonpath='{.items[].metadata.name}') \
@@ -249,8 +263,9 @@ if [ "$post_response_code" == "200" ]; then
     "DELETE FROM quotes WHERE quotes.quoteid=${quote_id};"
 
   echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------"
+
+  #  ------- Get row to confirm deletion -------
   echo "INFO: Select and print the row from database with '$quote_id' to confirm deletion"
-  # Get row to confirm deletion
   oc exec -n postgres -it $(oc get pod -n postgres -l name=postgresql -o jsonpath='{.items[].metadata.name}') \
     -- psql -U admin -d sampledb -c \
     "SELECT * FROM quotes WHERE quotes.quoteid=${quote_id};"
