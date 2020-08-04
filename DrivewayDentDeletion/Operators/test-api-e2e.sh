@@ -48,11 +48,15 @@ while getopts "n:t:c" opt; do
   esac
 done
 
+# Install jq for testing
+sudo apt-get install jq
+
 # Find the total number of replicas for ACE integration servers
 allAceIntegrationServers=($(oc get integrationservers -n $namespace | grep ace | awk '{print $1}'))
 for eachAceIntegrationServer in ${allAceIntegrationServers[@]}  
   do
-    numberOfeachReplica=$(oc get integrationservers $eachAceIntegrationServer -n $namespace | awk '{print $3}' | sed -n 2p)
+    # numberOfeachReplica=$(oc get integrationservers $eachAceIntegrationServer -n $namespace | awk '{print $3}' | sed -n 2p)
+    numberOfeachReplica=$(oc get integrationservers $eachAceIntegrationServer -n $namespace -o json | jq -r '.spec.replicas')
     echo "INFO: Number of Replicas for $eachAceIntegrationServer is $numberOfeachReplica"
     totalAceReplicas=$(($totalAceReplicas + $numberOfeachReplica))
 done
@@ -74,13 +78,13 @@ while [ "$numberOfPipelineRunPods" != "10" ]; do
   fi
 
   if [[ $(oc get pods -n $namespace | grep main-pipelinerun | grep ${imageTag} | grep Completed) ]]; then
-    echo "INFO: The current state of pipelinerun pods are:"
+    echo -e "\nINFO: The current state of pipelinerun pods are:"
     oc get pods -n $namespace | grep main-pipelinerun | grep ${imageTag} | grep Completed
   else
     echo "No matching pipelinerun pods found for the image tag '$imageTag'"
   fi
 
-  echo "INFO: Waiting upto 10 minutes for all pipelinerun pods to be completed. Waited ${time} minute(s)."
+  echo -e "\nINFO: Waiting upto 10 minutes for all pipelinerun pods to be completed. Waited ${time} minute(s)."
   time=$((time + 1))
   numberOfPipelineRunPods=$(oc get pods -n $namespace | grep main-pipelinerun | grep ${imageTag} | grep Completed | wc -l | xargs)
   sleep 60
@@ -90,6 +94,7 @@ echo -e "\nINFO: All pipelinerun pods are completed, going ahead to wait for all
 echo "INFO: The completed pipeline run pods are:"
 oc get pods -n $namespace | grep main-pipelinerun | grep ${imageTag} | grep Completed
 
+echo -e "\nINFO: Checking if the integration pods for ACE and MQ are available..."
 # Check if the integration pods for ACE and MQ are available
 time=0
 numberOfAceMQDemoPods=$(oc get pods -n $namespace | grep -E 'mq-ddd-qm|ace-api-int-srv|ace-bernie-int-srv|ace-acme-int-srv|ace-chris-int-srv' | wc -l | xargs)
@@ -100,13 +105,13 @@ while [ "$numberOfAceMQDemoPods" != "$totalDemoPods" ]; do
   fi
 
   if [[ $(oc get pods -n $namespace | grep -E 'mq-ddd-qm|ace-api-int-srv|ace-bernie-int-srv|ace-acme-int-srv|ace-chris-int-srv') ]]; then
-    echo "INFO: The available ACE and MQ pods are:"
+    echo -e "\nINFO: The available ACE and MQ pods are:"
     oc get pods -n $namespace | grep -E 'mq-ddd-qm|ace-api-int-srv|ace-bernie-int-srv|ace-acme-int-srv|ace-chris-int-srv'
   else
     echo "No available matching demo pods found for ACE/MQ.."
   fi
   
-  echo "INFO: Waiting upto 10 minutes for all ACE and MQ deom pods to appear. Waited ${time} minute(s)."
+  echo -e "\nINFO: Waiting upto 10 minutes for all ACE and MQ deom pods to appear. Waited ${time} minute(s)."
   time=$((time + 1))
   numberOfAceMQDemoPods=$(oc get pods -n $namespace | grep -E 'mq-ddd-qm|ace-api-int-srv|ace-bernie-int-srv|ace-acme-int-srv|ace-chris-int-srv' | wc -l | xargs)
   sleep 60
@@ -126,13 +131,13 @@ while [ "$numberOfReadyRunningAceMQDemoPods" != "$totalDemoPods" ]; do
   fi
 
   if [[ $(oc get pods -n $namespace | grep -E 'mq-ddd-qm|ace-api-int-srv|ace-bernie-int-srv|ace-acme-int-srv|ace-chris-int-srv' | grep 1/1 | grep Running) ]]; then
-    echo "INFO: The Ready and Running ACE and MQ demo pods are:"
+    echo -e "\nINFO: The Ready and Running ACE and MQ demo pods are:"
     oc get pods -n $namespace | grep -E 'mq-ddd-qm|ace-api-int-srv|ace-bernie-int-srv|ace-acme-int-srv|ace-chris-int-srv' | grep 1/1 | grep Running
   else
     echo "No available matching demo pods found for ACE/MQ.."
   fi
 
-  echo "INFO: Waiting upto 10 minutes for all integration demo pods to be in Ready and Running state. Waited ${time} minute(s)."
+  echo -e "\nINFO: Waiting upto 10 minutes for all integration demo pods to be in Ready and Running state. Waited ${time} minute(s)."
   time=$((time + 1))
   numberOfReadyRunningAceMQDemoPods=$(oc get pods -n $namespace | grep -E 'mq-ddd-qm|ace-api-int-srv|ace-bernie-int-srv|ace-acme-int-srv|ace-chris-int-srv' | grep 1/1 | grep Running | awk '{print $3}' | wc -l | xargs)
   sleep 60
