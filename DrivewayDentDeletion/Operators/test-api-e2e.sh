@@ -52,6 +52,7 @@ done
 JQ=/usr/bin/jq
 curl https://stedolan.github.io/jq/download/linux64/jq > $JQ && chmod +x $JQ
 ls -la $JQ
+jq --version
 
 # Find the total number of replicas for ACE integration servers
 allAceIntegrationServers=($(oc get integrationservers -n $namespace | grep ace | awk '{print $1}'))
