@@ -50,7 +50,7 @@ done
 
 # Install jq for testing
 JQ=/usr/bin/jq
-curl https://stedolan.github.io/jq/download/jq-1.6/jq-linux64 > $JQ && chmod +x $JQ
+curl https://stedolan.github.io/jq/download/jq-1.6/linux64/jq > $JQ && chmod +x $JQ
 ls -la $JQ
 jq --version
 
