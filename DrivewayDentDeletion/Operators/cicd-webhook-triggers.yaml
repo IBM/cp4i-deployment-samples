@@ -303,12 +303,12 @@ spec:
           - name: git-source
             resource: git-source
     - name: api-test
-      runAfter:
-        - deploy-ace-int-server-ace-chris
-        - deploy-mq
-        - deploy-ace-int-server-ace-api
-        - deploy-ace-int-server-ace-acme
-        - deploy-ace-int-server-ace-bernie
+      # runAfter:
+      #   - deploy-ace-int-server-ace-chris
+      #   - deploy-mq
+      #   - deploy-ace-int-server-ace-api
+      #   - deploy-ace-int-server-ace-acme
+      #   - deploy-ace-int-server-ace-bernie
       taskRef:
         name: test-task
       params:
@@ -335,26 +335,26 @@ spec:
       pipelineRef:
         name: main-pipeline
       serviceAccountNames:
-        - taskName: build-mq
-          serviceAccountName: cicd-mq-sa
-        - taskName: deploy-mq
-          serviceAccountName: cicd-mq-sa
-        - taskName: build-ace-int-server-ace-api
-          serviceAccountName: cicd-ace-sa
-        - taskName: build-ace-int-server-ace-bernie
-          serviceAccountName: cicd-ace-sa
-        - taskName: build-ace-int-server-ace-acme
-          serviceAccountName: cicd-ace-sa
-        - taskName: build-ace-int-server-ace-chris
-          serviceAccountName: cicd-ace-sa
-        - taskName: deploy-ace-int-server-ace-api
-          serviceAccountName: cicd-ace-sa
-        - taskName: deploy-ace-int-server-ace-chris
-          serviceAccountName: cicd-ace-sa
-        - taskName: deploy-ace-int-server-ace-acme
-          serviceAccountName: cicd-ace-sa
-        - taskName: deploy-ace-int-server-ace-bernie
-          serviceAccountName: cicd-ace-sa
+        # - taskName: build-mq
+        #   serviceAccountName: cicd-mq-sa
+        # - taskName: deploy-mq
+        #   serviceAccountName: cicd-mq-sa
+        # - taskName: build-ace-int-server-ace-api
+        #   serviceAccountName: cicd-ace-sa
+        # - taskName: build-ace-int-server-ace-bernie
+        #   serviceAccountName: cicd-ace-sa
+        # - taskName: build-ace-int-server-ace-acme
+        #   serviceAccountName: cicd-ace-sa
+        # - taskName: build-ace-int-server-ace-chris
+        #   serviceAccountName: cicd-ace-sa
+        # - taskName: deploy-ace-int-server-ace-api
+        #   serviceAccountName: cicd-ace-sa
+        # - taskName: deploy-ace-int-server-ace-chris
+        #   serviceAccountName: cicd-ace-sa
+        # - taskName: deploy-ace-int-server-ace-acme
+        #   serviceAccountName: cicd-ace-sa
+        # - taskName: deploy-ace-int-server-ace-bernie
+        #   serviceAccountName: cicd-ace-sa
       resources:
       - name: git-source
         resourceRef:
