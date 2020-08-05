@@ -136,7 +136,7 @@ do
   else
     echo "INFO: ibm-entitlement-key secret already exists"
   fi
-  
+
   echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
   echo "INFO: Creating operator group and subscription in the namespace '${image_project}'"
