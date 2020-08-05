@@ -25,12 +25,6 @@ oc adm policy add-scc-to-group privileged system:serviceaccounts:$namespace
 echo "INFO: Namespace= ${namespace}"
 cd "$(dirname $0)"
 
-#creating new namespace for test/prod and adding namespace to sa
-oc create new-project ${namespace}-test
-oc adm policy add-scc-to-group privileged system:serviceaccounts:$namespace-test
-
-oc project ${namespace}
-
 echo "INFO: Installing tekton and its pre-reqs"
 oc apply --filename https://storage.googleapis.com/tekton-releases/pipeline/previous/v0.12.1/release.yaml
 echo "INFO: Installing tekton triggers"
@@ -41,20 +35,12 @@ oc wait -n tekton-pipelines --for=condition=available deployment --timeout=20m t
 echo "Creating secrets to push images to openshift local registry"
 export DOCKER_REGISTRY="image-registry.openshift-image-registry.svc:5000"
 export username=image-bot
-declare -a image_projects=("${namespace}" "${namespace}-test")
-
-echo "Creating secrets to push images to openshift local registry"
-for image_project in "${image_projects[@]}"
-do
-  kubectl -n ${image_project} create serviceaccount image-bot
-  oc -n ${image_project} policy add-role-to-user registry-editor system:serviceaccount:${image_project}:image-bot
-
-  export password="$(oc -n ${image_project} serviceaccounts get-token image-bot)"
-
-  oc create -n $NAMESPACE secret docker-registry cicd-${image_project} \
-    --docker-server=$DOCKER_REGISTRY --docker-username=$username --docker-password=$password \
-    --dry-run -o yaml | oc apply -f -
-done
+kubectl -n ${namespace} create serviceaccount image-bot
+oc -n ${namespace} policy add-role-to-user registry-editor system:serviceaccount:${namespace}:image-bot
+export password="$(oc -n ${namespace} serviceaccounts get-token image-bot)"
+oc create -n $namespace secret docker-registry cicd-${namespace} \
+  --docker-server=$DOCKER_REGISTRY --docker-username=$username --docker-password=$password \
+  --dry-run -o yaml | oc apply -f -
 
 # Creating a new secret as the type of entitlement key is 'kubernetes.io/dockerconfigjson' but we need secret of type 'kubernetes.io/basic-auth' to pull imags from the ER
 export ER_REGISTRY=$(oc get secret -n ${namespace} ibm-entitlement-key -o json | jq -r '.data.".dockerconfigjson"' | base64 --decode | jq -r '.auths' | jq 'keys[]' | tr -d '"')
@@ -119,26 +105,20 @@ else
   temp=$(base64 --wrap=0 ${PWD}/DefaultPolicies/policyproject.zip)
 fi
 
-# setting up policyporject for both namespaces
-declare -a image_projects=("${namespace}" "${namespace}-test")
-echo "Creating secrets to push images to openshift local registry"
-for image_project in "${image_projects[@]}"
-do
 configyaml="\
 apiVersion: appconnect.ibm.com/v1beta1
 kind: Configuration
 metadata:
   name: ace-policyproject
-  namespace: ${image_project}
+  namespace: ${namespace}
 spec:
   contents: "$temp"
   type: policyproject
 "
-  echo "${configyaml}" > ${PWD}/tmp/policy-project-config.yaml
-  echo "INFO: Output -> policy-project-config.yaml"
-  cat ${PWD}/tmp/policy-project-config.yaml
-  oc apply -f ${PWD}/tmp/policy-project-config.yaml
-done
+echo "${configyaml}" > ${PWD}/tmp/policy-project-config.yaml
+echo "INFO: Output -> policy-project-config.yaml"
+cat ${PWD}/tmp/policy-project-config.yaml
+oc apply -f ${PWD}/tmp/policy-project-config.yaml
 
 echo "Waiting for postgres to be ready"
 oc wait -n postgres --for=condition=available deploymentconfig --timeout=20m postgresql
