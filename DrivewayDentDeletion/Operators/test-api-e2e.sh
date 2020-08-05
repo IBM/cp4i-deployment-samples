@@ -206,7 +206,7 @@ while [ $numberOfMatchesForImageTag -ne $totalDemoPods ]; do
   echo -e "\nINFO: For MQ demo pod '$mqDemoPod':"
   demoPodMQImage=$(oc get pod $mqDemoPod -n $namespace -o json | jq -r '.spec.containers[0].image')
   echo "INFO: Image present in the pod '$mqDemoPod' is '$demoPodMQImage'"
-  if [[ $demoPodMQImage =~ "latest-testing" ]]; then
+  if [[ $demoPodMQImage =~ "latest" ]]; then
     echo "INFO: Image tag matches for MQ demo pod.."
     numberOfMatchesForImageTag=$((numberOfMatchesForImageTag + 1))
   else
