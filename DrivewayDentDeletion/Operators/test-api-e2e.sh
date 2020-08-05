@@ -150,7 +150,7 @@ echo "INFO: Checking and waiting for all ACE demo pods to be deployed with the n
 
 while [ $numberOfMatchesForImageTag -ne $totalDemoPods ]; do
   if [ $time -gt 10 ]; then
-    echo "ERROR: Timed-out trying to match latest ACE pods deployed with a new image containing the image tag '$imageTag'"
+    echo "ERROR: Timed-out trying to wait for all ACE and MQ pods to be deployed with a new image containing the image tag '$imageTag'"
     echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
     exit 1
   fi
@@ -176,11 +176,11 @@ while [ $numberOfMatchesForImageTag -ne $totalDemoPods ]; do
   echo -e "\nINFO: For MQ demo pod '$mqDemoPod':"
   demoPodMQImage=$(oc get pod $mqDemoPod -n $namespace -o json | jq -r '.spec.containers[0].image')
   echo "INFO: Image present in the pod '$mqDemoPod' is '$demoPodMQImage'"
-  if [[ $demoPodMQImage =~ "latest" ]]; then
+  if [[ $demoPodMQImage =~ "latest-test" ]]; then
     echo "INFO: Image tag matches for MQ demo pod.."
     numberOfMatchesForImageTag=$((numberOfMatchesForImageTag + 1))
   else
-    echo "INFO: Image tag 'latest' is not present in the image of the MQ demo pod '$mqDemoPod'"
+    echo "INFO: Image tag 'latest-test' is not present in the image of the MQ demo pod '$mqDemoPod'"
   fi
 
   echo -e "\nINFO: Total ACE and MQ demo pods deployed with new image are: $numberOfMatchesForImageTag"
