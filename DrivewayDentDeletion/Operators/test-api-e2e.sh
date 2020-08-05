@@ -210,7 +210,7 @@ while [ $numberOfMatchesForImageTag -ne $totalDemoPods ]; do
   echo -e "\nINFO: All current ACE and MQ demo pods are:"
   oc get pods -n $namespace | grep -E 'mq-ddd-qm|ace-api-int-srv|ace-bernie-int-srv|ace-acme-int-srv|ace-chris-int-srv'
   if [[ $numberOfMatchesForImageTag != "$totalDemoPods" ]]; then
-    echo -e "\nINFO: Not all image tags present in all ACE demo pod, retrying for upto 10 minutes for new ACE demo pods te be deployed with new image. Waited ${time} minute(s)."
+    echo -e "\nINFO: Not all ACE/MQ pods have been deployed with the new image, retrying for upto 10 minutes for new ACE and MQ demo pods te be deployed with new image. Waited ${time} minute(s)."
     sleep 60
   else
     echo -e "\nINFO: All ACE and MQ demo pods have been deployed with the new image"
