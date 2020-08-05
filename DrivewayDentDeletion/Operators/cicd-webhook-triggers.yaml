@@ -109,32 +109,6 @@ spec:
 
 ---
 
-# this task is to push the images that our tested to test/prod namespace
-apiVersion: tekton.dev/v1beta1
-kind: Task
-metadata:
-  name: image-push-to-test
-spec:
-  params:
-    - name: imageTag
-      type: string
-      description: The image tag
-    - name: imageName
-      type: string
-      description: The image tag
-  steps:
-    - name: build
-      image: quay.io/buildah/stable:latest
-      securityContext:
-        runAsUser: 0
-        privileged: true
-      command:
-        - sh
-        - -c
-        - "buildah --storage-driver vfs push --tls-verify=false image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}/$(params.imageName):$(params.imageTag)"
-
----
-
 apiVersion: tekton.dev/v1alpha1
 kind: Pipeline
 metadata:
@@ -340,57 +314,6 @@ spec:
         inputs:
           - name: git-source
             resource: git-source
-    - name: image-push-to-test-ace-chris
-      runAfter:
-        - api-test
-      taskRef:
-        name: image-push-to-test
-      params:
-        - name: imageTag
-          value: "$(params.imageTag)"
-        - name: imageName
-          value: "ace-chris"
-    - name: image-push-to-test-ace-acme
-      runAfter:
-        - api-test
-      taskRef:
-        name: image-push-to-test
-      params:
-        - name: imageTag
-          value: "$(params.imageTag)"
-        - name: imageName
-          value: "ace-acme"
-    - name: image-push-to-test-ace-bernie
-      runAfter:
-        - api-test
-      taskRef:
-        name: image-push-to-test
-      params:
-        - name: imageTag
-          value: "$(params.imageTag)"
-        - name: imageName
-          value: "ace-bernie"
-    - name: image-push-to-test-ace-api
-      runAfter:
-        - api-test
-      taskRef:
-        name: image-push-to-test
-      params:
-        - name: imageTag
-          value: "$(params.imageTag)"
-        - name: imageName
-          value: "ace-api"
-    - name: image-push-to-test-mq
-      runAfter:
-        - api-test
-      taskRef:
-        name: image-push-to-test
-      params:
-        - name: imageTag
-          value: "mq-ddd"
-        - name: imageName
-          value: "mq-ddd"
-
 ---
 
 apiVersion: triggers.tekton.dev/v1alpha1
@@ -427,14 +350,6 @@ spec:
           serviceAccountName: cicd-ace-sa
         - taskName: deploy-ace-int-server-ace-bernie
           serviceAccountName: cicd-ace-sa
-        - taskName: image-push-to-test-ace-api
-          serviceAccountName: cicd-{{NAMESPACE}}-test-push-images
-        - taskName: image-push-to-test-ace-bernie
-          serviceAccountName: cicd-{{NAMESPACE}}-test-push-images
-        - taskName: image-push-to-test-ace-acme
-          serviceAccountName: cicd-{{NAMESPACE}}-test-push-images
-        - taskName: image-push-to-test-ace-chris
-          serviceAccountName: cicd-{{NAMESPACE}}-test-push-images
       resources:
       - name: git-source
         resourceRef:
