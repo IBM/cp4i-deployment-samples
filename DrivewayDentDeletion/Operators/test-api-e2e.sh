@@ -87,6 +87,7 @@ numberOfPipelineRunPods=$(oc get pods -n $namespace | grep main-pipelinerun | gr
 while [ "$numberOfPipelineRunPods" != "10" ]; do
   if [ $time -gt 10 ]; then
     echo "ERROR: All pipeline run pods did not complete within 15 minutes"
+    echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
     exit 1
   fi
 
@@ -119,6 +120,7 @@ numberOfAceMQDemoPods=$(oc get pods -n $namespace | grep -E 'mq-ddd-qm|ace-api-i
 while [ "$numberOfAceMQDemoPods" != "$totalDemoPods" ]; do
   if [ $time -gt 10 ]; then
     echo "ERROR: All Integration demo pods for ace/mq not found or are not in ready and running state"
+    echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
     exit 1
   fi
 
@@ -179,6 +181,7 @@ echo "INFO: Checking and waiting for all ACE demo pods to be deployed with the n
 while [ $numberOfMatchesForImageTag -ne $totalDemoPods ]; do
   if [ $time -gt 10 ]; then
     echo "ERROR: Timed-out trying to match latest ACE pods deployed with a new image containing the image tag '$imageTag'"
+    echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
     exit 1
   fi
   numberOfMatchesForImageTag=0
@@ -255,6 +258,7 @@ if [ "$post_response_code" == "200" ]; then
     echo ${get_response} | jq '.' | sed $os_sed_flag '$ d'
   else
     echo "ERROR: FAILED - Error code: ${get_response_code}"
+    echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
     exit 1
   fi
 
