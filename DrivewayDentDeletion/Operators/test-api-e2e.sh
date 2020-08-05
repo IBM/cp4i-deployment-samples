@@ -150,7 +150,7 @@ echo "INFO: Checking and waiting for all ACE demo pods to be deployed with the n
 
 while [ $numberOfMatchesForImageTag -ne $totalDemoPods ]; do
   if [ $time -gt 10 ]; then
-    echo "ERROR: Timed-out trying to wait for all ACE and MQ pods to be deployed with a new image containing the image tag '$imageTag'"
+    echo "ERROR: Timed-out trying to wait for all ACE and MQ pods to be deployed with a new image containing the image tag '$imageTag' for ACE and 'latest' for MQ."
     echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
     exit 1
   fi
