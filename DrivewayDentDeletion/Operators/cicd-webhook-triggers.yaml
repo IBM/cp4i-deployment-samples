@@ -6,7 +6,6 @@ secrets:
   - name: er-pull-secret
   - name: cicd-{{NAMESPACE}}
 # er-pull-secret used to pull images from ER in Dockerfiles
-# As this is a single namespace deployment we don't need multiple service accounts for every product
 
 ---
 
@@ -59,7 +58,6 @@ spec:
            buildah --storage-driver vfs build-using-dockerfile -f /workspace/git-source/DrivewayDentDeletion/Operators/Dockerfiles/$(params.dockerfile) -t image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}/$(params.imageName):$(params.imageTag) /workspace/git-source/DrivewayDentDeletion/$(params.contextPath) && \
            buildah --storage-driver vfs push --tls-verify=false image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}/$(params.imageName):$(params.imageTag)
           "
-
 ---
 
 apiVersion: tekton.dev/v1beta1
@@ -108,6 +106,32 @@ spec:
     - name: oc
       image: quay.io/openshift/origin-cli:latest
       script: "/workspace/git-source/DrivewayDentDeletion/Operators/test-api-e2e.sh -n {{NAMESPACE}} -t $(params.imageTag)"
+
+---
+
+# this task is to push the images that our tested to test/prod namespace
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: image-push-to-test
+spec:
+  params:
+    - name: imageTag
+      type: string
+      description: The image tag
+    - name: imageName
+      type: string
+      description: The image tag
+  steps:
+    - name: build
+      image: quay.io/buildah/stable:latest
+      securityContext:
+        runAsUser: 0
+        privileged: true
+      command:
+        - sh
+        - -c
+        - "buildah --storage-driver vfs push --tls-verify=false image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}/$(params.imageName):$(params.imageTag)"
 
 ---
 
@@ -316,6 +340,56 @@ spec:
         inputs:
           - name: git-source
             resource: git-source
+    - name: image-push-to-test-ace-chris
+      runAfter:
+        - api-test
+      taskRef:
+        name: image-push-to-test
+      params:
+        - name: imageTag
+          value: "$(params.imageTag)"
+        - name: imageName
+          value: "ace-chris"
+    - name: image-push-to-test-ace-acme
+      runAfter:
+        - api-test
+      taskRef:
+        name: image-push-to-test
+      params:
+        - name: imageTag
+          value: "$(params.imageTag)"
+        - name: imageName
+          value: "ace-acme"
+    - name: image-push-to-test-ace-bernie
+      runAfter:
+        - api-test
+      taskRef:
+        name: image-push-to-test
+      params:
+        - name: imageTag
+          value: "$(params.imageTag)"
+        - name: imageName
+          value: "ace-bernie"
+    - name: image-push-to-test-ace-api
+      runAfter:
+        - api-test
+      taskRef:
+        name: image-push-to-test
+      params:
+        - name: imageTag
+          value: "$(params.imageTag)"
+        - name: imageName
+          value: "ace-api"
+    - name: image-push-to-test-mq
+      runAfter:
+        - api-test
+      taskRef:
+        name: image-push-to-test
+      params:
+        - name: imageTag
+          value: "mq-ddd"
+        - name: imageName
+          value: "mq-ddd"
 
 ---
 
@@ -353,6 +427,14 @@ spec:
           serviceAccountName: cicd-ace-sa
         - taskName: deploy-ace-int-server-ace-bernie
           serviceAccountName: cicd-ace-sa
+        - taskName: image-push-to-test-ace-api
+          serviceAccountName: cicd-{{NAMESPACE}}-test-push-images
+        - taskName: image-push-to-test-ace-bernie
+          serviceAccountName: cicd-{{NAMESPACE}}-test-push-images
+        - taskName: image-push-to-test-ace-acme
+          serviceAccountName: cicd-{{NAMESPACE}}-test-push-images
+        - taskName: image-push-to-test-ace-chris
+          serviceAccountName: cicd-{{NAMESPACE}}-test-push-images
       resources:
       - name: git-source
         resourceRef:
@@ -499,3 +581,12 @@ roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: Role
   name: mq-qm-role
+
+---
+
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: cicd-{{NAMESPACE}}-test-push-images
+secrets:
+  - name: cicd-{{NAMESPACE}}-test
