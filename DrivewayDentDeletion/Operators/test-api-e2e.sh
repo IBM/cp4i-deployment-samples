@@ -199,7 +199,7 @@ while [ $numberOfMatchesForImageTag -ne $totalDemoPods ]; do
   echo -e "\nINFO: For MQ demo pod '$mqDemoPod':"
   demoPodMQImage=$(oc get pod $mqDemoPod -n $namespace -o json | jq -r '.spec.containers[0].image')
   echo "INFO: Image present in the pod '$mqDemoPod' is '$demoPodMQImage'"
-  if [[ $demoPodMQImage =~ "latest" ]]; then
+  if [[ $demoPodMQImage =~ "latest-testing" ]]; then
     echo "INFO: Image tag matches for MQ demo pod.."
     numberOfMatchesForImageTag=$((numberOfMatchesForImageTag + 1))
   else
@@ -256,7 +256,7 @@ if [ "$post_response_code" == "200" ]; then
 
   echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------"
   # ------- Delete from the database -------
-  echo -e "INFO: \nDeleting row from database..."
+  echo -e "\nINFO: Deleting row from database..."
   echo "INFO: Deleting the row with quote id $quote_id from the database"
   oc exec -n postgres -it $(oc get pod -n postgres -l name=postgresql -o jsonpath='{.items[].metadata.name}') \
     -- psql -U admin -d sampledb -c \
@@ -265,7 +265,7 @@ if [ "$post_response_code" == "200" ]; then
   echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------"
 
   #  ------- Get row to confirm deletion -------
-  echo "INFO: Select and print the row from database with '$quote_id' to confirm deletion"
+  echo -e "\nINFO: Select and print the row from database with '$quote_id' to confirm deletion"
   oc exec -n postgres -it $(oc get pod -n postgres -l name=postgresql -o jsonpath='{.items[].metadata.name}') \
     -- psql -U admin -d sampledb -c \
     "SELECT * FROM quotes WHERE quotes.quoteid=${quote_id};"
