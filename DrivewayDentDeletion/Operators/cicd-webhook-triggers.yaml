@@ -440,7 +440,7 @@ rules:
 # Permission to get pods
 - apiGroups: [""]
   resources: ["pods"]
-  verbs: ["get"]
+  verbs: ["list"]
 
 ---
 
@@ -481,7 +481,7 @@ rules:
 # Permission to get pods
 - apiGroups: [""]
   resources: ["pods"]
-  verbs: ["get"]
+  verbs: ["list"]
 
 ---
 
