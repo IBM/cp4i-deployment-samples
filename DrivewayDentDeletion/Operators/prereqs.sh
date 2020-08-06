@@ -61,7 +61,8 @@ oc apply --filename https://storage.googleapis.com/tekton-releases/pipeline/prev
 echo "INFO: Installing tekton triggers"
 oc apply -f https://storage.googleapis.com/tekton-releases/triggers/previous/v0.5.0/release.yaml
 echo "INFO: Waiting for tekton and triggers deployment to finish..."
-oc wait -n tekton-pipelines --for=condition=available deployment --timeout=20m tekton-pipelines-controller tekton-pipelines-webhook tekton-triggers-controller tekton-triggers-webhook
+oc wait -n tekton-pipelines --for=condition=available deployment --timeout=20m tekton-pipelines-controller \
+  tekton-pipelines-webhook tekton-triggers-controller tekton-triggers-webhook
 
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
