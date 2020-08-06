@@ -99,6 +99,8 @@ fi
 
 echo -e "\nINFO: Installed JQ version is $(jq --version)"
 
+echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
+
 # -------------------------------------- FIND TOTAL ACE REPLICAS DEPLOYED -----------------------------------------------
 
 numberOfReplicas=$(oc get integrationservers $is_release_name -n $namespace -o json | jq -r '.spec.replicas')

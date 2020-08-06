@@ -156,155 +156,155 @@ spec:
         inputs:
           - name: git-source
             resource: git-source
-    - name: build-ace-int-server-ace-api
-      taskRef:
-        name: build-task
-      params:
-        - name: imageTag
-          value: "$(params.imageTag)"
-        - name: imageName
-          value: "ace-api"
-        - name: dockerfile
-          value: "ACE-API.Dockerfile"
-        - name: contextPath
-          value: "Bar_files/ace-api"
-      resources:
-        inputs:
-          - name: git-source
-            resource: git-source
-    - name: build-ace-int-server-ace-acme
-      runAfter:
-        - build-ace-int-server-ace-api
-      taskRef:
-        name: build-task
-      params:
-        - name: imageTag
-          value: "$(params.imageTag)"
-        - name: imageName
-          value: "ace-acme"
-        - name: dockerfile
-          value: "ACE-Acme.Dockerfile"
-        - name: contextPath
-          value: "Bar_files/ace-acme"
-      resources:
-        inputs:
-          - name: git-source
-            resource: git-source
-    - name: build-ace-int-server-ace-bernie
-      runAfter:
-        - build-ace-int-server-ace-acme
-      taskRef:
-        name: build-task
-      params:
-        - name: imageTag
-          value: "$(params.imageTag)"
-        - name: imageName
-          value: "ace-bernie"
-        - name: dockerfile
-          value: "ACE-Bernie.Dockerfile"
-        - name: contextPath
-          value: "Bar_files/ace-bernie"
-      resources:
-        inputs:
-          - name: git-source
-            resource: git-source
-    - name: build-ace-int-server-ace-chris
-      runAfter:
-        - build-ace-int-server-ace-bernie
-      taskRef:
-        name: build-task
-      params:
-        - name: imageTag
-          value: "$(params.imageTag)"
-        - name: imageName
-          value: "ace-chris"
-        - name: dockerfile
-          value: "ACE-Chris.Dockerfile"
-        - name: contextPath
-          value: "Bar_files/ace-chris"
-      resources:
-        inputs:
-          - name: git-source
-            resource: git-source
-    - name: deploy-ace-int-server-ace-api
-      runAfter:
-        - build-ace-int-server-ace-api
-      taskRef:
-        name: deploy-task
-      params:
-        - name: imageTag
-          value: "$(params.imageTag)"
-        - name: imageName
-          value: "ace-api"
-        - name: releaseName
-          value: "ace-api-int-srv"
-        - name: releaseScript
-          value: release-ace-integration-server.sh
-      resources:
-        inputs:
-          - name: git-source
-            resource: git-source
-    - name: deploy-ace-int-server-ace-bernie
-      runAfter:
-        - build-ace-int-server-ace-bernie
-      taskRef:
-        name: deploy-task
-      params:
-        - name: imageTag
-          value: "$(params.imageTag)"
-        - name: imageName
-          value: "ace-bernie"
-        - name: releaseName
-          value: "ace-bernie-int-srv"
-        - name: releaseScript
-          value: release-ace-integration-server.sh
-      resources:
-        inputs:
-          - name: git-source
-            resource: git-source
-    - name: deploy-ace-int-server-ace-acme
-      runAfter:
-        - build-ace-int-server-ace-acme
-      taskRef:
-        name: deploy-task
-      params:
-        - name: imageTag
-          value: "$(params.imageTag)"
-        - name: imageName
-          value: "ace-acme"
-        - name: releaseName
-          value: "ace-acme-int-srv"
-        - name: releaseScript
-          value: release-ace-integration-server.sh
-      resources:
-        inputs:
-          - name: git-source
-            resource: git-source
-    - name: deploy-ace-int-server-ace-chris
-      runAfter:
-        - build-ace-int-server-ace-chris
-      taskRef:
-        name: deploy-task
-      params:
-        - name: imageTag
-          value: "$(params.imageTag)"
-        - name: imageName
-          value: "ace-chris"
-        - name: releaseName
-          value: "ace-chris-int-srv"
-        - name: releaseScript
-          value: release-ace-integration-server.sh
-      resources:
-        inputs:
-          - name: git-source
-            resource: git-source
+    # - name: build-ace-int-server-ace-api
+    #   taskRef:
+    #     name: build-task
+    #   params:
+    #     - name: imageTag
+    #       value: "$(params.imageTag)"
+    #     - name: imageName
+    #       value: "ace-api"
+    #     - name: dockerfile
+    #       value: "ACE-API.Dockerfile"
+    #     - name: contextPath
+    #       value: "Bar_files/ace-api"
+    #   resources:
+    #     inputs:
+    #       - name: git-source
+    #         resource: git-source
+    # - name: build-ace-int-server-ace-acme
+    #   runAfter:
+    #     - build-ace-int-server-ace-api
+    #   taskRef:
+    #     name: build-task
+    #   params:
+    #     - name: imageTag
+    #       value: "$(params.imageTag)"
+    #     - name: imageName
+    #       value: "ace-acme"
+    #     - name: dockerfile
+    #       value: "ACE-Acme.Dockerfile"
+    #     - name: contextPath
+    #       value: "Bar_files/ace-acme"
+    #   resources:
+    #     inputs:
+    #       - name: git-source
+    #         resource: git-source
+    # - name: build-ace-int-server-ace-bernie
+    #   runAfter:
+    #     - build-ace-int-server-ace-acme
+    #   taskRef:
+    #     name: build-task
+    #   params:
+    #     - name: imageTag
+    #       value: "$(params.imageTag)"
+    #     - name: imageName
+    #       value: "ace-bernie"
+    #     - name: dockerfile
+    #       value: "ACE-Bernie.Dockerfile"
+    #     - name: contextPath
+    #       value: "Bar_files/ace-bernie"
+    #   resources:
+    #     inputs:
+    #       - name: git-source
+    #         resource: git-source
+    # - name: build-ace-int-server-ace-chris
+    #   runAfter:
+    #     - build-ace-int-server-ace-bernie
+    #   taskRef:
+    #     name: build-task
+    #   params:
+    #     - name: imageTag
+    #       value: "$(params.imageTag)"
+    #     - name: imageName
+    #       value: "ace-chris"
+    #     - name: dockerfile
+    #       value: "ACE-Chris.Dockerfile"
+    #     - name: contextPath
+    #       value: "Bar_files/ace-chris"
+    #   resources:
+    #     inputs:
+    #       - name: git-source
+    #         resource: git-source
+    # - name: deploy-ace-int-server-ace-api
+    #   runAfter:
+    #     - build-ace-int-server-ace-api
+    #   taskRef:
+    #     name: deploy-task
+    #   params:
+    #     - name: imageTag
+    #       value: "$(params.imageTag)"
+    #     - name: imageName
+    #       value: "ace-api"
+    #     - name: releaseName
+    #       value: "ace-api-int-srv"
+    #     - name: releaseScript
+    #       value: release-ace-integration-server.sh
+    #   resources:
+    #     inputs:
+    #       - name: git-source
+    #         resource: git-source
+    # - name: deploy-ace-int-server-ace-bernie
+    #   runAfter:
+    #     - build-ace-int-server-ace-bernie
+    #   taskRef:
+    #     name: deploy-task
+    #   params:
+    #     - name: imageTag
+    #       value: "$(params.imageTag)"
+    #     - name: imageName
+    #       value: "ace-bernie"
+    #     - name: releaseName
+    #       value: "ace-bernie-int-srv"
+    #     - name: releaseScript
+    #       value: release-ace-integration-server.sh
+    #   resources:
+    #     inputs:
+    #       - name: git-source
+    #         resource: git-source
+    # - name: deploy-ace-int-server-ace-acme
+    #   runAfter:
+    #     - build-ace-int-server-ace-acme
+    #   taskRef:
+    #     name: deploy-task
+    #   params:
+    #     - name: imageTag
+    #       value: "$(params.imageTag)"
+    #     - name: imageName
+    #       value: "ace-acme"
+    #     - name: releaseName
+    #       value: "ace-acme-int-srv"
+    #     - name: releaseScript
+    #       value: release-ace-integration-server.sh
+    #   resources:
+    #     inputs:
+    #       - name: git-source
+    #         resource: git-source
+    # - name: deploy-ace-int-server-ace-chris
+    #   runAfter:
+    #     - build-ace-int-server-ace-chris
+    #   taskRef:
+    #     name: deploy-task
+    #   params:
+    #     - name: imageTag
+    #       value: "$(params.imageTag)"
+    #     - name: imageName
+    #       value: "ace-chris"
+    #     - name: releaseName
+    #       value: "ace-chris-int-srv"
+    #     - name: releaseScript
+    #       value: release-ace-integration-server.sh
+    #   resources:
+    #     inputs:
+    #       - name: git-source
+    #         resource: git-source
     - name: api-test
       runAfter:
-        - deploy-ace-int-server-ace-chris
+        # - deploy-ace-int-server-ace-chris
         - deploy-mq
-        - deploy-ace-int-server-ace-api
-        - deploy-ace-int-server-ace-acme
-        - deploy-ace-int-server-ace-bernie
+        # - deploy-ace-int-server-ace-api
+        # - deploy-ace-int-server-ace-acme
+        # - deploy-ace-int-server-ace-bernie
       taskRef:
         name: test-task
       params:
