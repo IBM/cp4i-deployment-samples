@@ -139,6 +139,8 @@ spec:
           - name: git-source
             resource: git-source
     - name: build-ace-int-server-ace-api
+      runAfter:
+        - build-mq
       taskRef:
         name: build-task
       params:
