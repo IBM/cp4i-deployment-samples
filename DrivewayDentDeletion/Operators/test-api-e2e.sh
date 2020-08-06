@@ -46,18 +46,39 @@ done
 
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
-# echo "INFO: Image tag: '$imageTag'"
+echo "INFO: Image tag: '$imageTag'"
 
-# # -------------------------------------- INSTALL JQ ------------------------------------------
+# -------------------------------------- INSTALL JQ ---------------------------------------------------------------------
 
-# echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
+echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
-# # Install jq for testing
-# echo "INFO: Installing jq..."
-# wget -O jq https://github.com/stedolan/jq/releases/download/jq-1.6/jq-linux64
-# chmod +x ./jq
-# cp jq /usr/bin
-# echo -e "\nINFO: Installed JQ version is $(jq --version)"
+echo -e "\nINFO: Checking if jq is pre-installed..."
+jqInstalled=false
+jqVersionCheck=$(jq --version)
+
+if [ $? -ne 0 ]; then
+ jqInstalled=false
+else
+  jqInstalled=true
+fi
+
+if [[ "$jqInstalled" == "false" ]]; then
+  echo "INFO: JQ is not installed, installing jq..."
+  if [[ "$OSTYPE" == "linux-gnu"* ]]; then
+    echo "INFO: Installing on linux"
+    wget -O jq https://github.com/stedolan/jq/releases/download/jq-1.6/jq-linux64
+    chmod +x ./jq
+    cp jq /usr/bin
+  elif [[ "$OSTYPE" == "darwin"* ]]; then
+    echo "INFO: Installing on MAC"
+    /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)"
+    brew install jq
+  fi
+fi
+
+echo -e "\nINFO: Installed JQ version is $(jq --version)"
+
+echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
 # # -------------------------------------- FIND TOTAL ACE REPLICAS DEPLOYED ------------------------------------------
 

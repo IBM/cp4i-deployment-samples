@@ -302,11 +302,11 @@ spec:
             resource: git-source
     - name: api-test
       runAfter:
-        - deploy-ace-int-server-ace-chris
+        # - deploy-ace-int-server-ace-chris
         - deploy-mq
-        - deploy-ace-int-server-ace-api
-        - deploy-ace-int-server-ace-acme
-        - deploy-ace-int-server-ace-bernie
+        # - deploy-ace-int-server-ace-api
+        # - deploy-ace-int-server-ace-acme
+        # - deploy-ace-int-server-ace-bernie
       taskRef:
         name: test-task
       params:
