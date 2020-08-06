@@ -149,6 +149,8 @@ EOF
   # -------------------------------------- CHECK FOR NEW IMAGE DEPLOYMENT STATUS ------------------------------------------
 
   numberOfReplicas=1
+  numberOfMatchesForImageTag=0
+  time=0
 
   while [ $numberOfMatchesForImageTag -ne $numberOfReplicas ]; do
     if [ $time -gt 10 ]; then

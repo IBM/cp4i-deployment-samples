@@ -107,6 +107,9 @@ echo -e "\nINFO: Total number of ACE integration server $is_release_name related
 
 # -------------------------------------- CHECK FOR NEW IMAGE DEPLOYMENT STATUS ------------------------------------------
 
+numberOfMatchesForImageTag=0
+time=0
+
 while [ $numberOfMatchesForImageTag -ne $numberOfReplicas ]; do
   if [ $time -gt 10 ]; then
     echo "ERROR: Timed-out trying to wait for all $is_release_name demo pods to be deployed with a new image containing the image tag '$imageTag'"

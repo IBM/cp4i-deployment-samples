@@ -437,6 +437,10 @@ rules:
 - apiGroups: ["appconnect.ibm.com"]
   resources: ["designerauthorings", "dashboards", "switchservers", "configurations", "integrationservers"]
   verbs: ["create", "delete", "get", "list", "patch", "update", "watch"]
+# Permission to get pods
+- apiGroups: [""]
+  resources: ["pods"]
+  verbs: ["get"]
 
 ---
 
@@ -474,6 +478,10 @@ rules:
 - apiGroups: ["mq.ibm.com"]
   resources: ["queuemanagers", "queuemanagers/finalizers", "queuemanagers/status"]
   verbs: ["create", "delete", "get", "list", "patch", "update", "watch"]
+# Permission to get pods
+- apiGroups: [""]
+  resources: ["pods"]
+  verbs: ["get"]
 
 ---
 
