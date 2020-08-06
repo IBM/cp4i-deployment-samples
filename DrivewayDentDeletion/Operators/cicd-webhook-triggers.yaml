@@ -496,12 +496,3 @@ roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: Role
   name: mq-qm-role
-
----
-
-apiVersion: v1
-kind: ServiceAccount
-metadata:
-  name: cicd-{{NAMESPACE}}-test-push-images
-secrets:
-  - name: cicd-{{NAMESPACE}}-test

@@ -116,4 +116,74 @@ spec:
     enabled: true
 EOF
 
+  # -------------------------------------- INSTALL JQ ---------------------------------------------------------------------
+
+  echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
+
+  echo -e "\nINFO: Checking if jq is pre-installed..."
+  jqInstalled=false
+  jqVersionCheck=$(jq --version)
+
+  if [ $? -ne 0 ]; then
+  jqInstalled=false
+  else
+    jqInstalled=true
+  fi
+
+  if [[ "$jqInstalled" == "false" ]]; then
+    echo "INFO: JQ is not installed, installing jq..."
+    if [[ "$OSTYPE" == "linux-gnu"* ]]; then
+      echo "INFO: Installing on linux"
+      wget -O jq https://github.com/stedolan/jq/releases/download/jq-1.6/jq-linux64
+      chmod +x ./jq
+      cp jq /usr/bin
+    elif [[ "$OSTYPE" == "darwin"* ]]; then
+      echo "INFO: Installing on MAC"
+      /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)"
+      brew install jq
+    fi
+  fi
+
+  echo -e "\nINFO: Installed JQ version is $(jq --version)"
+
+  # -------------------------------------- CHECK FOR NEW IMAGE DEPLOYMENT STATUS ------------------------------------------
+
+  numberOfReplicas=1
+
+  while [ $numberOfMatchesForImageTag -ne $numberOfReplicas ]; do
+    if [ $time -gt 10 ]; then
+      echo "ERROR: Timed-out trying to wait for all $release_name demo pod(s) to be deployed with a new image containing the image tag '$imageTag'"
+      echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
+      exit 1
+    fi
+
+    numberOfMatchesForImageTag=0
+
+    allCorrespondingPods=$(oc get pods -n $namespace | grep $release_name | grep 1/1 | grep Running | awk '{print $1}')
+    echo -e "\nINFO: For MQ demo pod '$mqDemoPod':"
+    for eachMQPod in $allCorrespondingPods
+      do
+        imageInPod=$(oc get pod $eachMQPod -n $namespace -o json | jq -r '.spec.containers[0].image')
+        echo "INFO: Image present in the pod '$eachMQPod' is '$imageInPod'"
+        if [[ $imageInPod =~ "$imageTag" ]]; then
+          echo "INFO: Image tag matches.."
+          numberOfMatchesForImageTag=$((numberOfMatchesForImageTag + 1))
+        else
+          echo "INFO: Image tag '$imageTag' is not present in the image of the MQ demo pod '$mqDemoPod'"
+        fi
+    done
+
+    echo -e "\nINFO: Total $release_name demo pods deployed with new image: $numberOfMatchesForImageTag"
+    echo -e "\nINFO: All current $release_name demo pods are:\n"
+    oc get pods -n $namespace | grep $release_name | grep 1/1 | grep Running
+    if [[ $numberOfMatchesForImageTag != "$numberOfReplicas" ]]; then
+      echo -e "\nINFO: Not all $release_name pods have been deployed with the new image, retrying for upto 10 minutes for new $release_name demo pods te be deployed with new image. Waited ${time} minute(s)."
+      sleep 60
+    else
+      echo -e "\nINFO: All $release_name demo pods have been deployed with the new image"
+    fi
+    time=$((time + 1))
+    echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------"
+  done
+
 fi
