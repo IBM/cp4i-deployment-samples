@@ -93,7 +93,6 @@ if [[ "$jqInstalled" == "false" ]]; then
     echo "INFO: Installing on linux"
     wget -O jq https://github.com/stedolan/jq/releases/download/jq-1.6/jq-linux64
     chmod +x ./jq
-    # cp jq /usr/bin
   elif [[ "$OSTYPE" == "darwin"* ]]; then
     echo "INFO: Installing on MAC"
     /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)"
@@ -110,6 +109,7 @@ echo -e "\n---------------------------------------------------------------------
 numberOfReplicas=$(oc get integrationservers $is_release_name -n $namespace -o json | ./jq -r '.spec.replicas')
 echo "INFO: Number of Replicas for $is_release_name is $numberOfReplicas"
 echo -e "\nINFO: Total number of ACE integration server $is_release_name related pods after deployment should be $numberOfReplicas"
+echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
 # -------------------------------------- CHECK FOR NEW IMAGE DEPLOYMENT STATUS ------------------------------------------
 
@@ -118,6 +118,7 @@ echo "INFO: Image tag for '$is_release_name' is '$imageTag'"
 numberOfMatchesForImageTag=0
 time=0
 
+# wait for 10 minutes for all replica pods to be deployed with new image
 while [ $numberOfMatchesForImageTag -ne $numberOfReplicas ]; do
   if [ $time -gt 10 ]; then
     echo "ERROR: Timed-out trying to wait for all $is_release_name demo pods to be deployed with a new image containing the image tag '$imageTag'"
@@ -144,8 +145,11 @@ while [ $numberOfMatchesForImageTag -ne $numberOfReplicas ]; do
   echo -e "\nINFO: Total $is_release_name demo pods deployed with new image: $numberOfMatchesForImageTag"
   echo -e "\nINFO: All current $is_release_name demo pods are:\n"
   oc get pods -n $namespace | grep $is_release_name | grep 1/1 | grep Running
+  if [[ $? -eq 1 ]]; then
+    echo -e "No Ready and Running pods found for $is_release_name yet\n"
+  fi
   if [[ $numberOfMatchesForImageTag != "$numberOfReplicas" ]]; then
-    echo -e "\nINFO: Not all $is_release_name pods have been deployed with the new image, retrying for upto 10 minutes for new $is_release_name demo pods te be deployed with new image. Waited ${time} minute(s)."
+    echo -e "\nINFO: Not all $is_release_name pods have been deployed with the new image having the image tag '$imageTag', retrying for upto 10 minutes for new $is_release_name demo pods te be deployed with new image. Waited ${time} minute(s)."
     sleep 60
   else
     echo -e "\nINFO: All $is_release_name demo pods have been deployed with the new image"
