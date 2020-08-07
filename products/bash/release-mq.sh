@@ -181,7 +181,7 @@ EOF
           echo "INFO: Image tag matches.."
           numberOfMatchesForImageTag=$((numberOfMatchesForImageTag + 1))
         else
-          echo "INFO: Image tag '$imageTag-test' is not present in the image of the MQ demo pod '$mqDemoPod'"
+          echo "INFO: Image tag '$imageTag-test' is not present in the image of the MQ demo pod '$eachMQPod'"
         fi
     done
 
