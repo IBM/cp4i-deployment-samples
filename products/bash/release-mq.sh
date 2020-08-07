@@ -159,7 +159,9 @@ EOF
   numberOfMatchesForImageTag=0
   time=0
 
-  echo "INFO: Number of Replicas for $release_name should be $numberOfReplicas"
+  echo "INFO: Total number of pod for $release_name should be $numberOfReplicas"
+
+  echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
   # wait for 10 minutes for all replica pods to be deployed with new image
   while [ $numberOfMatchesForImageTag -ne $numberOfReplicas ]; do
