@@ -82,7 +82,7 @@ jqInstalled=false
 jqVersionCheck=$(jq --version)
 
 if [ $? -ne 0 ]; then
- jqInstalled=false
+  jqInstalled=false
 else
   jqInstalled=true
 fi
