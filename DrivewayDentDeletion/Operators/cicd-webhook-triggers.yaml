@@ -228,7 +228,7 @@ spec:
         inputs:
           - name: git-source
             resource: git-source
-    - name: deploy-wait-ace-int-server-ace-api
+    - name: deploy-wait-ace-api
       runAfter:
         - build-ace-int-server-ace-api
       taskRef:
@@ -246,7 +246,7 @@ spec:
         inputs:
           - name: git-source
             resource: git-source
-    - name: deploy-wait-ace-int-server-ace-bernie
+    - name: deploy-wait-ace-bernie
       runAfter:
         - build-ace-int-server-ace-bernie
       taskRef:
@@ -264,7 +264,7 @@ spec:
         inputs:
           - name: git-source
             resource: git-source
-    - name: deploy-wait-ace-int-server-ace-acme
+    - name: deploy-wait-ace-acme
       runAfter:
         - build-ace-int-server-ace-acme
       taskRef:
@@ -282,7 +282,7 @@ spec:
         inputs:
           - name: git-source
             resource: git-source
-    - name: deploy-wait-ace-int-server-ace-chris
+    - name: deploy-wait-ace-chris
       runAfter:
         - build-ace-int-server-ace-chris
       taskRef:
@@ -302,11 +302,11 @@ spec:
             resource: git-source
     - name: api-test
       runAfter:
-        - deploy-wait-ace-int-server-ace-chris
+        - deploy-wait-ace-chris
         - deploy-wait-mq
-        - deploy-wait-ace-int-server-ace-api
-        - deploy-wait-ace-int-server-ace-acme
-        - deploy-wait-ace-int-server-ace-bernie
+        - deploy-wait-ace-api
+        - deploy-wait-ace-acme
+        - deploy-wait-ace-bernie
       taskRef:
         name: test-task
       params:
@@ -344,13 +344,13 @@ spec:
           serviceAccountName: cicd-ace-sa
         - taskName: build-ace-int-server-ace-chris
           serviceAccountName: cicd-ace-sa
-        - taskName: deploy-wait-ace-int-server-ace-api
+        - taskName: deploy-wait-ace-api
           serviceAccountName: cicd-ace-sa
-        - taskName: deploy-wait-ace-int-server-ace-chris
+        - taskName: deploy-wait-ace-chris
           serviceAccountName: cicd-ace-sa
-        - taskName: deploy-wait-ace-int-server-ace-acme
+        - taskName: deploy-wait-ace-acme
           serviceAccountName: cicd-ace-sa
-        - taskName: deploy-wait-ace-int-server-ace-bernie
+        - taskName: deploy-wait-ace-bernie
           serviceAccountName: cicd-ace-sa
       resources:
       - name: git-source
