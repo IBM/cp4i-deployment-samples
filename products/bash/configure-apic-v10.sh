@@ -77,6 +77,25 @@ if [ "$APIC_STATUS" != "Ready" ]; then
   exit 1
 fi
 
+for i in `seq 1 60`; do
+  PORTAL_WWW_POD=$(oc get pods -n $NAMESPACE | grep -m1 "${release_name}-ptl.*www" | awk '{print $1}')
+  if [ -z "$PORTAL_WWW_POD" ]; then
+    echo "Not got portal pod yet"
+  else
+    PORTAL_WWW_ADMIN_READY=$(oc get pod -n ${NAMESPACE} ${PORTAL_WWW_POD} -o json | jq '.status.containerStatuses[0].ready')
+    if [[ "$PORTAL_WWW_ADMIN_READY" == "true" ]]; then
+      echo "PORTAL_WWW_POD (${PORTAL_WWW_POD}) ready, patching..."
+      oc exec -n ${NAMESPACE} ${PORTAL_WWW_POD} -c admin -- bash -ic "sed -i '/^add_uuid_and_alias/a drush \"@\$SITE_ALIAS\" pm-list --type=Module --status=enabled' /opt/ibm/bin/restore_site"
+      break
+    else
+      echo "${PORTAL_WWW_POD} not ready"
+    fi
+  fi
+
+  echo "Waiting, checking again in one minute... (Attempt $i of 60)"
+  sleep 60
+done
+
 echo "Pod listing for information"
 kubectl get pod -n $NAMESPACE
 
