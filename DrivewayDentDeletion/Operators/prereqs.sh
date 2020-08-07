@@ -7,15 +7,16 @@
 # Use, duplication or disclosure restricted by GSA ADP Schedule
 # Contract with IBM Corp.
 #******************************************************************************
+
 function usage {
-    echo "Usage: $0 -n <namespace> -r <nav_replicas>"
+  echo "Usage: $0 -n <namespace> -r <nav_replicas>"
 }
 
 export IMAGE_REPO="cp.icr.io"
 namespace="cp4i"
 nav_replicas="2"
 
-while getopts "n:" opt; do
+while getopts "n:r:" opt; do
   case ${opt} in
     n ) namespace="$OPTARG"
       ;;
