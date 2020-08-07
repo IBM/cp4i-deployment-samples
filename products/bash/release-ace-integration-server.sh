@@ -149,7 +149,7 @@ while [ $numberOfMatchesForImageTag -ne $numberOfReplicas ]; do
     echo -e "No Ready and Running pods found for $is_release_name yet\n"
   fi
   if [[ $numberOfMatchesForImageTag != "$numberOfReplicas" ]]; then
-    echo -e "INFO: Not all $is_release_name pods have been deployed with the new image having the image tag '$imageTag', retrying for upto 10 minutes for new $is_release_name demo pods te be deployed with new image. Waited ${time} minute(s)."
+    echo -e "\nINFO: Not all $is_release_name pods have been deployed with the new image having the image tag '$imageTag', retrying for upto 10 minutes for new $is_release_name demo pods te be deployed with new image. Waited ${time} minute(s)."
     sleep 60
   else
     echo -e "\nINFO: All $is_release_name demo pods have been deployed with the new image"
