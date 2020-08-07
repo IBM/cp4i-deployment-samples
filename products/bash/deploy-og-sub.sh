@@ -27,6 +27,20 @@
 # }
 #
 namespace="cp4i"
+SCRIPT_DIR="$(dirname $0)"
+echo "Current Dir: $SCRIPT_DIR"
+
+# Get auth port with internal url and apply the operand config in common services namespace
+IAM_Update_OperandConfig() {
+  export EXTERNAL=$(oc get configmap cluster-info -n kube-system -o jsonpath='{.data.master_public_url}')
+  export INT_URL="${EXTERNAL}/.well-known/oauth-authorization-server"
+  export IAM_URL=$(curl $INT_URL | jq -r '.issuer')
+  echo "INFO: External url: ${EXTERNAL}"
+  echo "INFO: INT_URL: ${INT_URL}"
+  echo "INFO: IAM URL : ${IAM_URL}"
+  echo "INFO: Updating the OperandConfig 'common-service' for IAM Authentication"
+  oc get OperandConfig -n ibm-common-services $(oc get OperandConfig -n ibm-common-services | sed -n 2p | awk '{print $1}') -o json | jq '(.spec.services[] | select(.name == "ibm-iam-operator") | .spec.authentication)|={"config":{"roksEnabled":true,"roksURL":"'$IAM_URL'","roksUserPrefix":"IAM#"}}' | oc apply -f -
+}
 
 # Get auth port with internal url and apply the operand config in common services namespace
 IAM_Update_OperandConfig() {
