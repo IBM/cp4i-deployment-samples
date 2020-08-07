@@ -38,7 +38,7 @@ These steps will need to be documented in the demo docs:
 - Add the trigger URL to the repo as a webhook with the `Content type` as `application/json`, which triggers an initial run of the pipeline.
 
 # Pipelines
-![Overview of aaS](media/dev-pipeline.svg)
+![Overview of aaS](../media/dev-pipeline.svg)
 - Trigger: Whenever a commit is made to the forked repo it triggers the
   pipeline.
 - Build tasks: Each of these tasks builds an images and pushes it to the cluster's local OpenShift Image Registry. The latest dockerfile and related files (bar files) are pulled from the forked git repo.
