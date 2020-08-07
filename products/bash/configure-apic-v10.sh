@@ -14,7 +14,7 @@
 #
 # PARAMETERS:
 #   -n : <namespace> (string), Defaults to "cp4i"
-#   -r : <release-name> (string), Defaults to "demo"
+#   -r : <release-name> (string), Defaults to "ademo"
 #
 # USAGE:
 #   With defaults values
@@ -30,7 +30,7 @@ function usage {
 CURRENT_DIR=$(dirname $0)
 
 namespace="cp4i"
-release_name="demo"
+release_name="ademo"
 
 while getopts "n:r:" opt; do
   case ${opt} in
