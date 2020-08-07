@@ -6,7 +6,6 @@ secrets:
   - name: er-pull-secret
   - name: cicd-{{NAMESPACE}}
 # er-pull-secret used to pull images from ER in Dockerfiles
-# As this is a single namespace deployment we don't need multiple service accounts for every product
 
 ---
 
@@ -59,7 +58,6 @@ spec:
            buildah --storage-driver vfs build-using-dockerfile -f /workspace/git-source/DrivewayDentDeletion/Operators/Dockerfiles/$(params.dockerfile) -t image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}/$(params.imageName):$(params.imageTag) /workspace/git-source/DrivewayDentDeletion/$(params.contextPath) && \
            buildah --storage-driver vfs push --tls-verify=false image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}/$(params.imageName):$(params.imageTag)
           "
-
 ---
 
 apiVersion: tekton.dev/v1beta1
@@ -87,7 +85,27 @@ spec:
   steps:
     - name: oc
       image: quay.io/openshift/origin-cli:latest
-      script: "/workspace/git-source/products/bash/$(params.releaseScript) -n {{NAMESPACE}} -r $(params.releaseName) -i image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}/$(params.imageName):$(params.imageTag)"
+      script: "/workspace/git-source/products/bash/$(params.releaseScript) -n {{NAMESPACE}} -r $(params.releaseName) -i image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}/$(params.imageName):$(params.imageTag) -a $(params.imageTag)"
+
+---
+
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: test-task
+spec:
+  params:
+    - name: imageTag
+      type: string
+      description: The image tag
+  resources:
+    inputs:
+      - name: git-source
+        type: git
+  steps:
+    - name: oc
+      image: quay.io/openshift/origin-cli:latest
+      script: "/workspace/git-source/DrivewayDentDeletion/Operators/test-api-e2e.sh -n {{NAMESPACE}} -t $(params.imageTag)"
 
 ---
 
@@ -120,7 +138,7 @@ spec:
         inputs:
           - name: git-source
             resource: git-source
-    - name: deploy-mq
+    - name: deploy-wait-mq
       runAfter:
         - build-mq
       taskRef:
@@ -210,7 +228,7 @@ spec:
         inputs:
           - name: git-source
             resource: git-source
-    - name: deploy-ace-int-server-ace-api
+    - name: deploy-wait-ace-api
       runAfter:
         - build-ace-int-server-ace-api
       taskRef:
@@ -228,7 +246,7 @@ spec:
         inputs:
           - name: git-source
             resource: git-source
-    - name: deploy-ace-int-server-ace-bernie
+    - name: deploy-wait-ace-bernie
       runAfter:
         - build-ace-int-server-ace-bernie
       taskRef:
@@ -246,7 +264,7 @@ spec:
         inputs:
           - name: git-source
             resource: git-source
-    - name: deploy-ace-int-server-ace-acme
+    - name: deploy-wait-ace-acme
       runAfter:
         - build-ace-int-server-ace-acme
       taskRef:
@@ -264,7 +282,7 @@ spec:
         inputs:
           - name: git-source
             resource: git-source
-    - name: deploy-ace-int-server-ace-chris
+    - name: deploy-wait-ace-chris
       runAfter:
         - build-ace-int-server-ace-chris
       taskRef:
@@ -282,7 +300,22 @@ spec:
         inputs:
           - name: git-source
             resource: git-source
-
+    - name: api-test
+      runAfter:
+        - deploy-wait-ace-chris
+        - deploy-wait-mq
+        - deploy-wait-ace-api
+        - deploy-wait-ace-acme
+        - deploy-wait-ace-bernie
+      taskRef:
+        name: test-task
+      params:
+        - name: imageTag
+          value: "$(params.imageTag)"
+      resources:
+        inputs:
+          - name: git-source
+            resource: git-source
 ---
 
 apiVersion: triggers.tekton.dev/v1alpha1
@@ -301,7 +334,7 @@ spec:
       serviceAccountNames:
         - taskName: build-mq
           serviceAccountName: cicd-mq-sa
-        - taskName: deploy-mq
+        - taskName: deploy-wait-mq
           serviceAccountName: cicd-mq-sa
         - taskName: build-ace-int-server-ace-api
           serviceAccountName: cicd-ace-sa
@@ -311,13 +344,13 @@ spec:
           serviceAccountName: cicd-ace-sa
         - taskName: build-ace-int-server-ace-chris
           serviceAccountName: cicd-ace-sa
-        - taskName: deploy-ace-int-server-ace-api
+        - taskName: deploy-wait-ace-api
           serviceAccountName: cicd-ace-sa
-        - taskName: deploy-ace-int-server-ace-chris
+        - taskName: deploy-wait-ace-chris
           serviceAccountName: cicd-ace-sa
-        - taskName: deploy-ace-int-server-ace-acme
+        - taskName: deploy-wait-ace-acme
           serviceAccountName: cicd-ace-sa
-        - taskName: deploy-ace-int-server-ace-bernie
+        - taskName: deploy-wait-ace-bernie
           serviceAccountName: cicd-ace-sa
       resources:
       - name: git-source
@@ -404,6 +437,10 @@ rules:
 - apiGroups: ["appconnect.ibm.com"]
   resources: ["designerauthorings", "dashboards", "switchservers", "configurations", "integrationservers"]
   verbs: ["create", "delete", "get", "list", "patch", "update", "watch"]
+# Permission to get pods
+- apiGroups: [""]
+  resources: ["pods"]
+  verbs: ["list", "get"]
 
 ---
 
@@ -441,6 +478,10 @@ rules:
 - apiGroups: ["mq.ibm.com"]
   resources: ["queuemanagers", "queuemanagers/finalizers", "queuemanagers/status"]
   verbs: ["create", "delete", "get", "list", "patch", "update", "watch"]
+# Permission to get pods
+- apiGroups: [""]
+  resources: ["pods"]
+  verbs: ["list", "get"]
 
 ---
 
