@@ -13,6 +13,7 @@
 #   -n : <namespace> (string), Defaults to "cp4i"
 #   -r : <is-release-name> (string), Defaults to "ace-is"
 #   -i : <is-image-name> (string), Defaults to "image-registry.openshift-image-registry.svc:5000/cp4i/ace-11.0.0.9-r2:new-1"
+#   -a : <imageTag> (string) Defaults to "ace-latest"
 #
 # USAGE:
 #   With defaults values
@@ -22,19 +23,22 @@
 #     ./release-ace-is -n cp4i -r cp4i-bernie-ace
 
 function usage {
-    echo "Usage: $0 -n <namespace> -r <is-release-name> -e <is-image-name>"
+    echo "Usage: $0 -n <namespace> -r <is-release-name> -e <is-image-name> -a <imageTag>"
 }
 
 namespace="cp4i"
 is_release_name="ace-is"
 is_image_name="image-registry.openshift-image-registry.svc:5000/cp4i/ace-11.0.0.9-r2:new-1"
-while getopts "n:r:i:" opt; do
+imageTag"ace-latest"
+while getopts "n:r:i:a:" opt; do
   case ${opt} in
     n ) namespace="$OPTARG"
       ;;
     r ) is_release_name="$OPTARG"
       ;;
     i ) is_image_name="$OPTARG"
+      ;;
+    a ) imageTag="$OPTARG"
       ;;
     \? ) usage; exit
       ;;
@@ -108,6 +112,8 @@ echo "INFO: Number of Replicas for $is_release_name is $numberOfReplicas"
 echo -e "\nINFO: Total number of ACE integration server $is_release_name related pods after deployment should be $numberOfReplicas"
 
 # -------------------------------------- CHECK FOR NEW IMAGE DEPLOYMENT STATUS ------------------------------------------
+
+echo "INFO: Image tag for '$is_release_name' is '$imageTag'"
 
 numberOfMatchesForImageTag=0
 time=0
