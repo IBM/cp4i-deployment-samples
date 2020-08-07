@@ -136,7 +136,7 @@ EOF
       echo "INFO: Installing on linux"
       wget -O jq https://github.com/stedolan/jq/releases/download/jq-1.6/jq-linux64
       chmod +x ./jq
-      cp jq /usr/bin
+      # cp jq /usr/bin
     elif [[ "$OSTYPE" == "darwin"* ]]; then
       echo "INFO: Installing on MAC"
       /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)"
@@ -144,7 +144,7 @@ EOF
     fi
   fi
 
-  echo -e "\nINFO: Installed JQ version is $(jq --version)"
+  echo -e "\nINFO: Installed JQ version is $(./jq --version)"
 
   echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
@@ -164,10 +164,10 @@ EOF
     numberOfMatchesForImageTag=0
 
     allCorrespondingPods=$(oc get pods -n $namespace | grep $release_name | grep 1/1 | grep Running | awk '{print $1}')
-    echo -e "\nINFO: For MQ demo pod '$mqDemoPod':"
     for eachMQPod in $allCorrespondingPods
       do
-        imageInPod=$(oc get pod $eachMQPod -n $namespace -o json | jq -r '.spec.containers[0].image')
+        echo -e "\nINFO: For MQ demo pod '$eachMQPod':"
+        imageInPod=$(oc get pod $eachMQPod -n $namespace -o json | ./jq -r '.spec.containers[0].image')
         echo "INFO: Image present in the pod '$eachMQPod' is '$imageInPod'"
         if [[ $imageInPod =~ "$imageTag" ]]; then
           echo "INFO: Image tag matches.."
