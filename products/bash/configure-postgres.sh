@@ -33,8 +33,6 @@ CREATE USER ${namespace} WITH PASSWORD 'password';
 GRANT CONNECT ON DATABASE db_${namespace} TO ${namespace};
 EOF
 
-
-
 echo "INFO: Creating tables in the database db_${namespace}"
   oc exec -n postgres -it $(oc get pod -n postgres -l name=postgresql -o jsonpath='{.items[].metadata.name}') \
     -- psql -U ${namespace} -d db_${namespace} -c \
