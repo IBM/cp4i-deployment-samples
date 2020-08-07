@@ -164,7 +164,7 @@ EOF
   # wait for 10 minutes for all replica pods to be deployed with new image
   while [ $numberOfMatchesForImageTag -ne $numberOfReplicas ]; do
     if [ $time -gt 10 ]; then
-      echo "ERROR: Timed-out trying to wait for all $release_name demo pod(s) to be deployed with a new image containing the image tag '$imageTag'"
+      echo "ERROR: Timed-out trying to wait for all $release_name demo pod(s) to be deployed with a new image containing the image tag '$imageTag-test'"
       echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
       exit 1
     fi
@@ -177,11 +177,11 @@ EOF
         echo -e "\nINFO: For MQ demo pod '$eachMQPod':"
         imageInPod=$(oc get pod $eachMQPod -n $namespace -o json | ./jq -r '.spec.containers[0].image')
         echo "INFO: Image present in the pod '$eachMQPod' is '$imageInPod'"
-        if [[ $imageInPod =~ "$imageTag" ]]; then
+        if [[ $imageInPod =~ "$imageTag-test" ]]; then
           echo "INFO: Image tag matches.."
           numberOfMatchesForImageTag=$((numberOfMatchesForImageTag + 1))
         else
-          echo "INFO: Image tag '$imageTag' is not present in the image of the MQ demo pod '$mqDemoPod'"
+          echo "INFO: Image tag '$imageTag-test' is not present in the image of the MQ demo pod '$mqDemoPod'"
         fi
     done
 
@@ -192,7 +192,7 @@ EOF
       echo -e "No Ready and Running pods found for '$release_name' yet"
     fi
     if [[ $numberOfMatchesForImageTag != "$numberOfReplicas" ]]; then
-      echo -e "\nINFO: Not all $release_name pods have been deployed with the new image having the image tag '$imageTag', retrying for upto 10 minutes for new $release_name demo pods te be deployed with new image. Waited ${time} minute(s)."
+      echo -e "\nINFO: Not all $release_name pods have been deployed with the new image having the image tag '$imageTag-test', retrying for upto 10 minutes for new $release_name demo pods te be deployed with new image. Waited ${time} minute(s)."
       sleep 60
     else
       echo -e "\nINFO: All $release_name demo pods have been deployed with the new image"
