@@ -28,7 +28,7 @@ function usage {
 }
 
 namespace="cp4i"
-release_name="ar-demo"
+release_name="demo"
 
 while getopts "n:r:" opt; do
   case ${opt} in
