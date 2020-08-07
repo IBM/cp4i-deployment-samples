@@ -189,7 +189,7 @@ EOF
     echo -e "\nINFO: All current $release_name demo pods are:\n"
     oc get pods -n $namespace | grep $release_name | grep 1/1 | grep Running
     if [[ $? -eq 1 ]]; then
-      echo -e "No Ready and Running pods found for $release_name yet\n"
+      echo -e "No Ready and Running pods found for $release_name yet"
     fi
     if [[ $numberOfMatchesForImageTag != "$numberOfReplicas" ]]; then
       echo -e "\nINFO: Not all $release_name pods have been deployed with the new image having the image tag '$imageTag', retrying for upto 10 minutes for new $release_name demo pods te be deployed with new image. Waited ${time} minute(s)."
