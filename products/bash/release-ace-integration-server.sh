@@ -89,7 +89,7 @@ if [[ "$jqInstalled" == "false" ]]; then
     echo "INFO: Installing on linux"
     wget -O jq https://github.com/stedolan/jq/releases/download/jq-1.6/jq-linux64
     chmod +x ./jq
-    cp jq /usr/bin
+    # cp jq /usr/bin
   elif [[ "$OSTYPE" == "darwin"* ]]; then
     echo "INFO: Installing on MAC"
     /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)"
@@ -97,13 +97,13 @@ if [[ "$jqInstalled" == "false" ]]; then
   fi
 fi
 
-echo -e "\nINFO: Installed JQ version is $(jq --version)"
+echo -e "\nINFO: Installed JQ version is $(./jq --version)"
 
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
 # -------------------------------------- FIND TOTAL ACE REPLICAS DEPLOYED -----------------------------------------------
 
-numberOfReplicas=$(oc get integrationservers $is_release_name -n $namespace -o json | jq -r '.spec.replicas')
+numberOfReplicas=$(oc get integrationservers $is_release_name -n $namespace -o json | ./jq -r '.spec.replicas')
 echo "INFO: Number of Replicas for $is_release_name is $numberOfReplicas"
 echo -e "\nINFO: Total number of ACE integration server $is_release_name related pods after deployment should be $numberOfReplicas"
 
@@ -125,7 +125,7 @@ while [ $numberOfMatchesForImageTag -ne $numberOfReplicas ]; do
   echo -e "\nINFO: For ACE Integration server '$is_release_name':"
   for eachAcePod in $allCorrespondingPods
     do
-      imageInPod=$(oc get pod $eachAcePod -n $namespace -o json | jq -r '.spec.containers[0].image')
+      imageInPod=$(oc get pod $eachAcePod -n $namespace -o json | ./jq -r '.spec.containers[0].image')
       echo "INFO: Image present in the pod '$eachAcePod' is '$imageInPod'"
       if [[ $imageInPod =~ "$imageTag" ]]; then
         echo "INFO: Image tag matches.."
