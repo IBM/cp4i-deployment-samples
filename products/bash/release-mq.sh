@@ -28,7 +28,7 @@
 #     ./release-mq -n cp4i -r demo -i image-registry.openshift-image-registry.svc:5000/cp4i/mq-ddd -q mq-qm
 
 function usage {
-    echo "Usage: $0 -n <namespace> -r <release_name> -i <image_name> -q <qm_name> -a <imageTag> [-t]"
+    echo "Usage: $0 -n <namespace> -r <release_name> -i <image_name> -q <qm_name> [-t]"
 }
 
 namespace="cp4i"
@@ -36,7 +36,8 @@ release_name="demo"
 qm_name="QUICKSTART"
 tracing="false"
 imageTag="latest"
-while getopts "n:r:i:q:a:t" opt; do
+
+while getopts "n:r:i:q:t" opt; do
   case ${opt} in
     n ) namespace="$OPTARG"
       ;;
@@ -45,8 +46,6 @@ while getopts "n:r:i:q:a:t" opt; do
     i ) image_name="$OPTARG"
       ;;
     q ) qm_name="$OPTARG"
-      ;;
-    a ) imageTag="$OPTARG"
       ;;
     t ) tracing=true
       ;;
@@ -151,9 +150,20 @@ EOF
 
   echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
-  # -------------------------------------- CHECK FOR NEW IMAGE DEPLOYMENT STATUS ------------------------------------------
+  # --------------------------------------------------- FIND IMAGE TAG ---------------------------------------------------
+
+  imageTag=${image_name##*:}
+
+  if [[ -z "$imageTag" ]]; then
+    echo "ERROR: Started to wait for the resources of '$release_name' but 'imageTag' is not found in the passed imageName '$image_name', hence exiting waiting for resources to come up."
+    exit 1
+  fi
 
   echo "INFO: Image tag for '$release_name' is '$imageTag'"
+
+  echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
+
+  # -------------------------------------- CHECK FOR NEW IMAGE DEPLOYMENT STATUS ------------------------------------------
 
   numberOfReplicas=1
   numberOfMatchesForImageTag=0
