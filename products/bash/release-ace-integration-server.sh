@@ -119,12 +119,12 @@ echo -e "\n---------------------------------------------------------------------
 
 imageTag=${is_image_name##*:}
 
+echo "INFO: Image tag found for '$is_release_name' is '$imageTag'"
+
 if [[ -z "$imageTag" ]]; then
   echo "ERROR: Started to wait for the resources of '$is_release_name' but 'imageTag' is not found in the passed imageName '$is_image_name', hence exiting waiting for resources to come up."
   exit 1
 fi
-
-echo "INFO: Image tag for '$is_release_name' is '$imageTag'"
 
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 

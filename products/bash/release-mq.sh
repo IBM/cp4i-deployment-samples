@@ -151,14 +151,18 @@ EOF
 
   # --------------------------------------------------- FIND IMAGE TAG ---------------------------------------------------
 
+  echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
+
+  echo "INFO: Image is '$image_name'"
+  echo "INFO: Release name is: '$release_name'"
+  echo "INFO: Image tag found for '$release_name' is '$imageTag'"
+
   imageTag=${image_name##*:}
 
   if [[ -z "$imageTag" ]]; then
     echo "ERROR: Started to wait for the resources of '$release_name' but 'imageTag' is not found in the passed imageName '$image_name', hence exiting waiting for resources to come up."
     exit 1
   fi
-
-  echo "INFO: Image tag for '$release_name' is '$imageTag'"
 
   echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
