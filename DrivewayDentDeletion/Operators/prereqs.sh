@@ -28,8 +28,11 @@ export test_namespace=${namespace}-ddd-test
 oc create namespace ${dev_namespace}
 oc project ${dev_namespace}
 
-oc adm policy add-scc-to-group privileged system:serviceaccounts:$namespace
-echo "INFO: Namespace= ${namespace}"
+oc adm policy add-scc-to-group privileged system:serviceaccounts:$dev_namespace
+
+echo "INFO: Namespace passed='${namespace}'"
+echo "INFO: Dev Namespace='${dev_namespace}'"
+echo "INFO: Test Namespace='${test_namespace}'"
 cd "$(dirname $0)"
 
 #creating new namespace for test/prod and adding namespace to sa
