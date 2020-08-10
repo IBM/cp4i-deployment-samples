@@ -11,9 +11,8 @@
 #******************************************************************************
 # PARAMETERS:
 #   -n : <namespace> (string), Defaults to "cp4i"
-#   -r : <is-release-name> (string), Defaults to "ace-is"
-#   -i : <is-image-name> (string), Defaults to "image-registry.openshift-image-registry.svc:5000/cp4i/ace-11.0.0.9-r2:new-1"
-#   -a : <imageTag> (string) Defaults to "ace-latest"
+#   -r : <is_release_name> (string), Defaults to "ace-is"
+#   -i : <is_image_name> (string), Defaults to "image-registry.openshift-image-registry.svc:5000/cp4i/ace-11.0.0.9-r2:new-1"
 #
 # USAGE:
 #   With defaults values
@@ -23,14 +22,14 @@
 #     ./release-ace-is -n cp4i -r cp4i-bernie-ace
 
 function usage {
-    echo "Usage: $0 -n <namespace> -r <is-release-name> -e <is-image-name> -a <imageTag>"
+    echo "Usage: $0 -n <namespace> -r <is_release_name> -i <is_image_name>"
 }
 
 namespace="cp4i"
 is_release_name="ace-is"
 is_image_name="image-registry.openshift-image-registry.svc:5000/cp4i/ace-11.0.0.9-r2:new-1"
-imageTag"ace-latest"
-while getopts "n:r:i:a:" opt; do
+
+while getopts "n:r:i:" opt; do
   case ${opt} in
     n ) namespace="$OPTARG"
       ;;
@@ -38,12 +37,17 @@ while getopts "n:r:i:a:" opt; do
       ;;
     i ) is_image_name="$OPTARG"
       ;;
-    a ) imageTag="$OPTARG"
-      ;;
     \? ) usage; exit
       ;;
   esac
 done
+
+echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
+
+echo "INFO: Image is '$is_image_name'"
+echo "INFO: Release name is: '$is_release_name'"
+
+echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
 cat << EOF | oc apply -f -
 apiVersion: appconnect.ibm.com/v1beta1
@@ -71,7 +75,6 @@ spec:
   useCommonServices: true
   version: 11.0.0
 EOF
-
 
 # -------------------------------------- INSTALL JQ ---------------------------------------------------------------------
 
@@ -107,13 +110,24 @@ echo -e "\n---------------------------------------------------------------------
 # -------------------------------------- FIND TOTAL ACE REPLICAS DEPLOYED -----------------------------------------------
 
 numberOfReplicas=$(oc get integrationservers $is_release_name -n $namespace -o json | ./jq -r '.spec.replicas')
-echo "INFO: Number of Replicas for $is_release_name is $numberOfReplicas"
-echo -e "\nINFO: Total number of ACE integration server $is_release_name related pods after deployment should be $numberOfReplicas"
+echo "INFO: Number of Replicas for '$is_release_name' is $numberOfReplicas"
+echo -e "\nINFO: Total number of ACE integration server '$is_release_name' related pods after deployment should be $numberOfReplicas"
+echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
+
+# ------------------------------------------------ FIND IMAGE TAG --------------------------------------------------
+
+imageTag=${is_image_name##*:}
+
+echo "INFO: Image tag found for '$is_release_name' is '$imageTag'"
+
+if [[ -z "$imageTag" ]]; then
+  echo "ERROR: Started to wait for the resources of '$is_release_name' but 'imageTag' is not found in the passed imageName '$is_image_name', hence exiting waiting for resources to come up."
+  exit 1
+fi
+
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
 # -------------------------------------- CHECK FOR NEW IMAGE DEPLOYMENT STATUS ------------------------------------------
-
-echo "INFO: Image tag for '$is_release_name' is '$imageTag'"
 
 numberOfMatchesForImageTag=0
 time=0
@@ -146,7 +160,7 @@ while [ $numberOfMatchesForImageTag -ne $numberOfReplicas ]; do
   echo -e "\nINFO: All current $is_release_name demo pods are:\n"
   oc get pods -n $namespace | grep $is_release_name | grep 1/1 | grep Running
   if [[ $? -eq 1 ]]; then
-    echo -e "No Ready and Running pods found for $is_release_name yet\n"
+    echo -e "No Ready and Running pods found for $is_release_name yet"
   fi
   if [[ $numberOfMatchesForImageTag != "$numberOfReplicas" ]]; then
     echo -e "\nINFO: Not all $is_release_name pods have been deployed with the new image having the image tag '$imageTag', retrying for upto 10 minutes for new $is_release_name demo pods te be deployed with new image. Waited ${time} minute(s)."

@@ -85,7 +85,7 @@ spec:
   steps:
     - name: oc
       image: quay.io/openshift/origin-cli:latest
-      script: "/workspace/git-source/products/bash/$(params.releaseScript) -n {{NAMESPACE}}-ddd-dev -r $(params.releaseName) -i image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}-ddd-dev/$(params.imageName):$(params.imageTag) -a $(params.imageTag)"
+      script: "/workspace/git-source/products/bash/$(params.releaseScript) -n {{NAMESPACE}}-ddd-dev -r $(params.releaseName) -i image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}-ddd-dev/$(params.imageName):$(params.imageTag)"
 
 ---
 
