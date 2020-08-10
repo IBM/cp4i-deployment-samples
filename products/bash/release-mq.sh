@@ -18,7 +18,6 @@
 #   -i : <image_name> (string)
 #   -q : <qm_name> (string), Defaults to "QUICKSTART"
 #   -t : optional flag to enable tracing
-#   -a : <imageTag> (string) Defaults to "latest"
 #
 # USAGE:
 #   With defaults values

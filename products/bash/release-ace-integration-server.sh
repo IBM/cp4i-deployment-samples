@@ -11,9 +11,8 @@
 #******************************************************************************
 # PARAMETERS:
 #   -n : <namespace> (string), Defaults to "cp4i"
-#   -r : <is-release-name> (string), Defaults to "ace-is"
-#   -i : <is-image-name> (string), Defaults to "image-registry.openshift-image-registry.svc:5000/cp4i/ace-11.0.0.9-r2:new-1"
-#   -a : <imageTag> (string) Defaults to "ace-latest"
+#   -r : <is_release_name> (string), Defaults to "ace-is"
+#   -i : <is_image_name> (string), Defaults to "image-registry.openshift-image-registry.svc:5000/cp4i/ace-11.0.0.9-r2:new-1"
 #
 # USAGE:
 #   With defaults values
