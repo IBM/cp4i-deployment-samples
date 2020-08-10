@@ -89,7 +89,7 @@ EOF
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
 echo "INFO: Creating policy.descriptor"
-cat << EOF > ${PWD}/DefaultPolicies/policy.descriptor
+cat << EOF > ${PWD}/ACE_CP4I_Policies/policy.descriptor
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <ns2:policyProjectDescriptor xmlns="http://com.ibm.etools.mft.descriptor.base" xmlns:ns2="http://com.ibm.etools.mft.descriptor.policyProject">
   <references/>
