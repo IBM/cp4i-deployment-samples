@@ -4,7 +4,7 @@ metadata:
   name: cicd-pipeline
 secrets:
   - name: er-pull-secret
-  - name: cicd-{{NAMESPACE}}
+  - name: cicd-{{NAMESPACE}}-ddd-dev
 # er-pull-secret used to pull images from ER in Dockerfiles
 
 ---
@@ -55,8 +55,8 @@ spec:
         - sh
         - -c
         - "cd /workspace/git-source/DrivewayDentDeletion/Operators/Dockerfiles && \
-           buildah --storage-driver vfs build-using-dockerfile -f /workspace/git-source/DrivewayDentDeletion/Operators/Dockerfiles/$(params.dockerfile) -t image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}/$(params.imageName):$(params.imageTag) /workspace/git-source/DrivewayDentDeletion/$(params.contextPath) && \
-           buildah --storage-driver vfs push --tls-verify=false image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}/$(params.imageName):$(params.imageTag)
+           buildah --storage-driver vfs build-using-dockerfile -f /workspace/git-source/DrivewayDentDeletion/Operators/Dockerfiles/$(params.dockerfile) -t image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}-ddd-dev/$(params.imageName):$(params.imageTag) /workspace/git-source/DrivewayDentDeletion/$(params.contextPath) && \
+           buildah --storage-driver vfs push --tls-verify=false image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}-ddd-dev/$(params.imageName):$(params.imageTag)
           "
 ---
 
@@ -85,7 +85,7 @@ spec:
   steps:
     - name: oc
       image: quay.io/openshift/origin-cli:latest
-      script: "/workspace/git-source/products/bash/$(params.releaseScript) -n {{NAMESPACE}} -r $(params.releaseName) -i image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}/$(params.imageName):$(params.imageTag) -a $(params.imageTag)"
+      script: "/workspace/git-source/products/bash/$(params.releaseScript) -n {{NAMESPACE}}-ddd-dev -r $(params.releaseName) -i image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}-ddd-dev/$(params.imageName):$(params.imageTag) -a $(params.imageTag)"
 
 ---
 
@@ -111,9 +111,9 @@ spec:
       command:
         - sh
         - -c
-        - "buildah pull --tls-verify=false image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}/$(params.imageName):$(params.imageTag) && \
-           buildah tag image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}/$(params.imageName):$(params.imageTag) image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}-test/$(params.imageName):$(params.imageTag)-test && \
-           buildah push --tls-verify=false image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}-test/$(params.imageName):$(params.imageTag)-test
+        - "buildah pull --tls-verify=false image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}-ddd-dev/$(params.imageName):$(params.imageTag) && \
+           buildah tag image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}-ddd-dev/$(params.imageName):$(params.imageTag) image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}-ddd-test/$(params.imageName):$(params.imageTag)-test && \
+           buildah push --tls-verify=false image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}-ddd-test/$(params.imageName):$(params.imageTag)-test
           "
 
 ---
@@ -134,7 +134,7 @@ spec:
   steps:
     - name: oc
       image: quay.io/openshift/origin-cli:latest
-      script: "/workspace/git-source/DrivewayDentDeletion/Operators/test-api-e2e.sh -n {{NAMESPACE}} -t $(params.imageTag)"
+      script: "/workspace/git-source/DrivewayDentDeletion/Operators/test-api-e2e.sh -n {{NAMESPACE}}-ddd-dev -t $(params.imageTag)"
 
 ---
 
@@ -540,7 +540,7 @@ metadata:
   name: cicd-ace-sa
 secrets:
   - name: er-pull-secret
-  - name: cicd-{{NAMESPACE}}
+  - name: cicd-{{NAMESPACE}}-ddd-dev
 
 ---
 
@@ -581,7 +581,7 @@ metadata:
   name: cicd-mq-sa
 secrets:
   - name: er-pull-secret
-  - name: cicd-{{NAMESPACE}}
+  - name: cicd-{{NAMESPACE}}-ddd-dev
 
 ---
 
