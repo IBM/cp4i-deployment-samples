@@ -39,12 +39,16 @@ cd "$(dirname $0)"
 oc create namespace ${test_namespace}
 oc adm policy add-scc-to-group privileged system:serviceaccounts:${test_namespace}
 
+echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
+
 echo "INFO: Installing tekton and its pre-reqs"
 oc apply --filename https://storage.googleapis.com/tekton-releases/pipeline/previous/v0.12.1/release.yaml
 echo "INFO: Installing tekton triggers"
 oc apply -f https://storage.googleapis.com/tekton-releases/triggers/previous/v0.5.0/release.yaml
 echo "INFO: Waiting for tekton and triggers deployment to finish..."
 oc wait -n tekton-pipelines --for=condition=available deployment --timeout=20m tekton-pipelines-controller tekton-pipelines-webhook tekton-triggers-controller tekton-triggers-webhook
+
+echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
 echo "Creating secrets to push images to openshift local registry"
 export DOCKER_REGISTRY="image-registry.openshift-image-registry.svc:5000"
@@ -56,6 +60,8 @@ export password="$(oc -n ${dev_namespace} serviceaccounts get-token image-bot)"
 echo "Creating secrets to push images to openshift local registry"
 oc create -n ${dev_namespace} secret docker-registry cicd-${dev_namespace} --docker-server=${DOCKER_REGISTRY} \
   --docker-username=${username} --docker-password=${password} -o yaml | oc apply -f -
+
+echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
 # Creating a new secret as the type of entitlement key is 'kubernetes.io/dockerconfigjson' but we need secret of type 'kubernetes.io/basic-auth' to pull imags from the ER
 export ER_REGISTRY=$(oc get secret -n ${namespace} ibm-entitlement-key -o json | jq -r '.data.".dockerconfigjson"' | base64 --decode | jq -r '.auths' | jq 'keys[]' | tr -d '"')
@@ -75,6 +81,8 @@ stringData:
   username: ${ER_USERNAME}
   password: ${ER_PASSWORD}
 EOF
+
+echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
 mkdir -p ${PWD}/tmp
 # mkdir -p ${PWD}/DefaultPolicies
@@ -141,6 +149,8 @@ for image_project in "${image_projects[@]}"
     oc apply -f ${PWD}/tmp/policy-project-config.yaml
 done
 
+echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
+
 echo "Waiting for postgres to be ready"
 oc wait -n postgres --for=condition=available deploymentconfig --timeout=20m postgresql
 
@@ -167,3 +177,27 @@ if [[ $? -ne 0 ]]; then
 else
   echo "INFO: Postgres table 'QUOTES' already exists"
 fi
+
+echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
+
+declare -a image_projects=("${dev_namespace}" "${test_namespace}")
+
+for image_project in "${image_projects[@]}"
+do
+  ${PWD}/../../products/bash/configure-postgres.sh -n ${image_project}
+  echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
+done
+
+declare -a image_projects=("${dev_namespace}" "${test_namespace}")
+
+for image_project in "${image_projects[@]}"
+do
+  echo "INFO: Creating operator group and subscription in ${image_project}"
+  ${PWD}/../../products/bash/deploy-og-sub.sh -n ${image_project}
+  sleep 10
+  echo "INFO: Releasing Navigator in ${image_project}"
+  ${PWD}/../../products/bash/release-navigator.sh -n ${image_project} -r ${nav_replicas}
+  echo "INFO: Releasing ACE dashboard in ${image_project}"
+  ${PWD}/../../products/bash/release-ace.sh -n ${image_project}
+  echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
+done
