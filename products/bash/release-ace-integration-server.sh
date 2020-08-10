@@ -30,8 +30,6 @@ namespace="cp4i"
 is_release_name="ace-is"
 is_image_name="image-registry.openshift-image-registry.svc:5000/cp4i/ace-11.0.0.9-r2:new-1"
 
-echo "INFO: Image name earlier is '$is_image_name'"
-
 while getopts "n:r:i:" opt; do
   case ${opt} in
     n ) namespace="$OPTARG"
@@ -47,8 +45,10 @@ done
 
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
-echo "INFO: Image name after is '$is_image_name'"
+echo "INFO: Image is '$is_image_name'"
 echo "INFO: Release name is: '$is_release_name'"
+
+echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
 cat << EOF | oc apply -f -
 apiVersion: appconnect.ibm.com/v1beta1
