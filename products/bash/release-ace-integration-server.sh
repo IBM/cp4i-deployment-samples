@@ -23,14 +23,16 @@
 #     ./release-ace-is -n cp4i -r cp4i-bernie-ace
 
 function usage {
-    echo "Usage: $0 -n <namespace> -r <is_release_name> -i <is-image-name>"
+    echo "Usage: $0 -n <namespace> -r <is_release_name> -i <is_image_name>"
 }
 
 namespace="cp4i"
 is_release_name="ace-is"
 is_image_name="image-registry.openshift-image-registry.svc:5000/cp4i/ace-11.0.0.9-r2:new-1"
 
-while getopts "n:r:i" opt; do
+echo "INFO: Image name earlier is '$is_image_name'"
+
+while getopts "n:r:i:" opt; do
   case ${opt} in
     n ) namespace="$OPTARG"
       ;;
@@ -45,7 +47,7 @@ done
 
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
-echo "INFO: Image name is '$is_image_name'"
+echo "INFO: Image name after is '$is_image_name'"
 echo "INFO: Release name is: '$is_release_name'"
 
 cat << EOF | oc apply -f -
