@@ -43,6 +43,11 @@ while getopts "n:r:i" opt; do
   esac
 done
 
+echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
+
+echo "INFO: Image name is '$is_image_name'"
+echo "INFO: Release name is: '$is_release_name'"
+
 cat << EOF | oc apply -f -
 apiVersion: appconnect.ibm.com/v1beta1
 kind: IntegrationServer
@@ -104,8 +109,8 @@ echo -e "\n---------------------------------------------------------------------
 # -------------------------------------- FIND TOTAL ACE REPLICAS DEPLOYED -----------------------------------------------
 
 numberOfReplicas=$(oc get integrationservers $is_release_name -n $namespace -o json | ./jq -r '.spec.replicas')
-echo "INFO: Number of Replicas for $is_release_name is $numberOfReplicas"
-echo -e "\nINFO: Total number of ACE integration server $is_release_name related pods after deployment should be $numberOfReplicas"
+echo "INFO: Number of Replicas for '$is_release_name' is $numberOfReplicas"
+echo -e "\nINFO: Total number of ACE integration server '$is_release_name' related pods after deployment should be $numberOfReplicas"
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
 # ------------------------------------------------ FIND IMAGE TAG --------------------------------------------------
