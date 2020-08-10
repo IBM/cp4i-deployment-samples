@@ -25,13 +25,21 @@ done
 
 namespace=$(echo $namespace | sed 's/-/_/g')
 
-echo "INFO: Creating Database db_${namespace} , User ${namespace}, "
-oc exec -n postgres -it $(oc get pod -n postgres -l name=postgresql -o jsonpath='{.items[].metadata.name}') \
--- psql  << EOF
+if ! oc exec -n postgres -it $(oc get pod -n postgres -l name=postgresql -o jsonpath='{.items[].metadata.name}') \
+-- psql -U ${namespace} -d db_${namespace} -c '\l' ; then
+    echo "INFO: Creating Database db_${namespace} , User ${namespace}, "
+    oc exec -n postgres -it $(oc get pod -n postgres -l name=postgresql -o jsonpath='{.items[].metadata.name}') \
+    -- psql  << EOF
 CREATE DATABASE db_${namespace};
 CREATE USER ${namespace} WITH PASSWORD 'password';
 GRANT CONNECT ON DATABASE db_${namespace} TO ${namespace};
 EOF
+else
+    echo "INFO: Table already exists, skipping this step"
+fi
+
+if ! oc exec -n postgres -it $(oc get pod -n postgres -l name=postgresql -o jsonpath='{.items[].metadata.name}') \
+-- psql -U ${namespace} -d db_${namespace} -c '\dt'  | grep -i quotes ; then
 
 echo "INFO: Creating tables in the database db_${namespace}"
   oc exec -n postgres -it $(oc get pod -n postgres -l name=postgresql -o jsonpath='{.items[].metadata.name}') \
@@ -49,3 +57,6 @@ echo "INFO: Creating tables in the database db_${namespace}"
     BernieDate DATE,
     ChrisCost INTEGER,
     ChrisDate DATE);'
+else
+    echo "INFO: Table quotes already exists, skipping this step"
+fi
