@@ -21,9 +21,20 @@ while getopts "n:" opt; do
   esac
 done
 
+#namespaces
+export dev_namespace=${namespace}-ddd-dev
+export test_namespace=${namespace}-ddd-test
+
+oc create namespace ${dev_namespace}
+oc project ${dev_namespace}
+
 oc adm policy add-scc-to-group privileged system:serviceaccounts:$namespace
 echo "INFO: Namespace= ${namespace}"
 cd "$(dirname $0)"
+
+#creating new namespace for test/prod and adding namespace to sa
+oc create namespace ${test_namespace}
+oc adm policy add-scc-to-group privileged system:serviceaccounts:${test_namespace}
 
 echo "INFO: Installing tekton and its pre-reqs"
 oc apply --filename https://storage.googleapis.com/tekton-releases/pipeline/previous/v0.12.1/release.yaml
@@ -35,12 +46,13 @@ oc wait -n tekton-pipelines --for=condition=available deployment --timeout=20m t
 echo "Creating secrets to push images to openshift local registry"
 export DOCKER_REGISTRY="image-registry.openshift-image-registry.svc:5000"
 export username=image-bot
-kubectl -n ${namespace} create serviceaccount image-bot
-oc -n ${namespace} policy add-role-to-user registry-editor system:serviceaccount:${namespace}:image-bot
-export password="$(oc -n ${namespace} serviceaccounts get-token image-bot)"
-oc create -n $namespace secret docker-registry cicd-${namespace} \
-  --docker-server=$DOCKER_REGISTRY --docker-username=$username --docker-password=$password \
-  --dry-run -o yaml | oc apply -f -
+kubectl -n ${dev_namespace} create serviceaccount image-bot
+oc -n ${dev_namespace} policy add-role-to-user registry-editor system:serviceaccount:${dev_namespace}:image-bot
+export password="$(oc -n ${dev_namespace} serviceaccounts get-token image-bot)"
+
+echo "Creating secrets to push images to openshift local registry"
+oc create -n ${dev_namespace} secret docker-registry cicd-${dev_namespace} --docker-server=${DOCKER_REGISTRY} \
+  --docker-username=${username} --docker-password=${password} -o yaml | oc apply -f -
 
 # Creating a new secret as the type of entitlement key is 'kubernetes.io/dockerconfigjson' but we need secret of type 'kubernetes.io/basic-auth' to pull imags from the ER
 export ER_REGISTRY=$(oc get secret -n ${namespace} ibm-entitlement-key -o json | jq -r '.data.".dockerconfigjson"' | base64 --decode | jq -r '.auths' | jq 'keys[]' | tr -d '"')
@@ -48,7 +60,7 @@ export ER_USERNAME=$(oc get secret -n ${namespace} ibm-entitlement-key -o json |
 export ER_PASSWORD=$(oc get secret -n ${namespace} ibm-entitlement-key -o json | jq -r '.data.".dockerconfigjson"' | base64 --decode | jq -r '.auths."cp.icr.io".password')
 
 echo "Creating secret to pull base images from Entitled Registry"
-cat << EOF | oc apply --namespace ${namespace} -f -
+cat << EOF | oc apply --namespace ${dev_namespace} -f -
 apiVersion: v1
 kind: Secret
 metadata:
@@ -105,37 +117,50 @@ else
   temp=$(base64 --wrap=0 ${PWD}/DefaultPolicies/policyproject.zip)
 fi
 
-configyaml="\
-apiVersion: appconnect.ibm.com/v1beta1
-kind: Configuration
-metadata:
-  name: ace-policyproject
-  namespace: ${namespace}
-spec:
-  contents: "$temp"
-  type: policyproject
-"
-echo "${configyaml}" > ${PWD}/tmp/policy-project-config.yaml
-echo "INFO: Output -> policy-project-config.yaml"
-cat ${PWD}/tmp/policy-project-config.yaml
-oc apply -f ${PWD}/tmp/policy-project-config.yaml
+# setting up policyporject for both namespaces
+declare -a image_projects=("${dev_namespace}" "${test_namespace}")
+echo "Creating secrets to push images to openshift local registry"
+for image_project in "${image_projects[@]}"
+  do
+    configyaml="\
+    apiVersion: appconnect.ibm.com/v1beta1
+    kind: Configuration
+    metadata:
+      name: ace-policyproject
+      namespace: ${image_project}
+    spec:
+      contents: "$temp"
+      type: policyproject
+    "
+    echo "${configyaml}" > ${PWD}/tmp/policy-project-config.yaml
+    echo "INFO: Output -> policy-project-config.yaml"
+    cat ${PWD}/tmp/policy-project-config.yaml
+    oc apply -f ${PWD}/tmp/policy-project-config.yaml
+done
 
 echo "Waiting for postgres to be ready"
 oc wait -n postgres --for=condition=available deploymentconfig --timeout=20m postgresql
 
-echo "Creating quotes table in postgres samepledb"
-oc exec -n postgres -it $(oc get pod -n postgres -l name=postgresql -o jsonpath='{.items[].metadata.name}') \
-  -- psql -U admin -d sampledb -c \
-'CREATE TABLE QUOTES (
-  QuoteID SERIAL PRIMARY KEY NOT NULL,
-  Name VARCHAR(100),
-  EMail VARCHAR(100),
-  Address VARCHAR(100),
-  USState VARCHAR(100),
-  LicensePlate VARCHAR(100),
-  ACMECost INTEGER,
-  ACMEDate DATE,
-  BernieCost INTEGER,
-  BernieDate DATE,
-  ChrisCost INTEGER,
-  ChrisDate DATE);'
+echo "INFO: Testing if postgres is already configured in the namespace ${dev_namespace}"
+getRows=$(oc exec -n postgres -it $(oc get pod -n postgres -l name=postgresql -o jsonpath='{.items[].metadata.name}') -- psql -U admin -d sampledb -c "SELECT * FROM quotes;" | grep '0 rows')
+
+if [[ $? -ne 0 ]]; then
+  echo "Creating quotes table in postgres samepledb"
+  oc exec -n postgres -it $(oc get pod -n postgres -l name=postgresql -o jsonpath='{.items[].metadata.name}') \
+    -- psql -U admin -d sampledb -c \
+  'CREATE TABLE QUOTES (
+    QuoteID SERIAL PRIMARY KEY NOT NULL,
+    Name VARCHAR(100),
+    EMail VARCHAR(100),
+    Address VARCHAR(100),
+    USState VARCHAR(100),
+    LicensePlate VARCHAR(100),
+    ACMECost INTEGER,
+    ACMEDate DATE,
+    BernieCost INTEGER,
+    BernieDate DATE,
+    ChrisCost INTEGER,
+    ChrisDate DATE);'
+else
+  echo "INFO: Postgres table 'QUOTES' already exists"
+fi
