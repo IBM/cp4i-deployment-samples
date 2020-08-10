@@ -23,7 +23,7 @@
 #     ./release-ace-is -n cp4i -r cp4i-bernie-ace
 
 function usage {
-    echo "Usage: $0 -n <namespace> -r <is_release_name> -i <is_image_name>"
+    echo "Usage: $0 -n <namespace> -r <is_release_name> -i <is-image-name>"
 }
 
 namespace="cp4i"
