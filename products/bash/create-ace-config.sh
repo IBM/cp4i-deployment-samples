@@ -35,7 +35,6 @@ echo -e "\n---------------------------------------------------------------------
 echo "INFO: Creating directories for default policies"
 mkdir -p ${PWD}/tmp
 mkdir -p ${PWD}/DefaultPolicies
-
 echo "INFO: Creating default.policyxml"
 cat << EOF > ${PWD}/DefaultPolicies/default.policyxml
 <?xml version="1.0" encoding="UTF-8"?>
@@ -89,7 +88,7 @@ EOF
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
 echo "INFO: Creating policy.descriptor"
-cat << EOF > ${PWD}/ACE_CP4I_Policies/policy.descriptor
+cat << EOF > ${PWD}/DefaultPolicies/policy.descriptor
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <ns2:policyProjectDescriptor xmlns="http://com.ibm.etools.mft.descriptor.base" xmlns:ns2="http://com.ibm.etools.mft.descriptor.policyProject">
   <references/>
