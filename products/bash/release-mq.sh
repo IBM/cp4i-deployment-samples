@@ -152,8 +152,7 @@ EOF
 
   echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
-  export DEV_NAMESPACE=$namespace-ddd-dev
-  echo "INFO: Dev namespace is '$DEV_NAMESPACE'"
+  echo "INFO: Namespace is '$namespace'"
 
   echo "INFO: Image is '$image_name'"
   echo "INFO: Release name is: '$release_name'"
@@ -189,11 +188,11 @@ EOF
 
     numberOfMatchesForImageTag=0
 
-    allCorrespondingPods=$(oc get pods -n $DEV_NAMESPACE | grep $release_name | grep 1/1 | grep Running | awk '{print $1}')
+    allCorrespondingPods=$(oc get pods -n $namespace | grep $release_name | grep 1/1 | grep Running | awk '{print $1}')
     for eachMQPod in $allCorrespondingPods
       do
         echo -e "\nINFO: For MQ demo pod '$eachMQPod':"
-        imageInPod=$(oc get pod $eachMQPod -n $DEV_NAMESPACE -o json | ./jq -r '.spec.containers[0].image')
+        imageInPod=$(oc get pod $eachMQPod -n $namespace -o json | ./jq -r '.spec.containers[0].image')
         echo "INFO: Image present in the pod '$eachMQPod' is '$imageInPod'"
         if [[ $imageInPod =~ "$imageTag" ]]; then
           echo "INFO: Image tag matches.."
@@ -205,7 +204,7 @@ EOF
 
     echo -e "\nINFO: Total $release_name demo pods deployed with new image: $numberOfMatchesForImageTag"
     echo -e "\nINFO: All current $release_name demo pods are:\n"
-    oc get pods -n $DEV_NAMESPACE | grep $release_name | grep 1/1 | grep Running
+    oc get pods -n $namespace | grep $release_name | grep 1/1 | grep Running
     if [[ $? -eq 1 ]]; then
       echo -e "No Ready and Running pods found for '$release_name' yet"
     fi

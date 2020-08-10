@@ -47,8 +47,7 @@ echo -e "\n---------------------------------------------------------------------
 echo "INFO: Image is '$is_image_name'"
 echo "INFO: Release name is: '$is_release_name'"
 
-export DEV_NAMESPACE=$namespace-ddd-dev
-echo "INFO: Dev namespace is '$DEV_NAMESPACE'"
+echo "INFO: Namespace is '$namespace'"
 
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
@@ -112,7 +111,7 @@ echo -e "\n---------------------------------------------------------------------
 
 # -------------------------------------- FIND TOTAL ACE REPLICAS DEPLOYED -----------------------------------------------
 
-numberOfReplicas=$(oc get integrationservers $is_release_name -n $DEV_NAMESPACE -o json | ./jq -r '.spec.replicas')
+numberOfReplicas=$(oc get integrationservers $is_release_name -n $namespace -o json | ./jq -r '.spec.replicas')
 echo "INFO: Number of Replicas for '$is_release_name' is $numberOfReplicas"
 echo -e "\nINFO: Total number of ACE integration server '$is_release_name' related pods after deployment should be $numberOfReplicas"
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
@@ -145,11 +144,11 @@ while [ $numberOfMatchesForImageTag -ne $numberOfReplicas ]; do
 
   numberOfMatchesForImageTag=0
 
-  allCorrespondingPods=$(oc get pods -n $DEV_NAMESPACE | grep $is_release_name | grep 1/1 | grep Running | awk '{print $1}')
+  allCorrespondingPods=$(oc get pods -n $namespace | grep $is_release_name | grep 1/1 | grep Running | awk '{print $1}')
   echo -e "\nINFO: For ACE Integration server '$is_release_name':"
   for eachAcePod in $allCorrespondingPods
     do
-      imageInPod=$(oc get pod $eachAcePod -n $DEV_NAMESPACE -o json | ./jq -r '.spec.containers[0].image')
+      imageInPod=$(oc get pod $eachAcePod -n $namespace -o json | ./jq -r '.spec.containers[0].image')
       echo "INFO: Image present in the pod '$eachAcePod' is '$imageInPod'"
       if [[ $imageInPod =~ "$imageTag" ]]; then
         echo "INFO: Image tag matches.."
@@ -161,7 +160,7 @@ while [ $numberOfMatchesForImageTag -ne $numberOfReplicas ]; do
 
   echo -e "\nINFO: Total $is_release_name demo pods deployed with new image: $numberOfMatchesForImageTag"
   echo -e "\nINFO: All current $is_release_name demo pods are:\n"
-  oc get pods -n $DEV_NAMESPACE | grep $is_release_name | grep 1/1 | grep Running
+  oc get pods -n $namespace | grep $is_release_name | grep 1/1 | grep Running
   if [[ $? -eq 1 ]]; then
     echo -e "No Ready and Running pods found for $is_release_name yet"
   fi
