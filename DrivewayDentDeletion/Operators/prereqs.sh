@@ -131,6 +131,7 @@ declare -a image_projects=("${dev_namespace}" "${test_namespace}")
 
 for image_project in "${image_projects[@]}"
 do
+  chmod +x ${PWD}/../../products/bash/configure-postgres.sh -n ${image_project}
   ${PWD}/../../products/bash/configure-postgres.sh -n ${image_project}
 done
 
