@@ -35,7 +35,6 @@ namespace="cp4i"
 release_name="demo"
 qm_name="QUICKSTART"
 tracing="false"
-imageTag="latest"
 
 while getopts "n:r:i:q:t" opt; do
   case ${opt} in

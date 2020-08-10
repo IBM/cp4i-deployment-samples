@@ -29,7 +29,6 @@ function usage {
 namespace="cp4i"
 is_release_name="ace-is"
 is_image_name="image-registry.openshift-image-registry.svc:5000/cp4i/ace-11.0.0.9-r2:new-1"
-imageTag"ace-latest"
 
 while getopts "n:r:i" opt; do
   case ${opt} in
