@@ -19,15 +19,11 @@
 #     ./test-api-e2e.sh -n <namesapce>
 
 function usage {
-    echo "Usage: $0 -n <namespace> -t <imageTag> -c"
+    echo "Usage: $0 -n <namespace>"
 }
 
 namespace="cp4i"
 os_sed_flag=""
-totalAceReplicas=0
-totalMQReplicas=1
-totalDemoPods=0
-numberOfMatchesForImageTag=0
 
 if [[ $(uname) == Darwin ]]; then
   os_sed_flag="-e"
@@ -37,17 +33,10 @@ while getopts "n:t:c" opt; do
   case ${opt} in
     n ) namespace="$OPTARG"
       ;;
-    t ) imageTag="$OPTARG"
-      ;;
     \? ) usage; exit
       ;;
   esac
 done
-
-echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
-
-echo "INFO: Image tag for ACE: '$imageTag'"
-echo "INFO: Image tag for MQ: 'latest'"
 
 # -------------------------------------- INSTALL JQ ---------------------------------------------------------------------
 
@@ -69,7 +58,6 @@ if [[ "$jqInstalled" == "false" ]]; then
     echo "INFO: Installing on linux"
     wget -O jq https://github.com/stedolan/jq/releases/download/jq-1.6/jq-linux64
     chmod +x ./jq
-    cp jq /usr/bin
   elif [[ "$OSTYPE" == "darwin"* ]]; then
     echo "INFO: Installing on MAC"
     /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)"
@@ -77,7 +65,7 @@ if [[ "$jqInstalled" == "false" ]]; then
   fi
 fi
 
-echo -e "\nINFO: Installed JQ version is $(jq --version)"
+echo -e "\nINFO: Installed JQ version is $(./jq --version)"
 
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
@@ -94,11 +82,11 @@ post_response_code=$(echo "${post_response##* }")
 
 if [ "$post_response_code" == "200" ]; then
   # The usage of sed here is to prevent an error caused between the -w flag of curl and jq not interacting well
-  quote_id=$(echo "$post_response" | jq '.' | sed $os_sed_flag '$ d' | jq '.QuoteID')
+  quote_id=$(echo "$post_response" | ./jq '.' | sed $os_sed_flag '$ d' | ./jq '.QuoteID')
 
   echo -e "INFO: SUCCESS - POST with response code: ${post_response_code}, QuoteID: ${quote_id}, and Response Body:\n"
   # The usage of sed here is to prevent an error caused between the -w flag of curl and jq not interacting well
-  echo ${post_response} | jq '.' | sed $os_sed_flag '$ d'
+  echo ${post_response} | ./jq '.' | sed $os_sed_flag '$ d'
 
   echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------"
 
@@ -110,7 +98,7 @@ if [ "$post_response_code" == "200" ]; then
   if [ "$get_response_code" == "200" ]; then
     echo -e "INFO: SUCCESS - GET with response code: ${get_response_code}, and Response Body:\n"
     # The usage of sed here is to prevent an error caused between the -w flag of curl and jq not interacting well
-    echo ${get_response} | jq '.' | sed $os_sed_flag '$ d'
+    echo ${get_response} | ./jq '.' | sed $os_sed_flag '$ d'
   else
     echo "ERROR: FAILED - Error code: ${get_response_code}"
     echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
