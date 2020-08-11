@@ -81,9 +81,15 @@ oc create -n ${dev_namespace} secret docker-registry cicd-${dev_namespace} --doc
   --docker-username=${username} --docker-password=${password} -o yaml | oc apply -f -
 
 
-echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
-# Creating a new secret as the type of entitlement key is 'kubernetes.io/dockerconfigjson' but we need secret of type 'kubernetes.io/basic-auth' to pull imags from the ER
+declare -a image_projects=("${dev_namespace}" "${test_namespace}")
+for image_project in "${image_projects[@]}"
+do
+  echo "INFO: Creating ibm-entitlement-key secret in ${image_project} namespace"
+  oc create -n ${image_project} secret docker-registry ibm-entitlement-key --docker-server=${ER_REGISTRY} \
+  --docker-username=${ER_USERNAME} --docker-password=${ER_PASSWORD} -o yaml | oc apply -f -
+done
+
 echo "Creating secret to pull base images from Entitled Registry"
 cat << EOF | oc apply --namespace ${dev_namespace} -f -
 apiVersion: v1
