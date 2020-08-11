@@ -27,7 +27,7 @@ spec:
 apiVersion: tekton.dev/v1beta1
 kind: Task
 metadata:
-  name: build-task
+  name: build-ace-task
 spec:
   params:
     - name: imageTag
@@ -59,6 +59,62 @@ spec:
            buildah --storage-driver vfs build-using-dockerfile -f /workspace/git-source/DrivewayDentDeletion/Operators/Dockerfiles/$(params.dockerfile) -t image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}/$(params.imageName):$(params.imageTag) /workspace/git-source/DrivewayDentDeletion/$(params.contextPath) && \
            buildah --storage-driver vfs push --tls-verify=false image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}/$(params.imageName):$(params.imageTag)
           "
+      resources:
+        requests:
+          memory: "4Gi"
+          cpu: "1"
+          ephemeral-storage: "25Gi"
+        limits:
+          memory: "4Gi"
+          cpu: "1"
+          ephemeral-storage: "30Gi"
+
+---
+
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: build-mq-task
+spec:
+  params:
+    - name: imageTag
+      type: string
+      description: The image tag
+    - name: imageName
+      type: string
+      description: The image tag
+    - name: dockerfile
+      type: string
+      description: The dockerfile
+    - name: contextPath
+      type: string
+      description: The context to run the commands
+  resources:
+    inputs:
+      - name: git-source
+        type: git
+  steps:
+    - name: build
+      image: quay.io/buildah/stable:latest
+      securityContext:
+        runAsUser: 0
+        privileged: true
+      command:
+        - sh
+        - -c
+        - "cd /workspace/git-source/DrivewayDentDeletion/Operators/Dockerfiles && \
+           buildah --storage-driver vfs build-using-dockerfile -f /workspace/git-source/DrivewayDentDeletion/Operators/Dockerfiles/$(params.dockerfile) -t image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}/$(params.imageName):$(params.imageTag) /workspace/git-source/DrivewayDentDeletion/$(params.contextPath) && \
+           buildah --storage-driver vfs push --tls-verify=false image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}/$(params.imageName):$(params.imageTag)
+          "
+      resources:
+        requests:
+          memory: "4Gi"
+          cpu: "1"
+          ephemeral-storage: "20Gi"
+        limits:
+          memory: "4Gi"
+          cpu: "1"
+          ephemeral-storage: "25Gi"
 
 ---
 
@@ -106,7 +162,7 @@ spec:
   tasks:
     - name: build-mq
       taskRef:
-        name: build-task
+        name: build-mq-task
       params:
         - name: imageName
           value: "mq-ddd"
@@ -139,10 +195,8 @@ spec:
           - name: git-source
             resource: git-source
     - name: build-ace-int-server-ace-api
-      runAfter:
-        - build-mq
       taskRef:
-        name: build-task
+        name: build-ace-task
       params:
         - name: imageTag
           value: "$(params.imageTag)"
@@ -157,10 +211,8 @@ spec:
           - name: git-source
             resource: git-source
     - name: build-ace-int-server-ace-acme
-      runAfter:
-        - build-ace-int-server-ace-api
       taskRef:
-        name: build-task
+        name: build-ace-task
       params:
         - name: imageTag
           value: "$(params.imageTag)"
@@ -175,10 +227,8 @@ spec:
           - name: git-source
             resource: git-source
     - name: build-ace-int-server-ace-bernie
-      runAfter:
-        - build-ace-int-server-ace-acme
       taskRef:
-        name: build-task
+        name: build-ace-task
       params:
         - name: imageTag
           value: "$(params.imageTag)"
@@ -193,10 +243,8 @@ spec:
           - name: git-source
             resource: git-source
     - name: build-ace-int-server-ace-chris
-      runAfter:
-        - build-ace-int-server-ace-bernie
       taskRef:
-        name: build-task
+        name: build-ace-task
       params:
         - name: imageTag
           value: "$(params.imageTag)"
