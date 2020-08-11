@@ -74,6 +74,9 @@ echo -e "\n---------------------------------------------------------------------
 export HOST=http://$(oc get routes -n ${namespace} | grep ace-api-int-srv-http | grep -v ace-api-int-srv-https | awk '{print $2}')/drivewayrepair
 echo "INFO: Host: ${HOST}"
 
+DB_NAME=$(echo $namespace | sed 's/-/_/g')
+echo "INFO: Database name is: 'db_${DB_NAME}'"
+
 echo -e "\nINFO: Testing E2E API now..."
 
 # ------- Post to the database -------
@@ -110,7 +113,7 @@ if [ "$post_response_code" == "200" ]; then
   echo -e "\nINFO: Deleting row from database..."
   echo "INFO: Deleting the row with quote id $quote_id from the database"
   oc exec -n postgres -it $(oc get pod -n postgres -l name=postgresql -o jsonpath='{.items[].metadata.name}') \
-    -- psql -U admin -d sampledb -c \
+    -- psql -U admin -d db_${DB_NAME} -c \
     "DELETE FROM quotes WHERE quotes.quoteid=${quote_id};"
 
   echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------"
@@ -118,7 +121,7 @@ if [ "$post_response_code" == "200" ]; then
   #  ------- Get row to confirm deletion -------
   echo -e "\nINFO: Select and print the row from database with '$quote_id' to confirm deletion"
   oc exec -n postgres -it $(oc get pod -n postgres -l name=postgresql -o jsonpath='{.items[].metadata.name}') \
-    -- psql -U admin -d sampledb -c \
+    -- psql -U admin -d db_${DB_NAME} -c \
     "SELECT * FROM quotes WHERE quotes.quoteid=${quote_id};"
   
 else

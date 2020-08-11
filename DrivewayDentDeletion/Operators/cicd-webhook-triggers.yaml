@@ -581,9 +581,6 @@ rules:
 - apiGroups: [""]
   resources: ["pods"]
   verbs: ["list", "get"]
-- apiGroups: ["route.openshift.io"]
-  resources: ["routes"]
-  verbs: ["list", "get"]
 
 ---
 
@@ -611,17 +608,17 @@ roleRef:
 
 ---
 
-# Ace Integration Service account configuration
+# MQ Service account configuration
 kind: Role
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
   name: mq-qm-role
 rules:
-# Permissions for appconnect integration server
+# Permissions for MQ
 - apiGroups: ["mq.ibm.com"]
   resources: ["queuemanagers", "queuemanagers/finalizers", "queuemanagers/status"]
   verbs: ["create", "delete", "get", "list", "patch", "update", "watch"]
-# Permission to get pods
+# Permission to get pods during deploy stage
 - apiGroups: [""]
   resources: ["pods"]
   verbs: ["list", "get"]
@@ -649,3 +646,31 @@ roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: Role
   name: mq-qm-role
+
+---
+
+# Role binding for the tesk task to list routes in tekton task
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: test-task-rolebinding
+subjects:
+- kind: ServiceAccount
+  name: default
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: role-to-list-routes-for-test-task
+
+---
+
+# Role for the test task to get and list routes
+kind: Role
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: role-to-list-routes-for-test-task
+rules:
+# Permissions for test task to list resources
+- apiGroups: ["route.openshift.io"]
+  resources: ["routes"]
+  verbs: ["list"]
