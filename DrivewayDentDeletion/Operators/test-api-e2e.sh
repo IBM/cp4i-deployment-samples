@@ -109,9 +109,12 @@ if [ "$post_response_code" == "200" ]; then
     exit 1
   fi
 
+  temp=$(oc auth can-i get pod -n postgres)
+  echo $temp
+
   echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------"
   # ------- Delete from the database -------
-  echo -e "\nINFO: Deleting row from database  '${DB_NAME}'..."
+  echo -e "\nINFO: Deleting row from database '${DB_NAME}'..."
   echo "INFO: Deleting the row with quote id $quote_id from the database"
   oc exec -n postgres -it $(oc get pod -n postgres -l name=postgresql -o jsonpath='{.items[].metadata.name}') \
     -- psql -U admin -d ${DB_NAME} -c \
@@ -120,7 +123,7 @@ if [ "$post_response_code" == "200" ]; then
   echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------"
 
   #  ------- Get row to confirm deletion -------
-  echo -e "\nINFO: Select and print the row from database '${DB_NAME}' with '$quote_id' to confirm deletion"
+  echo -e "\nINFO: Select and print the row from database '${DB_NAME}' with id '$quote_id' to confirm deletion"
   oc exec -n postgres -it $(oc get pod -n postgres -l name=postgresql -o jsonpath='{.items[].metadata.name}') \
     -- psql -U admin -d ${DB_NAME} -c \
     "SELECT * FROM quotes WHERE quotes.quoteid=${quote_id};"

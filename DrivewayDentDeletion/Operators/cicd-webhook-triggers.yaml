@@ -492,6 +492,8 @@ spec:
           serviceAccountName: cicd-ace-sa
         - taskName: deploy-wait-ace-bernie
           serviceAccountName: cicd-ace-sa
+        - taskName: api-test
+          serviceAccountName: cicd-test
       resources:
       - name: git-source
         resourceRef:
@@ -649,31 +651,74 @@ roleRef:
 
 ---
 
-# Role binding for the tesk task to list routes in tekton task
-apiVersion: rbac.authorization.k8s.io/v1
-kind: RoleBinding
+apiVersion: v1
+kind: ServiceAccount
 metadata:
-  name: test-task-rolebinding
-subjects:
-- kind: ServiceAccount
-  name: default
-roleRef:
-  apiGroup: rbac.authorization.k8s.io
-  kind: Role
-  name: role-to-list-routes-for-test-task
+  name: cicd-test
+  # namespace: postgres
 
 ---
 
-# Role for the test task
+# Role for the test task to get routes and pods
 kind: Role
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
-  name: role-to-list-routes-for-test-task
+  name: role-for-test
 rules:
-# Permissions for test task to list routes
+# Permissions for test task to list routes and pods
 - apiGroups: ["route.openshift.io"]
   resources: ["routes"]
   verbs: ["list"]
 - apiGroups: [""]
   resources: ["pods"]
   verbs: ["list"]
+
+---
+
+# Role binding for the tesk task to list routes in test task
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: test-rolebinding
+subjects:
+- kind: ServiceAccount
+  name: cicd-test
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: role-for-test-task
+
+# ---
+
+# # Role for the test task to list pods
+# kind: ClusterRole
+# apiVersion: rbac.authorization.k8s.io/v1
+# metadata:
+#   name: role-to-list-pods-for-test-task-1
+#   # namespace: postgres
+# rules:
+# # Permissions for test task to list pods
+# - apiGroups: [""]
+#   resources: ["pods"]
+#   verbs: ["list"]
+
+# ---
+
+# # Role binding for the tesk task to list pods in test task
+# apiVersion: rbac.authorization.k8s.io/v1
+# kind: RoleBinding
+# metadata:
+#   name: test-task-rolebinding-pods-1
+#   # namespace: postgres
+# subjects:
+# # - kind: User
+# #   name: "{{NAMESPACE}}-ddd-dev"
+# #   apiGroup: rbac.authorization.k8s.io
+# - kind: ServiceAccount
+#   name: cicd-test
+#   # namespace: postgres
+# roleRef:
+#   apiGroup: rbac.authorization.k8s.io
+#   kind: ClusterRole
+#   name: role-to-list-pods-for-test-task-1
+#   # namespace: postgres
