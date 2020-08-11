@@ -18,7 +18,6 @@
 #   -i : <image_name> (string)
 #   -q : <qm_name> (string), Defaults to "QUICKSTART"
 #   -t : optional flag to enable tracing
-#   -a : <imageTag> (string) Defaults to "latest"
 #
 # USAGE:
 #   With defaults values
@@ -28,15 +27,15 @@
 #     ./release-mq -n cp4i -r mq-demo -i image-registry.openshift-image-registry.svc:5000/cp4i/mq-ddd -q mq-qm
 
 function usage {
-    echo "Usage: $0 -n <namespace> -r <release_name> -i <image_name> -q <qm_name> -a <imageTag> [-t]"
+    echo "Usage: $0 -n <namespace> -r <release_name> -i <image_name> -q <qm_name> [-t]"
 }
 
 namespace="cp4i"
 release_name="mq-demo"
 qm_name="QUICKSTART"
 tracing="false"
-imageTag="latest"
-while getopts "n:r:i:q:a:t" opt; do
+
+while getopts "n:r:i:q:t" opt; do
   case ${opt} in
     n ) namespace="$OPTARG"
       ;;
@@ -45,8 +44,6 @@ while getopts "n:r:i:q:a:t" opt; do
     i ) image_name="$OPTARG"
       ;;
     q ) qm_name="$OPTARG"
-      ;;
-    a ) imageTag="$OPTARG"
       ;;
     t ) tracing=true
       ;;
@@ -89,6 +86,25 @@ spec:
 EOF
 
 else
+
+# --------------------------------------------------- FIND IMAGE TAG ---------------------------------------------------
+
+echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
+
+imageTag=${image_name##*:}
+
+echo "INFO: Image tag found for '$release_name' is '$imageTag'"
+echo "INFO: Image is '$image_name'"
+echo "INFO: Release name is: '$release_name'"
+
+if [[ -z "$imageTag" ]]; then
+  echo "ERROR: Failed to extract image tag from the end of '$image_name'"
+  exit 1
+fi
+
+echo -e "INFO: Going ahead to apply the CR for '$release_name'"
+
+echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
 cat << EOF | oc apply -f -
 apiVersion: mq.ibm.com/v1beta1
@@ -153,8 +169,6 @@ EOF
 
   # -------------------------------------- CHECK FOR NEW IMAGE DEPLOYMENT STATUS ------------------------------------------
 
-  echo "INFO: Image tag for '$release_name' is '$imageTag'"
-
   numberOfReplicas=1
   numberOfMatchesForImageTag=0
   time=0
@@ -166,7 +180,7 @@ EOF
   # wait for 10 minutes for all replica pods to be deployed with new image
   while [ $numberOfMatchesForImageTag -ne $numberOfReplicas ]; do
     if [ $time -gt 10 ]; then
-      echo "ERROR: Timed-out trying to wait for all $release_name demo pod(s) to be deployed with a new image containing the image tag '$imageTag-test'"
+      echo "ERROR: Timed-out trying to wait for all $release_name demo pod(s) to be deployed with a new image containing the image tag '$imageTag'"
       echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
       exit 1
     fi
@@ -179,11 +193,11 @@ EOF
         echo -e "\nINFO: For MQ demo pod '$eachMQPod':"
         imageInPod=$(oc get pod $eachMQPod -n $namespace -o json | ./jq -r '.spec.containers[0].image')
         echo "INFO: Image present in the pod '$eachMQPod' is '$imageInPod'"
-        if [[ $imageInPod =~ "$imageTag-test" ]]; then
+        if [[ $imageInPod == *:$imageTag ]]; then
           echo "INFO: Image tag matches.."
           numberOfMatchesForImageTag=$((numberOfMatchesForImageTag + 1))
         else
-          echo "INFO: Image tag '$imageTag-test' is not present in the image of the MQ demo pod '$eachMQPod'"
+          echo "INFO: Image tag '$imageTag' is not present in the image of the MQ demo pod '$eachMQPod'"
         fi
     done
 
@@ -194,7 +208,7 @@ EOF
       echo -e "No Ready and Running pods found for '$release_name' yet"
     fi
     if [[ $numberOfMatchesForImageTag != "$numberOfReplicas" ]]; then
-      echo -e "\nINFO: Not all $release_name pods have been deployed with the new image having the image tag '$imageTag-test', retrying for upto 10 minutes for new $release_name demo pods te be deployed with new image. Waited ${time} minute(s)."
+      echo -e "\nINFO: Not all $release_name pods have been deployed with the new image having the image tag '$imageTag', retrying for upto 10 minutes for new $release_name demo pods te be deployed with new image. Waited ${time} minute(s)."
       sleep 60
     else
       echo -e "\nINFO: All $release_name demo pods have been deployed with the new image"
