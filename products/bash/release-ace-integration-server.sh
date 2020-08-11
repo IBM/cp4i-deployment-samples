@@ -38,8 +38,6 @@ imageTag"ace-latest"
       ;;
     i ) is_image_name="$OPTARG"
       ;;
-    a ) imageTag="$OPTARG"
-      ;;
     \? ) usage; exit
       ;;
   esac
@@ -150,7 +148,7 @@ while [ $numberOfMatchesForImageTag -ne $numberOfReplicas ]; do
     do
       imageInPod=$(oc get pod $eachAcePod -n $namespace -o json | ./jq -r '.spec.containers[0].image')
       echo "INFO: Image present in the pod '$eachAcePod' is '$imageInPod'"
-      if [[ $imageInPod =~ "$imageTag" ]]; then
+      if [[ $imageInPod == *:$imageTag ]]; then
         echo "INFO: Image tag matches.."
         numberOfMatchesForImageTag=$((numberOfMatchesForImageTag + 1))
       else
