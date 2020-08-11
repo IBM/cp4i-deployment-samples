@@ -45,10 +45,20 @@ imageTag"ace-latest"
   esac
 done
 
-echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
+# ------------------------------------------------ FIND IMAGE TAG --------------------------------------------------
 
+imageTag=${is_image_name##*:}
+
+echo "INFO: Image tag found for '$is_release_name' is '$imageTag'"
 echo "INFO: Image is '$is_image_name'"
 echo "INFO: Release name is: '$is_release_name'"
+
+if [[ -z "$imageTag" ]]; then
+  echo "ERROR: Started to wait for the resources of '$is_release_name' but 'imageTag' is not found in the passed imageName '$is_image_name', hence exiting waiting for resources to come up."
+  exit 1
+fi
+
+echo -e "INFO: Going ahead to apply the CR for '$is_release_name'"
 
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
@@ -115,19 +125,6 @@ echo -e "\n---------------------------------------------------------------------
 numberOfReplicas=$(oc get integrationservers $is_release_name -n $namespace -o json | ./jq -r '.spec.replicas')
 echo "INFO: Number of Replicas for '$is_release_name' is $numberOfReplicas"
 echo -e "\nINFO: Total number of ACE integration server '$is_release_name' related pods after deployment should be $numberOfReplicas"
-echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
-
-# ------------------------------------------------ FIND IMAGE TAG --------------------------------------------------
-
-imageTag=${is_image_name##*:}
-
-echo "INFO: Image tag found for '$is_release_name' is '$imageTag'"
-
-if [[ -z "$imageTag" ]]; then
-  echo "ERROR: Started to wait for the resources of '$is_release_name' but 'imageTag' is not found in the passed imageName '$is_image_name', hence exiting waiting for resources to come up."
-  exit 1
-fi
-
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
 # -------------------------------------- CHECK FOR NEW IMAGE DEPLOYMENT STATUS ------------------------------------------
