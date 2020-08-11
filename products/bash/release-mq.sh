@@ -63,7 +63,7 @@ echo "INFO: Image is '$image_name'"
 echo "INFO: Release name is: '$release_name'"
 
 if [[ -z "$imageTag" ]]; then
-  echo "ERROR: Started to wait for the resources of '$release_name' but 'imageTag' is not found in the passed imageName '$image_name', hence exiting waiting for resources to come up."
+  echo "ERROR: Started to release and wait for the resources of '$release_name' but 'imageTag' is not found in the passed imageName '$image_name', hence exiting waiting for resources to come up."
   exit 1
 fi
 
