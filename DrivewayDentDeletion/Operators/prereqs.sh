@@ -8,13 +8,18 @@
 # Contract with IBM Corp.
 #******************************************************************************
 function usage {
-    echo "Usage: $0 -n <namespace>"
+    echo "Usage: $0 -n <namespace> -r <nav_replicas>"
 }
 
+export IMAGE_REPO="cp.icr.io"
 namespace="cp4i"
+nav_replicas="2"
+
 while getopts "n:" opt; do
   case ${opt} in
     n ) namespace="$OPTARG"
+      ;;
+    r ) nav_replicas="$OPTARG"
       ;;
     \? ) usage; exit
       ;;
@@ -192,6 +197,11 @@ declare -a image_projects=("${dev_namespace}" "${test_namespace}")
 
 for image_project in "${image_projects[@]}"
 do
+  echo "INFO: Creating secret to pull images from the ER"
+
+  oc create -n ${image_project} secret docker-registry ibm-entitlement-key --docker-server=${ER_REGISTRY} \
+    --docker-username=${ER_USERNAME} --docker-password=${ER_PASSWORD} -o yaml | oc apply -f -
+
   echo "INFO: Creating operator group and subscription in ${image_project}"
   ${PWD}/../../products/bash/deploy-og-sub.sh -n ${image_project}
   sleep 10

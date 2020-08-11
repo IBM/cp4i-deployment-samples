@@ -35,7 +35,7 @@ CREATE USER ${namespace} WITH PASSWORD 'password';
 GRANT CONNECT ON DATABASE db_${namespace} TO ${namespace};
 EOF
 else
-    echo "INFO: Table already exists, skipping this step"
+  echo "INFO: Table already exists, skipping this step"
 fi
 
 if ! oc exec -n postgres -it $(oc get pod -n postgres -l name=postgresql -o jsonpath='{.items[].metadata.name}') \
