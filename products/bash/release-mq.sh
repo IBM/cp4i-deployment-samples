@@ -96,7 +96,7 @@ spec:
             - name: MQSNOAUT
               value: 'yes'
           name: qmgr
-  version: 9.1.5.0-r2
+  version: 9.2.0.0-r1
   web:
     enabled: true
   tracing:
@@ -131,7 +131,7 @@ spec:
             - name: MQSNOAUT
               value: 'yes'
           name: qmgr
-  version: 9.1.5.0-r2
+  version: 9.2.0.0-r1
   web:
     enabled: true
 EOF
