@@ -139,6 +139,9 @@ for image_project in "${image_projects[@]}"
 do
   chmod +x ${PWD}/../../products/bash/configure-postgres.sh
   ${PWD}/../../products/bash/configure-postgres.sh -n ${image_project}
+  sleep 10
+  chmod +x ${PWD}/../../products/bash/create-ace-config.sh
+  ${PWD}/../../products/bash/create-ace-config.sh -n ${image_project}
 done
 
 declare -a image_projects=("${dev_namespace}" "${test_namespace}")
