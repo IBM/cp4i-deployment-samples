@@ -14,7 +14,7 @@
 #
 # PARAMETERS:
 #   -n : <namespace> (string), Defaults to "cp4i"
-#   -r : <release_name> (string), Defaults to "demo"
+#   -r : <release_name> (string), Defaults to "mq-demo"
 #   -i : <image_name> (string)
 #   -q : <qm_name> (string), Defaults to "QUICKSTART"
 #   -t : optional flag to enable tracing
@@ -24,14 +24,14 @@
 #     ./release-mq.sh
 #
 #   Overriding the namespace and release-name
-#     ./release-mq -n cp4i -r demo -i image-registry.openshift-image-registry.svc:5000/cp4i/mq-ddd -q mq-qm
+#     ./release-mq -n cp4i -r mq-demo -i image-registry.openshift-image-registry.svc:5000/cp4i/mq-ddd -q mq-qm
 
 function usage {
     echo "Usage: $0 -n <namespace> -r <release_name> -i <image_name> -q <qm_name> [-t]"
 }
 
 namespace="cp4i"
-release_name="demo"
+release_name="mq-demo"
 qm_name="QUICKSTART"
 tracing="false"
 
@@ -51,6 +51,25 @@ while getopts "n:r:i:q:t" opt; do
       ;;
   esac
 done
+
+# --------------------------------------------------- FIND IMAGE TAG ---------------------------------------------------
+
+echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
+
+imageTag=${image_name##*:}
+
+echo "INFO: Image tag found for '$release_name' is '$imageTag'"
+echo "INFO: Image is '$image_name'"
+echo "INFO: Release name is: '$release_name'"
+
+if [[ -z "$imageTag" ]]; then
+  echo "ERROR: Started to release and wait for the resources of '$release_name' but 'imageTag' is not found in the passed imageName '$image_name', hence exiting waiting for resources to come up."
+  exit 1
+fi
+
+echo -e "INFO: Going ahead to apply the CR for '$release_name'"
+
+echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
 if [ -z $image_name ]; then
 
@@ -148,26 +167,6 @@ EOF
 
   echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
-  # --------------------------------------------------- FIND IMAGE TAG ---------------------------------------------------
-
-  echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
-
-  echo "INFO: Namespace is '$namespace'"
-
-  echo "INFO: Image is '$image_name'"
-  echo "INFO: Release name is: '$release_name'"
-
-  imageTag=${image_name##*:}
-  
-  echo "INFO: Image tag found for '$release_name' is '$imageTag'"
-
-  if [[ -z "$imageTag" ]]; then
-    echo "ERROR: Started to wait for the resources of '$release_name' but 'imageTag' is not found in the passed imageName '$image_name', hence exiting waiting for resources to come up."
-    exit 1
-  fi
-
-  echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
-
   # -------------------------------------- CHECK FOR NEW IMAGE DEPLOYMENT STATUS ------------------------------------------
 
   numberOfReplicas=1
@@ -194,7 +193,7 @@ EOF
         echo -e "\nINFO: For MQ demo pod '$eachMQPod':"
         imageInPod=$(oc get pod $eachMQPod -n $namespace -o json | ./jq -r '.spec.containers[0].image')
         echo "INFO: Image present in the pod '$eachMQPod' is '$imageInPod'"
-        if [[ $imageInPod =~ "$imageTag" ]]; then
+        if [[ $imageInPod == *:$imageTag ]]; then
           echo "INFO: Image tag matches.."
           numberOfMatchesForImageTag=$((numberOfMatchesForImageTag + 1))
         else

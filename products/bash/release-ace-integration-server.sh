@@ -30,6 +30,7 @@ is_release_name="ace-is"
 is_image_name="image-registry.openshift-image-registry.svc:5000/cp4i/ace-11.0.0.9-r2:new-1"
 
 while getopts "n:r:i:" opt; do
+imageTag"ace-latest"
   case ${opt} in
     n ) namespace="$OPTARG"
       ;;
@@ -42,12 +43,20 @@ while getopts "n:r:i:" opt; do
   esac
 done
 
-echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
+# ------------------------------------------------ FIND IMAGE TAG --------------------------------------------------
 
+imageTag=${is_image_name##*:}
+
+echo "INFO: Image tag found for '$is_release_name' is '$imageTag'"
 echo "INFO: Image is '$is_image_name'"
 echo "INFO: Release name is: '$is_release_name'"
 
-echo "INFO: Namespace is '$namespace'"
+if [[ -z "$imageTag" ]]; then
+  echo "ERROR: Started to release and wait for the resources of '$is_release_name' but 'imageTag' is not found in the passed imageName '$is_image_name', hence exiting waiting for resources to come up."
+  exit 1
+fi
+
+echo -e "INFO: Going ahead to apply the CR for '$is_release_name'"
 
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
@@ -116,20 +125,9 @@ echo "INFO: Number of Replicas for '$is_release_name' is $numberOfReplicas"
 echo -e "\nINFO: Total number of ACE integration server '$is_release_name' related pods after deployment should be $numberOfReplicas"
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
-# ------------------------------------------------ FIND IMAGE TAG --------------------------------------------------
-
-imageTag=${is_image_name##*:}
-
-echo "INFO: Image tag found for '$is_release_name' is '$imageTag'"
-
-if [[ -z "$imageTag" ]]; then
-  echo "ERROR: Started to wait for the resources of '$is_release_name' but 'imageTag' is not found in the passed imageName '$is_image_name', hence exiting waiting for resources to come up."
-  exit 1
-fi
-
-echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
-
 # -------------------------------------- CHECK FOR NEW IMAGE DEPLOYMENT STATUS ------------------------------------------
+
+echo "INFO: Image tag for '$is_release_name' is '$imageTag'"
 
 numberOfMatchesForImageTag=0
 time=0
@@ -150,7 +148,7 @@ while [ $numberOfMatchesForImageTag -ne $numberOfReplicas ]; do
     do
       imageInPod=$(oc get pod $eachAcePod -n $namespace -o json | ./jq -r '.spec.containers[0].image')
       echo "INFO: Image present in the pod '$eachAcePod' is '$imageInPod'"
-      if [[ $imageInPod =~ "$imageTag" ]]; then
+      if [[ $imageInPod == *:$imageTag ]]; then
         echo "INFO: Image tag matches.."
         numberOfMatchesForImageTag=$((numberOfMatchesForImageTag + 1))
       else
