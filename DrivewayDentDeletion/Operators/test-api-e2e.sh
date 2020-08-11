@@ -75,7 +75,8 @@ export HOST=http://$(oc get routes -n ${namespace} | grep ace-api-int-srv-http |
 echo "INFO: Host: ${HOST}"
 
 DB_NAME=$(echo $namespace | sed 's/-/_/g')
-echo "INFO: Database name is: 'db_${DB_NAME}'"
+DB_NAME=db_${DB_NAME}
+echo "INFO: Database name is: '${DB_NAME}'"
 
 echo -e "\nINFO: Testing E2E API now..."
 
@@ -110,18 +111,18 @@ if [ "$post_response_code" == "200" ]; then
 
   echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------"
   # ------- Delete from the database -------
-  echo -e "\nINFO: Deleting row from database..."
+  echo -e "\nINFO: Deleting row from database  '${DB_NAME}'..."
   echo "INFO: Deleting the row with quote id $quote_id from the database"
   oc exec -n postgres -it $(oc get pod -n postgres -l name=postgresql -o jsonpath='{.items[].metadata.name}') \
-    -- psql -U admin -d db_${DB_NAME} -c \
+    -- psql -U admin -d ${DB_NAME} -c \
     "DELETE FROM quotes WHERE quotes.quoteid=${quote_id};"
 
   echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------"
 
   #  ------- Get row to confirm deletion -------
-  echo -e "\nINFO: Select and print the row from database with '$quote_id' to confirm deletion"
+  echo -e "\nINFO: Select and print the row from database '${DB_NAME}' with '$quote_id' to confirm deletion"
   oc exec -n postgres -it $(oc get pod -n postgres -l name=postgresql -o jsonpath='{.items[].metadata.name}') \
-    -- psql -U admin -d db_${DB_NAME} -c \
+    -- psql -U admin -d ${DB_NAME} -c \
     "SELECT * FROM quotes WHERE quotes.quoteid=${quote_id};"
   
 else

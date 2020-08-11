@@ -664,13 +664,16 @@ roleRef:
 
 ---
 
-# Role for the test task to get and list routes
+# Role for the test task
 kind: Role
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
   name: role-to-list-routes-for-test-task
 rules:
-# Permissions for test task to list resources
+# Permissions for test task to list routes
 - apiGroups: ["route.openshift.io"]
   resources: ["routes"]
+  verbs: ["list"]
+- apiGroups: [""]
+  resources: ["pods"]
   verbs: ["list"]
