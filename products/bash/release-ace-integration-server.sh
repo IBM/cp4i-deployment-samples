@@ -30,12 +30,15 @@ is_release_name="ace-is"
 is_image_name="image-registry.openshift-image-registry.svc:5000/cp4i/ace-11.0.0.9-r2:new-1"
 
 while getopts "n:r:i:" opt; do
+imageTag"ace-latest"
   case ${opt} in
     n ) namespace="$OPTARG"
       ;;
     r ) is_release_name="$OPTARG"
       ;;
     i ) is_image_name="$OPTARG"
+      ;;
+    a ) imageTag="$OPTARG"
       ;;
     \? ) usage; exit
       ;;
@@ -128,6 +131,8 @@ fi
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
 # -------------------------------------- CHECK FOR NEW IMAGE DEPLOYMENT STATUS ------------------------------------------
+
+echo "INFO: Image tag for '$is_release_name' is '$imageTag'"
 
 numberOfMatchesForImageTag=0
 time=0

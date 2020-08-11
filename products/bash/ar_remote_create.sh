@@ -41,7 +41,7 @@ fi
 
 ## Defaults
 NAMESPACE=${NAMESPACE:-integration}
-RELEASE_NAME=${RELEASE_NAME:-auto-test-assetrepo}
+RELEASE_NAME=${RELEASE_NAME:-demo}
 GIT_REPO=${GIT_REPO:-"https://github.com/IBM/cp4i-demos.git"}
 REMOTE_NAME=${REMOTE_NAME:-"CP4I Demo Assets"}
 REMOTE_DESC=${REMOTE_DESC:-"Remote that populates the asset repository with assets for CP4I demos"}

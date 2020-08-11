@@ -14,7 +14,7 @@
 #
 # PARAMETERS:
 #   -n : <namespace> (string), Defaults to "cp4i"
-#   -r : <release-name> (string), Defaults to "demo"
+#   -r : <release-name> (string), Defaults to "es-demo"
 #
 # USAGE:
 #   With defaults values
@@ -28,7 +28,7 @@ function usage {
 }
 
 namespace="cp4i"
-release_name="demo"
+release_name="es-demo"
 
 while getopts "n:r:" opt; do
   case ${opt} in

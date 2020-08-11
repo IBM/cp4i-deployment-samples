@@ -14,24 +14,25 @@
 #
 # PARAMETERS:
 #   -n : <namespace> (string), Defaults to "cp4i"
-#   -r : <release_name> (string), Defaults to "demo"
+#   -r : <release_name> (string), Defaults to "mq-demo"
 #   -i : <image_name> (string)
 #   -q : <qm_name> (string), Defaults to "QUICKSTART"
 #   -t : optional flag to enable tracing
+#   -a : <imageTag> (string) Defaults to "latest"
 #
 # USAGE:
 #   With defaults values
 #     ./release-mq.sh
 #
 #   Overriding the namespace and release-name
-#     ./release-mq -n cp4i -r demo -i image-registry.openshift-image-registry.svc:5000/cp4i/mq-ddd -q mq-qm
+#     ./release-mq -n cp4i -r mq-demo -i image-registry.openshift-image-registry.svc:5000/cp4i/mq-ddd -q mq-qm
 
 function usage {
-    echo "Usage: $0 -n <namespace> -r <release_name> -i <image_name> -q <qm_name> [-t]"
+    echo "Usage: $0 -n <namespace> -r <release_name> -i <image_name> -q <qm_name> -a <imageTag> [-t]"
 }
 
 namespace="cp4i"
-release_name="demo"
+release_name="mq-demo"
 qm_name="QUICKSTART"
 tracing="false"
 
@@ -44,6 +45,8 @@ while getopts "n:r:i:q:t" opt; do
     i ) image_name="$OPTARG"
       ;;
     q ) qm_name="$OPTARG"
+      ;;
+    a ) imageTag="$OPTARG"
       ;;
     t ) tracing=true
       ;;
