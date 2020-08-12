@@ -156,32 +156,8 @@ done
 
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
-echo "Waiting for postgres to be ready"
-oc wait -n postgres --for=condition=available deploymentconfig --timeout=20m postgresql
-
-echo "INFO: Testing if postgres is already configured in the namespace ${dev_namespace}"
-getRows=$(oc exec -n postgres -it $(oc get pod -n postgres -l name=postgresql -o jsonpath='{.items[].metadata.name}') -- psql -U admin -d sampledb -c "SELECT * FROM quotes;" | grep '0 rows')
-
-if [[ $? -ne 0 ]]; then
-  echo "Creating quotes table in postgres samepledb"
-  oc exec -n postgres -it $(oc get pod -n postgres -l name=postgresql -o jsonpath='{.items[].metadata.name}') \
-    -- psql -U admin -d sampledb -c \
-  'CREATE TABLE QUOTES (
-    QuoteID SERIAL PRIMARY KEY NOT NULL,
-    Name VARCHAR(100),
-    EMail VARCHAR(100),
-    Address VARCHAR(100),
-    USState VARCHAR(100),
-    LicensePlate VARCHAR(100),
-    ACMECost INTEGER,
-    ACMEDate DATE,
-    BernieCost INTEGER,
-    BernieDate DATE,
-    ChrisCost INTEGER,
-    ChrisDate DATE);'
-else
-  echo "INFO: Postgres table 'QUOTES' already exists"
-fi
+# echo "Waiting for postgres to be ready"
+# oc wait -n postgres --for=condition=available deploymentconfig --timeout=20m postgresql
 
 # echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
