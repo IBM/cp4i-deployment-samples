@@ -121,7 +121,7 @@ if [ "$post_response_code" == "200" ]; then
   echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------"
 
   #  ------- Get row to confirm deletion -------
-  echo -e "\nINFO: Select and print the row as user '${USERNAME}' from database '${DB_NAME}' with id '$quote_id' to confirm deletion"
+  echo -e "\nINFO: Select and print the row as user '${USERNAME}' from database '${DB_NAME}' with id '$quote_id' to confirm deletion..."
   oc exec -n postgres -it $(oc get pod -n postgres -l name=postgresql -o jsonpath='{.items[].metadata.name}') \
     -- psql -U ${USERNAME} -d ${DB_NAME} -c \
     "SELECT * FROM quotes WHERE quotes.quoteid=${quote_id};"
