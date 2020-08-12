@@ -61,7 +61,7 @@ export username=image-bot
 kubectl -n ${dev_namespace} create serviceaccount image-bot
 oc -n ${dev_namespace} policy add-role-to-user registry-editor system:serviceaccount:${dev_namespace}:image-bot
 # enable dev namespace to push to test namespace
-oc -n ${test_namespace} policy add-role-to-user registry-editor system:serviceaccount:${dev_namespace}:image-bot
+# oc -n ${test_namespace} policy add-role-to-user registry-editor system:serviceaccount:${dev_namespace}:image-bot
 export password="$(oc -n ${dev_namespace} serviceaccounts get-token image-bot)"
 
 echo "Creating secrets to push images to openshift local registry"
@@ -158,34 +158,34 @@ done
 
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
-# echo "Waiting for postgres to be ready"
-# oc wait -n postgres --for=condition=available deploymentconfig --timeout=20m postgresql
+echo "Waiting for postgres to be ready"
+oc wait -n postgres --for=condition=available deploymentconfig --timeout=20m postgresql
 
-# echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
+echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
-# declare -a image_projects=("${dev_namespace}" "${test_namespace}")
+declare -a image_projects=("${dev_namespace}" "${test_namespace}")
 
-# for image_project in "${image_projects[@]}"
-# do
-#   ${PWD}/../../products/bash/configure-postgres.sh -n ${image_project}
-#   echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
-# done
+for image_project in "${image_projects[@]}"
+do
+  ${PWD}/../../products/bash/configure-postgres.sh -n ${image_project}
+  echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
+done
 
-# declare -a image_projects=("${dev_namespace}" "${test_namespace}")
+declare -a image_projects=("${dev_namespace}" "${test_namespace}")
 
-# for image_project in "${image_projects[@]}"
-# do
-#   echo "INFO: Creating secret to pull images from the ER"
+for image_project in "${image_projects[@]}"
+do
+  echo "INFO: Creating secret to pull images from the ER"
 
-#   oc create -n ${image_project} secret docker-registry ibm-entitlement-key --docker-server=${ER_REGISTRY} \
-#     --docker-username=${ER_USERNAME} --docker-password=${ER_PASSWORD} -o yaml | oc apply -f -
+  oc create -n ${image_project} secret docker-registry ibm-entitlement-key --docker-server=${ER_REGISTRY} \
+    --docker-username=${ER_USERNAME} --docker-password=${ER_PASSWORD} -o yaml | oc apply -f -
 
-#   echo "INFO: Creating operator group and subscription in ${image_project}"
-#   ${PWD}/../../products/bash/deploy-og-sub.sh -n ${image_project}
-#   sleep 10
-#   echo "INFO: Releasing Navigator in ${image_project}"
-#   ${PWD}/../../products/bash/release-navigator.sh -n ${image_project} -r ${nav_replicas}
-#   echo "INFO: Releasing ACE dashboard in ${image_project}"
-#   ${PWD}/../../products/bash/release-ace.sh -n ${image_project}
-#   echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
-# done
+  echo "INFO: Creating operator group and subscription in ${image_project}"
+  ${PWD}/../../products/bash/deploy-og-sub.sh -n ${image_project}
+  sleep 10
+  echo "INFO: Releasing Navigator in ${image_project}"
+  ${PWD}/../../products/bash/release-navigator.sh -n ${image_project} -r ${nav_replicas}
+  echo "INFO: Releasing ACE dashboard in ${image_project}"
+  ${PWD}/../../products/bash/release-ace.sh -n ${image_project}
+  echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
+done
