@@ -60,12 +60,12 @@ spec:
           "
       resources:
         requests:
-          memory: "4Gi"
-          cpu: "1"
+          # memory: "4Gi"
+          # cpu: "2"
           ephemeral-storage: "25Gi"
         limits:
-          memory: "4Gi"
-          cpu: "1"
+          # memory: "4Gi"
+          # cpu: "2"
           ephemeral-storage: "30Gi"
 
 ---
@@ -102,18 +102,16 @@ spec:
         - sh
         - -c
         - "buildah --storage-driver vfs build-using-dockerfile -f /workspace/git-source/DrivewayDentDeletion/Operators/Dockerfiles/$(params.dockerfile) -t image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}-ddd-dev/$(params.imageName):$(params.imageTag) /workspace/git-source/DrivewayDentDeletion/$(params.contextPath) && \
-           echo MQ Build Complete && \
-           echo Pushing MQ Images to registry && \
            buildah --storage-driver vfs push --tls-verify=false image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}-ddd-dev/$(params.imageName):$(params.imageTag)
           "
       resources:
         requests:
-          memory: "4Gi"
-          cpu: "1"
+          # memory: "4Gi"
+          # cpu: "1"
           ephemeral-storage: "20Gi"
         limits:
-          memory: "4Gi"
-          cpu: "1"
+          # memory: "4Gi"
+          # cpu: "1"
           ephemeral-storage: "25Gi"
 
 ---
@@ -405,7 +403,7 @@ spec:
           - name: git-source
             resource: git-source
 
-    # push images to test namespace
+    # push ace images to test namespace
     - name: image-push-to-test-ace-chris
       runAfter:
         - api-test
@@ -446,6 +444,8 @@ spec:
           value: "$(params.imageTag)"
         - name: imageName
           value: "ace-api"
+
+    # push mq image to test namespace
     - name: image-push-to-test-mq
       runAfter:
         - api-test
@@ -494,8 +494,16 @@ spec:
           serviceAccountName: cicd-ace-sa
         - taskName: api-test
           serviceAccountName: cicd-test
-        # - taskName: image-push-to-test-mq
-        #   serviceAccountName: cicd-push-to-test
+        - taskName: image-push-to-test-ace-chris
+          serviceAccountName: cicd-push-to-test
+        - taskName: image-push-to-test-ace-acme
+          serviceAccountName: cicd-push-to-test
+        - taskName: image-push-to-test-ace-bernie
+          serviceAccountName: cicd-push-to-test
+        - taskName: image-push-to-test-ace-api
+          serviceAccountName: cicd-push-to-test
+        - taskName: image-push-to-test-mq
+          serviceAccountName: cicd-push-to-test
       resources:
       - name: git-source
         resourceRef:
