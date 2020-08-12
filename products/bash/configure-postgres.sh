@@ -38,9 +38,6 @@ else
   echo "INFO: Table already exists, skipping this step"
 fi
 
-if ! oc exec -n postgres -it $(oc get pod -n postgres -l name=postgresql -o jsonpath='{.items[].metadata.name}') \
--- psql -U ${namespace} -d db_${namespace} -c '\dt'  | grep -i quotes ; then
-
 echo "INFO: Creating tables in the database db_${namespace}"
   oc exec -n postgres -it $(oc get pod -n postgres -l name=postgresql -o jsonpath='{.items[].metadata.name}') \
     -- psql -U ${namespace} -d db_${namespace} -c \
@@ -57,7 +54,3 @@ echo "INFO: Creating tables in the database db_${namespace}"
     BernieDate DATE,
     ChrisCost INTEGER,
     ChrisDate DATE);'
-else
-    echo "ERROR: Error occured in creating the QUOTES table, exiting.... "
-    exit 1
-fi
