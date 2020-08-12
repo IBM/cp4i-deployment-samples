@@ -61,7 +61,7 @@ export username=image-bot
 kubectl -n ${dev_namespace} create serviceaccount image-bot
 oc -n ${dev_namespace} policy add-role-to-user registry-editor system:serviceaccount:${dev_namespace}:image-bot
 # enable dev namespace to push to test namespace
-# oc -n ${test_namespace} policy add-role-to-user registry-editor system:serviceaccount:${dev_namespace}:image-bot
+oc -n ${test_namespace} policy add-role-to-user registry-editor system:serviceaccount:${dev_namespace}:image-bot
 export password="$(oc -n ${dev_namespace} serviceaccounts get-token image-bot)"
 
 echo "Creating secrets to push images to openshift local registry"
