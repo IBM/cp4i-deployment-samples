@@ -655,60 +655,56 @@ apiVersion: v1
 kind: ServiceAccount
 metadata:
   name: cicd-test
-  # namespace: postgres
 
 ---
 
-# Role for the test task to get routes and pods
+# Role for the test task to get routes and pods in dev namespace
 kind: Role
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
-  name: role-for-test
+  name: role-test-routes
 rules:
-# Permissions for test task to list routes and pods
+# Permissions for test task to list routes and pods in dev namespace
 - apiGroups: ["route.openshift.io"]
   resources: ["routes"]
   verbs: ["list"]
-# - apiGroups: [""]
-#   resources: ["pods"]
-#   verbs: ["list", "get"]
 
 ---
 
-# Role binding for the tesk task to list routes in test task
+# Role binding for the tesk task to list routes in test task in dev namespace
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
-  name: test-rolebinding
+  name: test-routes-rolebinding
 subjects:
 - kind: ServiceAccount
   name: cicd-test
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: Role
-  name: role-for-test-task
+  name: role-test-routes
 
-# ---
+---
 
-# Role for the test task to list pods
+# Role for the test task to list pods in postgres namespace
 kind: Role
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
-  name: role-to-list-pods-for-test-task-1
+  name: role-postgres-test-task
   namespace: postgres
 rules:
-# Permissions for test task to list pods
+# Permissions for test task to list pods in postgres namespace
 - apiGroups: [""]
   resources: ["pods", "pods/exec"]
   verbs: ["list", "get", "create"]
 
 ---
 
-# Role binding for the tesk task to list pods in test task
+# Role binding for the tesk task to list pods in test task in postgres namespace
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
-  name: test-task-rolebinding-pods-1
+  name: test-postgres-rolebinding
   namespace: postgres
 subjects:
 - kind: ServiceAccount
@@ -717,4 +713,4 @@ subjects:
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: Role
-  name: role-to-list-pods-for-test-task-1
+  name: role-postgres-test-task
