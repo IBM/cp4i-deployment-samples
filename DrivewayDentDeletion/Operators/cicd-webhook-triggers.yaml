@@ -60,12 +60,10 @@ spec:
           "
       resources:
         requests:
-          # memory: "4Gi"
-          # cpu: "2"
+          memory: "4Gi"
+          cpu: "1"
           ephemeral-storage: "25Gi"
         limits:
-          # memory: "4Gi"
-          # cpu: "2"
           ephemeral-storage: "30Gi"
 
 ---
@@ -106,12 +104,10 @@ spec:
           "
       resources:
         requests:
-          # memory: "4Gi"
-          # cpu: "1"
+          memory: "4Gi"
+          cpu: "1"
           ephemeral-storage: "20Gi"
         limits:
-          # memory: "4Gi"
-          # cpu: "1"
           ephemeral-storage: "25Gi"
 
 ---
@@ -677,13 +673,13 @@ metadata:
 
 ---
 
-# Role for the test task to get routes and pods in dev namespace
+# Role for the test task to get routes in dev namespace
 kind: Role
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
   name: role-test-routes
 rules:
-# Permissions for test task to list routes and pods in dev namespace
+# Permissions for test task to list routes in dev namespace
 - apiGroups: ["route.openshift.io"]
   resources: ["routes"]
   verbs: ["list"]
@@ -705,21 +701,21 @@ roleRef:
 
 ---
 
-# Role for the test task to list pods in postgres namespace
+# Role for the test task in postgres namespace
 kind: Role
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
   name: role-postgres-test-task
   namespace: postgres
 rules:
-# Permissions for test task to list pods in postgres namespace
+# Permissions for test task to list, get and create pods in postgres namespace
 - apiGroups: [""]
   resources: ["pods", "pods/exec"]
   verbs: ["list", "get", "create"]
 
 ---
 
-# Role binding for the tesk task to list pods in test task in postgres namespace
+# Role binding for the tesk task in postgres namespace
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
