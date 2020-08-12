@@ -494,6 +494,8 @@ spec:
           serviceAccountName: cicd-ace-sa
         - taskName: api-test
           serviceAccountName: cicd-test
+        # - taskName: image-push-to-test-mq
+        #   serviceAccountName: cicd-push-to-test
       resources:
       - name: git-source
         resourceRef:
@@ -633,6 +635,15 @@ metadata:
   name: cicd-mq-sa
 secrets:
   - name: er-pull-secret
+  - name: cicd-{{NAMESPACE}}-ddd-dev
+
+---
+
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: cicd-push-to-test
+secrets:
   - name: cicd-{{NAMESPACE}}-ddd-dev
 
 ---
