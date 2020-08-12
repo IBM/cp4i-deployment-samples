@@ -141,7 +141,7 @@ spec:
 
 ---
 
-# this task is to push the images that our tested to test/prod namespace
+# this task is to push the images that our tested to test namespace
 apiVersion: tekton.dev/v1beta1
 kind: Task
 metadata:

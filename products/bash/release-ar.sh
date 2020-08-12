@@ -55,5 +55,5 @@ spec:
       class: ibmc-file-gold-gid
     couchVolume:
       class: ibmc-block-gold
-  version: 2020.2.1-0
+  version: 2020.2.1.1-0
 EOF
