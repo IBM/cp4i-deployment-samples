@@ -10,6 +10,76 @@ secrets:
 
 ---
 
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: buildah-mq
+spec:
+  storageClassName: cp4i-block-performance
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 100Gi
+
+---
+
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: buildah-ace-api
+spec:
+  storageClassName: cp4i-block-performance
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 100Gi
+
+---
+
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: buildah-ace-acme
+spec:
+  storageClassName: cp4i-block-performance
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 100Gi
+
+---
+
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: buildah-ace-bernie
+spec:
+  storageClassName: cp4i-block-performance
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 100Gi
+
+---
+
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: buildah-ace-chris
+spec:
+  storageClassName: cp4i-block-performance
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 100Gi
+
+---
+
 apiVersion: tekton.dev/v1alpha1
 kind: PipelineResource
 metadata:
@@ -27,7 +97,7 @@ spec:
 apiVersion: tekton.dev/v1beta1
 kind: Task
 metadata:
-  name: build-ace-task
+  name: build-task
 spec:
   params:
     - name: imageTag
@@ -35,13 +105,16 @@ spec:
       description: The image tag
     - name: imageName
       type: string
-      description: The image tag
+      description: The image name
     - name: dockerfile
       type: string
       description: The dockerfile
     - name: contextPath
       type: string
       description: The context to run the commands
+    - name: pvc
+      type: string
+      description: The PVC to use for layers
   resources:
     inputs:
       - name: git-source
@@ -50,71 +123,31 @@ spec:
     - name: build
       image: quay.io/buildah/stable:latest
       securityContext:
-        runAsUser: 0
         privileged: true
-      command:
-        - sh
-        - -c
-        - "cd /workspace/git-source/DrivewayDentDeletion/Operators/Dockerfiles && \
-           buildah --storage-driver vfs build-using-dockerfile -f /workspace/git-source/DrivewayDentDeletion/Operators/Dockerfiles/$(params.dockerfile) -t image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}/$(params.imageName):$(params.imageTag) /workspace/git-source/DrivewayDentDeletion/$(params.contextPath) && \
-           buildah --storage-driver vfs push --tls-verify=false image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}/$(params.imageName):$(params.imageTag)
-          "
+      script: |
+        df -h /var/lib/containers
+        buildah --storage-driver vfs bud \
+          -f /workspace/git-source/DrivewayDentDeletion/Operators/Dockerfiles/$(params.dockerfile) \
+          -t image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}/$(params.imageName):$(params.imageTag) \
+          /workspace/git-source/DrivewayDentDeletion/$(params.contextPath)
+        buildah --storage-driver vfs push \
+          --tls-verify=false \
+          image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}/$(params.imageName):$(params.imageTag)
+        df -h /var/lib/containers
+      volumeMounts:
+         - mountPath: /var/lib/containers
+           name: varlibcontainers
       resources:
         requests:
           memory: "4Gi"
           cpu: "1"
-          ephemeral-storage: "25Gi"
+          ephemeral-storage: "1Gi"
         limits:
-          memory: "4Gi"
-          cpu: "1"
-          ephemeral-storage: "30Gi"
-
----
-
-apiVersion: tekton.dev/v1beta1
-kind: Task
-metadata:
-  name: build-mq-task
-spec:
-  params:
-    - name: imageTag
-      type: string
-      description: The image tag
-    - name: imageName
-      type: string
-      description: The image tag
-    - name: dockerfile
-      type: string
-      description: The dockerfile
-    - name: contextPath
-      type: string
-      description: The context to run the commands
-  resources:
-    inputs:
-      - name: git-source
-        type: git
-  steps:
-    - name: build
-      image: quay.io/buildah/stable:latest
-      securityContext:
-        runAsUser: 0
-        privileged: true
-      command:
-        - sh
-        - -c
-        - "cd /workspace/git-source/DrivewayDentDeletion/Operators/Dockerfiles && \
-           buildah --storage-driver vfs build-using-dockerfile -f /workspace/git-source/DrivewayDentDeletion/Operators/Dockerfiles/$(params.dockerfile) -t image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}/$(params.imageName):$(params.imageTag) /workspace/git-source/DrivewayDentDeletion/$(params.contextPath) && \
-           buildah --storage-driver vfs push --tls-verify=false image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}/$(params.imageName):$(params.imageTag)
-          "
-      resources:
-        requests:
-          memory: "4Gi"
-          cpu: "1"
-          ephemeral-storage: "20Gi"
-        limits:
-          memory: "4Gi"
-          cpu: "1"
-          ephemeral-storage: "25Gi"
+          ephemeral-storage: "1Gi"
+  volumes:
+    - name: varlibcontainers
+      persistentVolumeClaim:
+        claimName: $(params.pvc)
 
 ---
 
@@ -162,7 +195,7 @@ spec:
   tasks:
     - name: build-mq
       taskRef:
-        name: build-mq-task
+        name: build-task
       params:
         - name: imageName
           value: "mq-ddd"
@@ -172,6 +205,8 @@ spec:
           value: "MQ.Dockerfile"
         - name: contextPath
           value: ""
+        - name: pvc
+          value: "buildah-mq"
       resources:
         inputs:
           - name: git-source
@@ -196,7 +231,7 @@ spec:
             resource: git-source
     - name: build-ace-int-server-ace-api
       taskRef:
-        name: build-ace-task
+        name: build-task
       params:
         - name: imageTag
           value: "$(params.imageTag)"
@@ -206,13 +241,15 @@ spec:
           value: "ACE-API.Dockerfile"
         - name: contextPath
           value: "Bar_files/ace-api"
+        - name: pvc
+          value: "buildah-ace-api"
       resources:
         inputs:
           - name: git-source
             resource: git-source
     - name: build-ace-int-server-ace-acme
       taskRef:
-        name: build-ace-task
+        name: build-task
       params:
         - name: imageTag
           value: "$(params.imageTag)"
@@ -222,13 +259,15 @@ spec:
           value: "ACE-Acme.Dockerfile"
         - name: contextPath
           value: "Bar_files/ace-acme"
+        - name: pvc
+          value: "buildah-ace-acme"
       resources:
         inputs:
           - name: git-source
             resource: git-source
     - name: build-ace-int-server-ace-bernie
       taskRef:
-        name: build-ace-task
+        name: build-task
       params:
         - name: imageTag
           value: "$(params.imageTag)"
@@ -238,13 +277,15 @@ spec:
           value: "ACE-Bernie.Dockerfile"
         - name: contextPath
           value: "Bar_files/ace-bernie"
+        - name: pvc
+          value: "buildah-ace-bernie"
       resources:
         inputs:
           - name: git-source
             resource: git-source
     - name: build-ace-int-server-ace-chris
       taskRef:
-        name: build-ace-task
+        name: build-task
       params:
         - name: imageTag
           value: "$(params.imageTag)"
@@ -254,6 +295,8 @@ spec:
           value: "ACE-Chris.Dockerfile"
         - name: contextPath
           value: "Bar_files/ace-chris"
+        - name: pvc
+          value: "buildah-ace-chris"
       resources:
         inputs:
           - name: git-source
