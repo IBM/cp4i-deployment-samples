@@ -74,8 +74,9 @@ echo -e "\n---------------------------------------------------------------------
 export HOST=http://$(oc get routes -n ${namespace} | grep ace-api-int-srv-http | grep -v ace-api-int-srv-https | awk '{print $2}')/drivewayrepair
 echo "INFO: Host: ${HOST}"
 
-DB_NAME=$(echo $namespace | sed 's/-/_/g')
-DB_NAME=db_${DB_NAME}
+USERNAME=$(echo $namespace | sed 's/-/_/g')
+DB_NAME=db_${USERNAME}
+echo "INFO: Username name is: '${USERNAME}'"
 echo "INFO: Database name is: '${DB_NAME}'"
 
 echo -e "\nINFO: Testing E2E API now..."
@@ -109,23 +110,20 @@ if [ "$post_response_code" == "200" ]; then
     exit 1
   fi
 
-  temp=$(oc auth can-i get pod -n postgres)
-  echo $temp
-
   echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------"
   # ------- Delete from the database -------
-  echo -e "\nINFO: Deleting row from database '${DB_NAME}'..."
+  echo -e "\nINFO: Deleting row from database '${DB_NAME}' as user '${USERNAME}'..."
   echo "INFO: Deleting the row with quote id $quote_id from the database"
   oc exec -n postgres -it $(oc get pod -n postgres -l name=postgresql -o jsonpath='{.items[].metadata.name}') \
-    -- psql -U admin -d ${DB_NAME} -c \
+    -- psql -U ${USERNAME} -d ${DB_NAME} -c \
     "DELETE FROM quotes WHERE quotes.quoteid=${quote_id};"
 
   echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------"
 
   #  ------- Get row to confirm deletion -------
-  echo -e "\nINFO: Select and print the row from database '${DB_NAME}' with id '$quote_id' to confirm deletion"
+  echo -e "\nINFO: Select and print the row as user '${USERNAME}' from database '${DB_NAME}' with id '$quote_id' to confirm deletion"
   oc exec -n postgres -it $(oc get pod -n postgres -l name=postgresql -o jsonpath='{.items[].metadata.name}') \
-    -- psql -U admin -d ${DB_NAME} -c \
+    -- psql -U ${USERNAME} -d ${DB_NAME} -c \
     "SELECT * FROM quotes WHERE quotes.quoteid=${quote_id};"
   
 else
