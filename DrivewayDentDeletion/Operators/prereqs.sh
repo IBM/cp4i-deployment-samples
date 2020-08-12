@@ -170,7 +170,7 @@ for image_project in "${image_projects[@]}"
 do
   echo "INFO: Configuring postgres in the namespace '$image_project'"
   if ! ${PWD}/../../products/bash/configure-postgres.sh -n ${image_project} ; then
-    echo "ERROR: Failed to configure postgres in the namespace '$image_project', exiting prereqs now." 1>&2
+    echo "ERROR: Failed to configure postgres in the namespace '$image_project'" 1>&2
     exit 1
   fi
 
@@ -182,25 +182,25 @@ do
 
   echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
-  echo "INFO: Creating operator group and subscription in ${image_project}"
+  echo "INFO: Creating operator group and subscription in the namespace '${image_project}'"
   if ! ${PWD}/../../products/bash/deploy-og-sub.sh -n ${image_project} ; then
-    echo "ERROR: Failed to apply subscriptions and csv in the namespace '$image_project', exiting prereqs now." 1>&2
+    echo "ERROR: Failed to apply subscriptions and csv in the namespace '$image_project'" 1>&2
     exit 1
   fi
 
   echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
-  echo "INFO: Releasing Navigator in ${image_project}"
+  echo "INFO: Releasing Navigator in the namespace '${image_project}'"
   if ! ${PWD}/../../products/bash/release-navigator.sh -n ${image_project} -r ${nav_replicas} ; then
-    echo "ERROR: Failed to release the platform navigator in the namespace '$image_project', exiting prereqs now." 1>&2
+    echo "ERROR: Failed to release the platform navigator in the namespace '$image_project'" 1>&2
     exit 1
   fi
 
   echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
-  echo "INFO: Releasing ACE dashboard in ${image_project}"
-  if ! ${PWD}/../../products/bash/release-ace.sh -n ${image_project} -c ; then
-    echo "ERROR: Failed to release the ace dashboard in the namespace '$image_project', exiting prereqs now." 1>&2
+  echo "INFO: Releasing ACE dashboard in the namespace '${image_project}'"
+  if ! ${PWD}/../../products/bash/release-ace-dashboard.sh -n ${image_project} ; then
+    echo "ERROR: Failed to release the ace dashboard in the namespace '$image_project'" 1>&2
     exit 1
   fi
   echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
