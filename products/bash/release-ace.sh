@@ -16,6 +16,7 @@
 #   -n : <namespace> (string), Defaults to "cp4i"
 #   -r : <dashboard-release-name> (string), Defaults to "ace-dashboard-demo"
 #   -e : <designer-release-name> (string), Defaults to "ace-designer-demo"
+#   -c : <releaseBoth> (string), Default to releasing both ace dashboard and designer
 #
 # USAGE:
 #   With defaults values
@@ -25,13 +26,15 @@
 #     ./release-ace -n cp4i-prod -r prod
 
 function usage {
-    echo "Usage: $0 -n <namespace> -r <dashboard-release-name> -e <designer-release-name>"
+    echo "Usage: $0 -n <namespace> -r <dashboard-release-name> -e <designer-release-name> [-c]"
 }
 
 namespace="cp4i"
 dashboard_release_name="ace-dashboard-demo"
 designer_release_name="ace-designer-demo"
-while getopts "n:r:e:" opt; do
+releaseBoth="true"
+
+while getopts "n:r:e:c" opt; do
   case ${opt} in
     n ) namespace="$OPTARG"
       ;;
@@ -39,11 +42,14 @@ while getopts "n:r:e:" opt; do
       ;;
     e ) designer_release_name="$OPTARG"
       ;;
+    c ) releaseBoth=false
+      ;;
     \? ) usage; exit
       ;;
   esac
 done
 
+echo "INFO: Release ACE Dashboard..."
 cat << EOF | oc apply -f -
 apiVersion: appconnect.ibm.com/v1beta1
 kind: Dashboard
@@ -61,6 +67,12 @@ spec:
     type: persistent-claim
   version: 11.0.0
 EOF
+
+
+# We install ACE designer iff needed i.e. -c is present
+if [[ "${releaseBoth}" == "true" ]]; then
+
+echo "INFO: Release ACE Designer..."
 
 cat << EOF | oc apply -f -
 apiVersion: appconnect.ibm.com/v1beta1
@@ -84,3 +96,4 @@ spec:
   designerMappingAssist:
     enabled: true
 EOF
+fi

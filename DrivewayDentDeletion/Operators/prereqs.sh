@@ -68,6 +68,7 @@ echo "Creating secrets to push images to openshift local registry"
 oc create -n ${dev_namespace} secret docker-registry cicd-${dev_namespace} --docker-server=${DOCKER_REGISTRY} \
   --docker-username=${username} --docker-password=${password} -o yaml | oc apply -f -
 
+
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
 # Creating a new secret as the type of entitlement key is 'kubernetes.io/dockerconfigjson' but we need secret of type 'kubernetes.io/basic-auth' to pull imags from the ER
@@ -167,25 +168,40 @@ declare -a image_projects=("${dev_namespace}" "${test_namespace}")
 
 for image_project in "${image_projects[@]}"
 do
-  ${PWD}/../../products/bash/configure-postgres.sh -n ${image_project}
+  echo "INFO: Configuring postgres in the namespace '$image_project'"
+  if ! ${PWD}/../../products/bash/configure-postgres.sh -n ${image_project} ; then
+    echo "ERROR: Failed to configure postgres in the namespace '$image_project', exiting prereqs now." 1>&2
+    exit 1
+  fi
+
   echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
-done
 
-declare -a image_projects=("${dev_namespace}" "${test_namespace}")
-
-for image_project in "${image_projects[@]}"
-do
   echo "INFO: Creating secret to pull images from the ER"
-
   oc create -n ${image_project} secret docker-registry ibm-entitlement-key --docker-server=${ER_REGISTRY} \
     --docker-username=${ER_USERNAME} --docker-password=${ER_PASSWORD} -o yaml | oc apply -f -
 
+  echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
+
   echo "INFO: Creating operator group and subscription in ${image_project}"
-  ${PWD}/../../products/bash/deploy-og-sub.sh -n ${image_project}
-  sleep 10
+  if ! ${PWD}/../../products/bash/deploy-og-sub.sh -n ${image_project} ; then
+    echo "ERROR: Failed to apply subscriptions and csv in the namespace '$image_project', exiting prereqs now." 1>&2
+    exit 1
+  fi
+
+  echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
+
   echo "INFO: Releasing Navigator in ${image_project}"
-  ${PWD}/../../products/bash/release-navigator.sh -n ${image_project} -r ${nav_replicas}
+  if ! ${PWD}/../../products/bash/release-navigator.sh -n ${image_project} -r ${nav_replicas} ; then
+    echo "ERROR: Failed to release the platform navigator in the namespace '$image_project', exiting prereqs now." 1>&2
+    exit 1
+  fi
+
+  echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
+
   echo "INFO: Releasing ACE dashboard in ${image_project}"
-  ${PWD}/../../products/bash/release-ace.sh -n ${image_project}
+  if ! ${PWD}/../../products/bash/release-ace.sh -n ${image_project} -c ; then
+    echo "ERROR: Failed to release the ace dashboard in the namespace '$image_project', exiting prereqs now." 1>&2
+    exit 1
+  fi
   echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 done

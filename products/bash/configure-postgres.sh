@@ -44,7 +44,7 @@ if ! oc exec -n postgres -it $(oc get pod -n postgres -l name=postgresql -o json
 echo "INFO: Creating tables in the database db_${namespace}"
   oc exec -n postgres -it $(oc get pod -n postgres -l name=postgresql -o jsonpath='{.items[].metadata.name}') \
     -- psql -U ${namespace} -d db_${namespace} -c \
-  'CREATE TABLE QUOTES (
+  'CREATE TABLE IF NOT EXISTS QUOTES (
     QuoteID SERIAL PRIMARY KEY NOT NULL,
     Name VARCHAR(100),
     EMail VARCHAR(100),
@@ -58,5 +58,6 @@ echo "INFO: Creating tables in the database db_${namespace}"
     ChrisCost INTEGER,
     ChrisDate DATE);'
 else
-    echo "INFO: Table quotes already exists, skipping this step"
+    echo "ERROR: Error occured in creating the QUOTES table, exiting.... "
+    exit 1
 fi
