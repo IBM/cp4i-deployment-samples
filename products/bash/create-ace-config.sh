@@ -22,13 +22,20 @@ while getopts "n:r:" opt; do
   esac
 done
 
-namespace=$(echo $namespace | sed 's/-/_/g')
+echo "INFO: Creating policyproject for ace"
 
+namespace_for_db=$(echo $namespace | sed 's/-/_/g')
+
+echo "INFO: Namespace is: '$namespace'"
+echo "INFO: Database name is: 'db_$namespace_for_db'"
+echo "INFO: Username for the database is: '$namespace_for_db'"
+
+echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
+
+echo "INFO: Creating directories for default policies"
 mkdir -p ${PWD}/tmp
 mkdir -p ${PWD}/DefaultPolicies
 
-echo "INFO: Creating policyproject for ace"
-echo "************************************"
 echo "INFO: Creating default.policyxml"
 cat << EOF > ${PWD}/DefaultPolicies/default.policyxml
 <?xml version="1.0" encoding="UTF-8"?>
@@ -47,17 +54,19 @@ cat << EOF > ${PWD}/DefaultPolicies/default.policyxml
 </policies>
 EOF
 
+echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
+
 echo "INFO: Creating PostgresqlPolicy.policyxml"
 cat << EOF > ${PWD}/DefaultPolicies/PostgresqlPolicy.policyxml
 <?xml version="1.0" encoding="UTF-8"?>
 <policies>
   <policy policyType="JDBCProviders" policyName="PostgresqlPolicy" policyTemplate="DB2_91">
-    <databaseName>db_${namespace}</databaseName>
+    <databaseName>db_${namespace_for_db}</databaseName>
     <databaseType>Postgresql</databaseType>
     <databaseVersion>999</databaseVersion>
     <type4DriverClassName>org.postgresql.Driver</type4DriverClassName>
     <type4DatasourceClassName>org.postgresql.xa.PGXADataSource</type4DatasourceClassName>
-    <connectionUrlFormat>jdbc:postgresql://[serverName]:[portNumber]/[databaseName]?user=${namespace}&amp;password=password</connectionUrlFormat>
+    <connectionUrlFormat>jdbc:postgresql://[serverName]:[portNumber]/[databaseName]?user=${namespace_for_db}&amp;password=password</connectionUrlFormat>
     <connectionUrlFormatAttr1></connectionUrlFormatAttr1>
     <connectionUrlFormatAttr2></connectionUrlFormatAttr2>
     <connectionUrlFormatAttr3></connectionUrlFormatAttr3>
@@ -77,6 +86,8 @@ cat << EOF > ${PWD}/DefaultPolicies/PostgresqlPolicy.policyxml
 </policies>
 EOF
 
+echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
+
 echo "INFO: Creating policy.descriptor"
 cat << EOF > ${PWD}/DefaultPolicies/policy.descriptor
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
@@ -85,48 +96,44 @@ cat << EOF > ${PWD}/DefaultPolicies/policy.descriptor
 </ns2:policyProjectDescriptor>
 EOF
 
+echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
+
 echo "INFO: Listing the files in ${PWD}/DefaultPolicies"
 ls ${PWD}/DefaultPolicies
 
-mkdir -p ${PWD}/tmp/extracted
-FILES=${PWD}/DefaultPolicies/*
-for f in $FILES
-do
-  echo "********************* $f **************************"
-  cat $f
-done
+echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
+
+# Create a zip for default policies
+echo "INFO: Creating a zip for default policies"
 python -m zipfile -c policyproject.zip ${PWD}/DefaultPolicies
-python -m zipfile -e policyproject.zip ${PWD}/tmp/extracted
+
+echo "INFO: Printing contents of '${PWD}':"
 ls -lFA ${PWD}
-ls -lFA ${PWD}/tmp/extracted
-FILES=${PWD}/tmp/extracted/*
-for f in $FILES
-do
-  echo "********************* Extracted: $f **************************"
-  cat $f
-done
 
+echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
-echo "INFO: encoding the policy project"
+echo "INFO: encoding the policy project in the namespace '$namespace'"
 if [[ "$OSTYPE" == "linux-gnu"* ]]; then
   temp=$(base64 --wrap=0 ${PWD}/policyproject.zip)
 elif [[ "$OSTYPE" == "darwin"* ]]; then
-  temp=$(base64 ${PWD}/DefaultPolicies/policyproject.zip)
+  temp=$(base64 ${PWD}/policyproject.zip)
 else
   temp=$(base64 --wrap=0 ${PWD}/policyproject.zip)
 fi
 
+echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
+
 # setting up policyporject for both namespaces
-declare -a image_projects=("${dev_namespace}" "${test_namespace}")
-echo "Creating secrets to push images to openshift local registry"
-for image_project in "${image_projects[@]}"
-do
+# declare -a image_projects=("${dev_namespace}" "${test_namespace}")
+# for image_project in "${image_projects[@]}"
+  # do
+echo "INFO: Setting up policyporject in the namespace '$namespace'"
 configyaml="\
 apiVersion: appconnect.ibm.com/v1beta1
 kind: Configuration
 metadata:
   name: ace-policyproject
-  namespace: ${image_project}
+  namespace: ${namespace}
 spec:
   contents: "$temp"
   type: policyproject
@@ -135,4 +142,6 @@ spec:
   echo "INFO: Output -> policy-project-config.yaml"
   cat ${PWD}/tmp/policy-project-config.yaml
   oc apply -f ${PWD}/tmp/policy-project-config.yaml
-done
+
+  echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
+# done

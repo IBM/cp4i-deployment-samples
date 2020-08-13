@@ -30,8 +30,8 @@ function usage() {
 namespace="cp4i"
 branch="master"
 repo="https://github.com/IBM/cp4i-deployment-samples.git"
-tick="\xF0\x9F\x98\x81"
-cross="\xF0\x9F\x92\xA9"
+tick="\xE2\x9C\x85"
+cross="\xE2\x9D\x8C"
 all_done="\xF0\x9F\x92\xAF"
 sum=0
 
