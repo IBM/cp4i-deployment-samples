@@ -1,0 +1,282 @@
+apiVersion: tekton.dev/v1alpha1
+kind: Pipeline
+metadata:
+  name: main-pipeline
+spec:
+  params:
+    - name: imageTag
+      type: string
+      description: The image tag
+  resources:
+    - name: git-source
+      type: git
+  tasks:
+    # MQ build
+    - name: build-mq
+      taskRef:
+        name: build-task
+      params:
+        - name: imageName
+          value: "mq-ddd"
+        - name: imageTag
+          value: "latest"
+        - name: dockerfile
+          value: "MQ.Dockerfile"
+        - name: contextPath
+          value: ""
+        - name: pvc
+          value: "buildah-mq"
+      resources:
+        inputs:
+          - name: git-source
+            resource: git-source
+
+    # MQ deploy
+    - name: deploy-wait-mq
+      runAfter:
+        - build-mq
+      taskRef:
+        name: deploy-task
+      params:
+        - name: imageTag
+          value: "latest"
+        - name: imageName
+          value: "mq-ddd"
+        - name: releaseName
+          value: "mq-ddd-qm"
+        - name: releaseScript
+          value: release-mq.sh
+      resources:
+        inputs:
+          - name: git-source
+            resource: git-source
+
+    # build all ace
+    - name: build-ace-int-server-ace-api
+      taskRef:
+        name: build-task
+      params:
+        - name: imageTag
+          value: "$(params.imageTag)"
+        - name: imageName
+          value: "ace-api"
+        - name: dockerfile
+          value: "ACE-API.Dockerfile"
+        - name: contextPath
+          value: "Bar_files/ace-api"
+        - name: pvc
+          value: "buildah-ace-api"
+      resources:
+        inputs:
+          - name: git-source
+            resource: git-source
+    - name: build-ace-int-server-ace-acme
+      taskRef:
+        name: build-task
+      params:
+        - name: imageTag
+          value: "$(params.imageTag)"
+        - name: imageName
+          value: "ace-acme"
+        - name: dockerfile
+          value: "ACE-Acme.Dockerfile"
+        - name: contextPath
+          value: "Bar_files/ace-acme"
+        - name: pvc
+          value: "buildah-ace-acme"
+      resources:
+        inputs:
+          - name: git-source
+            resource: git-source
+    - name: build-ace-int-server-ace-bernie
+      taskRef:
+        name: build-task
+      params:
+        - name: imageTag
+          value: "$(params.imageTag)"
+        - name: imageName
+          value: "ace-bernie"
+        - name: dockerfile
+          value: "ACE-Bernie.Dockerfile"
+        - name: contextPath
+          value: "Bar_files/ace-bernie"
+        - name: pvc
+          value: "buildah-ace-bernie"
+      resources:
+        inputs:
+          - name: git-source
+            resource: git-source
+    - name: build-ace-int-server-ace-chris
+      taskRef:
+        name: build-task
+      params:
+        - name: imageTag
+          value: "$(params.imageTag)"
+        - name: imageName
+          value: "ace-chris"
+        - name: dockerfile
+          value: "ACE-Chris.Dockerfile"
+        - name: contextPath
+          value: "Bar_files/ace-chris"
+        - name: pvc
+          value: "buildah-ace-chris"
+      resources:
+        inputs:
+          - name: git-source
+            resource: git-source
+
+    # deploy all ace
+    - name: deploy-wait-ace-api
+      runAfter:
+        - build-ace-int-server-ace-api
+      taskRef:
+        name: deploy-task
+      params:
+        - name: imageTag
+          value: "$(params.imageTag)"
+        - name: imageName
+          value: "ace-api"
+        - name: releaseName
+          value: "ace-api-int-srv"
+        - name: releaseScript
+          value: release-ace-integration-server.sh
+      resources:
+        inputs:
+          - name: git-source
+            resource: git-source
+    - name: deploy-wait-ace-bernie
+      runAfter:
+        - build-ace-int-server-ace-bernie
+      taskRef:
+        name: deploy-task
+      params:
+        - name: imageTag
+          value: "$(params.imageTag)"
+        - name: imageName
+          value: "ace-bernie"
+        - name: releaseName
+          value: "ace-bernie-int-srv"
+        - name: releaseScript
+          value: release-ace-integration-server.sh
+      resources:
+        inputs:
+          - name: git-source
+            resource: git-source
+    - name: deploy-wait-ace-acme
+      runAfter:
+        - build-ace-int-server-ace-acme
+      taskRef:
+        name: deploy-task
+      params:
+        - name: imageTag
+          value: "$(params.imageTag)"
+        - name: imageName
+          value: "ace-acme"
+        - name: releaseName
+          value: "ace-acme-int-srv"
+        - name: releaseScript
+          value: release-ace-integration-server.sh
+      resources:
+        inputs:
+          - name: git-source
+            resource: git-source
+    - name: deploy-wait-ace-chris
+      runAfter:
+        - build-ace-int-server-ace-chris
+      taskRef:
+        name: deploy-task
+      params:
+        - name: imageTag
+          value: "$(params.imageTag)"
+        - name: imageName
+          value: "ace-chris"
+        - name: releaseName
+          value: "ace-chris-int-srv"
+        - name: releaseScript
+          value: release-ace-integration-server.sh
+      resources:
+        inputs:
+          - name: git-source
+            resource: git-source
+
+    # test end-to-end API
+    - name: api-test
+      runAfter:
+        - deploy-wait-ace-chris
+        - deploy-wait-mq
+        - deploy-wait-ace-api
+        - deploy-wait-ace-acme
+        - deploy-wait-ace-bernie
+      taskRef:
+        name: test-task
+      params:
+        - name: imageTag
+          value: "$(params.imageTag)"
+      resources:
+        inputs:
+          - name: git-source
+            resource: git-source
+
+    # push ace images to test namespace
+    - name: image-push-to-test-ace-chris
+      runAfter:
+        - api-test
+      taskRef:
+        name: image-push-to-test
+      params:
+        - name: imageTag
+          value: "$(params.imageTag)"
+        - name: imageName
+          value: "ace-chris"
+        - name: pvc
+          value: "buildah-ace-chris"
+    - name: image-push-to-test-ace-acme
+      runAfter:
+        - api-test
+      taskRef:
+        name: image-push-to-test
+      params:
+        - name: imageTag
+          value: "$(params.imageTag)"
+        - name: imageName
+          value: "ace-acme"
+        - name: pvc
+          value: "buildah-ace-acme"
+    - name: image-push-to-test-ace-bernie
+      runAfter:
+        - api-test
+      taskRef:
+        name: image-push-to-test
+      params:
+        - name: imageTag
+          value: "$(params.imageTag)"
+        - name: imageName
+          value: "ace-bernie"
+        - name: pvc
+          value: "buildah-ace-bernie"
+    - name: image-push-to-test-ace-api
+      runAfter:
+        - api-test
+      taskRef:
+        name: image-push-to-test
+      params:
+        - name: imageTag
+          value: "$(params.imageTag)"
+        - name: imageName
+          value: "ace-api"
+        - name: pvc
+          value: "buildah-ace-api"
+
+    # push mq image to test namespace
+    - name: image-push-to-test-mq
+      runAfter:
+        - api-test
+      taskRef:
+        name: image-push-to-test
+      params:
+        - name: imageTag
+          value: "latest"
+        - name: imageName
+          value: "mq-ddd"
+        - name: pvc
+          value: "buildah-mq"
