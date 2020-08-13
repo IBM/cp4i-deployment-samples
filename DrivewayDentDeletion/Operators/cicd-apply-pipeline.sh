@@ -53,7 +53,10 @@ while getopts "n:r:b:" opt; do
   esac
 done
 
+DEV_NAMESPACE=$namespace-ddd-dev
+
 echo "INFO: Namespace: $namespace"
+echo "INFO: Dev namespace: $DEV_NAMESPACE"
 echo "INFO: Branch: $branch"
 echo "INFO: Repo: $repo"
 
