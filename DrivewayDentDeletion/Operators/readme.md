@@ -27,7 +27,7 @@ These steps will need to be documented in the demo docs:
   export FORKED_REPO=https://github.com/IBM/cp4i-deployment-samples.git
   ./cicd-apply-pipeline.sh -n $NAMESPACE -r $FORKED_REPO -b $BRANCH
   ```
-- The above script `cicd-apply-pipeline.sh` will print out the trigger URL
+- The above script `cicd-apply-pipeline.sh` will print out the trigger URL and the next step.
 
 # Pipelines
 ![Overview of aaS](../media/dev-pipeline.svg)

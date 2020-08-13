@@ -235,7 +235,7 @@ if [[ $sum -gt 0 ]]; then
 else
   # print route for webbook
   echo "INFO: Your trigger route for the git webhook is: $WEBHOOK_ROUTE"
-  echo "INFO: Add the trigger URL to the repo as a webhook with the Content type as 'application/json', which triggers an initial run of the pipeline."
+  echo -e "\nINFO: The next step is to add the trigger URL to the forked repo as a webhook with the Content type as 'application/json', which triggers an initial run of the pipeline.\n"
   printf "$tick  $all_done "
   echo "Successfully applied all the cicd pipeline resources and requirements"
 fi

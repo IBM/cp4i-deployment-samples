@@ -104,17 +104,17 @@ spec:
     - name: pull-retag-push-to-test
       image: quay.io/buildah/stable:latest
       securityContext:
-        runAsUser: 0
         privileged: true
-      command:
-        - sh
-        - -c
-        - "df -h /var/lib/containers && \
-           buildah pull --tls-verify=false image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}-ddd-dev/$(params.imageName):$(params.imageTag) && \
-           buildah tag image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}-ddd-dev/$(params.imageName):$(params.imageTag) image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}-ddd-test/$(params.imageName):$(params.imageTag)-test && \
-           buildah push --tls-verify=false image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}-ddd-test/$(params.imageName):$(params.imageTag)-test && \
-           df -h /var/lib/containers && \
-          "
+      script: |
+        df -h /var/lib/containers
+        buildah pull --tls-verify=false \
+          image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}-ddd-dev/$(params.imageName):$(params.imageTag)
+        buildah tag \
+          image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}-ddd-dev/$(params.imageName):$(params.imageTag) \
+          image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}-ddd-test/$(params.imageName):$(params.imageTag)-test
+        buildah push --tls-verify=false \
+          image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}-ddd-test/$(params.imageName):$(params.imageTag)-test
+        df -h /var/lib/containers
       volumeMounts:
          - mountPath: /var/lib/containers
            name: varlibcontainers
