@@ -16,7 +16,7 @@
 #   -n : <namespace> (string), Defaults to "cp4i"
 #   -r : <release_name> (string), Defaults to "mq-demo"
 #   -i : <image_name> (string)
-#   -q : <qm_name> (string), Defaults to "QUICKSTART"
+#   -q : <qm_name> (string), Defaults to "QUICKSTART"
 #   -t : optional flag to enable tracing
 #
 # USAGE:
@@ -77,7 +77,7 @@ spec:
             - name: MQSNOAUT
               value: 'yes'
           name: qmgr
-  version: 9.1.5.0-r2
+  version: 9.2.0.0-r1
   web:
     enabled: true
   tracing:
@@ -131,7 +131,7 @@ spec:
             - name: MQSNOAUT
               value: 'yes'
           name: qmgr
-  version: 9.1.5.0-r2
+  version: 9.2.0.0-r1
   web:
     enabled: true
 EOF
@@ -216,5 +216,4 @@ EOF
     time=$((time + 1))
     echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------"
   done
-
 fi

@@ -4,7 +4,7 @@ metadata:
   name: cicd-pipeline
 secrets:
   - name: er-pull-secret
-  - name: cicd-{{NAMESPACE}}
+  - name: cicd-{{NAMESPACE}}-ddd-dev
 # er-pull-secret used to pull images from ER in Dockerfiles
 
 ---
@@ -26,7 +26,7 @@ spec:
 apiVersion: tekton.dev/v1beta1
 kind: Task
 metadata:
-  name: build-task
+  name: build-ace-task
 spec:
   params:
     - name: imageTag
@@ -55,9 +55,61 @@ spec:
         - sh
         - -c
         - "cd /workspace/git-source/DrivewayDentDeletion/Operators/Dockerfiles && \
-           buildah --storage-driver vfs build-using-dockerfile -f /workspace/git-source/DrivewayDentDeletion/Operators/Dockerfiles/$(params.dockerfile) -t image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}/$(params.imageName):$(params.imageTag) /workspace/git-source/DrivewayDentDeletion/$(params.contextPath) && \
-           buildah --storage-driver vfs push --tls-verify=false image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}/$(params.imageName):$(params.imageTag)
+           buildah --storage-driver vfs build-using-dockerfile -f /workspace/git-source/DrivewayDentDeletion/Operators/Dockerfiles/$(params.dockerfile) -t image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}-ddd-dev/$(params.imageName):$(params.imageTag) /workspace/git-source/DrivewayDentDeletion/$(params.contextPath) && \
+           buildah --storage-driver vfs push --tls-verify=false image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}-ddd-dev/$(params.imageName):$(params.imageTag)
           "
+      resources:
+        requests:
+          memory: "4Gi"
+          cpu: "1"
+          ephemeral-storage: "25Gi"
+        limits:
+          ephemeral-storage: "30Gi"
+
+---
+
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: build-mq-task
+spec:
+  params:
+    - name: imageTag
+      type: string
+      description: The image tag
+    - name: imageName
+      type: string
+      description: The image tag
+    - name: dockerfile
+      type: string
+      description: The dockerfile
+    - name: contextPath
+      type: string
+      description: The context to run the commands
+  resources:
+    inputs:
+      - name: git-source
+        type: git
+  steps:
+    - name: build
+      image: quay.io/buildah/stable:latest
+      securityContext:
+        runAsUser: 0
+        privileged: true
+      command:
+        - sh
+        - -c
+        - "buildah --storage-driver vfs build-using-dockerfile -f /workspace/git-source/DrivewayDentDeletion/Operators/Dockerfiles/$(params.dockerfile) -t image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}-ddd-dev/$(params.imageName):$(params.imageTag) /workspace/git-source/DrivewayDentDeletion/$(params.contextPath) && \
+           buildah --storage-driver vfs push --tls-verify=false image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}-ddd-dev/$(params.imageName):$(params.imageTag)
+          "
+      resources:
+        requests:
+          memory: "4Gi"
+          cpu: "1"
+          ephemeral-storage: "20Gi"
+        limits:
+          ephemeral-storage: "25Gi"
+
 ---
 
 apiVersion: tekton.dev/v1beta1
@@ -85,7 +137,36 @@ spec:
   steps:
     - name: oc
       image: quay.io/openshift/origin-cli:latest
-      script: "/workspace/git-source/products/bash/$(params.releaseScript) -n {{NAMESPACE}} -r $(params.releaseName) -i image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}/$(params.imageName):$(params.imageTag)"
+      script: "/workspace/git-source/products/bash/$(params.releaseScript) -n {{NAMESPACE}}-ddd-dev -r $(params.releaseName) -i image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}-ddd-dev/$(params.imageName):$(params.imageTag)"
+
+---
+
+# this task is to push the images that our tested to test namespace
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: image-push-to-test
+spec:
+  params:
+    - name: imageTag
+      type: string
+      description: The image tag
+    - name: imageName
+      type: string
+      description: The image tag
+  steps:
+    - name: pull-retag-push-to-test
+      image: quay.io/buildah/stable:latest
+      securityContext:
+        runAsUser: 0
+        privileged: true
+      command:
+        - sh
+        - -c
+        - "buildah pull --tls-verify=false image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}-ddd-dev/$(params.imageName):$(params.imageTag) && \
+           buildah tag image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}-ddd-dev/$(params.imageName):$(params.imageTag) image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}-ddd-test/$(params.imageName):$(params.imageTag)-test && \
+           buildah push --tls-verify=false image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}-ddd-test/$(params.imageName):$(params.imageTag)-test
+          "
 
 ---
 
@@ -105,27 +186,7 @@ spec:
   steps:
     - name: oc
       image: quay.io/openshift/origin-cli:latest
-      script: "/workspace/git-source/DrivewayDentDeletion/Operators/test-api-e2e.sh -n {{NAMESPACE}} -t $(params.imageTag)"
-
----
-
-apiVersion: tekton.dev/v1beta1
-kind: Task
-metadata:
-  name: test-task
-spec:
-  params:
-    - name: imageTag
-      type: string
-      description: The image tag
-  resources:
-    inputs:
-      - name: git-source
-        type: git
-  steps:
-    - name: oc
-      image: quay.io/openshift/origin-cli:latest
-      script: "/workspace/git-source/DrivewayDentDeletion/Operators/test-api-e2e.sh -n {{NAMESPACE}} -t $(params.imageTag)"
+      script: "/workspace/git-source/DrivewayDentDeletion/Operators/test-api-e2e.sh -n {{NAMESPACE}}-ddd-dev"
 
 ---
 
@@ -142,9 +203,10 @@ spec:
     - name: git-source
       type: git
   tasks:
+    # MQ build
     - name: build-mq
       taskRef:
-        name: build-task
+        name: build-mq-task
       params:
         - name: imageName
           value: "mq-ddd"
@@ -158,6 +220,8 @@ spec:
         inputs:
           - name: git-source
             resource: git-source
+
+    # MQ deploy
     - name: deploy-wait-mq
       runAfter:
         - build-mq
@@ -176,11 +240,11 @@ spec:
         inputs:
           - name: git-source
             resource: git-source
+
+    # build all ace
     - name: build-ace-int-server-ace-api
-      runAfter:
-        - build-mq
       taskRef:
-        name: build-task
+        name: build-ace-task
       params:
         - name: imageTag
           value: "$(params.imageTag)"
@@ -195,10 +259,8 @@ spec:
           - name: git-source
             resource: git-source
     - name: build-ace-int-server-ace-acme
-      runAfter:
-        - build-ace-int-server-ace-api
       taskRef:
-        name: build-task
+        name: build-ace-task
       params:
         - name: imageTag
           value: "$(params.imageTag)"
@@ -213,10 +275,8 @@ spec:
           - name: git-source
             resource: git-source
     - name: build-ace-int-server-ace-bernie
-      runAfter:
-        - build-ace-int-server-ace-acme
       taskRef:
-        name: build-task
+        name: build-ace-task
       params:
         - name: imageTag
           value: "$(params.imageTag)"
@@ -231,10 +291,8 @@ spec:
           - name: git-source
             resource: git-source
     - name: build-ace-int-server-ace-chris
-      runAfter:
-        - build-ace-int-server-ace-bernie
       taskRef:
-        name: build-task
+        name: build-ace-task
       params:
         - name: imageTag
           value: "$(params.imageTag)"
@@ -248,6 +306,8 @@ spec:
         inputs:
           - name: git-source
             resource: git-source
+
+    # deploy all ace
     - name: deploy-wait-ace-api
       runAfter:
         - build-ace-int-server-ace-api
@@ -320,6 +380,8 @@ spec:
         inputs:
           - name: git-source
             resource: git-source
+
+    # test end-to-end API
     - name: api-test
       runAfter:
         - deploy-wait-ace-chris
@@ -336,6 +398,60 @@ spec:
         inputs:
           - name: git-source
             resource: git-source
+
+    # push ace images to test namespace
+    - name: image-push-to-test-ace-chris
+      runAfter:
+        - api-test
+      taskRef:
+        name: image-push-to-test
+      params:
+        - name: imageTag
+          value: "$(params.imageTag)"
+        - name: imageName
+          value: "ace-chris"
+    - name: image-push-to-test-ace-acme
+      runAfter:
+        - api-test
+      taskRef:
+        name: image-push-to-test
+      params:
+        - name: imageTag
+          value: "$(params.imageTag)"
+        - name: imageName
+          value: "ace-acme"
+    - name: image-push-to-test-ace-bernie
+      runAfter:
+        - api-test
+      taskRef:
+        name: image-push-to-test
+      params:
+        - name: imageTag
+          value: "$(params.imageTag)"
+        - name: imageName
+          value: "ace-bernie"
+    - name: image-push-to-test-ace-api
+      runAfter:
+        - api-test
+      taskRef:
+        name: image-push-to-test
+      params:
+        - name: imageTag
+          value: "$(params.imageTag)"
+        - name: imageName
+          value: "ace-api"
+
+    # push mq image to test namespace
+    - name: image-push-to-test-mq
+      runAfter:
+        - api-test
+      taskRef:
+        name: image-push-to-test
+      params:
+        - name: imageTag
+          value: "latest"
+        - name: imageName
+          value: "mq-ddd"
 ---
 
 apiVersion: triggers.tekton.dev/v1alpha1
@@ -372,6 +488,18 @@ spec:
           serviceAccountName: cicd-ace-sa
         - taskName: deploy-wait-ace-bernie
           serviceAccountName: cicd-ace-sa
+        - taskName: api-test
+          serviceAccountName: cicd-test
+        - taskName: image-push-to-test-ace-chris
+          serviceAccountName: cicd-push-to-test
+        - taskName: image-push-to-test-ace-acme
+          serviceAccountName: cicd-push-to-test
+        - taskName: image-push-to-test-ace-bernie
+          serviceAccountName: cicd-push-to-test
+        - taskName: image-push-to-test-ace-api
+          serviceAccountName: cicd-push-to-test
+        - taskName: image-push-to-test-mq
+          serviceAccountName: cicd-push-to-test
       resources:
       - name: git-source
         resourceRef:
@@ -470,7 +598,7 @@ metadata:
   name: cicd-ace-sa
 secrets:
   - name: er-pull-secret
-  - name: cicd-{{NAMESPACE}}
+  - name: cicd-{{NAMESPACE}}-ddd-dev
 
 ---
 
@@ -488,17 +616,17 @@ roleRef:
 
 ---
 
-# Ace Integration Service account configuration
+# MQ Service account configuration
 kind: Role
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
   name: mq-qm-role
 rules:
-# Permissions for appconnect integration server
+# Permissions for MQ
 - apiGroups: ["mq.ibm.com"]
   resources: ["queuemanagers", "queuemanagers/finalizers", "queuemanagers/status"]
   verbs: ["create", "delete", "get", "list", "patch", "update", "watch"]
-# Permission to get pods
+# Permission to get pods during deploy stage
 - apiGroups: [""]
   resources: ["pods"]
   verbs: ["list", "get"]
@@ -511,7 +639,16 @@ metadata:
   name: cicd-mq-sa
 secrets:
   - name: er-pull-secret
-  - name: cicd-{{NAMESPACE}}
+  - name: cicd-{{NAMESPACE}}-ddd-dev
+
+---
+
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: cicd-push-to-test
+secrets:
+  - name: cicd-{{NAMESPACE}}-ddd-dev
 
 ---
 
@@ -526,3 +663,69 @@ roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: Role
   name: mq-qm-role
+
+---
+
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: cicd-test
+
+---
+
+# Role for the test task to get routes in dev namespace
+kind: Role
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: role-test-routes
+rules:
+# Permissions for test task to list routes in dev namespace
+- apiGroups: ["route.openshift.io"]
+  resources: ["routes"]
+  verbs: ["list"]
+
+---
+
+# Role binding for the tesk task to list routes in test task in dev namespace
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: test-routes-rolebinding
+subjects:
+- kind: ServiceAccount
+  name: cicd-test
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: role-test-routes
+
+---
+
+# Role for the test task in postgres namespace
+kind: Role
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: role-postgres-test-task
+  namespace: postgres
+rules:
+# Permissions for test task to list, get and create pods in postgres namespace
+- apiGroups: [""]
+  resources: ["pods", "pods/exec"]
+  verbs: ["list", "get", "create"]
+
+---
+
+# Role binding for the tesk task in postgres namespace
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: test-postgres-rolebinding
+  namespace: postgres
+subjects:
+- kind: ServiceAccount
+  name: cicd-test
+  namespace: "{{NAMESPACE}}-ddd-dev"
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: role-postgres-test-task

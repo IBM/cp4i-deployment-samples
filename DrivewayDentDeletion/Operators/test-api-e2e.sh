@@ -19,15 +19,11 @@
 #     ./test-api-e2e.sh -n <namesapce>
 
 function usage {
-    echo "Usage: $0 -n <namespace> -t <imageTag> -c"
+    echo "Usage: $0 -n <namespace>"
 }
 
 namespace="cp4i"
 os_sed_flag=""
-totalAceReplicas=0
-totalMQReplicas=1
-totalDemoPods=0
-numberOfMatchesForImageTag=0
 
 if [[ $(uname) == Darwin ]]; then
   os_sed_flag="-e"
@@ -37,17 +33,10 @@ while getopts "n:t:c" opt; do
   case ${opt} in
     n ) namespace="$OPTARG"
       ;;
-    t ) imageTag="$OPTARG"
-      ;;
     \? ) usage; exit
       ;;
   esac
 done
-
-echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
-
-echo "INFO: Image tag for ACE: '$imageTag'"
-echo "INFO: Image tag for MQ: 'latest'"
 
 # -------------------------------------- INSTALL JQ ---------------------------------------------------------------------
 
@@ -63,13 +52,14 @@ else
   jqInstalled=true
 fi
 
+JQ=jq
 if [[ "$jqInstalled" == "false" ]]; then
   echo "INFO: JQ is not installed, installing jq..."
   if [[ "$OSTYPE" == "linux-gnu"* ]]; then
     echo "INFO: Installing on linux"
     wget -O jq https://github.com/stedolan/jq/releases/download/jq-1.6/jq-linux64
     chmod +x ./jq
-    cp jq /usr/bin
+    JQ=./jq
   elif [[ "$OSTYPE" == "darwin"* ]]; then
     echo "INFO: Installing on MAC"
     /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)"
@@ -77,7 +67,7 @@ if [[ "$jqInstalled" == "false" ]]; then
   fi
 fi
 
-echo -e "\nINFO: Installed JQ version is $(jq --version)"
+echo -e "\nINFO: Installed JQ version is $($JQ --version)"
 
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
@@ -85,6 +75,11 @@ echo -e "\n---------------------------------------------------------------------
 
 export HOST=http://$(oc get routes -n ${namespace} | grep ace-api-int-srv-http | grep -v ace-api-int-srv-https | awk '{print $2}')/drivewayrepair
 echo "INFO: Host: ${HOST}"
+
+USERNAME=$(echo $namespace | sed 's/-/_/g')
+DB_NAME=db_${USERNAME}
+echo "INFO: Username name is: '${USERNAME}'"
+echo "INFO: Database name is: '${DB_NAME}'"
 
 echo -e "\nINFO: Testing E2E API now..."
 
@@ -94,11 +89,11 @@ post_response_code=$(echo "${post_response##* }")
 
 if [ "$post_response_code" == "200" ]; then
   # The usage of sed here is to prevent an error caused between the -w flag of curl and jq not interacting well
-  quote_id=$(echo "$post_response" | jq '.' | sed $os_sed_flag '$ d' | jq '.QuoteID')
+  quote_id=$(echo "$post_response" | $JQ '.' | sed $os_sed_flag '$ d' | $JQ '.QuoteID')
 
   echo -e "INFO: SUCCESS - POST with response code: ${post_response_code}, QuoteID: ${quote_id}, and Response Body:\n"
   # The usage of sed here is to prevent an error caused between the -w flag of curl and jq not interacting well
-  echo ${post_response} | jq '.' | sed $os_sed_flag '$ d'
+  echo ${post_response} | $JQ '.' | sed $os_sed_flag '$ d'
 
   echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------"
 
@@ -110,7 +105,7 @@ if [ "$post_response_code" == "200" ]; then
   if [ "$get_response_code" == "200" ]; then
     echo -e "INFO: SUCCESS - GET with response code: ${get_response_code}, and Response Body:\n"
     # The usage of sed here is to prevent an error caused between the -w flag of curl and jq not interacting well
-    echo ${get_response} | jq '.' | sed $os_sed_flag '$ d'
+    echo ${get_response} | $JQ '.' | sed $os_sed_flag '$ d'
   else
     echo "ERROR: FAILED - Error code: ${get_response_code}"
     echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
@@ -119,20 +114,20 @@ if [ "$post_response_code" == "200" ]; then
 
   echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------"
   # ------- Delete from the database -------
-  echo -e "\nINFO: Deleting row from database..."
+  echo -e "\nINFO: Deleting row from database '${DB_NAME}' as user '${USERNAME}'..."
   echo "INFO: Deleting the row with quote id $quote_id from the database"
   oc exec -n postgres -it $(oc get pod -n postgres -l name=postgresql -o jsonpath='{.items[].metadata.name}') \
-    -- psql -U admin -d sampledb -c \
+    -- psql -U ${USERNAME} -d ${DB_NAME} -c \
     "DELETE FROM quotes WHERE quotes.quoteid=${quote_id};"
 
   echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------"
 
   #  ------- Get row to confirm deletion -------
-  echo -e "\nINFO: Select and print the row from database with '$quote_id' to confirm deletion"
+  echo -e "\nINFO: Select and print the row as user '${USERNAME}' from database '${DB_NAME}' with id '$quote_id' to confirm deletion..."
   oc exec -n postgres -it $(oc get pod -n postgres -l name=postgresql -o jsonpath='{.items[].metadata.name}') \
-    -- psql -U admin -d sampledb -c \
+    -- psql -U ${USERNAME} -d ${DB_NAME} -c \
     "SELECT * FROM quotes WHERE quotes.quoteid=${quote_id};"
-  
+
 else
   # Failure catch during POST
   echo "ERROR: Post request failed - Error code: ${post_response_code}"
