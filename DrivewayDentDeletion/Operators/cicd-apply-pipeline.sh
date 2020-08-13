@@ -53,17 +53,26 @@ while getopts "n:r:b:" opt; do
   esac
 done
 
-DEV_NAMESPACE=$namespace-ddd-dev
+if ! oc project $namespace-ddd-dev >/dev/null 2>&1 ; then
+  echo "ERROR: The dev namespace '$namespace-ddd-dev' does not exist"
+  exit 1
+fi
+
+if ! oc project $namespace-ddd-test >/dev/null 2>&1 ; then
+  echo "ERROR: The test namespace '$namespace-ddd-test' does not exist"
+  exit 1
+fi
 
 echo "INFO: Namespace: $namespace"
-echo "INFO: Dev namespace: $DEV_NAMESPACE"
+echo "INFO: Dev Namespace: $namespace-ddd-dev"
+echo "INFO: Test Namespace: $namespace-ddd-test"
 echo "INFO: Branch: $branch"
 echo "INFO: Repo: $repo"
 
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
 # switch namespace
-oc project $DEV_NAMESPACE
+oc project $namespace-ddd-dev
 
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
@@ -196,7 +205,7 @@ echo -e "\n---------------------------------------------------------------------
 echo "INFO: Waiting for webhook to appear before"
 
 time=0
-while ! oc get route -n $namespace el-main-trigger --template='http://{{.spec.host}}'; do
+while ! oc get route -n $namespace-ddd-dev el-main-trigger --template='http://{{.spec.host}}'; do
   if [ $time -gt 5 ]; then
     echo "ERROR: Timed-out trying to wait for webhook to appear"
     echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
@@ -207,7 +216,7 @@ while ! oc get route -n $namespace el-main-trigger --template='http://{{.spec.ho
   sleep 60
 done
 
-WEBHOOK_ROUTE=$(oc get route -n $namespace el-main-trigger --template='http://{{.spec.host}}')
+WEBHOOK_ROUTE=$(oc get route -n $namespace-ddd-dev el-main-trigger --template='http://{{.spec.host}}')
 echo "INFO: Webhook route got is: $WEBHOOK_ROUTE"
 
 if [[ -z $WEBHOOK_ROUTE ]]; then
