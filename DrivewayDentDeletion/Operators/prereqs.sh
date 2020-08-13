@@ -183,8 +183,11 @@ do
   echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
   echo "INFO: Creating secret to pull images from the ER"
-  oc create -n ${image_project} secret docker-registry ibm-entitlement-key --docker-server=${ER_REGISTRY} \
-    --docker-username=${ER_USERNAME} --docker-password=${ER_PASSWORD} -o yaml | oc apply -f -
+  if ! oc get secrets -n ${image_project} ibm-entitlement-key; then
+    oc create -n ${image_project} secret docker-registry ibm-entitlement-key --docker-server=${ER_REGISTRY} \
+      --docker-username=${ER_USERNAME} --docker-password=${ER_PASSWORD} -o yaml | oc apply -f -
+  else
+    echo "INFO: ibm-entitlement-key secret already exists"
 
   echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
