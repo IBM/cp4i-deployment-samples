@@ -35,7 +35,7 @@ cross="\xF0\x9F\x92\xA9"
 all_done="\xF0\x9F\x92\xAF"
 sum=0
 
-while getopts "n:r:b" opt; do
+while getopts "n:r:b:" opt; do
   case ${opt} in
   n)
     namespace="$OPTARG"
@@ -54,8 +54,8 @@ while getopts "n:r:b" opt; do
 done
 
 echo "INFO: Namespace: $namespace"
-echo "INFO: Repo: $branch"
-echo "INFO: Branch: $repo"
+echo "INFO: Branch: $branch"
+echo "INFO: Repo: $repo"
 
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------"
 
