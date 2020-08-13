@@ -123,10 +123,7 @@ fi
 
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
-# setting up policyporject for both namespaces
-# declare -a image_projects=("${dev_namespace}" "${test_namespace}")
-# for image_project in "${image_projects[@]}"
-  # do
+# setting up policyporject for namespace
 echo "INFO: Setting up policyporject in the namespace '$namespace'"
 configyaml="\
 apiVersion: appconnect.ibm.com/v1beta1
@@ -142,6 +139,3 @@ spec:
   echo "INFO: Output -> policy-project-config.yaml"
   cat ${PWD}/tmp/policy-project-config.yaml
   oc apply -f ${PWD}/tmp/policy-project-config.yaml
-
-  echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
-# done

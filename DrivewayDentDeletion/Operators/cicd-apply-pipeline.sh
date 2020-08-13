@@ -193,6 +193,20 @@ fi
 
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
+echo "INFO: Waiting for webhook to appear before"
+
+time=0
+while ! oc get route -n $namespace el-main-trigger --template='http://{{.spec.host}}'; do
+  if [ $time -gt 5 ]; then
+    echo "ERROR: Timed-out trying to wait for webhook to appear"
+    echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
+    exit 1
+  fi
+  echo "INFO: Waiting for upto 5 minutes for the webhook route to appear for the tekton pipeline trigger. Waited $time minute(s)"
+  time=$((time + 1))
+  sleep 60
+done
+
 WEBHOOK_ROUTE=$(oc get route -n $namespace el-main-trigger --template='http://{{.spec.host}}')
 echo "INFO: Webhook route got is: $WEBHOOK_ROUTE"
 
