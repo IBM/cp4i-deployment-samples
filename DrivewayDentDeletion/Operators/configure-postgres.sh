@@ -24,22 +24,28 @@ while getopts "n:r:" opt; do
 done
 
 namespace=$(echo $namespace | sed 's/-/_/g')
+postgresPod=$(oc get pod -n postgres -l name=postgresql -o jsonpath='{.items[].metadata.name}')
 
-if ! oc exec -n postgres -it $(oc get pod -n postgres -l name=postgresql -o jsonpath='{.items[].metadata.name}') \
--- psql -U ${namespace} -d db_${namespace} -c '\l' ; then
-    echo "INFO: Creating Database db_${namespace} , User ${namespace}, "
-    oc exec -n postgres -it $(oc get pod -n postgres -l name=postgresql -o jsonpath='{.items[].metadata.name}') \
-    -- psql  << EOF
+# Check if the database exists
+if ! oc exec -n postgres -it $postgresPod \
+  -- psql -U ${namespace} -d db_${namespace} -c '\l' ; then
+  echo "INFO: Creating Database db_${namespace} , User ${namespace}, "
+  oc exec -n postgres -it $postgresPod \
+    -- psql << EOF
 CREATE DATABASE db_${namespace};
 CREATE USER ${namespace} WITH PASSWORD 'password';
 GRANT CONNECT ON DATABASE db_${namespace} TO ${namespace};
 EOF
+  if [ $? -ne 0 ]; then
+    echo "ERROR: Failed to create and setup database" 1>&2
+    exit 1
+  fi
 else
-  echo "INFO: Table already exists, skipping this step"
+  echo "INFO: Database already exists, skipping this step"
 fi
 
-echo "INFO: Creating tables in the database db_${namespace}"
-  oc exec -n postgres -it $(oc get pod -n postgres -l name=postgresql -o jsonpath='{.items[].metadata.name}') \
+echo "INFO: Create QUOTES table in the database db_${namespace}"
+if ! oc exec -n postgres -it $postgresPod \
     -- psql -U ${namespace} -d db_${namespace} -c \
   'CREATE TABLE IF NOT EXISTS QUOTES (
     QuoteID SERIAL PRIMARY KEY NOT NULL,
@@ -53,4 +59,7 @@ echo "INFO: Creating tables in the database db_${namespace}"
     BernieCost INTEGER,
     BernieDate DATE,
     ChrisCost INTEGER,
-    ChrisDate DATE);'
+    ChrisDate DATE);'; then
+  echo "ERROR: Failed to create QUOTES table" 1>&2
+  exit 1
+fi

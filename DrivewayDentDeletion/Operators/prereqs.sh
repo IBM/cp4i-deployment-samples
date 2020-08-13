@@ -26,6 +26,16 @@ while getopts "n:" opt; do
   esac
 done
 
+DOCKERCONFIGJSON=$(oc get secret -n ${namespace} ibm-entitlement-key -o json | jq -r '.data.".dockerconfigjson"' | base64 --decode)
+if [ -z ${DOCKERCONFIGJSON} ] ; then
+  echo "ERROR: Failed to find ibm-entitlement-key secret in the namespace '${namespace}'" 1>&2
+  exit 1
+fi
+
+export ER_REGISTRY=$(echo "$DOCKERCONFIGJSON" | jq -r '.auths' | jq 'keys[]' | tr -d '"')
+export ER_USERNAME=$(echo "$DOCKERCONFIGJSON" | jq -r '.auths."cp.icr.io".username')
+export ER_PASSWORD=$(echo "$DOCKERCONFIGJSON" | jq -r '.auths."cp.icr.io".password')
+
 #namespaces
 export dev_namespace=${namespace}-ddd-dev
 export test_namespace=${namespace}-ddd-test
@@ -72,10 +82,6 @@ oc create -n ${dev_namespace} secret docker-registry cicd-${dev_namespace} --doc
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
 # Creating a new secret as the type of entitlement key is 'kubernetes.io/dockerconfigjson' but we need secret of type 'kubernetes.io/basic-auth' to pull imags from the ER
-export ER_REGISTRY=$(oc get secret -n ${namespace} ibm-entitlement-key -o json | jq -r '.data.".dockerconfigjson"' | base64 --decode | jq -r '.auths' | jq 'keys[]' | tr -d '"')
-export ER_USERNAME=$(oc get secret -n ${namespace} ibm-entitlement-key -o json | jq -r '.data.".dockerconfigjson"' | base64 --decode | jq -r '.auths."cp.icr.io".username')
-export ER_PASSWORD=$(oc get secret -n ${namespace} ibm-entitlement-key -o json | jq -r '.data.".dockerconfigjson"' | base64 --decode | jq -r '.auths."cp.icr.io".password')
-
 echo "Creating secret to pull base images from Entitled Registry"
 cat << EOF | oc apply --namespace ${dev_namespace} -f -
 apiVersion: v1
@@ -169,7 +175,7 @@ declare -a image_projects=("${dev_namespace}" "${test_namespace}")
 for image_project in "${image_projects[@]}"
 do
   echo "INFO: Configuring postgres in the namespace '$image_project'"
-  if ! ${PWD}/../../products/bash/configure-postgres.sh -n ${image_project} ; then
+  if ! ${PWD}/configure-postgres.sh -n ${image_project} ; then
     echo "ERROR: Failed to configure postgres in the namespace '$image_project'" 1>&2
     exit 1
   fi

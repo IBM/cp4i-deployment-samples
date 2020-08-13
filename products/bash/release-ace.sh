@@ -32,7 +32,7 @@ namespace="cp4i"
 dashboard_release_name="ace-dashboard-demo"
 designer_release_name="ace-designer-demo"
 
-while getopts "n:r:e:c" opt; do
+while getopts "n:r:e:" opt; do
   case ${opt} in
     n ) namespace="$OPTARG"
       ;;
