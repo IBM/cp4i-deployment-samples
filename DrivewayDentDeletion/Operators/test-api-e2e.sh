@@ -52,12 +52,14 @@ else
   jqInstalled=true
 fi
 
+JQ=jq
 if [[ "$jqInstalled" == "false" ]]; then
   echo "INFO: JQ is not installed, installing jq..."
   if [[ "$OSTYPE" == "linux-gnu"* ]]; then
     echo "INFO: Installing on linux"
     wget -O jq https://github.com/stedolan/jq/releases/download/jq-1.6/jq-linux64
     chmod +x ./jq
+    JQ=./jq
   elif [[ "$OSTYPE" == "darwin"* ]]; then
     echo "INFO: Installing on MAC"
     /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)"
@@ -65,7 +67,7 @@ if [[ "$jqInstalled" == "false" ]]; then
   fi
 fi
 
-echo -e "\nINFO: Installed JQ version is $(./jq --version)"
+echo -e "\nINFO: Installed JQ version is $($JQ --version)"
 
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
@@ -87,11 +89,11 @@ post_response_code=$(echo "${post_response##* }")
 
 if [ "$post_response_code" == "200" ]; then
   # The usage of sed here is to prevent an error caused between the -w flag of curl and jq not interacting well
-  quote_id=$(echo "$post_response" | ./jq '.' | sed $os_sed_flag '$ d' | ./jq '.QuoteID')
+  quote_id=$(echo "$post_response" | $JQ '.' | sed $os_sed_flag '$ d' | $JQ '.QuoteID')
 
   echo -e "INFO: SUCCESS - POST with response code: ${post_response_code}, QuoteID: ${quote_id}, and Response Body:\n"
   # The usage of sed here is to prevent an error caused between the -w flag of curl and jq not interacting well
-  echo ${post_response} | ./jq '.' | sed $os_sed_flag '$ d'
+  echo ${post_response} | $JQ '.' | sed $os_sed_flag '$ d'
 
   echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------"
 
@@ -103,7 +105,7 @@ if [ "$post_response_code" == "200" ]; then
   if [ "$get_response_code" == "200" ]; then
     echo -e "INFO: SUCCESS - GET with response code: ${get_response_code}, and Response Body:\n"
     # The usage of sed here is to prevent an error caused between the -w flag of curl and jq not interacting well
-    echo ${get_response} | ./jq '.' | sed $os_sed_flag '$ d'
+    echo ${get_response} | $JQ '.' | sed $os_sed_flag '$ d'
   else
     echo "ERROR: FAILED - Error code: ${get_response_code}"
     echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
@@ -125,7 +127,7 @@ if [ "$post_response_code" == "200" ]; then
   oc exec -n postgres -it $(oc get pod -n postgres -l name=postgresql -o jsonpath='{.items[].metadata.name}') \
     -- psql -U ${USERNAME} -d ${DB_NAME} -c \
     "SELECT * FROM quotes WHERE quotes.quoteid=${quote_id};"
-  
+
 else
   # Failure catch during POST
   echo "ERROR: Post request failed - Error code: ${post_response_code}"
