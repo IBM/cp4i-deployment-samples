@@ -30,9 +30,9 @@ function usage() {
 namespace="cp4i"
 branch="master"
 repo="https://github.com/IBM/cp4i-deployment-samples.git"
-tick="U+1F601"
-cross="U+1F4A9"
-all_done="U+1F973"
+tick="\xF0\x9F\x98\x81"
+cross="\xF0\x9F\x92\xA9"
+all_done="\xF0\x9F\x92\xAF"
 sum=0
 
 while getopts "n:r:b" opt; do
