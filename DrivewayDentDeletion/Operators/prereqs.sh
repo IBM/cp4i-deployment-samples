@@ -182,6 +182,20 @@ do
 
   echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
+  echo "INFO: Making 'create-ace-config.sh' executable"
+  if ! chmod +x ${PWD}/../../products/bash/create-ace-config.sh ; then
+    echo "ERROR: Failed to make 'create-ace-config.sh' executable in the namespace '$image_project'" 1>&2
+    exit 1
+  fi
+
+  echo "INFO: Creating ace integration server configuration resources in the namespace '$image_project'"
+  if ! ${PWD}/../../products/bash/create-ace-config.sh -n ${image_project} ; then
+    echo "ERROR: Failed to make 'create-ace-config.sh' executable in the namespace '$image_project'" 1>&2
+    exit 1
+  fi
+
+  echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
+
   echo "INFO: Creating secret to pull images from the ER"
   if ! oc get secrets -n ${image_project} ibm-entitlement-key; then
     oc create -n ${image_project} secret docker-registry ibm-entitlement-key --docker-server=${ER_REGISTRY} \
