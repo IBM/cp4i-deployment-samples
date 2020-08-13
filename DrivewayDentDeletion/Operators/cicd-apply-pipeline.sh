@@ -30,8 +30,9 @@ function usage() {
 namespace="cp4i"
 branch="master"
 repo="https://github.com/IBM/cp4i-deployment-samples.git"
-tick="\xE2\x9C\x94"
-cross="\xE2\x9D\x8C"
+tick="U+1F601"
+cross="U+1F4A9"
+all_done="U+1F973"
 sum=0
 
 while getopts "n:r:b" opt; do
@@ -209,7 +210,7 @@ else
   # print route for webbook
   echo "INFO: Your trigger route for the git webhook is: $WEBHOOK_ROUTE"
   echo "INFO: Add the trigger URL to the repo as a webhook with the Content type as 'application/json', which triggers an initial run of the pipeline."
-  printf "$tick"
+  printf "$tick $all_done"
   echo "Successfully applied all the cicd pipeline resources and requirements"
 fi
 
