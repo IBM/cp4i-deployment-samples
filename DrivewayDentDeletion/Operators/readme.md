@@ -38,8 +38,14 @@ These steps will need to be documented in the demo docs:
 - Add the trigger URL to the repo as a webhook with the `Content type` as `application/json`, which triggers an initial run of the pipeline.
 
 # Pipelines
-![Overview of aaS](../media/dev-pipeline.svg)
+## Initial pipeline for just the dev environment
+![Overview of dev pipeline](../media/dev-pipeline.svg)
+## Pipeline with added support for dev/test environments
+![Overview of dev/test pipeline](../media/dev-test-pipeline.svg)
+## Description of pipeline
 - Trigger: Whenever a commit is made to the forked repo it triggers the
   pipeline.
-- Build tasks: Each of these tasks builds an images and pushes it to the cluster's local OpenShift Image Registry. The latest dockerfile and related files (bar files) are pulled from the forked git repo.
-- Deploy to dev tasks: Each of these tasks invokes helm to deploy/upgrade the deployments using the newly built image.
+- Build images tasks: Each of these tasks builds an image and pushes it to the cluster's local OpenShift Image Registry. The latest dockerfile and related files (bar files) are pulled from the forked git repo.
+- Deploy to dev/test and wait for rollout tasks: Each of these tasks applies a CR to deploy/update an MQ/ACE microservice and waits for the deploy/update to rollout so the microservice is running the newly built image once the task has completed.
+- Test ACE API task: Runs a test of the POST/GET endpoints to verify that the dev environment is working. This acts as a gate for rolling out the change to the test environment.
+- Copy images to test tasks: Copies the images from the dev project to the test project.
