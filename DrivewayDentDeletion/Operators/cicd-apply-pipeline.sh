@@ -67,10 +67,10 @@ echo -e "\n---------------------------------------------------------------------
 # apply pvc for buildah tasks
 echo "INFO: Apply pvc for buildah tasks"
 if oc apply -f cicd-pvc.yaml; then
-  printf "$tick"
+  printf "$tick "
   echo "Successfully applied pvc"
 else
-  printf "$cross"
+  printf "$cross "
   echo "Failed to apply pvc"
   sum=$((sum + 1))
 fi
@@ -82,10 +82,10 @@ echo "INFO: Create service accounts"
 if cat cicd-service-accounts.yaml |
   sed "s#{{NAMESPACE}}#$namespace#g;" |
   oc apply -f -; then
-  printf "$tick"
+  printf "$tick "
   echo "Successfully applied service accounts"
 else
-  printf "$cross"
+  printf "$cross "
   echo "Failed to apply service accounts"
   sum=$((sum + 1))
 fi
@@ -95,10 +95,10 @@ echo -e "\n---------------------------------------------------------------------
 # create roles for tasks
 echo "INFO: Create roles for tasks"
 if oc apply -f cicd-roles.yaml; then
-  printf "$tick"
+  printf "$tick "
   echo "Successfully created roles for tasks"
 else
-  printf "$cross"
+  printf "$cross "
   echo "Failed to create roles for tasks"
   sum=$((sum + 1))
 fi
@@ -110,10 +110,10 @@ echo "INFO: Create role bindings for roles"
 if cat cicd-rolebindings.yaml |
   sed "s#{{NAMESPACE}}#$namespace#g;" |
   oc apply -f -; then
-  printf "$tick"
+  printf "$tick "
   echo "Successfully applied role bindings for roles"
 else
-  printf "$cross"
+  printf "$cross "
   echo "Failed to apply role bindings for roles"
   sum=$((sum + 1))
 fi
@@ -126,10 +126,10 @@ if cat cicd-pipeline-resources.yaml |
   sed "s#{{FORKED_REPO}}#$repo#g;" |
   sed "s#{{BRANCH}}#$branch#g;" |
   oc apply -f -; then
-  printf "$tick"
+  printf "$tick "
   echo "Successfully applied pipeline resources"
 else
-  printf "$cross"
+  printf "$cross "
   echo "Failed to apply pipeline resources"
   sum=$((sum + 1))
 fi
@@ -141,10 +141,10 @@ echo "INFO: Create tekton tasks"
 if cat cicd-tasks.yaml |
   sed "s#{{NAMESPACE}}#$namespace#g;" |
   oc apply -f -; then
-  printf "$tick"
+  printf "$tick "
   echo "Successfully applied tekton tasks"
 else
-  printf "$cross"
+  printf "$cross "
   echo "Failed to apply tekton tasks"
   sum=$((sum + 1))
 fi
@@ -154,10 +154,10 @@ echo -e "\n---------------------------------------------------------------------
 # create the pipeline to run tasks to build, deploy to dev, test e2e and push to test namespace
 echo "INFO: Create the pipeline to run tasks to build, deploy to dev, test e2e and push to test namespace"
 if oc apply -f cicd-pipeline.yaml; then
-  printf "$tick"
+  printf "$tick "
   echo "Successfully applied the pipeline to run tasks to build, deploy to dev, test e2e and push to test namespace"
 else
-  printf "$cross"
+  printf "$cross "
   echo "Failed to apply the pipeline to run tasks to build, deploy to dev, test e2e and push to test namespace"
   sum=$((sum + 1))
 fi
@@ -167,10 +167,10 @@ echo -e "\n---------------------------------------------------------------------
 # create the trigger template containing the pipelinerun
 echo "INFO: Create the trigger template containing the pipelinerun"
 if oc apply -f cicd-trigger-template.yaml; then
-  printf "$tick"
+  printf "$tick "
   echo "Successfully applied the trigger template containing the pipelinerun"
 else
-  printf "$cross"
+  printf "$cross "
   echo "Failed to apply the trigger template containing the pipelinerun"
   sum=$((sum + 1))
 fi
@@ -180,10 +180,10 @@ echo -e "\n---------------------------------------------------------------------
 # create the event listener and route for webhook
 echo "INFO : Create the event listener and route for webhook"
 if oc apply -f cicd-events-routes.yaml; then
-  printf "$tick"
+  printf "$tick "
   echo "Successfully created the event listener and route for webhook"
 else
-  printf "$cross"
+  printf "$cross "
   echo "Failed to apply the event listener and route for webhook"
   sum=$((sum + 1))
 fi
@@ -194,11 +194,11 @@ WEBHOOK_ROUTE=$(oc get route -n $namespace el-main-trigger --template='http://{{
 echo "INFO: Webhook route got is: $WEBHOOK_ROUTE"
 
 if [[ -z $WEBHOOK_ROUTE ]]; then
-  printf "$cross"
+  printf "$cross "
   echo "Failed to get route for the webhook"
   sum=$((sum + 1))
 else
-  printf "$tick"
+  printf "$tick "
   echo "Successfully got route for the webhook"
 fi
 
@@ -210,7 +210,7 @@ else
   # print route for webbook
   echo "INFO: Your trigger route for the git webhook is: $WEBHOOK_ROUTE"
   echo "INFO: Add the trigger URL to the repo as a webhook with the Content type as 'application/json', which triggers an initial run of the pipeline."
-  printf "$tick $all_done"
+  printf "$tick  $all_done "
   echo "Successfully applied all the cicd pipeline resources and requirements"
 fi
 
