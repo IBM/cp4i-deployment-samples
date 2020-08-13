@@ -184,7 +184,7 @@ if [[ $sum -gt 0 ]]; then
     echo "WARNING: Creating the webhook is not recommended as some resources have not been applied successfully"
 else
     # print route for webbook
-    echo "INFO: Your trigger route is: $(oc  get route -n cp4i el-main-trigger --template='http://{{.spec.host}}') "
+    echo "INFO: Your trigger route is: $(oc  get route -n $namespace el-main-trigger --template='http://{{.spec.host}}') "
     echo "INFO: Add the trigger URL to the repo as a webhook with the Content type as 'application/json', which triggers an initial run of the pipeline."
     printf "$tick"
     echo "Successfully applied all the cicd pipeline resources and requirements"
