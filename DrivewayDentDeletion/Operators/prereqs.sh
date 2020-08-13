@@ -126,7 +126,7 @@ oc wait -n postgres --for=condition=available deploymentconfig --timeout=20m pos
 echo "Creating quotes table in postgres samepledb"
 oc exec -n postgres -it $(oc get pod -n postgres -l name=postgresql -o jsonpath='{.items[].metadata.name}') \
   -- psql -U admin -d sampledb -c \
-'CREATE TABLE QUOTES (
+'CREATE TABLE IF NOT EXISTS QUOTES (
   QuoteID SERIAL PRIMARY KEY NOT NULL,
   Name VARCHAR(100),
   EMail VARCHAR(100),
