@@ -95,7 +95,7 @@ ls -lFA $PWD
 
 # create tekton tasks for deploy and test in test namesace
 echo "INFO: Create tekton tasks for deploy and test in test namesace"
-if cat $PWD/cicd-test/cicd-test-tasks.yaml |
+if cat /workspace/git-source/DrivewayDentDeletion/Operators/cicd-test/cicd-test-tasks.yaml |
   sed "s#{{NAMESPACE}}#$namespace#g;" |
   sed "s#{{IMAGETAG}}#$imageTag#g;" |
   oc apply -f -; then
@@ -111,7 +111,7 @@ echo -e "\n---------------------------------------------------------------------
 
 # create the pipeline to run tasks to deploy to test namespace
 echo "INFO: Create the pipeline to run tasks todeploy to test namespace"
-if oc apply -f $PWD/cicd-test/cicd-test-pipeline.yaml; then
+if oc apply -f /workspace/git-source/DrivewayDentDeletion/Operators/cicd-test/cicd-test-pipeline.yaml; then
   printf "$tick "
   echo "Successfully applied the pipeline to run tasks to deploy to test namespace"
 else

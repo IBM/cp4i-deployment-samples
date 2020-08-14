@@ -44,8 +44,8 @@ spec:
           serviceAccountName: cicd-push-to-test
         - taskName: image-push-to-test-mq
           serviceAccountName: cicd-push-to-test
-        # - taskName: cicd-test-pipeline-script-run
-        #   serviceAccountName: cicd-deploy-to-test
+        - taskName: cicd-test-pipeline-script-run
+          serviceAccountName: cicd-deploy-to-test
       resources:
       - name: git-source
         resourceRef:
