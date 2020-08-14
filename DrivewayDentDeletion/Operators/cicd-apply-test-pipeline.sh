@@ -48,6 +48,9 @@ while getopts "n:t:" opt; do
   esac
 done
 
+echo -e "\nINFO: Get pods:\n"
+oc get pods
+
 # echo -e "\nINFO: Check all namespaces:\n"
 # oc projects
 
@@ -83,10 +86,12 @@ done
 
 # echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
-# switch namespace
-oc project $namespace-ddd-dev
+# # switch namespace
+# oc project $namespace-ddd-dev
 
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
+
+ls -lFA $PWD
 
 # create tekton tasks for deploy and test in test namesace
 echo "INFO: Create tekton tasks for deploy and test in test namesace"
