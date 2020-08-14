@@ -76,3 +76,16 @@ rules:
 - apiGroups: [""]
   resources: ["pods", "pods/exec"]
   verbs: ["list", "get", "create"]
+
+# ---
+
+# # Deploy to test namespace permissions
+# kind: Role
+# apiVersion: rbac.authorization.k8s.io/v1
+# metadata:
+#   name: role-deploy-test
+# rules:
+# # Permission to get pods
+# - apiGroups: [""]
+#   resources: ["pods"]
+#   verbs: ["list", "get"]

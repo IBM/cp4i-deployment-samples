@@ -31,25 +31,25 @@ spec:
     #       - name: git-source
     #         resource: git-source
 
-    # # MQ deploy
-    # - name: deploy-wait-mq
-    #   runAfter:
-    #     - build-mq
-    #   taskRef:
-    #     name: deploy-task
-    #   params:
-    #     - name: imageTag
-    #       value: "latest"
-    #     - name: imageName
-    #       value: "mq-ddd"
-    #     - name: releaseName
-    #       value: "mq-ddd-qm"
-    #     - name: releaseScript
-    #       value: release-mq.sh
-    #   resources:
-    #     inputs:
-    #       - name: git-source
-    #         resource: git-source
+    # MQ deploy
+    - name: deploy-wait-mq
+      # runAfter:
+      #   - build-mq
+      taskRef:
+        name: deploy-task
+      params:
+        - name: imageTag
+          value: "latest"
+        - name: imageName
+          value: "mq-ddd"
+        - name: releaseName
+          value: "mq-ddd-qm"
+        - name: releaseScript
+          value: release-mq.sh
+      resources:
+        inputs:
+          - name: git-source
+            resource: git-source
 
     # # build all ace
     # - name: build-ace-int-server-ace-api
@@ -200,19 +200,19 @@ spec:
     #         resource: git-source
 
     # test end-to-end API
-    - name: dev-e2e
+    # - name: dev-e2e
       # runAfter:
       #   - deploy-wait-ace-chris
       #   - deploy-wait-mq
       #   - deploy-wait-ace-api
       #   - deploy-wait-ace-acme
       #   - deploy-wait-ace-bernie
-      taskRef:
-        name: api-dev
-      resources:
-        inputs:
-          - name: git-source
-            resource: git-source
+      # taskRef:
+      #   name: api-dev
+      # resources:
+      #   inputs:
+      #     - name: git-source
+      #       resource: git-source
 
     # # push ace images to test namespace
     # - name: image-push-to-test-ace-chris
@@ -286,12 +286,12 @@ spec:
         # - image-push-to-test-ace-bernie
         # - image-push-to-test-ace-api
         # - image-push-to-test-mq
-        - dev-e2e
+        - deploy-wait-mq
       taskRef:
         name: build-deploy-test
       params:
         - name: imageTag
-          value: "$(params.imageTag)"
+          value: "w74lw"
       resources:
         inputs:
           - name: git-source

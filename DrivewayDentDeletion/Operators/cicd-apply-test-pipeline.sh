@@ -48,40 +48,40 @@ while getopts "n:t:" opt; do
   esac
 done
 
-echo -e "\nINFO: Check all namespaces:\n"
-oc projects
+# echo -e "\nINFO: Check all namespaces:\n"
+# oc projects
 
-echo "INFO: Check who am i - oc:"
-oc whoami
+# echo "INFO: Check who am i - oc:"
+# oc whoami
 
-echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
+# echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
-echo "Image Tag passed: '$imageTag'"
-echo "INFO: Namespace: '$namespace'"
-echo "INFO: Dev Namespace: '$namespace-ddd-dev'"
-echo "INFO: Test Namespace: '$namespace-ddd-test'"
+# echo "Image Tag passed: '$imageTag'"
+# echo "INFO: Namespace: '$namespace'"
+# echo "INFO: Dev Namespace: '$namespace-ddd-dev'"
+# echo "INFO: Test Namespace: '$namespace-ddd-test'"
 
-echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
+# echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
-if ! oc project $namespace-ddd-dev >/dev/null 2>&1 ; then
-  printf "$cross "
-  echo "ERROR: The dev namespace '$namespace-ddd-dev' does not exist"
-  exit 1
-else
-  printf "$tick "
-  echo "INFO: The dev namespace '$namespace-ddd-dev' exists"
-fi
+# if ! oc project $namespace-ddd-dev >/dev/null 2>&1 ; then
+#   printf "$cross "
+#   echo "ERROR: The dev namespace '$namespace-ddd-dev' does not exist"
+#   exit 1
+# else
+#   printf "$tick "
+#   echo "INFO: The dev namespace '$namespace-ddd-dev' exists"
+# fi
 
-if ! oc project $namespace-ddd-test >/dev/null 2>&1 ; then
-  printf "$cross "
-  echo "ERROR: The test namespace '$namespace-ddd-test' does not exist"
-  exit 1
-else
-  printf "$tick "
-  echo "INFO: The test namespace '$namespace-ddd-test' exists"
-fi
+# if ! oc project $namespace-ddd-test >/dev/null 2>&1 ; then
+#   printf "$cross "
+#   echo "ERROR: The test namespace '$namespace-ddd-test' does not exist"
+#   exit 1
+# else
+#   printf "$tick "
+#   echo "INFO: The test namespace '$namespace-ddd-test' exists"
+# fi
 
-echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
+# echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
 # switch namespace
 oc project $namespace-ddd-dev
