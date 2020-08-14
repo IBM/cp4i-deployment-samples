@@ -31,25 +31,25 @@ spec:
     #       - name: git-source
     #         resource: git-source
 
-    # MQ deploy
-    - name: deploy-wait-mq
-      # runAfter:
-      #   - build-mq
-      taskRef:
-        name: deploy-task
-      params:
-        - name: imageTag
-          value: "latest"
-        - name: imageName
-          value: "mq-ddd"
-        - name: releaseName
-          value: "mq-ddd-qm"
-        - name: releaseScript
-          value: release-mq.sh
-      resources:
-        inputs:
-          - name: git-source
-            resource: git-source
+    # # MQ deploy
+    # - name: deploy-wait-mq
+    #   # runAfter:
+    #   #   - build-mq
+    #   taskRef:
+    #     name: deploy-task
+    #   params:
+    #     - name: imageTag
+    #       value: "latest"
+    #     - name: imageName
+    #       value: "mq-ddd"
+    #     - name: releaseName
+    #       value: "mq-ddd-qm"
+    #     - name: releaseScript
+    #       value: release-mq.sh
+    #   resources:
+    #     inputs:
+    #       - name: git-source
+    #         resource: git-source
 
     # # build all ace
     # - name: build-ace-int-server-ace-api
@@ -280,13 +280,13 @@ spec:
 
     # task to apply pipelines and tasks for deploy and test in test namespace
     - name: cicd-test-pipeline-script-run
-      runAfter:
+      # runAfter:
         # - image-push-to-test-ace-chris
         # - image-push-to-test-ace-acme
         # - image-push-to-test-ace-bernie
         # - image-push-to-test-ace-api
         # - image-push-to-test-mq
-        - deploy-wait-mq
+        # - deploy-wait-mq
       taskRef:
         name: build-deploy-test
       params:
