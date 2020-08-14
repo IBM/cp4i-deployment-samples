@@ -281,12 +281,10 @@ spec:
     #     - name: pvc
     #       value: "buildah-mq"
 
-# --------------------------------- TEST NAMESPACE ---------------------------------------------
+# --------------------------------- IN TEST NAMESPACE ---------------------------------------------
 
-    # MQ deploy
+    # Deploy MQ in test namespace
     - name: deploy-wait-mq-test
-      # runAfter:
-        # - build-mq
       taskRef:
         name: deploy-test-task
       params:
@@ -303,88 +301,86 @@ spec:
           - name: git-source
             resource: git-source
 
-    # # deploy all ace
-    # - name: deploy-wait-ace-api
-    #   # runAfter:
-    #   #   - build-ace-int-server-ace-api
-    #   taskRef:
-    #     name: deploy-test-task
-    #   params:
-    #     - name: imageTag
-    #       value: "{{IMAGETAG}}-test"
-    #     - name: imageName
-    #       value: "ace-api"
-    #     - name: releaseName
-    #       value: "ace-api-int-srv"
-    #     - name: releaseScript
-    #       value: release-ace-integration-server.sh
-    #   resources:
-    #     inputs:
-    #       - name: git-source
-    #         resource: git-source
-    # - name: deploy-wait-ace-bernie
-    #   # runAfter:
-    #   #   - build-ace-int-server-ace-bernie
-    #   taskRef:
-    #     name: deploy-test-task
-    #   params:
-    #     - name: imageTag
-    #       value: "{{IMAGETAG}}-test"
-    #     - name: imageName
-    #       value: "ace-bernie"
-    #     - name: releaseName
-    #       value: "ace-bernie-int-srv"
-    #     - name: releaseScript
-    #       value: release-ace-integration-server.sh
-    #   resources:
-    #     inputs:
-    #       - name: git-source
-    #         resource: git-source
-    # - name: deploy-wait-ace-acme
-    #   # runAfter:
-    #   #   - build-ace-int-server-ace-acme
-    #   taskRef:
-    #     name: deploy-test-task
-    #   params:
-    #     - name: imageTag
-    #       value: "{{IMAGETAG}}-test"
-    #     - name: imageName
-    #       value: "ace-acme"
-    #     - name: releaseName
-    #       value: "ace-acme-int-srv"
-    #     - name: releaseScript
-    #       value: release-ace-integration-server.sh
-    #   resources:
-    #     inputs:
-    #       - name: git-source
-    #         resource: git-source
-    # - name: deploy-wait-ace-chris
-    #   # runAfter:
-    #   #   - build-ace-int-server-ace-chris
-    #   taskRef:
-    #     name: deploy-test-task
-    #   params:
-    #     - name: imageTag
-    #       value: "{{IMAGETAG}}-test"
-    #     - name: imageName
-    #       value: "ace-chris"
-    #     - name: releaseName
-    #       value: "ace-chris-int-srv"
-    #     - name: releaseScript
-    #       value: release-ace-integration-server.sh
-    #   resources:
-    #     inputs:
-    #       - name: git-source
-    #         resource: git-source
+    # deploy all ace api in test namespace
+    - name: deploy-wait-ace-api-test
+      taskRef:
+        name: deploy-test-task
+      params:
+        - name: imageTag
+          value: "{{IMAGETAG}}-test"
+        - name: imageName
+          value: "ace-api"
+        - name: releaseName
+          value: "ace-api-int-srv"
+        - name: releaseScript
+          value: release-ace-integration-server.sh
+      resources:
+        inputs:
+          - name: git-source
+            resource: git-source
 
-    # # test end-to-end API
+    # deploy all ace bernie in test namespace
+    - name: deploy-wait-ace-bernie-test
+      taskRef:
+        name: deploy-test-task
+      params:
+        - name: imageTag
+          value: "{{IMAGETAG}}-test"
+        - name: imageName
+          value: "ace-bernie"
+        - name: releaseName
+          value: "ace-bernie-int-srv"
+        - name: releaseScript
+          value: release-ace-integration-server.sh
+      resources:
+        inputs:
+          - name: git-source
+            resource: git-source
+
+    # deploy all ace acme in test namespace
+    - name: deploy-wait-ace-acme-test
+      taskRef:
+        name: deploy-test-task
+      params:
+        - name: imageTag
+          value: "{{IMAGETAG}}-test"
+        - name: imageName
+          value: "ace-acme"
+        - name: releaseName
+          value: "ace-acme-int-srv"
+        - name: releaseScript
+          value: release-ace-integration-server.sh
+      resources:
+        inputs:
+          - name: git-source
+            resource: git-source
+
+    # deploy all ace chris in test namespace
+    - name: deploy-wait-ace-chris-test
+      taskRef:
+        name: deploy-test-task
+      params:
+        - name: imageTag
+          value: "{{IMAGETAG}}-test"
+        - name: imageName
+          value: "ace-chris"
+        - name: releaseName
+          value: "ace-chris-int-srv"
+        - name: releaseScript
+          value: release-ace-integration-server.sh
+      resources:
+        inputs:
+          - name: git-source
+            resource: git-source
+
+    # # test end-to-end API in test namespace
     # - name: test-e2e
     #   runAfter:
-    #     - deploy-wait-ace-chris
-    #     - deploy-wait-mq
-    #     - deploy-wait-ace-api
-    #     - deploy-wait-ace-acme
-    #     - deploy-wait-ace-bernie
+    #     - deploy-wait-ace-chris-test
+    #     - deploy-wait-mq-test
+    #     - deploy-wait-ace-api-test
+    #     - deploy-wait-ace-acme-test
+    #     - deploy-wait-ace-bernie-test
     #   taskRef:
     #     name: api-test
     #   resources:
