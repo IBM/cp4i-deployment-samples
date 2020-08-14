@@ -209,9 +209,9 @@ spec:
         - deploy-wait-ace-bernie
       taskRef:
         name: api-test-e2e
-        params:
-          - name: dddNamespaceSuffix
-            value: "dev"
+      params:
+        - name: dddNamespaceSuffix
+          value: "dev"
       resources:
         inputs:
           - name: git-source
