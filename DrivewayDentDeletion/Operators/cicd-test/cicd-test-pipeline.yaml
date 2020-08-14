@@ -373,20 +373,20 @@ spec:
           - name: git-source
             resource: git-source
 
-    # # test end-to-end API in test namespace
-    # - name: test-e2e-api-in-test-namespace
-    #   runAfter:
-    #     - deploy-wait-ace-chris-test
-    #     - deploy-wait-mq-test
-    #     - deploy-wait-ace-api-test
-    #     - deploy-wait-ace-acme-test
-    #     - deploy-wait-ace-bernie-test
-    #   taskRef:
-    #     name: api-test-e2e
-    #   params:
-    #     - name: dddNamespaceSuffix
-    #       value: "test"
-    #   resources:
-    #     inputs:
-    #       - name: git-source
-    #         resource: git-source
+    # test end-to-end API in test namespace
+    - name: test-e2e-api-in-test-namespace
+      runAfter:
+        - deploy-wait-ace-chris-test
+        - deploy-wait-mq-test
+        - deploy-wait-ace-api-test
+        - deploy-wait-ace-acme-test
+        - deploy-wait-ace-bernie-test
+      taskRef:
+        name: api-test-e2e
+      params:
+        - name: dddNamespaceSuffix
+          value: "test"
+      resources:
+        inputs:
+          - name: git-source
+            resource: git-source
