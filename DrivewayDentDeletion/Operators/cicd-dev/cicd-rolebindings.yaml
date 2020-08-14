@@ -116,7 +116,7 @@ subjects:
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: Role
-  name: role-deploy-mq-in-test-namesapce
+  name: role-deploy-ace-in-test-namesapce
 
 ---
 
