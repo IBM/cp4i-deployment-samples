@@ -78,9 +78,12 @@ echo -e "\n---------------------------------------------------------------------
 
 # create the pipeline to run tasks to deploy to test namespace
 echo "INFO: Create the pipeline to run tasks todeploy to test namespace"
-if oc apply -f /workspace/git-source/DrivewayDentDeletion/Operators/cicd-test/cicd-test-pipeline.yaml; then
-  printf "$tick "
-  echo "Successfully applied the pipeline to run tasks to deploy to test namespace"
+echo "INFO: Create tekton tasks for deploy and test in test namesace"
+if cat /workspace/git-source/DrivewayDentDeletion/Operators/cicd-test/cicd-test-pipeline.yaml |
+  sed "s#{{IMAGETAG}}#$imageTag#g;" |
+  oc apply -f -; then
+    printf "$tick "
+    echo "Successfully applied the pipeline to run tasks to deploy to test namespace"
 else
   printf "$cross "
   echo "Failed to apply the pipeline to run tasks to deploy to test namespace"
