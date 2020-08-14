@@ -94,8 +94,8 @@ echo "INFO: Create service accounts"
 if cat $PWD/cicd-dev/cicd-service-accounts.yaml |
   sed "s#{{NAMESPACE}}#$namespace#g;" |
   oc apply -f -; then
-  printf "$tick "
-  echo "Successfully applied service accounts"
+    printf "$tick "
+    echo "Successfully applied service accounts"
 else
   printf "$cross "
   echo "Failed to apply service accounts"
@@ -106,9 +106,11 @@ echo -e "\n---------------------------------------------------------------------
 
 # create roles for tasks
 echo "INFO: Create roles for tasks"
-if oc apply -f $PWD/cicd-dev/cicd-roles.yaml; then
-  printf "$tick "
-  echo "Successfully created roles for tasks"
+if cat $PWD/cicd-dev/cicd-roles.yaml |
+  sed "s#{{NAMESPACE}}#$namespace#g;" |
+  oc apply -f -; then
+    printf "$tick "
+    echo "Successfully created roles for tasks"
 else
   printf "$cross "
   echo "Failed to create roles for tasks"
@@ -122,8 +124,8 @@ echo "INFO: Create role bindings for roles"
 if cat $PWD/cicd-dev/cicd-rolebindings.yaml |
   sed "s#{{NAMESPACE}}#$namespace#g;" |
   oc apply -f -; then
-  printf "$tick "
-  echo "Successfully applied role bindings for roles"
+    printf "$tick "
+    echo "Successfully applied role bindings for roles"
 else
   printf "$cross "
   echo "Failed to apply role bindings for roles"
@@ -138,8 +140,8 @@ if cat $PWD/cicd-dev/cicd-pipeline-resources.yaml |
   sed "s#{{FORKED_REPO}}#$repo#g;" |
   sed "s#{{BRANCH}}#$branch#g;" |
   oc apply -f -; then
-  printf "$tick "
-  echo "Successfully applied pipeline resources"
+    printf "$tick "
+    echo "Successfully applied pipeline resources"
 else
   printf "$cross "
   echo "Failed to apply pipeline resources"
@@ -153,8 +155,8 @@ echo "INFO: Create tekton tasks"
 if cat $PWD/cicd-dev/cicd-tasks.yaml |
   sed "s#{{NAMESPACE}}#$namespace#g;" |
   oc apply -f -; then
-  printf "$tick "
-  echo "Successfully applied tekton tasks"
+    printf "$tick "
+    echo "Successfully applied tekton tasks"
 else
   printf "$cross "
   echo "Failed to apply tekton tasks"

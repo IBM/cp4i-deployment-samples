@@ -46,6 +46,8 @@ spec:
           serviceAccountName: cicd-push-to-test
         - taskName: cicd-test-pipeline-script-run
           serviceAccountName: cicd-deploy-to-test
+        - taskName: deploy-wait-mq-test
+          serviceAccountName: default
       resources:
       - name: git-source
         resourceRef:
