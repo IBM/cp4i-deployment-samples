@@ -99,7 +99,7 @@ subjects:
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: Role
-  name: role-deploy-mq-in-test-namesapce
+  name: role-deploy-mq-in-test-namespace
 
 ---
 
@@ -116,7 +116,7 @@ subjects:
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: Role
-  name: role-deploy-ace-in-test-namesapce
+  name: role-deploy-ace-in-test-namespace
 
 ---
 
@@ -133,7 +133,7 @@ subjects:
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: Role
-  name: role-test-routes-in-test-namesapce
+  name: role-test-routes-in-test-namespace
 
 ---
 

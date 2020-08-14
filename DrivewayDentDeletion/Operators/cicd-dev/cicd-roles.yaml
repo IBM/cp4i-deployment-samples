@@ -96,32 +96,32 @@ rules:
 kind: Role
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
-  name: role-deploy-mq-in-test-namesapce
+  name: role-deploy-mq-in-test-namespace
   namespace: "{{NAMESPACE}}-ddd-test"
 rules:
 # Permission to get tasks, pipelines in tekton.dev in dev namespace - to apply pipeline and task yamls
 - apiGroups: [""]
   resources: ["pods"]
   verbs: ["list", "get"]
-# Permissions for MQ deploy in test namesapce
+# Permissions for MQ deploy in test namespace
 - apiGroups: ["mq.ibm.com"]
   resources: ["queuemanagers", "queuemanagers/finalizers", "queuemanagers/status"]
   verbs: ["create", "delete", "get", "list", "patch", "update", "watch"]
 
 ---
 
-# Deploy to test namespace permissions
+# Deploy ace to test namespace permissions
 kind: Role
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
-  name: role-deploy-ace-in-test-namesapce
+  name: role-deploy-ace-in-test-namespace
   namespace: "{{NAMESPACE}}-ddd-test"
 rules:
 # Permission to get tasks, pipelines in tekton.dev in dev namespace - to apply pipeline and task yamls
 - apiGroups: [""]
   resources: ["pods"]
   verbs: ["list", "get"]
-# Permissions for appconnect integration server deployment in test namesapce
+# Permissions for appconnect integration server deployment in test namespace
 - apiGroups: ["appconnect.ibm.com"]
   resources: ["designerauthorings", "dashboards", "switchservers", "configurations", "integrationservers"]
   verbs: ["create", "delete", "get", "list", "patch", "update", "watch"]
@@ -132,7 +132,7 @@ rules:
 kind: Role
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
-  name: role-test-routes-in-test-namesapce
+  name: role-test-routes-in-test-namespace
   namespace: "{{NAMESPACE}}-ddd-test"
 rules:
 # Permissions for test task to list routes in dev namespace
