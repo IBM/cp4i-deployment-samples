@@ -103,3 +103,11 @@ rules:
 - apiGroups: [""]
   resources: ["pods"]
   verbs: ["list", "get"]
+# Permissions for MQ deploy in test namesapce
+- apiGroups: ["mq.ibm.com"]
+  resources: ["queuemanagers", "queuemanagers/finalizers", "queuemanagers/status"]
+  verbs: ["create", "delete", "get", "list", "patch", "update", "watch"]
+# Permissions for appconnect integration server deployment in test namesapce
+- apiGroups: ["appconnect.ibm.com"]
+  resources: ["designerauthorings", "dashboards", "switchservers", "configurations", "integrationservers"]
+  verbs: ["create", "delete", "get", "list", "patch", "update", "watch"]
