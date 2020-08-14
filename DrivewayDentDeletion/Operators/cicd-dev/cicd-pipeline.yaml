@@ -11,7 +11,7 @@ spec:
     - name: git-source
       type: git
   tasks:
-    # MQ build
+    # MQ build in dev namespace
     - name: build-mq
       taskRef:
         name: build-task
@@ -31,10 +31,10 @@ spec:
           - name: git-source
             resource: git-source
 
-    # MQ deploy
+    # MQ deploy in dev namesapce
     - name: deploy-wait-mq
-      # runAfter:
-      #   - build-mq
+      runAfter:
+        - build-mq
       taskRef:
         name: deploy-task
       params:
@@ -51,7 +51,7 @@ spec:
           - name: git-source
             resource: git-source
 
-    # build all ace
+    # build all ace in dev namespace
     - name: build-ace-int-server-ace-api
       taskRef:
         name: build-task
@@ -125,7 +125,7 @@ spec:
           - name: git-source
             resource: git-source
 
-    # deploy all ace
+    # deploy all ace in dev namespace
     - name: deploy-wait-ace-api
       runAfter:
         - build-ace-int-server-ace-api
@@ -199,7 +199,7 @@ spec:
           - name: git-source
             resource: git-source
 
-    # test end-to-end API
+    # test end-to-end API in dev namespace
     - name: test-e2e-api-in-dev-namespace
       runAfter:
         - deploy-wait-ace-chris
@@ -294,7 +294,7 @@ spec:
         name: build-deploy-test
       params:
         - name: imageTag
-          value: "w74lw"
+          value: "$(params.imageTag)"
       resources:
         inputs:
           - name: git-source
