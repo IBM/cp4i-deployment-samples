@@ -282,6 +282,7 @@ spec:
           value: "buildah-mq"
 
 # --------------------------------- TEST NAMESPACE ---------------------------------------------
+
     # MQ deploy
     - name: deploy-wait-mq
       runAfter:

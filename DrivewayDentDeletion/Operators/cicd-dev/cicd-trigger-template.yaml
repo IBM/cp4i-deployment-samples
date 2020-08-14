@@ -32,7 +32,7 @@ spec:
           serviceAccountName: cicd-ace-sa
         - taskName: deploy-wait-ace-bernie
           serviceAccountName: cicd-ace-sa
-        - taskName: api-test
+        - taskName: dev-e2e
           serviceAccountName: cicd-test
         - taskName: image-push-to-test-ace-chris
           serviceAccountName: cicd-push-to-test

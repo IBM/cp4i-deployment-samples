@@ -78,7 +78,7 @@ echo -e "\n---------------------------------------------------------------------
 
 # apply pvc for buildah tasks
 echo "INFO: Apply pvc for buildah tasks"
-if oc $PWD/cicd-dev/apply -f cicd-pvc.yaml; then
+if oc apply -f $PWD/cicd-dev/cicd-pvc.yaml; then
   printf "$tick "
   echo "Successfully applied pvc"
 else
@@ -106,7 +106,7 @@ echo -e "\n---------------------------------------------------------------------
 
 # create roles for tasks
 echo "INFO: Create roles for tasks"
-if oc $PWD/cicd-dev/apply -f cicd-roles.yaml; then
+if oc apply -f $PWD/cicd-dev/cicd-roles.yaml; then
   printf "$tick "
   echo "Successfully created roles for tasks"
 else
@@ -165,7 +165,7 @@ echo -e "\n---------------------------------------------------------------------
 
 # create the pipeline to run tasks to build, deploy to dev, test e2e and push to test namespace
 echo "INFO: Create the pipeline to run tasks to build, deploy to dev, test e2e and push to test namespace"
-if oc $PWD/cicd-dev/apply -f cicd-pipeline.yaml; then
+if oc apply -f $PWD/cicd-dev/cicd-pipeline.yaml; then
   printf "$tick "
   echo "Successfully applied the pipeline to run tasks to build, deploy to dev, test e2e and push to test namespace"
 else
@@ -178,7 +178,7 @@ echo -e "\n---------------------------------------------------------------------
 
 # create the trigger template containing the pipelinerun
 echo "INFO: Create the trigger template containing the pipelinerun"
-if oc apply -f cicd-trigger-template.yaml; then
+if oc apply -f $PWD/cicd-dev/cicd-trigger-template.yaml; then
   printf "$tick "
   echo "Successfully applied the trigger template containing the pipelinerun"
 else
@@ -217,7 +217,7 @@ while ! oc get route -n $namespace-ddd-dev el-main-trigger --template='http://{{
 done
 
 WEBHOOK_ROUTE=$(oc get route -n $namespace-ddd-dev el-main-trigger --template='http://{{.spec.host}}')
-echo "INFO: Webhook route got is: $WEBHOOK_ROUTE"
+echo -e "\nINFO: Webhook route got is: $WEBHOOK_ROUTE"
 
 if [[ -z $WEBHOOK_ROUTE ]]; then
   printf "$cross "

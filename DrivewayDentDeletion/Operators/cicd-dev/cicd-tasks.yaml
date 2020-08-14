@@ -157,15 +157,6 @@ spec:
     - name: imageTag
       type: string
       description: The image tag
-    - name: imageName
-      type: string
-      description: The image name
-    - name: releaseName
-      type: string
-      description: release name of the deployment
-    - name: releaseScript
-      type: string
-      description: release name of script
   resources:
     inputs:
       - name: git-source
@@ -173,4 +164,4 @@ spec:
   steps:
     - name: oc
       image: quay.io/openshift/origin-cli:latest
-      script: "/workspace/git-source/DrivewayDentDeletion/Operators/cicd-apply-test-pipeline.sh -n {{NAMESPACE}}-ddd-test -t $(params.imageTag)"
+      script: "/workspace/git-source/DrivewayDentDeletion/Operators/cicd-apply-test-pipeline.sh -n {{NAMESPACE}} -t $(params.imageTag)"

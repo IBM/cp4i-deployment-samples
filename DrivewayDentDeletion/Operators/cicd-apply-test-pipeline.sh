@@ -48,20 +48,35 @@ while getopts "n:t:" opt; do
   esac
 done
 
+echo -e "\nINFO: Check current namespace"
+oc project
+
+echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
+
+echo "Image Tag passed: '$imageTag'"
+echo "INFO: Namespace: '$namespace'"
+echo "INFO: Dev Namespace: '$namespace-ddd-dev'"
+echo "INFO: Test Namespace: '$namespace-ddd-test'"
+
+echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
+
 if ! oc project $namespace-ddd-dev >/dev/null 2>&1 ; then
+  printf "$cross "
   echo "ERROR: The dev namespace '$namespace-ddd-dev' does not exist"
   exit 1
+else
+  printf "$tick "
+  echo "INFO: The dev namespace '$namespace-ddd-dev' exists"
 fi
 
 if ! oc project $namespace-ddd-test >/dev/null 2>&1 ; then
+  printf "$cross "
   echo "ERROR: The test namespace '$namespace-ddd-test' does not exist"
   exit 1
+else
+  printf "$tick "
+  echo "INFO: The test namespace '$namespace-ddd-test' exists"
 fi
-
-echo "Image Tag passed: $imageTag"
-echo "INFO: Namespace: $namespace"
-echo "INFO: Dev Namespace: $namespace-ddd-dev"
-echo "INFO: Test Namespace: $namespace-ddd-test"
 
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
@@ -100,11 +115,12 @@ fi
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
 if [[ $sum -gt 0 ]]; then
-  echo "ERROR: Pipeline and tasks for deploy and test in test namespace has not been configured successfully, exiting now."
+  printf "$cross "
+  echo "ERROR: Pipeline and tasks for deploy and test for test namespace has not been configured successfully, exiting now."
   exit 1
 else
   printf "$tick  $all_done "
-  echo "Successfully applied the pipeline and tasks for deploy and test in test namespace"
+  echo "Successfully applied the pipeline and tasks for deploy and test for test namespace"
 fi
 
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
