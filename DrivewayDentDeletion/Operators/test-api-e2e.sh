@@ -13,7 +13,6 @@
 #
 # PARAMETERS:
 #   -n : <namespace> (string), Defaults to "cp4i"
-#   -t : <imageTag> (string), Default is empty
 #
 #   With defaults values
 #     ./test-api-e2e.sh -n <namesapce>

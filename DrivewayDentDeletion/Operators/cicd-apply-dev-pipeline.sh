@@ -78,7 +78,7 @@ echo -e "\n---------------------------------------------------------------------
 
 # apply pvc for buildah tasks
 echo "INFO: Apply pvc for buildah tasks"
-if oc apply -f cicd-pvc.yaml; then
+if oc $PWD/cicd-dev/apply -f cicd-pvc.yaml; then
   printf "$tick "
   echo "Successfully applied pvc"
 else
@@ -91,7 +91,7 @@ echo -e "\n---------------------------------------------------------------------
 
 # create service accounts
 echo "INFO: Create service accounts"
-if cat cicd-service-accounts.yaml |
+if cat $PWD/cicd-dev/cicd-service-accounts.yaml |
   sed "s#{{NAMESPACE}}#$namespace#g;" |
   oc apply -f -; then
   printf "$tick "
@@ -106,7 +106,7 @@ echo -e "\n---------------------------------------------------------------------
 
 # create roles for tasks
 echo "INFO: Create roles for tasks"
-if oc apply -f cicd-roles.yaml; then
+if oc $PWD/cicd-dev/apply -f cicd-roles.yaml; then
   printf "$tick "
   echo "Successfully created roles for tasks"
 else
@@ -119,7 +119,7 @@ echo -e "\n---------------------------------------------------------------------
 
 # create role bindings for roles
 echo "INFO: Create role bindings for roles"
-if cat cicd-rolebindings.yaml |
+if cat $PWD/cicd-dev/cicd-rolebindings.yaml |
   sed "s#{{NAMESPACE}}#$namespace#g;" |
   oc apply -f -; then
   printf "$tick "
@@ -134,7 +134,7 @@ echo -e "\n---------------------------------------------------------------------
 
 # create pipeline resources
 echo "INFO: Create pipeline resources"
-if cat cicd-pipeline-resources.yaml |
+if cat $PWD/cicd-dev/cicd-pipeline-resources.yaml |
   sed "s#{{FORKED_REPO}}#$repo#g;" |
   sed "s#{{BRANCH}}#$branch#g;" |
   oc apply -f -; then
@@ -150,7 +150,7 @@ echo -e "\n---------------------------------------------------------------------
 
 # create tekton tasks
 echo "INFO: Create tekton tasks"
-if cat cicd-tasks.yaml |
+if cat $PWD/cicd-dev/cicd-tasks.yaml |
   sed "s#{{NAMESPACE}}#$namespace#g;" |
   oc apply -f -; then
   printf "$tick "
@@ -165,7 +165,7 @@ echo -e "\n---------------------------------------------------------------------
 
 # create the pipeline to run tasks to build, deploy to dev, test e2e and push to test namespace
 echo "INFO: Create the pipeline to run tasks to build, deploy to dev, test e2e and push to test namespace"
-if oc apply -f cicd-pipeline.yaml; then
+if oc $PWD/cicd-dev/apply -f cicd-pipeline.yaml; then
   printf "$tick "
   echo "Successfully applied the pipeline to run tasks to build, deploy to dev, test e2e and push to test namespace"
 else
@@ -191,7 +191,7 @@ echo -e "\n---------------------------------------------------------------------
 
 # create the event listener and route for webhook
 echo "INFO : Create the event listener and route for webhook"
-if oc apply -f cicd-events-routes.yaml; then
+if oc apply -f $PWD/cicd-dev/cicd-events-routes.yaml; then
   printf "$tick "
   echo "Successfully created the event listener and route for webhook"
 else
@@ -231,7 +231,7 @@ fi
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
 if [[ $sum -gt 0 ]]; then
-  echo "WARNING: Creating the webhook is not recommended as some resources have not been applied successfully"
+  echo "ERROR: Creating the webhook is not recommended as some resources have not been applied successfully"
 else
   # print route for webbook
   echo "INFO: Your trigger route for the git webhook is: $WEBHOOK_ROUTE"

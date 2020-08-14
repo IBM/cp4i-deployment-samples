@@ -4,5 +4,7 @@
 /DrivewayDentDeletion/Operators/DefaultPolicies
 /DrivewayDentDeletion/Operators/tmp
 /DrivewayDentDeletion/Operators/policyproject.zip
+/DrivewayDentDeletion/Operators/delete.sh
+/DrivewayDentDeletion/Operators/run.sh
 /products/bash/postgres.env
 /products/bash/postgres.yaml
