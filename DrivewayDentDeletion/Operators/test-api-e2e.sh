@@ -113,8 +113,6 @@ if [ "$post_response_code" == "200" ]; then
     oc exec -n postgres -it $(oc get pod -n postgres -l name=postgresql -o jsonpath='{.items[].metadata.name}') \
       -- psql -U ${USERNAME} -d ${DB_NAME} -c \
       "SELECT * FROM quotes WHERE quotes.quoteid=${quote_id};"
-
-    echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
   else
     echo "ERROR: FAILED - Error code: ${get_response_code}"
     echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
