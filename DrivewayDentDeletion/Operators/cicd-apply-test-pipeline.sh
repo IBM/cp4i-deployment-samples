@@ -51,6 +51,9 @@ done
 echo -e "\nINFO: Check all namespaces:\n"
 oc projects
 
+echo "INFO: Check who am i - oc:"
+oc whoami
+
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
 echo "Image Tag passed: '$imageTag'"
