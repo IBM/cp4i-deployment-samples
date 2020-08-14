@@ -47,15 +47,17 @@ spec:
         - taskName: cicd-deploy-in-test-namespace
           serviceAccountName: cicd-deploy-to-test
         - taskName: deploy-wait-mq-test
-          serviceAccountName: default
+          serviceAccountName: cicd-mq-deploy-in-test-sa
         - taskName: deploy-wait-ace-api-test
-          serviceAccountName: default
+          serviceAccountName: cicd-ace-deploy-in-test-sa
         - taskName: deploy-wait-ace-bernie-test
-          serviceAccountName: default
+          serviceAccountName: cicd-ace-deploy-in-test-sa
         - taskName: deploy-wait-ace-chris-test
-          serviceAccountName: default
+          serviceAccountName: cicd-ace-deploy-in-test-sa
         - taskName: deploy-wait-ace-acme-test
-          serviceAccountName: default
+          serviceAccountName: cicd-ace-deploy-in-test-sa
+        - taskName: test-e2e-api-in-test-namespace
+          serviceAccountName: cicd-api-e2e-in-test-sa
       resources:
       - name: git-source
         resourceRef:
