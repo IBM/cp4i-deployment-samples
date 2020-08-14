@@ -48,8 +48,8 @@ while getopts "n:t:" opt; do
   esac
 done
 
-echo -e "\nINFO: Check current namespace"
-oc project
+echo -e "\nINFO: Check all namespaces:\n"
+oc projects
 
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
@@ -103,7 +103,7 @@ echo -e "\n---------------------------------------------------------------------
 
 # create the pipeline to run tasks to deploy to test namespace
 echo "INFO: Create the pipeline to run tasks todeploy to test namespace"
-if oc $PWD/cicd-dev/apply -f cicd-test-pipeline.yaml; then
+if oc apply -f $PWD/cicd-dev/cicd-test-pipeline.yaml; then
   printf "$tick "
   echo "Successfully applied the pipeline to run tasks to deploy to test namespace"
 else

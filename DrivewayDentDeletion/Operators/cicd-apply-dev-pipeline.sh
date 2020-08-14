@@ -217,7 +217,7 @@ while ! oc get route -n $namespace-ddd-dev el-main-trigger --template='http://{{
 done
 
 WEBHOOK_ROUTE=$(oc get route -n $namespace-ddd-dev el-main-trigger --template='http://{{.spec.host}}')
-echo -e "\nINFO: Webhook route got is: $WEBHOOK_ROUTE"
+echo -e "\n\nINFO: Webhook route got is: $WEBHOOK_ROUTE"
 
 if [[ -z $WEBHOOK_ROUTE ]]; then
   printf "$cross "
