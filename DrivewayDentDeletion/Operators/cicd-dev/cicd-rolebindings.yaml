@@ -90,7 +90,7 @@ roleRef:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
-  name: deploy-mq-test-rolebinding
+  name: deploy-in-test-rolebinding
   namespace: "{{NAMESPACE}}-ddd-test"
 subjects:
 - kind: ServiceAccount
@@ -99,4 +99,4 @@ subjects:
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: Role
-  name: role-deploy-mq-test
+  name: role-deploy-in-test-namesapce

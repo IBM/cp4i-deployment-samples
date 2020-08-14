@@ -24,23 +24,3 @@ spec:
     - name: oc
       image: quay.io/openshift/origin-cli:latest
       script: "/workspace/git-source/products/bash/$(params.releaseScript) -n {{NAMESPACE}}-ddd-test -r $(params.releaseName) -i image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}-ddd-test/$(params.imageName):$(params.imageTag)"
-
----
-
-apiVersion: tekton.dev/v1beta1
-kind: Task
-metadata:
-  name: api-test
-spec:
-  params:
-    - name: imageTag
-      type: string
-      description: The image tag
-  resources:
-    inputs:
-      - name: git-source
-        type: git
-  steps:
-    - name: oc
-      image: quay.io/openshift/origin-cli:latest
-      script: "/workspace/git-source/DrivewayDentDeletion/Operators/test-api-e2e.sh -n {{NAMESPACE}}-ddd-test"

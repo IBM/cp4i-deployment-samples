@@ -135,8 +135,12 @@ spec:
 apiVersion: tekton.dev/v1beta1
 kind: Task
 metadata:
-  name: api-dev
+  name: api-test-e2e
 spec:
+  params:
+    - name: dddNamespaceSuffix
+      type: string
+      description: The namespace suffix
   resources:
     inputs:
       - name: git-source
@@ -144,7 +148,7 @@ spec:
   steps:
     - name: oc
       image: quay.io/openshift/origin-cli:latest
-      script: "/workspace/git-source/DrivewayDentDeletion/Operators/test-api-e2e.sh -n {{NAMESPACE}}-ddd-dev"
+      script: "/workspace/git-source/DrivewayDentDeletion/Operators/test-api-e2e.sh -n {{NAMESPACE}}-ddd-$(params.dddNamespaceSuffix)"
 
 ---
 

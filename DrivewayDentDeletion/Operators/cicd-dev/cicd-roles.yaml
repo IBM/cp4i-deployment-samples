@@ -79,7 +79,7 @@ rules:
 
 ---
 
-# Deploy to test namespace permissions
+# Deploy to test namespace permissions for tekton
 kind: Role
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
@@ -96,7 +96,7 @@ rules:
 kind: Role
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
-  name: role-deploy-mq-test
+  name: role-deploy-in-test-namesapce
   namespace: "{{NAMESPACE}}-ddd-test"
 rules:
 # Permission to get tasks, pipelines in tekton.dev in dev namespace - to apply pipeline and task yamls

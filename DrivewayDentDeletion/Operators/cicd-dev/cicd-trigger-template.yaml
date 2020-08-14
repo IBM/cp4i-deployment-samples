@@ -32,7 +32,7 @@ spec:
           serviceAccountName: cicd-ace-sa
         - taskName: deploy-wait-ace-bernie
           serviceAccountName: cicd-ace-sa
-        - taskName: dev-e2e
+        - taskName: test-e2e-api-in-dev-namespace
           serviceAccountName: cicd-test
         - taskName: image-push-to-test-ace-chris
           serviceAccountName: cicd-push-to-test
@@ -44,9 +44,17 @@ spec:
           serviceAccountName: cicd-push-to-test
         - taskName: image-push-to-test-mq
           serviceAccountName: cicd-push-to-test
-        - taskName: cicd-test-pipeline-script-run
+        - taskName: cicd-deploy-in-test-namespace
           serviceAccountName: cicd-deploy-to-test
         - taskName: deploy-wait-mq-test
+          serviceAccountName: default
+        - taskName: deploy-wait-ace-api-test
+          serviceAccountName: default
+        - taskName: deploy-wait-ace-bernie-test
+          serviceAccountName: default
+        - taskName: deploy-wait-ace-chris-test
+          serviceAccountName: default
+        - taskName: deploy-wait-ace-acme-test
           serviceAccountName: default
       resources:
       - name: git-source

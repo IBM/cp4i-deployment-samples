@@ -200,7 +200,7 @@ spec:
     #         resource: git-source
 
     # test end-to-end API
-    # - name: dev-e2e
+    # - name: test-e2e-api-in-dev-namespace
       # runAfter:
       #   - deploy-wait-ace-chris
       #   - deploy-wait-mq
@@ -208,7 +208,10 @@ spec:
       #   - deploy-wait-ace-acme
       #   - deploy-wait-ace-bernie
       # taskRef:
-      #   name: api-dev
+      #   name: api-test-e2e
+      #   params:
+      #     - name: dddNamespaceSuffix
+      #       value: "dev"
       # resources:
       #   inputs:
       #     - name: git-source
@@ -217,7 +220,7 @@ spec:
     # # push ace images to test namespace
     # - name: image-push-to-test-ace-chris
     #   runAfter:
-    #     - dev-e2e
+    #     - test-e2e-api-in-dev-namespace
     #   taskRef:
     #     name: image-push-to-test
     #   params:
@@ -229,7 +232,7 @@ spec:
     #       value: "buildah-ace-chris"
     # - name: image-push-to-test-ace-acme
     #   runAfter:
-    #     - dev-e2e
+    #     - test-e2e-api-in-dev-namespace
     #   taskRef:
     #     name: image-push-to-test
     #   params:
@@ -241,7 +244,7 @@ spec:
     #       value: "buildah-ace-acme"
     # - name: image-push-to-test-ace-bernie
     #   runAfter:
-    #     - dev-e2e
+    #     - test-e2e-api-in-dev-namespace
     #   taskRef:
     #     name: image-push-to-test
     #   params:
@@ -253,7 +256,7 @@ spec:
     #       value: "buildah-ace-bernie"
     # - name: image-push-to-test-ace-api
     #   runAfter:
-    #     - dev-e2e
+    #     - test-e2e-api-in-dev-namespace
     #   taskRef:
     #     name: image-push-to-test
     #   params:
@@ -267,7 +270,7 @@ spec:
     # # push mq image to test namespace
     # - name: image-push-to-test-mq
     #   runAfter:
-    #     - dev-e2e
+    #     - test-e2e-api-in-dev-namespace
     #   taskRef:
     #     name: image-push-to-test
     #   params:
@@ -279,7 +282,7 @@ spec:
     #       value: "buildah-mq"
 
     # task to apply pipelines and tasks for deploy and test in test namespace
-    - name: cicd-test-pipeline-script-run
+    - name: cicd-deploy-in-test-namespace
       # runAfter:
         # - image-push-to-test-ace-chris
         # - image-push-to-test-ace-acme
