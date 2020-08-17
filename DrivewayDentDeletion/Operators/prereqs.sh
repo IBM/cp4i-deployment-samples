@@ -98,73 +98,6 @@ EOF
 
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
-mkdir -p ${PWD}/tmp
-# mkdir -p ${PWD}/DefaultPolicies
-# echo "INFO: Creating policyproject for ace"
-# echo "************************************"
-# echo "INFO: Creating default.policyxml"
-# cat << EOF > ${PWD}/DefaultPolicies/default.policyxml
-# <?xml version="1.0" encoding="UTF-8"?>
-# <policies>
-#   <policy policyType="MQEndpoint" policyName="MQEndpointPolicy" policyTemplate="MQEndpoint">
-#     <connection>CLIENT</connection>
-#     <destinationQueueManagerName>QUICKSTART</destinationQueueManagerName>
-#     <queueManagerHostname>mq-ddd-qm-ibm-mq</queueManagerHostname>
-#     <listenerPortNumber>1414</listenerPortNumber>
-#     <channelName>ACE_SVRCONN</channelName>
-#     <securityIdentity></securityIdentity>
-#     <useSSL>false</useSSL>
-#     <SSLPeerName></SSLPeerName>
-#     <SSLCipherSpec></SSLCipherSpec>
-#   </policy>
-# </policies>
-# EOF
-
-# echo "INFO: Creating policy.descriptor"
-# cat << EOF > ${PWD}/DefaultPolicies/policy.descriptor
-# <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-# <ns2:policyProjectDescriptor xmlns="http://com.ibm.etools.mft.descriptor.base" xmlns:ns2="http://com.ibm.etools.mft.descriptor.policyProject">
-#   <references/>
-# </ns2:policyProjectDescriptor>
-# EOF
-
-echo "INFO: Listing the files in ${PWD}/DefaultPolicies"
-ls ${PWD}/DefaultPolicies
-
-# zip -r DefaultPolicies/policyproject.zip DefaultPolicies/
-
-echo "INFO: encoding the policy project"
-if [[ "$OSTYPE" == "linux-gnu"* ]]; then
-  temp=$(base64 --wrap=0 ${PWD}/DefaultPolicies/policyproject.zip)
-elif [[ "$OSTYPE" == "darwin"* ]]; then
-  temp=$(base64 ${PWD}/DefaultPolicies/policyproject.zip)
-else
-  temp=$(base64 --wrap=0 ${PWD}/DefaultPolicies/policyproject.zip)
-fi
-
-# setting up policyporject for both namespaces
-declare -a image_projects=("${dev_namespace}" "${test_namespace}")
-echo "Creating secrets to push images to openshift local registry"
-for image_project in "${image_projects[@]}"
-  do
-    configyaml="\
-    apiVersion: appconnect.ibm.com/v1beta1
-    kind: Configuration
-    metadata:
-      name: ace-policyproject
-      namespace: ${image_project}
-    spec:
-      contents: "$temp"
-      type: policyproject
-    "
-    echo "${configyaml}" > ${PWD}/tmp/policy-project-config.yaml
-    echo "INFO: Output -> policy-project-config.yaml"
-    cat ${PWD}/tmp/policy-project-config.yaml
-    oc apply -f ${PWD}/tmp/policy-project-config.yaml
-done
-
-echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
-
 echo "Waiting for postgres to be ready"
 oc wait -n postgres --for=condition=available deploymentconfig --timeout=20m postgresql
 
@@ -182,10 +115,28 @@ do
 
   echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
-  echo "INFO: Creating secret to pull images from the ER"
-  oc create -n ${image_project} secret docker-registry ibm-entitlement-key --docker-server=${ER_REGISTRY} \
-    --docker-username=${ER_USERNAME} --docker-password=${ER_PASSWORD} -o yaml | oc apply -f -
+  echo "INFO: Making 'create-ace-config.sh' executable"
+  if ! chmod +x ${PWD}/../../products/bash/create-ace-config.sh ; then
+    echo "ERROR: Failed to make 'create-ace-config.sh' executable in the namespace '$image_project'" 1>&2
+    exit 1
+  fi
 
+  echo -e "\nINFO: Creating ace integration server configuration resources in the namespace '$image_project'"
+  if ! ${PWD}/../../products/bash/create-ace-config.sh -n ${image_project} ; then
+    echo "ERROR: Failed to make 'create-ace-config.sh' executable in the namespace '$image_project'" 1>&2
+    exit 1
+  fi
+
+  echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
+
+  echo "INFO: Creating secret to pull images from the ER"
+  if ! oc get secrets -n ${image_project} ibm-entitlement-key; then
+    oc create -n ${image_project} secret docker-registry ibm-entitlement-key --docker-server=${ER_REGISTRY} \
+      --docker-username=${ER_USERNAME} --docker-password=${ER_PASSWORD} -o yaml | oc apply -f -
+  else
+    echo "INFO: ibm-entitlement-key secret already exists"
+  fi
+  
   echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
   echo "INFO: Creating operator group and subscription in the namespace '${image_project}'"

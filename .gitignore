@@ -1,6 +1,8 @@
 .DS_Store
-/DrivewayDentDeletion/Operators/DefaultPolicies/default.policyxml
-/DrivewayDentDeletion/Operators/DefaultPolicies/policy.descriptor
+/DrivewayDentDeletion/Operators/DefaultPolicies
+/DrivewayDentDeletion/Operators/DefaultPolicies
+/DrivewayDentDeletion/Operators/DefaultPolicies
 /DrivewayDentDeletion/Operators/tmp
+/DrivewayDentDeletion/Operators/policyproject.zip
 /products/bash/postgres.env
 /products/bash/postgres.yaml

@@ -25,17 +25,9 @@ These steps will need to be documented in the demo docs:
   oc project $NAMESPACE
   export BRANCH=master
   export FORKED_REPO=https://github.com/IBM/cp4i-deployment-samples.git
-  cat cicd-webhook-triggers.yaml | \
-    sed "s#{{FORKED_REPO}}#$FORKED_REPO#g;" | \
-    sed "s#{{BRANCH}}#$BRANCH#g;" | \
-    sed "s#{{NAMESPACE}}#$NAMESPACE#g;" | \
-    oc apply -f -
+  ./cicd-apply-pipeline.sh -n $NAMESPACE -r $FORKED_REPO -b $BRANCH
   ```
-- Run the following command to get the URL for the trigger:
-  ```
-  echo "$(oc  get route el-main-trigger --template='http://{{.spec.host}}')"
-  ```
-- Add the trigger URL to the repo as a webhook with the `Content type` as `application/json`, which triggers an initial run of the pipeline.
+- The above script `cicd-apply-pipeline.sh` will print out the trigger URL and the next step.
 
 # Pipelines
 ## Initial pipeline for just the dev environment
