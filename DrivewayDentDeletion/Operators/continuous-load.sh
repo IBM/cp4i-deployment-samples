@@ -31,7 +31,7 @@ function usage() {
   echo "Usage: $0 -n <namespace> -a <api_base_url> -t <retry_interval> -c -i -s"
 }
 
-namespace="cp4i"
+NAMESPACE="cp4i"
 should_cleanup_table=false
 condensed_info=false
 save_row_after_run=false
@@ -39,7 +39,8 @@ retry_interval=5
 
 while getopts "n:a:t:cis" opt; do
   case ${opt} in
-    n ) namespace="$OPTARG"
+    n )
+      NAMESPACE="$OPTARG"
       ;;
     a)
       api_base_url="$OPTARG"
@@ -62,7 +63,7 @@ while getopts "n:a:t:cis" opt; do
   esac
 done
 
-DB_USER=$(echo $namespace | sed 's/-/_/g')
+DB_USER=$(echo ${NAMESPACE} | sed 's/-/_/g')
 DB_NAME=db_${DB_USER}
 DB_PASS=$(oc get secret -n ${NAMESPACE} postgres-credential --template={{.data.password}} | base64 -D)
 DB_POD=$(oc get pod -n postgres -l name=postgresql -o jsonpath='{.items[].metadata.name}')
@@ -70,7 +71,7 @@ echo "INFO: Username name is: '${DB_USER}'"
 echo "INFO: Database name is: '${DB_NAME}'"
 
 if [ -z "${api_base_url}" ]; then
-  api_base_url=$(echo "http://$(oc get routes -n ${namespace} | grep ace-api-int-srv-http | grep -v ace-api-int-srv-https | awk '{print $2}')/drivewayrepair")
+  api_base_url=$(echo "http://$(oc get routes -n ${NAMESPACE} | grep ace-api-int-srv-http | grep -v ace-api-int-srv-https | awk '{print $2}')/drivewayrepair")
 fi
 
 echo "API base URL: $api_base_url"

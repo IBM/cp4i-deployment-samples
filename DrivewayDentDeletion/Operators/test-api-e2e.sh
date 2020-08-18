@@ -13,7 +13,6 @@
 #
 # PARAMETERS:
 #   -n : <namespace> (string), Defaults to "cp4i"
-#   -t : <imageTag> (string), Default is empty
 #
 #   With defaults values
 #     ./test-api-e2e.sh -n <namesapce>
@@ -22,16 +21,16 @@ function usage {
     echo "Usage: $0 -n <namespace>"
 }
 
-namespace="cp4i"
+NAMESPACE="cp4i"
 os_sed_flag=""
 
 if [[ $(uname) == Darwin ]]; then
   os_sed_flag="-e"
 fi
 
-while getopts "n:t:c" opt; do
+while getopts "n:" opt; do
   case ${opt} in
-    n ) namespace="$OPTARG"
+    n ) NAMESPACE="$OPTARG"
       ;;
     \? ) usage; exit
       ;;
@@ -73,14 +72,14 @@ echo -e "\n---------------------------------------------------------------------
 
 # -------------------------------------- TEST E2E API ------------------------------------------
 
-export HOST=http://$(oc get routes -n ${namespace} | grep ace-api-int-srv-http | grep -v ace-api-int-srv-https | awk '{print $2}')/drivewayrepair
+export HOST=http://$(oc get routes -n ${NAMESPACE} | grep ace-api-int-srv-http | grep -v ace-api-int-srv-https | awk '{print $2}')/drivewayrepair
 echo "INFO: Host: ${HOST}"
 
-USERNAME=$(echo $namespace | sed 's/-/_/g')
-DB_NAME=db_${USERNAME}
+DB_USER=$(echo ${NAMESPACE} | sed 's/-/_/g')
+DB_NAME=db_${DB_USER}
 DB_PASS=$(oc get secret -n ${NAMESPACE} postgres-credential --template={{.data.password}} | base64 -D)
 DB_POD=$(oc get pod -n postgres -l name=postgresql -o jsonpath='{.items[].metadata.name}')
-echo "INFO: Username name is: '${USERNAME}'"
+echo "INFO: Username name is: '${DB_USER}'"
 echo "INFO: Database name is: '${DB_NAME}'"
 
 echo -e "\nINFO: Testing E2E API now..."
@@ -112,9 +111,9 @@ if [ "$post_response_code" == "200" ]; then
     echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------"
 
     #  ------- Get row to confirm post -------
-    echo -e "\nINFO: Select and print the row as user '${USERNAME}' from database '${DB_NAME}' with id '$quote_id' to confirm deletion..."
+    echo -e "\nINFO: Select and print the row as user '${DB_USER}' from database '${DB_NAME}' with id '$quote_id' to confirm deletion..."
     oc exec -n postgres -it ${DB_POD} \
-      -- psql -U ${USERNAME} -d ${DB_NAME} -c \
+      -- psql -U ${DB_USER} -d ${DB_NAME} -c \
       "SELECT * FROM quotes WHERE quotes.quoteid=${quote_id};" < ${DB_PASS}
 
     echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
@@ -126,18 +125,18 @@ if [ "$post_response_code" == "200" ]; then
 
   echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------"
   # ------- Delete from the database -------
-  echo -e "\nINFO: Deleting row from database '${DB_NAME}' as user '${USERNAME}'..."
+  echo -e "\nINFO: Deleting row from database '${DB_NAME}' as user '${DB_USER}'..."
   echo "INFO: Deleting the row with quote id $quote_id from the database"
   oc exec -n postgres -it ${DB_POD} \
-    -- psql -U ${USERNAME} -d ${DB_NAME} -c \
+    -- psql -U ${DB_USER} -d ${DB_NAME} -c \
     "DELETE FROM quotes WHERE quotes.quoteid=${quote_id};" < ${DB_PASS}
 
   echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------"
 
   #  ------- Get row to confirm deletion -------
-  echo -e "\nINFO: Select and print the row as user '${USERNAME}' from database '${DB_NAME}' with id '$quote_id' to confirm deletion..."
+  echo -e "\nINFO: Select and print the row as user '${DB_USER}' from database '${DB_NAME}' with id '$quote_id' to confirm deletion..."
   oc exec -n postgres -it ${DB_POD} \
-    -- psql -U ${USERNAME} -d ${DB_NAME} -c \
+    -- psql -U ${DB_USER} -d ${DB_NAME} -c \
     "SELECT * FROM quotes WHERE quotes.quoteid=${quote_id};" < ${DB_PASS}
 
 else
