@@ -110,7 +110,7 @@ ALTER USER ${DB_USER} WITH PASSWORD `echo "'${DB_PASS}'"`;
 EOF
 fi
 
-echo "INFO: Create QUOTES table in the database '${DB_NAME}'"
+echo "INFO: Create QUOTES table in the database '${DB_NAME}' with the username '$DB_USER'"
 if ! oc exec -n postgres -it ${DB_POD} \
     -- psql -U ${DB_USER} -d ${DB_NAME} -h ${DB_SVC} -c \
   'CREATE TABLE IF NOT EXISTS QUOTES (
