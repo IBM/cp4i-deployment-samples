@@ -1,7 +1,7 @@
 apiVersion: tekton.dev/v1alpha1
 kind: Pipeline
 metadata:
-  name: main-pipeline
+  name: dev-pipeline
 spec:
   params:
     - name: imageTag
@@ -194,107 +194,6 @@ spec:
           value: "ace-chris-int-srv"
         - name: releaseScript
           value: release-ace-integration-server.sh
-      resources:
-        inputs:
-          - name: git-source
-            resource: git-source
-
-    # test end-to-end API in dev namespace
-    - name: test-e2e-api-in-dev-namespace
-      runAfter:
-        - deploy-wait-ace-chris
-        - deploy-wait-mq
-        - deploy-wait-ace-api
-        - deploy-wait-ace-acme
-        - deploy-wait-ace-bernie
-      taskRef:
-        name: api-test-e2e
-      params:
-        - name: dddNamespaceSuffix
-          value: "dev"
-      resources:
-        inputs:
-          - name: git-source
-            resource: git-source
-
-    # push ace images to test namespace
-    - name: image-push-to-test-ace-chris
-      runAfter:
-        - test-e2e-api-in-dev-namespace
-      taskRef:
-        name: image-push-to-test
-      params:
-        - name: imageTag
-          value: "$(params.imageTag)"
-        - name: imageName
-          value: "ace-chris"
-        - name: pvc
-          value: "buildah-ace-chris"
-    - name: image-push-to-test-ace-acme
-      runAfter:
-        - test-e2e-api-in-dev-namespace
-      taskRef:
-        name: image-push-to-test
-      params:
-        - name: imageTag
-          value: "$(params.imageTag)"
-        - name: imageName
-          value: "ace-acme"
-        - name: pvc
-          value: "buildah-ace-acme"
-    - name: image-push-to-test-ace-bernie
-      runAfter:
-        - test-e2e-api-in-dev-namespace
-      taskRef:
-        name: image-push-to-test
-      params:
-        - name: imageTag
-          value: "$(params.imageTag)"
-        - name: imageName
-          value: "ace-bernie"
-        - name: pvc
-          value: "buildah-ace-bernie"
-    - name: image-push-to-test-ace-api
-      runAfter:
-        - test-e2e-api-in-dev-namespace
-      taskRef:
-        name: image-push-to-test
-      params:
-        - name: imageTag
-          value: "$(params.imageTag)"
-        - name: imageName
-          value: "ace-api"
-        - name: pvc
-          value: "buildah-ace-api"
-
-    # push mq image to test namespace
-    - name: image-push-to-test-mq
-      runAfter:
-        - test-e2e-api-in-dev-namespace
-      taskRef:
-        name: image-push-to-test
-      params:
-        - name: imageTag
-          value: "latest"
-        - name: imageName
-          value: "mq-ddd"
-        - name: pvc
-          value: "buildah-mq"
-
-    # task to apply pipelines and tasks for deploy and test in test namespace
-    - name: cicd-deploy-in-test-namespace
-      runAfter:
-        - image-push-to-test-ace-chris
-        - image-push-to-test-ace-acme
-        - image-push-to-test-ace-bernie
-        - image-push-to-test-ace-api
-        - image-push-to-test-mq
-        - deploy-wait-mq
-      taskRef:
-        name: build-deploy-test
-      params:
-        - name: imageTag
-          value: "$(params.imageTag)"
       resources:
         inputs:
           - name: git-source

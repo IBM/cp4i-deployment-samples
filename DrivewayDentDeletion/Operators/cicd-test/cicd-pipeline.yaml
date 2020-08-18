@@ -1,7 +1,7 @@
 apiVersion: tekton.dev/v1alpha1
 kind: Pipeline
 metadata:
-  name: main-pipeline
+  name: test-pipeline
 spec:
   params:
     - name: imageTag
