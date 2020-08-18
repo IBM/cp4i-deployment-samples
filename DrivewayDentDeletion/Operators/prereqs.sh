@@ -124,7 +124,7 @@ for image_project in "${image_projects[@]}"
 do
   echo "INFO: Configuring postgres in the namespace '$image_project'"
   if ! ${PWD}/configure-postgres.sh -n ${image_project} ; then
-    echo "ERROR: Failed to configure postgres in the namespace '$image_project'" 1>&2
+    echo -e "\nERROR: Failed to configure postgres in the namespace '$image_project'" 1>&2
     exit 1
   fi
 

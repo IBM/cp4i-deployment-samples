@@ -79,7 +79,7 @@ EOF
 #coopying the script to the postgres container and execute it 
 chmod +x script.sh
 oc rsync -n postgres . ${DB_POD}:/var/lib/pgsql --exclude="*" --include="script.sh"
-oc exec -n postgres -it ${DB_POD} -- /var/lib/script.sh
+oc exec -n postgres -it ${DB_POD} -- /var/lib/pgsql/script.sh
 
 if [ $? -ne 0 ]; then
   echo "ERROR: Failed to configure database password in the '$NAMESPACE' namespace" 1>&2
