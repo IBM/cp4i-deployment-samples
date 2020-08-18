@@ -36,6 +36,10 @@ should_cleanup_table=false
 condensed_info=false
 save_row_after_run=false
 retry_interval=5
+USERNAME=$(echo $namespace | sed 's/-/_/g')
+DB_NAME=db_${USERNAME}
+echo "INFO: Username name is: '${USERNAME}'"
+echo "INFO: Database name is: '${DB_NAME}'"
 
 while getopts "n:a:t:cis" opt; do
   case ${opt} in
@@ -77,7 +81,7 @@ function cleanup_table() {
   table_name="quotes"
   echo -e "\Clearing '${table_name}' database of all rows..."
   oc exec -n postgres -it $(oc get pod -n postgres -l name=postgresql -o jsonpath='{.items[].metadata.name}') \
-    -- psql -U admin -d sampledb -c \
+    -- psql -U ${USERNAME} -d ${DB_NAME} -c \
     "TRUNCATE ${table_name};"
 }
 
@@ -126,7 +130,7 @@ while true; do
     if [ "$save_row_after_run" = false ]; then
       echo -e "\nDeleting row from database..."
       oc exec -n postgres -it $(oc get pod -n postgres -l name=postgresql -o jsonpath='{.items[].metadata.name}') \
-        -- psql -U admin -d sampledb -c \
+        -- psql -U ${USERNAME} -d ${DB_NAME} -c \
         "DELETE FROM quotes WHERE quotes.quoteid = ${quote_id};"
     fi
   else
