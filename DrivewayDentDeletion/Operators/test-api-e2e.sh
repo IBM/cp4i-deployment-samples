@@ -78,6 +78,8 @@ echo "INFO: Host: ${HOST}"
 
 USERNAME=$(echo $namespace | sed 's/-/_/g')
 DB_NAME=db_${USERNAME}
+DB_PASS=$(oc get secret -n ${NAMESPACE} postgres-credential --template={{.data.password}} | base64 -D)
+DB_POD=$(oc get pod -n postgres -l name=postgresql -o jsonpath='{.items[].metadata.name}')
 echo "INFO: Username name is: '${USERNAME}'"
 echo "INFO: Database name is: '${DB_NAME}'"
 
@@ -111,9 +113,9 @@ if [ "$post_response_code" == "200" ]; then
 
     #  ------- Get row to confirm post -------
     echo -e "\nINFO: Select and print the row as user '${USERNAME}' from database '${DB_NAME}' with id '$quote_id' to confirm deletion..."
-    oc exec -n postgres -it $(oc get pod -n postgres -l name=postgresql -o jsonpath='{.items[].metadata.name}') \
+    oc exec -n postgres -it ${DB_POD} \
       -- psql -U ${USERNAME} -d ${DB_NAME} -c \
-      "SELECT * FROM quotes WHERE quotes.quoteid=${quote_id};"
+      "SELECT * FROM quotes WHERE quotes.quoteid=${quote_id};" < ${DB_PASS}
 
     echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
   else
@@ -126,17 +128,17 @@ if [ "$post_response_code" == "200" ]; then
   # ------- Delete from the database -------
   echo -e "\nINFO: Deleting row from database '${DB_NAME}' as user '${USERNAME}'..."
   echo "INFO: Deleting the row with quote id $quote_id from the database"
-  oc exec -n postgres -it $(oc get pod -n postgres -l name=postgresql -o jsonpath='{.items[].metadata.name}') \
+  oc exec -n postgres -it ${DB_POD} \
     -- psql -U ${USERNAME} -d ${DB_NAME} -c \
-    "DELETE FROM quotes WHERE quotes.quoteid=${quote_id};"
+    "DELETE FROM quotes WHERE quotes.quoteid=${quote_id};" < ${DB_PASS}
 
   echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------"
 
   #  ------- Get row to confirm deletion -------
   echo -e "\nINFO: Select and print the row as user '${USERNAME}' from database '${DB_NAME}' with id '$quote_id' to confirm deletion..."
-  oc exec -n postgres -it $(oc get pod -n postgres -l name=postgresql -o jsonpath='{.items[].metadata.name}') \
+  oc exec -n postgres -it ${DB_POD} \
     -- psql -U ${USERNAME} -d ${DB_NAME} -c \
-    "SELECT * FROM quotes WHERE quotes.quoteid=${quote_id};"
+    "SELECT * FROM quotes WHERE quotes.quoteid=${quote_id};" < ${DB_PASS}
 
 else
   # Failure catch during POST
