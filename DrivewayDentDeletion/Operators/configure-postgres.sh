@@ -59,9 +59,11 @@ data:
 EOF
 
 # Script to generate a .pgpass file so we don't have to authenticate every psql cmd
+# remove existing user and associated password in .pgpass file
 cat << EOF > script.sh
 #!/bin/bash
 if [ -f /var/lib/pgsql/.pgpass ]; then
+  sed -i '/$DB_NAME:$DB_USER/d' /var/lib/pgsql/.pgpass
   echo "${DB_PASSFILE}" >> /var/lib/pgsql/.pgpass
 else
   cat << EEOOFF > /var/lib/pgsql/.pgpass
@@ -101,10 +103,14 @@ EOF
     exit 1
   fi
 else
-  echo "INFO: Database already exists, skipping this step"
+  echo "INFO: Database and user already exist, updating user password only"
+  oc exec -n postgres -it ${DB_POD} \
+    -- psql << EOF
+ALTER USER ${DB_USER} WITH PASSWORD `echo "'${DB_PASS}'"`;
+EOF
 fi
 
-echo "INFO: Create QUOTES table in the database ${DB_NAME}"
+echo "INFO: Create QUOTES table in the database '${DB_NAME}'"
 if ! oc exec -n postgres -it ${DB_POD} \
     -- psql -U ${DB_USER} -d ${DB_NAME} -h ${DB_SVC} -c \
   'CREATE TABLE IF NOT EXISTS QUOTES (
@@ -120,6 +126,6 @@ if ! oc exec -n postgres -it ${DB_POD} \
     BernieDate DATE,
     ChrisCost INTEGER,
     ChrisDate DATE);'; then
-  echo "ERROR: Failed to create QUOTES table" 1>&2
+  echo "ERROR: Failed to create QUOTES table in the namesapce '$NAMESPACE'"
   exit 1
 fi
