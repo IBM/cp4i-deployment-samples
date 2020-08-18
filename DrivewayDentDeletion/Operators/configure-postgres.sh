@@ -36,12 +36,15 @@ while getopts "n:" opt; do
 done
 
 DB_POD=$(oc get pod -n postgres -l name=postgresql -o jsonpath='{.items[].metadata.name}')
-DB_SVC="$(oc get cm postgres-config -o json | jq '.data["postgres.env"] | split("\n  ")' | grep DATABASE_SERVICE_NAME | cut -d "=" -f 2- | tr -dc '[a-z0-9-]\n').postgres.svc.cluster.local"
+DB_SVC="$(oc get cm -n postgres postgres-config -o json | jq '.data["postgres.env"] | split("\n  ")' | grep DATABASE_SERVICE_NAME | cut -d "=" -f 2- | tr -dc '[a-z0-9-]\n').postgres.svc.cluster.local"
 DB_USER=$(echo $NAMESPACE | sed 's/-/_/g')
 DB_NAME=db_${DB_USER}
 DB_PASS=$(LC_ALL=C tr -dc 'A-Za-z0-9' </dev/urandom | head -c 32 ; echo)
 DB_PASSFILE="${DB_SVC}:5432:${DB_NAME}:${DB_USER}:${DB_PASS}"
 
+PASSWORD_ENCODED=$(echo -n $DB_PASS | base64)
+
+# everything inside data should be in the base64 encoded form
 cat << EOF | oc apply -f -
 apiVersion: v1
 kind: Secret
@@ -49,9 +52,10 @@ metadata:
   namespace: ${NAMESPACE}
   name: postgres-credential
 type: Opaque
+stringData:
+  username: ${DB_USER}
 data:
-  username: ${NAMESPACE}
-  password: $(echo $DB_PASS | base64)
+  password: ${PASSWORD_ENCODED}
 EOF
 
 oc exec -n postgres -it ${DB_POD} -- \

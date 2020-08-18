@@ -8,3 +8,5 @@
 /DrivewayDentDeletion/Operators/run.sh
 /products/bash/postgres.env
 /products/bash/postgres.yaml
+/DrivewayDentDeletion/Operators/postgres.env
+/DrivewayDentDeletion/Operators/postgres.yaml

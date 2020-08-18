@@ -29,8 +29,8 @@ cat << EOF > postgres.env
   POSTGRESQL_VERSION=9.6
 EOF
 
-oc create configmap postgres-config --from-file=postgres.env
 oc process -n openshift postgresql-persistent --param-file=postgres.env > postgres.yaml
 oc create namespace postgres
 oc project postgres
 oc apply -f postgres.yaml
+oc create configmap -n postgres postgres-config --from-file=postgres.env
