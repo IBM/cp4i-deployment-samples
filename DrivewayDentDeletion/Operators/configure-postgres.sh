@@ -23,20 +23,32 @@ while getopts "n:r:" opt; do
   esac
 done
 
-USER=$(echo $NAMESPACE | sed 's/-/_/g')
-DB=db_${NAMESPACE}
+DB_POD=$(oc get pod -n postgres -l name=postgresql -o jsonpath='{.items[].metadata.name}')
+DB_USER=$(echo $NAMESPACE | sed 's/-/_/g')
+DB_NAME=db_${DB_USER}
+DB_PASS=$(LC_ALL=C tr -dc 'A-Za-z0-9' </dev/urandom | head -c 32 ; echo)
 
-postgresPod=$(oc get pod -n postgres -l name=postgresql -o jsonpath='{.items[].metadata.name}')
+cat << EOF | oc apply -f -
+apiVersion: v1
+kind: Secret
+metadata:
+  namespace: ${NAMESPACE}
+  name: postgres-credential
+type: Opaque
+data:
+  username: ${NAMESPACE}
+  password: $(echo $DB_PASS | base64)
+EOF
 
 # Check if the database exists
-if ! oc exec -n postgres -it ${postgresPod} \
-  -- psql -U ${USER} -d ${DB} -c '\l' ; then
-  echo "INFO: Creating Database ${DB} , User ${USER}, "
-  oc exec -n postgres -it ${postgresPod} \
+if ! oc exec -n postgres -it ${DB_POD} \
+  -- psql -U ${DB_USER} -d ${DB_NAME} -c '\l' ; then
+  echo "INFO: Creating Database ${DB_NAME} , User ${DB_USER}, "
+  oc exec -n postgres -it ${DB_POD} \
     -- psql << EOF
-CREATE DATABASE ${DB};
-CREATE USER ${USER} WITH PASSWORD 'password';
-GRANT CONNECT ON DATABASE ${DB} TO ${USER};
+CREATE DATABASE ${DB_NAME};
+CREATE USER ${DB_USER} WITH PASSWORD 'password';
+GRANT CONNECT ON DATABASE ${DB_NAME} TO ${DB_USER};
 EOF
   if [ $? -ne 0 ]; then
     echo "ERROR: Failed to create and setup database" 1>&2
@@ -46,9 +58,9 @@ else
   echo "INFO: Database already exists, skipping this step"
 fi
 
-echo "INFO: Create QUOTES table in the database ${DB}"
-if ! oc exec -n postgres -it ${postgresPod} \
-    -- psql -U ${USER} -d ${DB} -c \
+echo "INFO: Create QUOTES table in the database ${DB_NAME}"
+if ! oc exec -n postgres -it ${DB_POD} \
+    -- psql -U ${DB_USER} -d ${DB_NAME} -c \
   'CREATE TABLE IF NOT EXISTS QUOTES (
     QuoteID SERIAL PRIMARY KEY NOT NULL,
     Name VARCHAR(100),
