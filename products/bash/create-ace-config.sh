@@ -35,6 +35,7 @@ echo -e "\n---------------------------------------------------------------------
 echo "INFO: Creating directories for default policies"
 mkdir -p ${PWD}/tmp
 mkdir -p ${PWD}/DefaultPolicies
+
 echo "INFO: Creating default.policyxml"
 cat << EOF > ${PWD}/DefaultPolicies/default.policyxml
 <?xml version="1.0" encoding="UTF-8"?>

@@ -27,8 +27,6 @@
 # }
 #
 namespace="cp4i"
-SCRIPT_DIR="$(dirname $0)"
-echo "Current Dir: $SCRIPT_DIR"
 
 # Get auth port with internal url and apply the operand config in common services namespace
 IAM_Update_OperandConfig() {
