@@ -79,6 +79,7 @@ DB_USER=$(echo ${NAMESPACE} | sed 's/-/_/g')
 DB_NAME=db_${DB_USER}
 DB_PASS=$(oc get secret -n ${NAMESPACE} postgres-credential --template={{.data.password}} | base64 -D)
 DB_POD=$(oc get pod -n postgres -l name=postgresql -o jsonpath='{.items[].metadata.name}')
+DB_SVC="$(oc get cm postgres-config -ojson | jq '.data["postgres.env"] | split("\n  ")' | grep DATABASE_SERVICE_NAME | cut -d "=" -f 2- | tr -dc '[a-z0-9-]\n').postgres.svc.cluster.local"
 echo "INFO: Username name is: '${DB_USER}'"
 echo "INFO: Database name is: '${DB_NAME}'"
 
@@ -113,7 +114,7 @@ if [ "$post_response_code" == "200" ]; then
     #  ------- Get row to confirm post -------
     echo -e "\nINFO: Select and print the row as user '${DB_USER}' from database '${DB_NAME}' with id '$quote_id' to confirm deletion..."
     oc exec -n postgres -it ${DB_POD} \
-      -- psql -U ${DB_USER} -d ${DB_NAME} -c \
+      -- psql -U ${DB_USER} -d ${DB_NAME} -h ${DB_SVC} -c \
       "SELECT * FROM quotes WHERE quotes.quoteid=${quote_id};" < ${DB_PASS}
 
     echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
@@ -128,7 +129,7 @@ if [ "$post_response_code" == "200" ]; then
   echo -e "\nINFO: Deleting row from database '${DB_NAME}' as user '${DB_USER}'..."
   echo "INFO: Deleting the row with quote id $quote_id from the database"
   oc exec -n postgres -it ${DB_POD} \
-    -- psql -U ${DB_USER} -d ${DB_NAME} -c \
+    -- psql -U ${DB_USER} -d ${DB_NAME} -h ${DB_SVC} -c \
     "DELETE FROM quotes WHERE quotes.quoteid=${quote_id};" < ${DB_PASS}
 
   echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------"
@@ -136,7 +137,7 @@ if [ "$post_response_code" == "200" ]; then
   #  ------- Get row to confirm deletion -------
   echo -e "\nINFO: Select and print the row as user '${DB_USER}' from database '${DB_NAME}' with id '$quote_id' to confirm deletion..."
   oc exec -n postgres -it ${DB_POD} \
-    -- psql -U ${DB_USER} -d ${DB_NAME} -c \
+    -- psql -U ${DB_USER} -d ${DB_NAME} -h ${DB_SVC} -c \
     "SELECT * FROM quotes WHERE quotes.quoteid=${quote_id};" < ${DB_PASS}
 
 else
