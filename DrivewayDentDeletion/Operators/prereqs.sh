@@ -7,15 +7,29 @@
 # Use, duplication or disclosure restricted by GSA ADP Schedule
 # Contract with IBM Corp.
 #******************************************************************************
+
+# PREREQUISITES:
+#   - Logged into cluster on the OC CLI (https://docs.openshift.com/container-platform/4.4/cli_reference/openshift_cli/getting-started-cli.html)
+#
+# PARAMETERS:
+#   -n : <namespace> (string), Defaults to 'cp4i'
+#   -r : <nav_replicas> (string), Defaults to '2'
+#
+#   With defaults values
+#     ./prereqs.sh
+#
+#   With overridden values
+#     ./prereqs.sh -n <namespace> -r <nav_replicas>
+
 function usage {
-    echo "Usage: $0 -n <namespace> -r <nav_replicas>"
+  echo "Usage: $0 -n <namespace> -r <nav_replicas>"
 }
 
 export IMAGE_REPO="cp.icr.io"
 namespace="cp4i"
 nav_replicas="2"
 
-while getopts "n:" opt; do
+while getopts "n:r:" opt; do
   case ${opt} in
     n ) namespace="$OPTARG"
       ;;
@@ -36,7 +50,7 @@ export ER_REGISTRY=$(echo "$DOCKERCONFIGJSON" | jq -r '.auths' | jq 'keys[]' | t
 export ER_USERNAME=$(echo "$DOCKERCONFIGJSON" | jq -r '.auths."cp.icr.io".username')
 export ER_PASSWORD=$(echo "$DOCKERCONFIGJSON" | jq -r '.auths."cp.icr.io".password')
 
-#namespaces
+#namespaces for the pipeline
 export dev_namespace=${namespace}-ddd-dev
 export test_namespace=${namespace}-ddd-test
 
@@ -61,7 +75,8 @@ oc apply --filename https://storage.googleapis.com/tekton-releases/pipeline/prev
 echo "INFO: Installing tekton triggers"
 oc apply -f https://storage.googleapis.com/tekton-releases/triggers/previous/v0.5.0/release.yaml
 echo "INFO: Waiting for tekton and triggers deployment to finish..."
-oc wait -n tekton-pipelines --for=condition=available deployment --timeout=20m tekton-pipelines-controller tekton-pipelines-webhook tekton-triggers-controller tekton-triggers-webhook
+oc wait -n tekton-pipelines --for=condition=available deployment --timeout=20m tekton-pipelines-controller \
+  tekton-pipelines-webhook tekton-triggers-controller tekton-triggers-webhook
 
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
@@ -136,7 +151,7 @@ do
   else
     echo "INFO: ibm-entitlement-key secret already exists"
   fi
-  
+
   echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
   echo "INFO: Creating operator group and subscription in the namespace '${image_project}'"
