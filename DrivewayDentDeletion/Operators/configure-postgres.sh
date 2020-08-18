@@ -44,7 +44,7 @@ DB_PASSFILE="${DB_SVC}:5432:${DB_NAME}:${DB_USER}:${DB_PASS}"
 
 PASSWORD_ENCODED=$(echo -n $DB_PASS | base64)
 
-# everything inside data should be in the base64 encoded form
+# everything inside data must be in the base64 encoded form
 cat << EOF | oc apply -f -
 apiVersion: v1
 kind: Secret
@@ -58,18 +58,31 @@ data:
   password: ${PASSWORD_ENCODED}
 EOF
 
-oc exec -n postgres -it ${DB_POD} -- \
-  if [ -f /var/lib/pgsql/.pgpass ]; then
-    echo "${DB_PASSFILE}" >> /var/lib/pgsql/.pgpass
-  else
-    cat << EOF > /var/lib/pgsql/.pgpass
+# Script to generate a .pgpass file so we don't have to authenticate every psql cmd
+cat << EOF > script.sh
+#!/bin/bash
+if [ -f /var/lib/pgsql/.pgpass ]; then
+  echo "${DB_PASSFILE}" >> /var/lib/pgsql/.pgpass
+else
+  cat << EEOOFF > /var/lib/pgsql/.pgpass
 ${DB_PASSFILE}
-EOF
-    chmod 600 /var/lib/pgsql/.pgpass
-  fi
+EEOOFF
+  chmod 600 /var/lib/pgsql/.pgpass
+fi
 
 if [ $? -ne 0 ]; then
-  echo "ERROR: Failed to configure database password" 1>&2
+  echo "ERROR: Failed to create a script to generate a .pgpass file in the '$NAMESPACE' namespace" 1>&2
+  exit 1
+fi
+EOF
+
+#coopying the script to the postgres container and execute it 
+chmod +x script.sh
+oc rsync -n postgres . ${DB_POD}:/var/lib/pgsql --exclude="*" --include="script.sh"
+oc exec -n postgres -it ${DB_POD} -- /var/lib/script.sh
+
+if [ $? -ne 0 ]; then
+  echo "ERROR: Failed to configure database password in the '$NAMESPACE' namespace" 1>&2
   exit 1
 fi
 
