@@ -7,15 +7,16 @@
 # Use, duplication or disclosure restricted by GSA ADP Schedule
 # Contract with IBM Corp.
 #******************************************************************************
+
 function usage {
-    echo "Usage: $0 -n <namespace> -r <nav_replicas>"
+  echo "Usage: $0 -n <namespace> -r <nav_replicas>"
 }
 
 export IMAGE_REPO="cp.icr.io"
 namespace="cp4i"
 nav_replicas="2"
 
-while getopts "n:" opt; do
+while getopts "n:r:" opt; do
   case ${opt} in
     n ) namespace="$OPTARG"
       ;;
@@ -61,7 +62,8 @@ oc apply --filename https://storage.googleapis.com/tekton-releases/pipeline/prev
 echo "INFO: Installing tekton triggers"
 oc apply -f https://storage.googleapis.com/tekton-releases/triggers/previous/v0.5.0/release.yaml
 echo "INFO: Waiting for tekton and triggers deployment to finish..."
-oc wait -n tekton-pipelines --for=condition=available deployment --timeout=20m tekton-pipelines-controller tekton-pipelines-webhook tekton-triggers-controller tekton-triggers-webhook
+oc wait -n tekton-pipelines --for=condition=available deployment --timeout=20m tekton-pipelines-controller \
+  tekton-pipelines-webhook tekton-triggers-controller tekton-triggers-webhook
 
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
@@ -79,9 +81,15 @@ oc create -n ${dev_namespace} secret docker-registry cicd-${dev_namespace} --doc
   --docker-username=${username} --docker-password=${password} -o yaml | oc apply -f -
 
 
-echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
-# Creating a new secret as the type of entitlement key is 'kubernetes.io/dockerconfigjson' but we need secret of type 'kubernetes.io/basic-auth' to pull imags from the ER
+declare -a image_projects=("${dev_namespace}" "${test_namespace}")
+for image_project in "${image_projects[@]}"
+do
+  echo "INFO: Creating ibm-entitlement-key secret in ${image_project} namespace"
+  oc create -n ${image_project} secret docker-registry ibm-entitlement-key --docker-server=${ER_REGISTRY} \
+  --docker-username=${ER_USERNAME} --docker-password=${ER_PASSWORD} -o yaml | oc apply -f -
+done
+
 echo "Creating secret to pull base images from Entitled Registry"
 cat << EOF | oc apply --namespace ${dev_namespace} -f -
 apiVersion: v1
@@ -101,7 +109,40 @@ echo -e "\n---------------------------------------------------------------------
 echo "Waiting for postgres to be ready"
 oc wait -n postgres --for=condition=available deploymentconfig --timeout=20m postgresql
 
-echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
+echo "INFO: Testing if postgres is already configured in the namespace ${dev_namespace}"
+getRows=$(oc exec -n postgres -it $(oc get pod -n postgres -l name=postgresql -o jsonpath='{.items[].metadata.name}') -- psql -U admin -d sampledb -c "SELECT * FROM quotes;" | grep '0 rows')
+
+if [[ $? -ne 0 ]]; then
+  echo "Creating quotes table in postgres samepledb"
+  oc exec -n postgres -it $(oc get pod -n postgres -l name=postgresql -o jsonpath='{.items[].metadata.name}') \
+    -- psql -U admin -d sampledb -c \
+  'CREATE TABLE QUOTES (
+    QuoteID SERIAL PRIMARY KEY NOT NULL,
+    Name VARCHAR(100),
+    EMail VARCHAR(100),
+    Address VARCHAR(100),
+    USState VARCHAR(100),
+    LicensePlate VARCHAR(100),
+    ACMECost INTEGER,
+    ACMEDate DATE,
+    BernieCost INTEGER,
+    BernieDate DATE,
+    ChrisCost INTEGER,
+    ChrisDate DATE);'
+else
+  echo "INFO: Postgres table 'QUOTES' already exists"
+fi
+
+declare -a image_projects=("${dev_namespace}" "${test_namespace}")
+
+for image_project in "${image_projects[@]}"
+do
+  chmod +x ${PWD}/../../products/bash/configure-postgres.sh
+  ${PWD}/../../products/bash/configure-postgres.sh -n ${image_project}
+  sleep 10
+  chmod +x ${PWD}/../../products/bash/create-ace-config.sh
+  ${PWD}/../../products/bash/create-ace-config.sh -n ${image_project}
+done
 
 declare -a image_projects=("${dev_namespace}" "${test_namespace}")
 
@@ -136,7 +177,7 @@ do
   else
     echo "INFO: ibm-entitlement-key secret already exists"
   fi
-  
+
   echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
   echo "INFO: Creating operator group and subscription in the namespace '${image_project}'"

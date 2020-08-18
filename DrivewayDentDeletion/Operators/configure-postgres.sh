@@ -12,29 +12,60 @@ function usage {
   echo "Usage: $0 -n <namespace>"
 }
 
-namespace="cp4i"
+NAMESPACE="cp4i"
 
 while getopts "n:r:" opt; do
   case ${opt} in
-    n ) namespace="$OPTARG"
+    n ) NAMESPACE="$OPTARG"
       ;;
     \? ) usage; exit
       ;;
   esac
 done
 
-namespace=$(echo $namespace | sed 's/-/_/g')
-postgresPod=$(oc get pod -n postgres -l name=postgresql -o jsonpath='{.items[].metadata.name}')
+DB_POD=$(oc get pod -n postgres -l name=postgresql -o jsonpath='{.items[].metadata.name}')
+DB_SVC="$(oc get cm postgres-config -ojson | jq '.data["postgres.env"] | split("\n  ")' | grep DATABASE_SERVICE_NAME | cut -d "=" -f 2- | tr -dc '[a-z0-9-]\n').postgres.svc.cluster.local"
+DB_USER=$(echo $NAMESPACE | sed 's/-/_/g')
+DB_NAME=db_${DB_USER}
+DB_PASS=$(LC_ALL=C tr -dc 'A-Za-z0-9' </dev/urandom | head -c 32 ; echo)
+DB_PASSFILE="${DB_SVC}:5432:${DB_NAME}:${DB_USER}:${DB_PASS}"
+
+cat << EOF | oc apply -f -
+apiVersion: v1
+kind: Secret
+metadata:
+  namespace: ${NAMESPACE}
+  name: postgres-credential
+type: Opaque
+data:
+  username: ${NAMESPACE}
+  password: $(echo $DB_PASS | base64)
+EOF
+
+oc exec -n postgres -it ${DB_POD} -- \
+  if [ -f /var/lib/pgsql/.pgpass ]; then
+    echo "${DB_PASSFILE}" >> /var/lib/pgsql/.pgpass
+  else
+    cat << EOF > /var/lib/pgsql/.pgpass
+${DB_PASSFILE}
+EOF
+    chmod 600 /var/lib/pgsql/.pgpass
+  fi
+
+if [ $? -ne 0 ]; then
+  echo "ERROR: Failed to configure database password" 1>&2
+  exit 1
+fi
 
 # Check if the database exists
-if ! oc exec -n postgres -it $postgresPod \
-  -- psql -U ${namespace} -d db_${namespace} -c '\l' ; then
-  echo "INFO: Creating Database db_${namespace} , User ${namespace}, "
-  oc exec -n postgres -it $postgresPod \
+if ! oc exec -n postgres -it ${DB_POD} \
+  -- psql -d ${DB_NAME} -c '\l' ; then
+  echo "INFO: Creating Database ${DB_NAME} , User ${DB_USER}, "
+  oc exec -n postgres -it ${DB_POD} \
     -- psql << EOF
-CREATE DATABASE db_${namespace};
-CREATE USER ${namespace} WITH PASSWORD 'password';
-GRANT CONNECT ON DATABASE db_${namespace} TO ${namespace};
+CREATE DATABASE ${DB_NAME};
+CREATE USER ${DB_USER} WITH PASSWORD `echo "'${DB_PASS}'"`;
+GRANT CONNECT ON DATABASE ${DB_NAME} TO ${DB_USER};
 EOF
   if [ $? -ne 0 ]; then
     echo "ERROR: Failed to create and setup database" 1>&2
@@ -44,9 +75,9 @@ else
   echo "INFO: Database already exists, skipping this step"
 fi
 
-echo "INFO: Create QUOTES table in the database db_${namespace}"
-if ! oc exec -n postgres -it $postgresPod \
-    -- psql -U ${namespace} -d db_${namespace} -c \
+echo "INFO: Create QUOTES table in the database ${DB_NAME}"
+if ! oc exec -n postgres -it ${DB_POD} \
+    -- psql -U ${DB_USER} -d ${DB_NAME} -h ${DB_SVC} -c \
   'CREATE TABLE IF NOT EXISTS QUOTES (
     QuoteID SERIAL PRIMARY KEY NOT NULL,
     Name VARCHAR(100),
