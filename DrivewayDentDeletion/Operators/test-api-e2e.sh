@@ -20,7 +20,7 @@
 #     ./test-api-e2e.sh -n <NAMESPACE>
 
 function usage {
-    echo "Usage: $0 -n <NAMESPACE> -p <NAMESPACE_SUFFIX> -s <USER_DB_SUFFIX>"
+    echo "Usage: $0 -n <NAMESPACE> -s <USER_DB_SUFFIX> -p <NAMESPACE_SUFFIX>"
 }
 
 NAMESPACE="cp4i"
@@ -30,7 +30,7 @@ if [[ $(uname) == Darwin ]]; then
   os_sed_flag="-e"
 fi
 
-while getopts "n:p:s" opt; do
+while getopts "n:s:p:" opt; do
   case ${opt} in
     n ) NAMESPACE="$OPTARG"
       ;;
@@ -44,10 +44,18 @@ while getopts "n:p:s" opt; do
 done
 
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
+
 echo "Namespace passed: $NAMESPACE"
-echo "Namespace suffix: $NAMESPACE_SUFFIX"
-echo "Namespace: $SUFFIX"
-NAMESPACE="${NAMESPACE}${NAMESPACE_SUFFIX}"
+echo "User name suffix: $USER_DB_SUFFIX"
+
+if [[ -z "${NAMESPACE_SUFFIX// }" ]]; then
+  echo "Namespace suffix is empty"
+  NAMESPACE="${NAMESPACE}"
+else
+  echo "Namespace suffix: $NAMESPACE_SUFFIX"
+  NAMESPACE="${NAMESPACE}-${NAMESPACE_SUFFIX}"
+fi
+
 echo "Namespace for postgres: $NAMESPACE"
 # -------------------------------------- INSTALL JQ ---------------------------------------------------------------------
 

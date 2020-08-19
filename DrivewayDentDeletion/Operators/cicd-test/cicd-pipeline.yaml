@@ -211,7 +211,7 @@ spec:
         name: api-test-e2e
       params:
         - name: namespaceSuffix
-          value: ""
+          value: " "
         - name: suffix
           value: "ddd"
       resources:
@@ -422,7 +422,7 @@ spec:
         name: api-test-e2e
       params:
         - name: namespaceSuffix
-          value: "-ddd-test"
+          value: "ddd-test"
         - name: suffix
           value: "ddd"
       resources:
