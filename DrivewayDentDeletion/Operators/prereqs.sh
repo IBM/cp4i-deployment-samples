@@ -153,7 +153,6 @@ for image_project in "${image_projects[@]}" #for_outer
           else
             echo "$tick INFO: Successfuly configured configured ace in the namespace '$image_project' with the suffix '$each_suffix'"
           fi #  ${PWD}/../../products/bash/create-ace-config.sh -n ${image_project} -s $each_suffix
-          echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
         fi # ("$each_suffix" == "ddd") || ("$each_suffix" == "eei" && "$image_project" != "${test_namespace}")
 
          done #for_inner_done
