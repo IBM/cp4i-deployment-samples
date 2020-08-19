@@ -73,18 +73,25 @@ EEOOFF
 fi
 
 if [ $? -ne 0 ]; then
-  echo "ERROR: Failed to create a script to generate a .pgpass file in the '$NAMESPACE' namespace" 1>&2
+  echo "ERROR: Failed to create a script to generate a .pgpass file in the '$NAMESPACE' namespace"
   exit 1
 fi
 EOF
 
 #coopying the script to the postgres container and execute it 
 chmod +x script.sh
+
+# If rsync complains of error(s) similar to the following, ignore it:
+#
+# rsync: failed to set permissions on "/var/lib/pgsql/.": Operation not permitted
+# rsync error: some files could not be transferred (code 23)
+# error: exit status 23
+#
 oc rsync -n postgres . ${DB_POD}:/var/lib/pgsql --exclude="*" --include="script.sh"
 oc exec -n postgres -it ${DB_POD} -- /var/lib/pgsql/script.sh
 
 if [ $? -ne 0 ]; then
-  echo "ERROR: Failed to configure database password in the '$NAMESPACE' namespace" 1>&2
+  echo "ERROR: Failed to configure database password in the '$NAMESPACE' namespace"
   exit 1
 fi
 
@@ -99,7 +106,7 @@ CREATE USER ${DB_USER} WITH PASSWORD `echo "'${DB_PASS}'"`;
 GRANT CONNECT ON DATABASE ${DB_NAME} TO ${DB_USER};
 EOF
   if [ $? -ne 0 ]; then
-    echo "ERROR: Failed to create and setup database" 1>&2
+    echo "ERROR: Failed to create and setup database"  
     exit 1
   fi
 else

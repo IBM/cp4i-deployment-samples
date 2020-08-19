@@ -120,59 +120,67 @@ echo -e "\n---------------------------------------------------------------------
 declare -a image_projects=("${dev_namespace}" "${test_namespace}")
 
 for image_project in "${image_projects[@]}"
-do
-  echo "INFO: Configuring postgres in the namespace '$image_project'"
-  if ! ${PWD}/configure-postgres.sh -n ${image_project} ; then
-    echo -e "\nERROR: Failed to configure postgres in the namespace '$image_project'" 1>&2
-    exit 1
-  fi
+  do
+    echo "INFO: Configuring postgres in the namespace '$image_project'"
 
-  echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
+    if ! ${PWD}/configure-postgres.sh -n ${image_project} ; then
+      echo -e "\nERROR: Failed to configure postgres in the namespace '$image_project'"
+      exit 1
+    fi
 
-  echo "INFO: Making 'create-ace-config.sh' executable"
-  if ! chmod +x ${PWD}/../../products/bash/create-ace-config.sh ; then
-    echo "ERROR: Failed to make 'create-ace-config.sh' executable in the namespace '$image_project'" 1>&2
-    exit 1
-  fi
+    echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
-  echo -e "\nINFO: Creating ace integration server configuration resources in the namespace '$image_project'"
-  if ! ${PWD}/../../products/bash/create-ace-config.sh -n ${image_project} ; then
-    echo "ERROR: Failed to make 'create-ace-config.sh' executable in the namespace '$image_project'" 1>&2
-    exit 1
-  fi
+    echo "INFO: Making 'create-ace-config.sh' executable"
 
-  echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
+    if ! chmod +x ${PWD}/../../products/bash/create-ace-config.sh ; then
+      echo "ERROR: Failed to make 'create-ace-config.sh' executable in the namespace '$image_project'"
+      exit 1
+    fi
 
-  echo "INFO: Creating secret to pull images from the ER"
-  if ! oc get secrets -n ${image_project} ibm-entitlement-key; then
-    oc create -n ${image_project} secret docker-registry ibm-entitlement-key --docker-server=${ER_REGISTRY} \
-      --docker-username=${ER_USERNAME} --docker-password=${ER_PASSWORD} -o yaml | oc apply -f -
-  else
-    echo "INFO: ibm-entitlement-key secret already exists"
-  fi
+    echo -e "\nINFO: Creating ace integration server configuration resources in the namespace '$image_project'"
 
-  echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
+    if ! ${PWD}/../../products/bash/create-ace-config.sh -n ${image_project} ; then
+      echo "ERROR: Failed to make 'create-ace-config.sh' executable in the namespace '$image_project'"
+      exit 1
+    fi
 
-  echo "INFO: Creating operator group and subscription in the namespace '${image_project}'"
-  if ! ${PWD}/../../products/bash/deploy-og-sub.sh -n ${image_project} ; then
-    echo "ERROR: Failed to apply subscriptions and csv in the namespace '$image_project'" 1>&2
-    exit 1
-  fi
+    echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
-  echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
+    echo -e "INFO: Creating secret to pull images from the ER\n"
 
-  echo "INFO: Releasing Navigator in the namespace '${image_project}'"
-  if ! ${PWD}/../../products/bash/release-navigator.sh -n ${image_project} -r ${nav_replicas} ; then
-    echo "ERROR: Failed to release the platform navigator in the namespace '$image_project'" 1>&2
-    exit 1
-  fi
+    if ! oc get secrets -n ${image_project} ibm-entitlement-key; then
+      oc create -n ${image_project} secret docker-registry ibm-entitlement-key --docker-server=${ER_REGISTRY} \
+        --docker-username=${ER_USERNAME} --docker-password=${ER_PASSWORD} -o yaml | oc apply -f -
+    else
+      echo -e "\nINFO: ibm-entitlement-key secret already exists"
+    fi
 
-  echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
+    echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
-  echo "INFO: Releasing ACE dashboard in the namespace '${image_project}'"
-  if ! ${PWD}/../../products/bash/release-ace-dashboard.sh -n ${image_project} ; then
-    echo "ERROR: Failed to release the ace dashboard in the namespace '$image_project'" 1>&2
-    exit 1
-  fi
-  echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
+    echo "INFO: Creating operator group and subscription in the namespace '${image_project}'"
+
+    if ! ${PWD}/../../products/bash/deploy-og-sub.sh -n ${image_project} ; then
+      echo "ERROR: Failed to apply subscriptions and csv in the namespace '$image_project'"
+      exit 1
+    fi
+
+    echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
+
+    echo "INFO: Releasing Navigator in the namespace '${image_project}'"
+
+    if ! ${PWD}/../../products/bash/release-navigator.sh -n ${image_project} -r ${nav_replicas} ; then
+      echo "ERROR: Failed to release the platform navigator in the namespace '$image_project'"
+      exit 1
+    fi
+
+    echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
+
+    echo "INFO: Releasing ACE dashboard in the namespace '${image_project}'"
+
+    if ! ${PWD}/../../products/bash/release-ace-dashboard.sh -n ${image_project} ; then
+      echo "ERROR: Failed to release the ace dashboard in the namespace '$image_project'"
+      exit 1
+    fi
+
+    echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 done
