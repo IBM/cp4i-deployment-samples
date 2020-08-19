@@ -84,7 +84,7 @@ export HOST=http://$(oc get routes -n ${NAMESPACE} | grep ace-api-int-srv-http |
 echo "INFO: Host: ${HOST}"
 
 DB_USER=$(echo ${NAMESPACE}_${USER_DB_SUFFIX} | sed 's/-/_/g')
-DB_NAME="db_${DB_USER}_${SUFFIX}"
+DB_NAME="db_${DB_USER}"
 DB_PASS=$(oc get secret -n ${NAMESPACE} postgres-credential --template={{.data.password}} | base64 -D)
 DB_POD=$(oc get pod -n postgres -l name=postgresql -o jsonpath='{.items[].metadata.name}')
 DB_SVC="$(oc get cm postgres-config -o json | jq '.data["postgres.env"] | split("\n  ")' | grep DATABASE_SERVICE_NAME | cut -d "=" -f 2- | tr -dc '[a-z0-9-]\n').postgres.svc.cluster.local"

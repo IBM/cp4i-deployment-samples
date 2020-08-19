@@ -42,7 +42,7 @@ done
 DB_POD=$(oc get pod -n postgres -l name=postgresql -o jsonpath='{.items[].metadata.name}')
 DB_SVC="$(oc get cm -n postgres postgres-config -o json | jq '.data["postgres.env"] | split("\n  ")' | grep DATABASE_SERVICE_NAME | cut -d "=" -f 2- | tr -dc '[a-z0-9-]\n').postgres.svc.cluster.local"
 DB_USER=$(echo ${NAMESPACE}_${SUFFIX} | sed 's/-/_/g')
-DB_NAME="db_${DB_USER}_${SUFFIX}"
+DB_NAME="db_${DB_USER}"
 DB_PASS=$(LC_ALL=C tr -dc 'A-Za-z0-9' </dev/urandom | head -c 32 ; echo)
 DB_PASSFILE="$DB_SVC:5432:$DB_NAME:$DB_USER:${DB_PASS}"
 
@@ -102,7 +102,7 @@ fi
 # Check if the database exists
 if ! oc exec -n postgres -it $DB_POD \
   -- psql -d $DB_NAME -c '\l' ; then
-  echo "INFO: Creating Database $DB_NAME, User $DB_USER, "
+  echo "INFO: Creating Database '$DB_NAME' and User '$DB_USER'"
   oc exec -n postgres -it $DB_POD \
     -- psql << EOF
 CREATE DATABASE $DB_NAME;

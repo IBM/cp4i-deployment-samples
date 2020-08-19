@@ -127,31 +127,36 @@ for image_project in "${image_projects[@]}" #for_outer
   do
     echo "INFO: Making 'create-ace-config.sh' executable"
     if ! chmod +x ${PWD}/../../products/bash/create-ace-config.sh ; then
-      echo "$cross ERROR: Failed to make 'create-ace-config.sh' executable in the namespace '$image_project'"
+      printf "$cross "
+      echo " ERROR: Failed to make 'create-ace-config.sh' executable in the namespace '$image_project'"
       exit 1
     else
-      echo "$tick INFO: Success"
+      printf "$tick "
+      echo "INFO: Made 'create-ace-config.sh' executable in the namespace '$image_project'"
     fi
 
     for each_suffix in "${suffix[@]}" #for_inner
       do
         if [[ ("$each_suffix" == "ddd") || ("$each_suffix" == "eei" && "$image_project" != "${test_namespace}") ]]; then
-          echo "INFO: Configuring postgres in the namespace '$image_project' with the suffix '$each_suffix'"
+          echo -e "\nINFO: Configuring postgres in the namespace '$image_project' with the suffix '$each_suffix'\n"
           if ! ${PWD}/configure-postgres.sh -n ${image_project} -s $each_suffix; then
             echo -e "\n$cross ERROR: Failed to configure postgres in the namespace '$image_project' with the suffix '$each_suffix'"
             exit 1
           else 
-            echo "$tick INFO: Successfuly configured postgres in the namespace '$image_project' with the suffix '$each_suffix'"
+            printf "$tick "
+            echo -e "\nINFO: Successfuly configured postgres in the namespace '$image_project' with the suffix '$each_suffix'"
           fi # ${PWD}/configure-postgres.sh -n ${image_project} -s $each_suffix
 
           echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
-          echo -e "\nINFO: Creating ace integration server configuration resources in the namespace '$image_project'"
+          echo -e "INFO: Creating ace integration server configuration resources in the namespace '$image_project'"
 
           if ! ${PWD}/../../products/bash/create-ace-config.sh -n ${image_project} -s $each_suffix ; then
-            echo "$cross ERROR: Failed to configure ace in the namespace '$image_project'  with the suffix '$each_suffix'"
+            printf "$cross "
+            echo "ERROR: Failed to configure ace in the namespace '$image_project'  with the suffix '$each_suffix'"
             exit 1
           else
-            echo "$tick INFO: Successfuly configured configured ace in the namespace '$image_project' with the suffix '$each_suffix'"
+            printf "$tick "
+            echo "INFO: Successfuly configured configured ace in the namespace '$image_project' with the suffix '$each_suffix'"
           fi #  ${PWD}/../../products/bash/create-ace-config.sh -n ${image_project} -s $each_suffix
         fi # ("$each_suffix" == "ddd") || ("$each_suffix" == "eei" && "$image_project" != "${test_namespace}")
 
@@ -195,6 +200,6 @@ if ! ${PWD}/../../products/bash/release-ace-dashboard.sh -n ${test_namespace} ; 
   exit 1
 fi
 
-echo -e "$tick $all_done INFO: All prerequisites have been applied successfully $all_done $tick \n"
+echo -e "$tick $all_done INFO: All prerequisites have been applied successfully $all_done $tick"
 
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
