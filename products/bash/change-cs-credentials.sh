@@ -107,7 +107,7 @@ if [[ $(uname) == Darwin ]]; then
     cp_client_platform=darwin-amd64
 fi
 mkdir -p ${CURRENT_DIR}/bin
-curl -k -sS -o bin/cloudctl https://${CP_CONSOLE}/api/cli/cloudctl-${cp_client_platform}
+curl -k -sS -o ${CURRENT_DIR}/bin/cloudctl https://${CP_CONSOLE}/api/cli/cloudctl-${cp_client_platform}
 chmod +x ${CURRENT_DIR}/bin/*
 export PATH=${CURRENT_DIR}/bin:${PATH}
 
