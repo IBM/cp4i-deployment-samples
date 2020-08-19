@@ -40,21 +40,20 @@ while getopts "n:r:" opt; do
   esac
 done
 
-DOCKERCONFIGJSON=$(oc get secret -n ${namespace} ibm-entitlement-key -o json | jq -r '.data.".dockerconfigjson"' | base64 --decode)
-if [ -z ${DOCKERCONFIGJSON} ] ; then
+DOCKERCONFIGJSON_ER=$(oc get secret -n ${namespace} ibm-entitlement-key -o json | jq -r '.data.".DOCKERCONFIGJSON_ER"' | base64 --decode)
+if [ -z ${DOCKERCONFIGJSON_ER} ] ; then
   echo "ERROR: Failed to find ibm-entitlement-key secret in the namespace '${namespace}'" 1>&2
   exit 1
 fi
 
-export ER_REGISTRY=$(echo "$DOCKERCONFIGJSON" | jq -r '.auths' | jq 'keys[]' | tr -d '"')
-export ER_USERNAME=$(echo "$DOCKERCONFIGJSON" | jq -r '.auths."cp.icr.io".username')
-export ER_PASSWORD=$(echo "$DOCKERCONFIGJSON" | jq -r '.auths."cp.icr.io".password')
+export ER_REGISTRY=$(echo "$DOCKERCONFIGJSON_ER" | jq -r '.auths' | jq 'keys[]' | tr -d '"')
+export ER_USERNAME=$(echo "$DOCKERCONFIGJSON_ER" | jq -r '.auths."cp.icr.io".username')
+export ER_PASSWORD=$(echo "$DOCKERCONFIGJSON_ER" | jq -r '.auths."cp.icr.io".password')
 
 #namespaces for the pipeline
-export dev_namespace=${namespace}-ddd-dev
+export dev_namespace=${namespace}
 export test_namespace=${namespace}-ddd-test
 
-oc create namespace ${dev_namespace}
 oc project ${dev_namespace}
 
 oc adm policy add-scc-to-group privileged system:serviceaccounts:$dev_namespace
@@ -95,7 +94,8 @@ oc create -n ${dev_namespace} secret docker-registry cicd-${dev_namespace} --doc
 
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
-# Creating a new secret as the type of entitlement key is 'kubernetes.io/dockerconfigjson' but we need secret of type 'kubernetes.io/basic-auth' to pull imags from the ER
+# Creating a new secret as the type of entitlement key is 'kubernetes.io/DOCKERCONFIGJSON_ER' but we need secret of type 'kubernetes.io/basic-auth'
+# to pull imags from the ER
 echo "Creating secret to pull base images from Entitled Registry"
 cat << EOF | oc apply --namespace ${dev_namespace} -f -
 apiVersion: v1
@@ -121,9 +121,12 @@ declare -a image_projects=("${dev_namespace}" "${test_namespace}")
 
 for image_project in "${image_projects[@]}"
   do
+    # suffix for username and database name
+    SUFFIX=$(LC_ALL=C tr -dc 'a-z' </dev/urandom | head -c 3 ; echo)
+
     echo "INFO: Configuring postgres in the namespace '$image_project'"
 
-    if ! ${PWD}/configure-postgres.sh -n ${image_project} ; then
+    if ! ${PWD}/configure-postgres.sh -n ${image_project} -s $SUFFIX; then
       echo -e "\nERROR: Failed to configure postgres in the namespace '$image_project'"
       exit 1
     fi
@@ -139,48 +142,48 @@ for image_project in "${image_projects[@]}"
 
     echo -e "\nINFO: Creating ace integration server configuration resources in the namespace '$image_project'"
 
-    if ! ${PWD}/../../products/bash/create-ace-config.sh -n ${image_project} ; then
+    if ! ${PWD}/../../products/bash/create-ace-config.sh -n ${image_project} -s $SUFFIX ; then
       echo "ERROR: Failed to make 'create-ace-config.sh' executable in the namespace '$image_project'"
       exit 1
     fi
 
     echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
-
-    echo -e "INFO: Creating secret to pull images from the ER\n"
-
-    if ! oc get secrets -n ${image_project} ibm-entitlement-key; then
-      oc create -n ${image_project} secret docker-registry ibm-entitlement-key --docker-server=${ER_REGISTRY} \
-        --docker-username=${ER_USERNAME} --docker-password=${ER_PASSWORD} -o yaml | oc apply -f -
-    else
-      echo -e "\nINFO: ibm-entitlement-key secret already exists"
-    fi
-
-    echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
-
-    echo "INFO: Creating operator group and subscription in the namespace '${image_project}'"
-
-    if ! ${PWD}/../../products/bash/deploy-og-sub.sh -n ${image_project} ; then
-      echo "ERROR: Failed to apply subscriptions and csv in the namespace '$image_project'"
-      exit 1
-    fi
-
-    echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
-
-    echo "INFO: Releasing Navigator in the namespace '${image_project}'"
-
-    if ! ${PWD}/../../products/bash/release-navigator.sh -n ${image_project} -r ${nav_replicas} ; then
-      echo "ERROR: Failed to release the platform navigator in the namespace '$image_project'"
-      exit 1
-    fi
-
-    echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
-
-    echo "INFO: Releasing ACE dashboard in the namespace '${image_project}'"
-
-    if ! ${PWD}/../../products/bash/release-ace-dashboard.sh -n ${image_project} ; then
-      echo "ERROR: Failed to release the ace dashboard in the namespace '$image_project'"
-      exit 1
-    fi
-
-    echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 done
+
+echo -e "INFO: Creating secret to pull images from the ER in the '${test_namespace}' namespace\n"
+
+if ! oc get secrets -n ${test_namespace} ibm-entitlement-key; then
+  oc create -n ${test_namespace} secret docker-registry ibm-entitlement-key --docker-server=${ER_REGISTRY} \
+    --docker-username=${ER_USERNAME} --docker-password=${ER_PASSWORD} -o yaml | oc apply -f -
+else
+  echo -e "\nINFO: ibm-entitlement-key secret already exists in the '${test_namespace}' namespace"
+fi
+
+echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
+
+echo "INFO: Creating operator group and subscription in the namespace '${test_namespace}'"
+
+if ! ${PWD}/../../products/bash/deploy-og-sub.sh -n ${test_namespace} ; then
+  echo "ERROR: Failed to apply subscriptions and csv in the namespace '$test_namespace'"
+  exit 1
+fi
+
+echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
+
+echo "INFO: Releasing Navigator in the namespace '${test_namespace}'"
+
+if ! ${PWD}/../../products/bash/release-navigator.sh -n ${test_namespace} -r ${nav_replicas} ; then
+  echo "ERROR: Failed to release the platform navigator in the namespace '$test_namespace'"
+  exit 1
+fi
+
+echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
+
+echo "INFO: Releasing ACE dashboard in the namespace '${test_namespace}'"
+
+if ! ${PWD}/../../products/bash/release-ace-dashboard.sh -n ${test_namespace} ; then
+  echo "ERROR: Failed to release the ace dashboard in the namespace '$test_namespace'"
+  exit 1
+fi
+
+echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"

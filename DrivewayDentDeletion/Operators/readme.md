@@ -33,7 +33,7 @@ These steps will need to be documented in the demo docs:
 ![Overview of aaS](../media/dev-pipeline.svg)
 - Trigger: Whenever a commit is made to the forked repo it triggers the
   pipeline.
-- Build tasks: Each of these tasks builds an images and pushes it to the cluster's local OpenShift Image Registry in the `<NAMESPACE>-ddd-dev` namespace. The latest dockerfile and related files (bar files) are pulled from the forked git repo.
-- Deploy and wait to dev tasks: Each of these tasks invokes the deployments using the newly built image, initially in the `<NAMESPACE>-ddd-dev` and then in the `<NAMESPACE>-ddd-test` namespace.
-- Test E2E API test task: This task tests the end-to-end API using curl commands to make a POST and a GET to the postgres database, initially in the `<NAMESPACE>-ddd-dev` namespace and then finally as a last step in the `<NAMESPACE>-ddd-test` namespace after all deployments have been done successfully in the next step.
-- Image Push to test task - If the test task succeeds, then each of this task pushes the images built in the `<NAMESPACE>-ddd-dev` namespace to the `<NAMESPACE>-ddd-test` namespace.
+- Build tasks: Each of these tasks builds an images and pushes it to the cluster's local OpenShift Image Registry in the `<NAMESPACE>` namespace. The latest dockerfile and related files (bar files) are pulled from the forked git repo.
+- Deploy and wait to dev tasks: Each of these tasks invokes the deployments using the newly built image, initially in the `<NAMESPACE>` and then in the `<NAMESPACE>-ddd-test` namespace.
+- Test E2E API test task: This task tests the end-to-end API using curl commands to make a POST and a GET to the postgres database, initially in the `<NAMESPACE>` namespace and then finally as a last step in the `<NAMESPACE>-ddd-test` namespace after all deployments have been done successfully in the next step.
+- Image Push to test task - If the test task succeeds, then each of this task pushes the images built in the `<NAMESPACE>` namespace to the `<NAMESPACE>-ddd-test` namespace.

@@ -13,22 +13,26 @@
 #
 # PARAMETERS:
 #   -n : <NAMESPACE> (string), Defaults to 'cp4i'
+#   -s : <SUFFIX> (string), Defaults to ''
 #
 #   With defaults values
 #     ./configure-postgres.sh
 #
 #   With overridden values
-#     ./configure-postgres.sh -n <NAMESPACE>
+#     ./configure-postgres.sh -n <NAMESPACE> -s <SUFFIX>
 
 function usage {
-  echo "Usage: $0 -n <NAMESPACE>"
+  echo "Usage: $0 -n <NAMESPACE> -s <SUFFIX>"
 }
 
 NAMESPACE="cp4i"
+SUFFIX=""
 
-while getopts "n:" opt; do
+while getopts "n:s:" opt; do
   case ${opt} in
     n ) NAMESPACE="$OPTARG"
+      ;;
+    s ) SUFFIX="$OPTARG"
       ;;
     \? ) usage; exit
       ;;
@@ -37,23 +41,23 @@ done
 
 DB_POD=$(oc get pod -n postgres -l name=postgresql -o jsonpath='{.items[].metadata.name}')
 DB_SVC="$(oc get cm -n postgres postgres-config -o json | jq '.data["postgres.env"] | split("\n  ")' | grep DATABASE_SERVICE_NAME | cut -d "=" -f 2- | tr -dc '[a-z0-9-]\n').postgres.svc.cluster.local"
-DB_USER=$(echo $NAMESPACE | sed 's/-/_/g')
-DB_NAME=db_${DB_USER}
+DB_USER=$(echo ${NAMESPACE}_${SUFFIX} | sed 's/-/_/g')
+DB_NAME="db_${DB_USER}_${SUFFIX}"
 DB_PASS=$(LC_ALL=C tr -dc 'A-Za-z0-9' </dev/urandom | head -c 32 ; echo)
-DB_PASSFILE="${DB_SVC}:5432:${DB_NAME}:${DB_USER}:${DB_PASS}"
+DB_PASSFILE="$DB_SVC:5432:$DB_NAME:$DB_USER:${DB_PASS}"
 
-PASSWORD_ENCODED=$(echo -n $DB_PASS | base64)
+PASSWORD_ENCODED=$(echo -n ${DB_PASS} | base64)
 
 # everything inside data must be in the base64 encoded form
 cat << EOF | oc apply -f -
 apiVersion: v1
 kind: Secret
 metadata:
-  namespace: ${NAMESPACE}
+  namespace: $NAMESPACE
   name: postgres-credential
 type: Opaque
 stringData:
-  username: ${DB_USER}
+  username: $DB_USER
 data:
   password: ${PASSWORD_ENCODED}
 EOF
@@ -87,8 +91,8 @@ chmod +x script.sh
 # rsync error: some files could not be transferred (code 23)
 # error: exit status 23
 #
-oc rsync -n postgres . ${DB_POD}:/var/lib/pgsql --exclude="*" --include="script.sh"
-oc exec -n postgres -it ${DB_POD} -- /var/lib/pgsql/script.sh
+oc rsync -n postgres . $DB_POD:/var/lib/pgsql --exclude="*" --include="script.sh"
+oc exec -n postgres -it $DB_POD -- /var/lib/pgsql/script.sh
 
 if [ $? -ne 0 ]; then
   echo "ERROR: Failed to configure database password in the '$NAMESPACE' namespace"
@@ -96,14 +100,14 @@ if [ $? -ne 0 ]; then
 fi
 
 # Check if the database exists
-if ! oc exec -n postgres -it ${DB_POD} \
-  -- psql -d ${DB_NAME} -c '\l' ; then
-  echo "INFO: Creating Database ${DB_NAME} , User ${DB_USER}, "
-  oc exec -n postgres -it ${DB_POD} \
+if ! oc exec -n postgres -it $DB_POD \
+  -- psql -d $DB_NAME -c '\l' ; then
+  echo "INFO: Creating Database $DB_NAME, User $DB_USER, "
+  oc exec -n postgres -it $DB_POD \
     -- psql << EOF
-CREATE DATABASE ${DB_NAME};
-CREATE USER ${DB_USER} WITH PASSWORD `echo "'${DB_PASS}'"`;
-GRANT CONNECT ON DATABASE ${DB_NAME} TO ${DB_USER};
+CREATE DATABASE $DB_NAME;
+CREATE USER $DB_USER WITH PASSWORD `echo "'${DB_PASS}'"`;
+GRANT CONNECT ON DATABASE $DB_NAME TO $DB_USER;
 EOF
   if [ $? -ne 0 ]; then
     echo "ERROR: Failed to create and setup database"  
@@ -111,15 +115,15 @@ EOF
   fi
 else
   echo "INFO: Database and user already exist, updating user password only"
-  oc exec -n postgres -it ${DB_POD} \
+  oc exec -n postgres -it $DB_POD \
     -- psql << EOF
-ALTER USER ${DB_USER} WITH PASSWORD `echo "'${DB_PASS}'"`;
+ALTER USER $DB_USER WITH PASSWORD `echo "'${DB_PASS}'"`;
 EOF
 fi
 
-echo "INFO: Create QUOTES table in the database '${DB_NAME}' with the username '$DB_USER'"
-if ! oc exec -n postgres -it ${DB_POD} \
-    -- psql -U ${DB_USER} -d ${DB_NAME} -h ${DB_SVC} -c \
+echo "INFO: Create QUOTES table in the database '$DB_NAME' with the username '$DB_USER'"
+if ! oc exec -n postgres -it $DB_POD \
+    -- psql -U $DB_USER -d $DB_NAME -h $DB_SVC -c \
   'CREATE TABLE IF NOT EXISTS QUOTES (
     QuoteID SERIAL PRIMARY KEY NOT NULL,
     Name VARCHAR(100),

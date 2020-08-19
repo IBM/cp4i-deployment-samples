@@ -7,24 +7,39 @@
 # Use, duplication or disclosure restricted by GSA ADP Schedule
 # Contract with IBM Corp.
 #****
+
+# PARAMETERS:
+#   -n : <namespace> (string), Defaults to 'cp4i'
+#   -s : <SUFFIX> (string), Defaults to ''
+#
+#   With defaults values
+#     ./create-ace-config.sh
+#
+#   With overridden values
+#     ./create-ace-config.sh -n <NAMESPACE> -s <SUFFIX>
+
 function usage {
-  echo "Usage: $0 -n <namespace>"
+  echo "Usage: $0 -n <namespace> -s <SUFFIX>"
 }
 
 namespace="cp4i"
 
-while getopts "n:r:" opt; do
+while getopts "n:s:" opt; do
   case ${opt} in
     n ) namespace="$OPTARG"
+      ;;
+    s ) SUFFIX="$OPTARG"
       ;;
     \? ) usage; exit
       ;;
   esac
 done
 
-echo "INFO: Creating policyproject for ace"
+echo "INFO: Creating policyproject for ace in the '$namespace' namespace "
 
-namespace_for_db=$(echo $namespace | sed 's/-/_/g')
+# Add suffix created for a user and database for the policy
+namespace_for_db="${namespace}_${SUFFIX}"
+namespace_for_db=$(echo $namespace_for_db | sed 's/-/_/g')
 
 echo "INFO: Namespace is: '$namespace'"
 echo "INFO: Database name is: 'db_$namespace_for_db'"

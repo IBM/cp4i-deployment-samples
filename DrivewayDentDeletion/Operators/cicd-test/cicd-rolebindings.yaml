@@ -64,7 +64,7 @@ metadata:
 subjects:
 - kind: ServiceAccount
   name: cicd-test
-  namespace: "{{NAMESPACE}}-ddd-dev"
+  namespace: "{{NAMESPACE}}"
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: Role
@@ -95,7 +95,7 @@ metadata:
 subjects:
 - kind: ServiceAccount
   name: cicd-mq-deploy-in-test-sa
-  namespace: "{{NAMESPACE}}-ddd-dev"
+  namespace: "{{NAMESPACE}}"
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: Role
@@ -112,7 +112,7 @@ metadata:
 subjects:
 - kind: ServiceAccount
   name: cicd-ace-deploy-in-test-sa
-  namespace: "{{NAMESPACE}}-ddd-dev"
+  namespace: "{{NAMESPACE}}"
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: Role
@@ -129,7 +129,7 @@ metadata:
 subjects:
 - kind: ServiceAccount
   name: cicd-api-e2e-in-test-sa
-  namespace: "{{NAMESPACE}}-ddd-dev"
+  namespace: "{{NAMESPACE}}"
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: Role
@@ -146,7 +146,7 @@ metadata:
 subjects:
 - kind: ServiceAccount
   name: cicd-api-e2e-in-test-sa
-  namespace: "{{NAMESPACE}}-ddd-dev"
+  namespace: "{{NAMESPACE}}"
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: Role

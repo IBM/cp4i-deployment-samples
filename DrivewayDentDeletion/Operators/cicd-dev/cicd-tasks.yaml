@@ -32,11 +32,11 @@ spec:
         df -h /var/lib/containers
         buildah --storage-driver vfs bud \
           -f /workspace/git-source/DrivewayDentDeletion/Operators/Dockerfiles/$(params.dockerfile) \
-          -t image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}-ddd-dev/$(params.imageName):$(params.imageTag) \
+          -t image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}/$(params.imageName):$(params.imageTag) \
           /workspace/git-source/DrivewayDentDeletion/$(params.contextPath)
         buildah --storage-driver vfs push \
           --tls-verify=false \
-          image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}-ddd-dev/$(params.imageName):$(params.imageTag)
+          image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}/$(params.imageName):$(params.imageTag)
         df -h /var/lib/containers
       volumeMounts:
          - mountPath: /var/lib/containers
@@ -80,4 +80,4 @@ spec:
   steps:
     - name: oc
       image: quay.io/openshift/origin-cli:latest
-      script: "/workspace/git-source/products/bash/$(params.releaseScript) -n {{NAMESPACE}}-ddd-dev -r $(params.releaseName) -i image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}-ddd-dev/$(params.imageName):$(params.imageTag)"
+      script: "/workspace/git-source/products/bash/$(params.releaseScript) -n {{NAMESPACE}} -r $(params.releaseName) -i image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}/$(params.imageName):$(params.imageTag)"
