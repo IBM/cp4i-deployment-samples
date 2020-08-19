@@ -93,7 +93,6 @@ echo "Creating secrets to push images to openshift local registry"
 oc create -n ${dev_namespace} secret docker-registry cicd-${dev_namespace} --docker-server=${DOCKER_REGISTRY} \
   --docker-username=${username} --docker-password=${password} -o yaml | oc apply -f -
 
-
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
 # Creating a new secret as the type of entitlement key is 'kubernetes.io/dockerconfigjson' but we need secret of type 'kubernetes.io/basic-auth' to pull imags from the ER
