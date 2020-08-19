@@ -73,6 +73,9 @@ spec:
     - name: releaseScript
       type: string
       description: release name of script
+    - name: namespace
+      type: string
+      description: release name of script
   resources:
     inputs:
       - name: git-source
@@ -80,7 +83,8 @@ spec:
   steps:
     - name: oc
       image: quay.io/openshift/origin-cli:latest
-      script: "/workspace/git-source/products/bash/$(params.releaseScript) -n {{NAMESPACE}} -r $(params.releaseName) -i image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}/$(params.imageName):$(params.imageTag)"
+      # script: "/workspace/git-source/products/bash/$(params.releaseScript) -n {{NAMESPACE}} -r $(params.releaseName) -i image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}/$(params.imageName):$(params.imageTag)"
+      script: "/workspace/git-source/products/bash/$(params.releaseScript) -n $(params.namespace) -r $(params.releaseName) -i image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}/$(params.imageName):$(params.imageTag)"
 
 ---
 
@@ -153,51 +157,31 @@ spec:
       image: quay.io/openshift/origin-cli:latest
       script: "/workspace/git-source/DrivewayDentDeletion/Operators/test-api-e2e.sh -n {{NAMESPACE}} -s $(params.suffix) -p $(params.namespaceSuffix)"
 
----
+# ---
 
-apiVersion: tekton.dev/v1beta1
-kind: Task
-metadata:
-  name: build-deploy-test
-spec:
-  params:
-    - name: imageTag
-      type: string
-      description: The image tag
-  resources:
-    inputs:
-      - name: git-source
-        type: git
-  steps:
-    - name: oc
-      image: quay.io/openshift/origin-cli:latest
-      script: "/workspace/git-source/DrivewayDentDeletion/Operators/cicd-apply-test-pipeline.sh -n {{NAMESPACE}} -t $(params.imageTag)"
-
----
-
-apiVersion: tekton.dev/v1beta1
-kind: Task
-metadata:
-  name: deploy-test-task
-spec:
-  params:
-    - name: imageTag
-      type: string
-      description: The image tag
-    - name: imageName
-      type: string
-      description: The image name
-    - name: releaseName
-      type: string
-      description: release name of the deployment
-    - name: releaseScript
-      type: string
-      description: release name of script
-  resources:
-    inputs:
-      - name: git-source
-        type: git
-  steps:
-    - name: oc
-      image: quay.io/openshift/origin-cli:latest
-      script: "/workspace/git-source/products/bash/$(params.releaseScript) -n {{NAMESPACE}}-ddd-test -r $(params.releaseName) -i image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}-ddd-test/$(params.imageName):$(params.imageTag)"
+# apiVersion: tekton.dev/v1beta1
+# kind: Task
+# metadata:
+#   name: deploy-test-task
+# spec:
+#   params:
+#     - name: imageTag
+#       type: string
+#       description: The image tag
+#     - name: imageName
+#       type: string
+#       description: The image name
+#     - name: releaseName
+#       type: string
+#       description: release name of the deployment
+#     - name: releaseScript
+#       type: string
+#       description: release name of script
+#   resources:
+#     inputs:
+#       - name: git-source
+#         type: git
+#   steps:
+#     - name: oc
+#       image: quay.io/openshift/origin-cli:latest
+#       script: "/workspace/git-source/products/bash/$(params.releaseScript) -n {{NAMESPACE}}-ddd-test -r $(params.releaseName) -i image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}-ddd-test/$(params.imageName):$(params.imageTag)"

@@ -46,6 +46,8 @@ spec:
           value: "mq-ddd-qm"
         - name: releaseScript
           value: release-mq.sh
+        - name: namespace
+          value: "{{NAMESPACE}}"
       resources:
         inputs:
           - name: git-source
@@ -140,6 +142,8 @@ spec:
           value: "ace-api-int-srv"
         - name: releaseScript
           value: release-ace-integration-server.sh
+        - name: namespace
+          value: "{{NAMESPACE}}"
       resources:
         inputs:
           - name: git-source
@@ -158,6 +162,8 @@ spec:
           value: "ace-bernie-int-srv"
         - name: releaseScript
           value: release-ace-integration-server.sh
+        - name: namespace
+          value: "{{NAMESPACE}}"
       resources:
         inputs:
           - name: git-source
@@ -176,6 +182,8 @@ spec:
           value: "ace-acme-int-srv"
         - name: releaseScript
           value: release-ace-integration-server.sh
+        - name: namespace
+          value: "{{NAMESPACE}}"
       resources:
         inputs:
           - name: git-source
@@ -194,6 +202,8 @@ spec:
           value: "ace-chris-int-srv"
         - name: releaseScript
           value: release-ace-integration-server.sh
+        - name: namespace
+          value: "{{NAMESPACE}}"
       resources:
         inputs:
           - name: git-source
@@ -295,7 +305,8 @@ spec:
         - image-push-to-test-mq
         - deploy-wait-mq
       taskRef:
-        name: deploy-test-task
+        # name: deploy-test-task
+        name: deploy-task
       params:
         - name: imageTag
           value: "latest-test"
@@ -305,6 +316,8 @@ spec:
           value: "mq-ddd-qm"
         - name: releaseScript
           value: release-mq.sh
+        - name: namespace
+          value: "{{NAMESPACE}}-ddd-test"
       resources:
         inputs:
           - name: git-source
@@ -320,16 +333,19 @@ spec:
         - image-push-to-test-mq
         - deploy-wait-mq
       taskRef:
-        name: deploy-test-task
+        # name: deploy-test-task
+        name: deploy-task
       params:
         - name: imageTag
-          value: "{{IMAGETAG}}-test"
+          value: "$(params.imageTag)-test"
         - name: imageName
           value: "ace-api"
         - name: releaseName
           value: "ace-api-int-srv"
         - name: releaseScript
           value: release-ace-integration-server.sh
+        - name: namespace
+          value: "{{NAMESPACE}}-ddd-test"
       resources:
         inputs:
           - name: git-source
@@ -345,16 +361,19 @@ spec:
         - image-push-to-test-mq
         - deploy-wait-mq
       taskRef:
-        name: deploy-test-task
+        # name: deploy-test-task
+        name: deploy-task
       params:
         - name: imageTag
-          value: "{{IMAGETAG}}-test"
+          value: "$(params.imageTag)-test"
         - name: imageName
           value: "ace-bernie"
         - name: releaseName
           value: "ace-bernie-int-srv"
         - name: releaseScript
           value: release-ace-integration-server.sh
+        - name: namespace
+          value: "{{NAMESPACE}}-ddd-test"
       resources:
         inputs:
           - name: git-source
@@ -370,16 +389,19 @@ spec:
         - image-push-to-test-mq
         - deploy-wait-mq
       taskRef:
-        name: deploy-test-task
+        # name: deploy-test-task
+        name: deploy-task
       params:
         - name: imageTag
-          value: "{{IMAGETAG}}-test"
+          value: "$(params.imageTag)-test"
         - name: imageName
           value: "ace-acme"
         - name: releaseName
           value: "ace-acme-int-srv"
         - name: releaseScript
           value: release-ace-integration-server.sh
+        - name: namespace
+          value: "{{NAMESPACE}}-ddd-test"
       resources:
         inputs:
           - name: git-source
@@ -395,10 +417,11 @@ spec:
         - image-push-to-test-mq
         - deploy-wait-mq
       taskRef:
-        name: deploy-test-task
+        # name: deploy-test-task
+        name: deploy-task
       params:
         - name: imageTag
-          value: "{{IMAGETAG}}-test"
+          value: "$(params.imageTag)-test"
         - name: imageName
           value: "ace-chris"
         - name: releaseName

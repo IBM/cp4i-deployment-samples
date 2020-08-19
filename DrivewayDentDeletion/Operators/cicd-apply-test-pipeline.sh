@@ -63,7 +63,7 @@ if ! oc project $namespace-ddd-test >/dev/null 2>&1 ; then
   exit 1
 fi
 
-echo "INFO: Namespace: $namespace"
+echo "INFO: Namespace passed: $namespace"
 echo "INFO: Dev Namespace: $namespace"
 echo "INFO: Test Namespace: $namespace-ddd-test"
 echo "INFO: Branch: $branch"
@@ -165,14 +165,16 @@ fi
 
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
-# create the pipeline to run tasks to build, deploy to dev, test e2e and push to test namespace
-echo "INFO: Create the pipeline to run tasks to build, deploy to dev, test e2e in '$namespace' and '$namespace-ddd-test' namespace"
-if oc apply -f $PWD/cicd-test/cicd-pipeline.yaml; then
+# create the pipeline to run tasks to build, deploy, test e2e and push to test namespace
+echo "INFO: Create the pipeline to run tasks to build, deploy, test e2e in '$namespace' and '$namespace-ddd-test' namespace"
+if cat $PWD/cicd-test/cicd-pipeline.yaml |
+  sed "s#{{NAMESPACE}}#$namespace#g;" |
+  oc apply -f -; then
   printf "$tick "
-  echo "Successfully applied the pipeline to run tasks to build, deploy to dev, test e2e in '$namespace' and '$namespace-ddd-test' namespace"
+  echo "Successfully applied the pipeline to run tasks to build, deploy, test e2e in '$namespace' and '$namespace-ddd-test' namespace"
 else
   printf "$cross "
-  echo "Failed to apply the pipeline to run tasks to build, deploy to dev, test e2e in '$namespace' and '$namespace-ddd-test' namespace"
+  echo "Failed to apply the pipeline to run tasks to build, deploy test e2e in '$namespace' and '$namespace-ddd-test' namespace"
   sum=$((sum + 1))
 fi
 
