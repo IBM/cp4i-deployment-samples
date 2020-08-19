@@ -82,7 +82,7 @@ if [ $? -ne 0 ]; then
 fi
 EOF
 
-#coopying the script to the postgres container and execute it 
+#copying the script to the postgres container and execute it 
 chmod +x script.sh
 
 # If rsync complains of error(s) similar to the following, ignore it:

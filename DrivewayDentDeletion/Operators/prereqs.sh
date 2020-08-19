@@ -25,7 +25,6 @@ function usage {
   echo "Usage: $0 -n <namespace> -r <nav_replicas>"
 }
 
-IMAGE_REPO="cp.icr.io"
 namespace="cp4i"
 nav_replicas="2"
 tick="\xE2\x9C\x85"
@@ -43,7 +42,9 @@ while getopts "n:r:" opt; do
   esac
 done
 
-DOCKERCONFIGJSON_ER=$(oc get secret -n ${namespace} ibm-entitlement-key -o json | jq -r '.data.".DOCKERCONFIGJSON_ER"' | base64 --decode)
+echo "Namespace: $namespace"
+
+DOCKERCONFIGJSON_ER=$(oc get secret -n ${namespace} ibm-entitlement-key -o json | jq -r '.data.".dockerconfigjson"' | base64 --decode)
 if [ -z ${DOCKERCONFIGJSON_ER} ] ; then
   echo "ERROR: Failed to find ibm-entitlement-key secret in the namespace '${namespace}'" 1>&2
   exit 1
@@ -200,6 +201,6 @@ if ! ${PWD}/../../products/bash/release-ace-dashboard.sh -n ${test_namespace} ; 
   exit 1
 fi
 
+echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 echo -e "$tick $all_done INFO: All prerequisites have been applied successfully $all_done $tick"
-
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
