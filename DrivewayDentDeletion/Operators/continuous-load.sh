@@ -29,6 +29,7 @@
 
 function usage() {
   echo "Usage: $0 -n <namespace> -a <api_base_url> -t <retry_interval> -c -i -s"
+  exit 1
 }
 
 NAMESPACE="cp4i"

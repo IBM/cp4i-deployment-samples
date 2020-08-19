@@ -21,6 +21,7 @@
 
 function usage {
     echo "Usage: $0 -n <NAMESPACE> -s <USER_DB_SUFFIX> -p <NAMESPACE_SUFFIX>"
+    exit 1
 }
 
 NAMESPACE="cp4i"
@@ -43,13 +44,13 @@ while getopts "n:s:p:" opt; do
   esac
 done
 
-echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
+# -------------------------------------- CHECK SUFFIX FOR NAMESPACE, USER AND DATABASE NAME ---------------------------------------------------------------------
 
 echo "Namespace passed: $NAMESPACE"
 echo "User name suffix: $USER_DB_SUFFIX"
 
-if [[ -z "${NAMESPACE_SUFFIX// }" ]]; then
-  echo "Namespace suffix is empty"
+# check if the namespace is dev or test
+if [[ "$NAMESPACE_SUFFIX" == "dev" ]]; then
   NAMESPACE="${NAMESPACE}"
 else
   echo "Namespace suffix: $NAMESPACE_SUFFIX"
@@ -57,9 +58,10 @@ else
 fi
 
 echo "Namespace for postgres: $NAMESPACE"
-# -------------------------------------- INSTALL JQ ---------------------------------------------------------------------
-
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
+
+
+# -------------------------------------- INSTALL JQ ---------------------------------------------------------------------
 
 echo -e "\nINFO: Checking if jq is pre-installed..."
 jqInstalled=false

@@ -24,6 +24,7 @@
 
 function usage() {
   echo "Usage: $0 -n <namespace> -r <repo> -b <branch>"
+  exit 1
 }
 
 # default vars

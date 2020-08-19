@@ -23,6 +23,7 @@
 
 function usage {
   echo "Usage: $0 -n <namespace> -r <nav_replicas>"
+  exit 1
 }
 
 namespace="cp4i"

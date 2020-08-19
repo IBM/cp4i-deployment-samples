@@ -221,7 +221,8 @@ spec:
         name: api-test-e2e
       params:
         - name: namespaceSuffix
-          value: " "
+          #this will not be appended to the namespace name in the test-api-e2e script
+          value: "dev"
         - name: suffix
           value: "ddd"
       resources:

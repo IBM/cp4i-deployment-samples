@@ -23,6 +23,7 @@
 
 function usage {
   echo "Usage: $0 -n <NAMESPACE> -s <SUFFIX>"
+  exit 1
 }
 
 NAMESPACE="cp4i"

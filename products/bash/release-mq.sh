@@ -28,6 +28,7 @@
 
 function usage {
     echo "Usage: $0 -n <namespace> -r <release_name> -i <image_name> -q <qm_name> [-t]"
+    exit 1
 }
 
 namespace="cp4i"
