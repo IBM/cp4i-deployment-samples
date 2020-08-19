@@ -428,6 +428,8 @@ spec:
           value: "ace-chris-int-srv"
         - name: releaseScript
           value: release-ace-integration-server.sh
+        - name: namespace
+          value: "{{NAMESPACE}}-ddd-test"
       resources:
         inputs:
           - name: git-source

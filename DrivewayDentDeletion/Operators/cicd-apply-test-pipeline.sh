@@ -206,7 +206,7 @@ fi
 
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
-echo "INFO: Waiting for webhook to appear in the '$namespace' namespace..."
+echo -e "INFO: Waiting for webhook to appear in the '$namespace' namespace...\n"
 
 time=0
 while ! oc get route -n $namespace el-main-trigger-route --template='http://{{.spec.host}}'; do
