@@ -210,8 +210,10 @@ spec:
       taskRef:
         name: api-test-e2e
       params:
-        - name: dddNamespaceSuffix
-          value: "dev"
+        - name: namespaceSuffix
+          value: ""
+        - name: suffix
+          value: "ddd"
       resources:
         inputs:
           - name: git-source
@@ -419,8 +421,10 @@ spec:
       taskRef:
         name: api-test-e2e
       params:
-        - name: dddNamespaceSuffix
-          value: "test"
+        - name: namespaceSuffix
+          value: "-ddd-test"
+        - name: suffix
+          value: "ddd"
       resources:
         inputs:
           - name: git-source

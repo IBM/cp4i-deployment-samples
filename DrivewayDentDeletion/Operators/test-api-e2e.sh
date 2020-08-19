@@ -12,13 +12,15 @@
 #   - Logged into cluster on the OC CLI (https://docs.openshift.com/container-platform/4.4/cli_reference/openshift_cli/getting-started-cli.html)
 #
 # PARAMETERS:
-#   -n : <NAMESPACE> (string), Defaults to "cp4i"
+#   -n  : <NAMESPACE> (string), Defaults to "cp4i"
+#   -ns : <NAMESPACE_SUFFIX> (string), Defaults to ''
+#   -s  : <USER_DB_SUFFIX> (string), defaults to ''
 #
 #   With defaults values
 #     ./test-api-e2e.sh -n <NAMESPACE>
 
 function usage {
-    echo "Usage: $0 -n <NAMESPACE>"
+    echo "Usage: $0 -n <NAMESPACE> -ns <NAMESPACE_SUFFIX> -s <USER_DB_SUFFIX>"
 }
 
 NAMESPACE="cp4i"
@@ -28,14 +30,20 @@ if [[ $(uname) == Darwin ]]; then
   os_sed_flag="-e"
 fi
 
-while getopts "n:" opt; do
+while getopts "n:ns:s" opt; do
   case ${opt} in
     n ) NAMESPACE="$OPTARG"
+      ;;
+    ns ) NAMESPACE_SUFFIX="$OPTARG"
+      ;;
+    s ) USER_DB_SUFFIX="$OPTARG"
       ;;
     \? ) usage; exit
       ;;
   esac
 done
+
+NAMESPACE="${NAMESPACE}${NAMESPACE_SUFFIX}"
 
 # -------------------------------------- INSTALL JQ ---------------------------------------------------------------------
 
@@ -75,8 +83,8 @@ echo -e "\n---------------------------------------------------------------------
 export HOST=http://$(oc get routes -n ${NAMESPACE} | grep ace-api-int-srv-http | grep -v ace-api-int-srv-https | awk '{print $2}')/drivewayrepair
 echo "INFO: Host: ${HOST}"
 
-DB_USER=$(echo ${NAMESPACE} | sed 's/-/_/g')
-DB_NAME=db_${DB_USER}
+DB_USER=$(echo ${NAMESPACE}_${USER_DB_SUFFIX} | sed 's/-/_/g')
+DB_NAME="db_${DB_USER}_${SUFFIX}"
 DB_PASS=$(oc get secret -n ${NAMESPACE} postgres-credential --template={{.data.password}} | base64 -D)
 DB_POD=$(oc get pod -n postgres -l name=postgresql -o jsonpath='{.items[].metadata.name}')
 DB_SVC="$(oc get cm postgres-config -o json | jq '.data["postgres.env"] | split("\n  ")' | grep DATABASE_SERVICE_NAME | cut -d "=" -f 2- | tr -dc '[a-z0-9-]\n').postgres.svc.cluster.local"

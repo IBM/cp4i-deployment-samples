@@ -25,9 +25,12 @@ function usage {
   echo "Usage: $0 -n <namespace> -r <nav_replicas>"
 }
 
-export IMAGE_REPO="cp.icr.io"
+IMAGE_REPO="cp.icr.io"
 namespace="cp4i"
 nav_replicas="2"
+tick="\xE2\x9C\x85"
+cross="\xE2\x9D\x8C"
+all_done="\xF0\x9F\x92\xAF"
 
 while getopts "n:r:" opt; do
   case ${opt} in
@@ -118,37 +121,44 @@ oc wait -n postgres --for=condition=available deploymentconfig --timeout=20m pos
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
 declare -a image_projects=("${dev_namespace}" "${test_namespace}")
+declare -a suffix=("ddd" "eei")
 
-for image_project in "${image_projects[@]}"
+for image_project in "${image_projects[@]}" #for_outer
   do
-    # suffix for username and database name
-    SUFFIX=$(LC_ALL=C tr -dc 'a-z' </dev/urandom | head -c 3 ; echo)
-
-    echo "INFO: Configuring postgres in the namespace '$image_project'"
-
-    if ! ${PWD}/configure-postgres.sh -n ${image_project} -s $SUFFIX; then
-      echo -e "\nERROR: Failed to configure postgres in the namespace '$image_project'"
-      exit 1
-    fi
-
-    echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
-
     echo "INFO: Making 'create-ace-config.sh' executable"
-
     if ! chmod +x ${PWD}/../../products/bash/create-ace-config.sh ; then
-      echo "ERROR: Failed to make 'create-ace-config.sh' executable in the namespace '$image_project'"
+      echo "$cross ERROR: Failed to make 'create-ace-config.sh' executable in the namespace '$image_project'"
       exit 1
+    else
+      echo "$tick INFO: Success"
     fi
 
-    echo -e "\nINFO: Creating ace integration server configuration resources in the namespace '$image_project'"
+    for each_suffix in "${suffix[@]}" #for_inner
+      do
+        if [[ ("$each_suffix" == "ddd") || ("$each_suffix" == "eei" && "$image_project" != "${test_namespace}") ]]; then
+          echo "INFO: Configuring postgres in the namespace '$image_project' with the suffix '$each_suffix'"
+          if ! ${PWD}/configure-postgres.sh -n ${image_project} -s $each_suffix; then
+            echo -e "\n$cross ERROR: Failed to configure postgres in the namespace '$image_project' with the suffix '$each_suffix'"
+            exit 1
+          else 
+            echo "$tick INFO: Successfuly configured postgres in the namespace '$image_project' with the suffix '$each_suffix'"
+          fi # ${PWD}/configure-postgres.sh -n ${image_project} -s $each_suffix
 
-    if ! ${PWD}/../../products/bash/create-ace-config.sh -n ${image_project} -s $SUFFIX ; then
-      echo "ERROR: Failed to make 'create-ace-config.sh' executable in the namespace '$image_project'"
-      exit 1
-    fi
+          echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
+          echo -e "\nINFO: Creating ace integration server configuration resources in the namespace '$image_project'"
 
+          if ! ${PWD}/../../products/bash/create-ace-config.sh -n ${image_project} -s $each_suffix ; then
+            echo "$cross ERROR: Failed to configure ace in the namespace '$image_project'  with the suffix '$each_suffix'"
+            exit 1
+          else
+            echo "$tick INFO: Successfuly configured configured ace in the namespace '$image_project' with the suffix '$each_suffix'"
+          fi #  ${PWD}/../../products/bash/create-ace-config.sh -n ${image_project} -s $each_suffix
+          echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
+        fi # ("$each_suffix" == "ddd") || ("$each_suffix" == "eei" && "$image_project" != "${test_namespace}")
+
+         done #for_inner_done
     echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
-done
+done #for_outer_done
 
 echo -e "INFO: Creating secret to pull images from the ER in the '${test_namespace}' namespace\n"
 
@@ -185,5 +195,7 @@ if ! ${PWD}/../../products/bash/release-ace-dashboard.sh -n ${test_namespace} ; 
   echo "ERROR: Failed to release the ace dashboard in the namespace '$test_namespace'"
   exit 1
 fi
+
+echo -e "$tick $all_done INFO: All prerequisites have been applied successfully $all_done $tick \n"
 
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
