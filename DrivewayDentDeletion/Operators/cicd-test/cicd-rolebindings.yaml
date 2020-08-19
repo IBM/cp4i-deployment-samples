@@ -151,3 +151,18 @@ roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: Role
   name: role-postgres-test-task
+
+---
+
+# Role binding for the test task to get configmaps in dev namespace
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: get-configmap-dev-namespace-rolebinding
+subjects:
+- kind: ServiceAccount
+  name: cicd-api-e2e-in-test-sa
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: role-get-configmap-in-dev-namespace
