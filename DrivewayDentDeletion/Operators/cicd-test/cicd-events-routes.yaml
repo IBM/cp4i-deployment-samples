@@ -23,6 +23,6 @@ spec:
   port:
     targetPort: http-listener
   to:
-    kind: ""
-    name: el-main-trigger-route
+    kind: Service
+    name: el-main-trigger
     weight: null
