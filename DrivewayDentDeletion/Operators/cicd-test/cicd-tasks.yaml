@@ -151,7 +151,7 @@ spec:
   steps:
     - name: oc
       image: quay.io/openshift/origin-cli:latest
-      script: "/workspace/git-source/DrivewayDentDeletion/Operators/test-api-e2e.sh -n {{NAMESPACE}} -ns $(params.namespaceSuffix) -s ${params.suffix}"
+      script: "/workspace/git-source/DrivewayDentDeletion/Operators/test-api-e2e.sh -n {{NAMESPACE}} -p $(params.namespaceSuffix) -s $(params.suffix)"
 
 ---
 

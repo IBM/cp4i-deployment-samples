@@ -13,14 +13,14 @@
 #
 # PARAMETERS:
 #   -n  : <NAMESPACE> (string), Defaults to "cp4i"
-#   -ns : <NAMESPACE_SUFFIX> (string), Defaults to ''
+#   -p : <NAMESPACE_SUFFIX> (string), Defaults to ''
 #   -s  : <USER_DB_SUFFIX> (string), defaults to ''
 #
 #   With defaults values
 #     ./test-api-e2e.sh -n <NAMESPACE>
 
 function usage {
-    echo "Usage: $0 -n <NAMESPACE> -ns <NAMESPACE_SUFFIX> -s <USER_DB_SUFFIX>"
+    echo "Usage: $0 -n <NAMESPACE> -p <NAMESPACE_SUFFIX> -s <USER_DB_SUFFIX>"
 }
 
 NAMESPACE="cp4i"
@@ -30,11 +30,11 @@ if [[ $(uname) == Darwin ]]; then
   os_sed_flag="-e"
 fi
 
-while getopts "n:ns:s" opt; do
+while getopts "n:p:s" opt; do
   case ${opt} in
     n ) NAMESPACE="$OPTARG"
       ;;
-    ns ) NAMESPACE_SUFFIX="$OPTARG"
+    p ) NAMESPACE_SUFFIX="$OPTARG"
       ;;
     s ) USER_DB_SUFFIX="$OPTARG"
       ;;
@@ -43,8 +43,12 @@ while getopts "n:ns:s" opt; do
   esac
 done
 
+echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
+echo "Namespace passed: $NAMESPACE"
+echo "Namespace suffix: $NAMESPACE_SUFFIX"
+echo "Namespace: $SUFFIX"
 NAMESPACE="${NAMESPACE}${NAMESPACE_SUFFIX}"
-
+echo "Namespace for postgres: $NAMESPACE"
 # -------------------------------------- INSTALL JQ ---------------------------------------------------------------------
 
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
