@@ -74,9 +74,9 @@ echo -e "\n---------------------------------------------------------------------
 
 echo "INFO: Installing tekton and its pre-reqs"
 oc apply --filename https://storage.googleapis.com/tekton-releases/pipeline/previous/v0.12.1/release.yaml
-echo "INFO: Installing tekton triggers"
+echo -e "\nINFO: Installing tekton triggers"
 oc apply -f https://storage.googleapis.com/tekton-releases/triggers/previous/v0.5.0/release.yaml
-echo "INFO: Waiting for tekton and triggers deployment to finish..."
+echo -e "\nINFO: Waiting for tekton and triggers deployment to finish..."
 oc wait -n tekton-pipelines --for=condition=available deployment --timeout=20m tekton-pipelines-controller \
   tekton-pipelines-webhook tekton-triggers-controller tekton-triggers-webhook
 
@@ -91,7 +91,7 @@ oc -n ${dev_namespace} policy add-role-to-user registry-editor system:serviceacc
 oc -n ${test_namespace} policy add-role-to-user registry-editor system:serviceaccount:${dev_namespace}:image-bot
 export password="$(oc -n ${dev_namespace} serviceaccounts get-token image-bot)"
 
-echo "Creating secrets to push images to openshift local registry"
+echo -e "\nCreating secrets to push images to openshift local registry"
 oc create -n ${dev_namespace} secret docker-registry cicd-${dev_namespace} --docker-server=${DOCKER_REGISTRY} \
   --docker-username=${username} --docker-password=${password} -o yaml | oc apply -f -
 
