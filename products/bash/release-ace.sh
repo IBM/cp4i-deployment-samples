@@ -47,10 +47,6 @@ done
 
 cd "$(dirname $0)"
 
-echo -e "\nPrint current directory: $PWD\n"
-echo "Print current directory contents:"
-ls $PWD
-
 # Ace Dashboard release
 if ! ${PWD}/release-ace-dashboard.sh -n ${namespace} -r ${dashboard_release_name} ; then
   echo "ERROR: Failed to release the ace dashboard in the namespace '$namespace'" 1>&2
