@@ -53,7 +53,7 @@ asset_repo_release=$RELEASE_NAME
 asset_repo_namespace=$NAMESPACE
 ### End inputs
 
-remote="{ \"metadata\": { \"asset_type\": \"remote_repo\", \"name\": \"$REMOTE_NAME\", \"description\": \"$REMOTE_DESC\" }, \"entity\": { \"remote_repo\": { \"asset_types\": \"\", \"remote_type\": \"git_connection\", \"branch\": \"master\", \"schedule\": \"EVERY_FIVE_MINS\", \"uri\": \"$GIT_REPO\" } } }"
+remote="{ \"metadata\": { \"asset_type\": \"remote_repo\", \"name\": \"$REMOTE_NAME\", \"description\": \"$REMOTE_DESC\" }, \"entity\": { \"remote_repo\": { \"asset_types\": \"\", \"remote_type\": \"git_connection\", \"branch\": \"main\", \"schedule\": \"EVERY_FIVE_MINS\", \"uri\": \"$GIT_REPO\" } } }"
 tick="\xE2\x9C\x94"
 cross="\xE2\x9D\x8C"
 
