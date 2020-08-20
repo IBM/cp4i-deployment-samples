@@ -202,5 +202,5 @@ if ! ${PWD}/../../products/bash/release-ace-dashboard.sh -n ${test_namespace} ; 
 fi
 
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
-echo -e "$tick $all_done INFO: All prerequisites have been applied successfully $all_done $tick"
+echo -e "$tick $all_done INFO: All prerequisites for the driveway dent deletion have been applied successfully $all_done $tick"
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
