@@ -154,6 +154,7 @@ echo -e "\n---------------------------------------------------------------------
 # create the pipeline to run tasks to build, deploy to dev, test e2e and push to test namespace
 echo "INFO: Create the pipeline to run tasks to build, deploy to dev, test e2e in '$namespace' and '$namespace-ddd-test' namespace"
 if cat $PWD/cicd-dev/cicd-pipeline.yaml |
+  sed "s#{{NAMESPACE}}#$namespace#g;" |
   sed "s#{{FORKED_REPO}}#$repo#g;" |
   sed "s#{{BRANCH}}#$branch#g;" |
   oc apply -f -; then
