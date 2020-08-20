@@ -45,13 +45,13 @@ These steps will need to be documented in the demo docs:
 
 # Pipelines
 ## Initial pipeline for just the dev environment
-![Overview of dev pipeline](../media/dev-pipeline.svg)	
-## Pipeline with added support for dev/test environments	
-![Overview of dev/test pipeline](../media/dev-test-pipeline.svg)	
+![Overview of dev pipeline](../media/dev-pipeline.svg)
+## Pipeline with added support for dev/test environments
+![Overview of dev/test pipeline](../media/dev-test-pipeline.svg)
 ## Description of pipeline
 - Trigger: Whenever a commit is made to the forked repo it triggers the
   pipeline.
-- Build tasks: Each of these tasks builds an images and pushes it to the cluster's local OpenShift Image Registry in the `<NAMESPACE>` namespace. The latest dockerfile and related files (bar files) are pulled from the forked git repo.
-- Deploy and wait to dev tasks: Each of these tasks invokes the deployments using the newly built image, initially in the `<NAMESPACE>` and then in the `<NAMESPACE>-ddd-test` namespace.
-- Test E2E API test task: This task tests the end-to-end API using curl commands to make a POST and a GET to the postgres database, initially in the `<NAMESPACE>` namespace and then finally as a last step in the `<NAMESPACE>-ddd-test` namespace after all deployments have been done successfully in the next step.
-- Image Push to test task - If the test task succeeds, then each of this task pushes the images built in the `<NAMESPACE>` namespace to the `<NAMESPACE>-ddd-test` namespace.
+- Build images tasks: Each of these tasks builds an image and pushes it to the cluster's local OpenShift Image Registry. The latest dockerfile and related files (bar files) are pulled from the forked git repo.
+- Deploy to dev/test and wait for rollout tasks: Each of these tasks applies a CR to deploy/update an MQ/ACE microservice and waits for the deploy/update to rollout so the microservice is running the newly built image once the task has completed.
+- Test ACE API task: Runs a test of the POST/GET endpoints to verify that the dev environment is working. This acts as a gate for rolling out the change to the test environment.
+- Copy images to test tasks: Copies the images from the dev project to the test project.
