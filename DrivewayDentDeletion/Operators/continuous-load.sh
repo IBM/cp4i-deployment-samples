@@ -66,7 +66,7 @@ done
 
 DB_USER=$(echo ${NAMESPACE} | sed 's/-/_/g')
 DB_NAME=db_${DB_USER}
-DB_PASS=$(oc get secret -n ${NAMESPACE} postgres-credential --template={{.data.password}} | base64 -D)
+DB_PASS=$(oc get secret -n ${NAMESPACE} postgres-credential --template={{.data.password}} | base64 --decode)
 DB_POD=$(oc get pod -n postgres -l name=postgresql -o jsonpath='{.items[].metadata.name}')
 DB_SVC="$(oc get cm postgres-config -o json | jq '.data["postgres.env"] | split("\n  ")' | grep DATABASE_SERVICE_NAME | cut -d "=" -f 2- | tr -dc '[a-z0-9-]\n').postgres.svc.cluster.local"
 echo "INFO: Username name is: '${DB_USER}'"
@@ -88,7 +88,7 @@ function cleanup_table() {
   echo -e "\Clearing '${table_name}' database of all rows..."
   oc exec -n postgres -it ${DB_POD} \
     -- psql -U ${DB_USER} -d ${DB_NAME} -h ${DB_SVC} -c \
-    "TRUNCATE ${table_name};" < ${DB_PASS}
+    "TRUNCATE ${table_name};"
 }
 
 # Catches any exit signals for cleanup
@@ -137,7 +137,7 @@ while true; do
       echo -e "\nDeleting row from database..."
       oc exec -n postgres -it ${DB_POD} \
         -- psql -U ${DB_USER} -d ${DB_NAME} -h ${DB_SVC} -c \
-        "DELETE FROM quotes WHERE quotes.quoteid = ${quote_id};" < ${DB_PASS}
+        "DELETE FROM quotes WHERE quotes.quoteid = ${quote_id};"
     fi
   else
     echo "FAILED - Error code: ${post_response_code}" # Failure catch during POST

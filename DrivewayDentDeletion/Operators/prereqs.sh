@@ -140,26 +140,27 @@ for image_project in "${image_projects[@]}" #for_outer
     for each_suffix in "${suffix[@]}" #for_inner
       do
         if [[ ("$each_suffix" == "ddd") ]]; then
+          DB_PASS=$(LC_ALL=C tr -dc 'A-Za-z0-9' </dev/urandom | head -c 32 ; echo)
           echo -e "\nINFO: Configuring postgres in the namespace '$image_project' with the suffix '$each_suffix'\n"
-          if ! ${PWD}/configure-postgres.sh -n ${image_project} -s $each_suffix; then
+          if ! ${PWD}/configure-postgres.sh -n ${image_project} -s $each_suffix -p $DB_PASS; then
             echo -e "\n$cross ERROR: Failed to configure postgres in the namespace '$image_project' with the suffix '$each_suffix'"
             exit 1
           else 
             printf "$tick "
             echo -e "\nINFO: Successfuly configured postgres in the namespace '$image_project' with the suffix '$each_suffix'"
-          fi # ${PWD}/configure-postgres.sh -n ${image_project} -s $each_suffix
+          fi  #${PWD}/configure-postgres.sh -n ${image_project} -s $each_suffix -p $DB_PASS
 
           echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
           echo -e "INFO: Creating ace integration server configuration resources in the namespace '$image_project'"
 
-          if ! ${PWD}/../../products/bash/create-ace-config.sh -n ${image_project} -s $each_suffix ; then
+          if ! ${PWD}/../../products/bash/create-ace-config.sh -n ${image_project} -s $each_suffix -p $DB_PASS; then
             printf "$cross "
             echo "ERROR: Failed to configure ace in the namespace '$image_project'  with the suffix '$each_suffix'"
             exit 1
           else
             printf "$tick "
             echo "INFO: Successfuly configured configured ace in the namespace '$image_project' with the suffix '$each_suffix'"
-          fi  #${PWD}/../../products/bash/create-ace-config.sh -n ${image_project} -s $each_suffix
+          fi  #${PWD}/../../products/bash/create-ace-config.sh -n ${image_project} -s $each_suffix -p $DB_PASS
         fi  #("$each_suffix" == "ddd")
 
          done #for_inner_done

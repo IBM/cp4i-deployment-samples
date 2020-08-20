@@ -14,26 +14,29 @@
 # PARAMETERS:
 #   -n : <NAMESPACE> (string), Defaults to 'cp4i'
 #   -s : <SUFFIX> (string), Defaults to ''
+#   -p : <PASSWORD> (string), Defaults to ''
 #
 #   With defaults values
 #     ./configure-postgres.sh
 #
 #   With overridden values
-#     ./configure-postgres.sh -n <NAMESPACE> -s <SUFFIX>
+#     ./configure-postgres.sh -n <NAMESPACE> -s <SUFFIX> -p <PASSWORD>
 
 function usage {
-  echo "Usage: $0 -n <NAMESPACE> -s <SUFFIX>"
+  echo "Usage: $0 -n <NAMESPACE> -s <SUFFIX> -p <PASSWORD>"
   exit 1
 }
 
 NAMESPACE="cp4i"
 SUFFIX=""
 
-while getopts "n:s:" opt; do
+while getopts "n:s:p:" opt; do
   case ${opt} in
     n ) NAMESPACE="$OPTARG"
       ;;
     s ) SUFFIX="$OPTARG"
+      ;;
+    p ) PASSWORD="$OPTARG"
       ;;
     \? ) usage; exit
       ;;
@@ -44,7 +47,7 @@ DB_POD=$(oc get pod -n postgres -l name=postgresql -o jsonpath='{.items[].metada
 DB_SVC="$(oc get cm -n postgres postgres-config -o json | jq '.data["postgres.env"] | split("\n  ")' | grep DATABASE_SERVICE_NAME | cut -d "=" -f 2- | tr -dc '[a-z0-9-]\n').postgres.svc.cluster.local"
 DB_USER=$(echo ${NAMESPACE}_${SUFFIX} | sed 's/-/_/g')
 DB_NAME="db_${DB_USER}"
-DB_PASS=$(LC_ALL=C tr -dc 'A-Za-z0-9' </dev/urandom | head -c 32 ; echo)
+DB_PASS=$PASSWORD
 DB_PASSFILE="$DB_SVC:5432:$DB_NAME:$DB_USER:${DB_PASS}"
 
 PASSWORD_ENCODED=$(echo -n ${DB_PASS} | base64)

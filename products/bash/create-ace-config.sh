@@ -11,24 +11,27 @@
 # PARAMETERS:
 #   -n : <namespace> (string), Defaults to 'cp4i'
 #   -s : <SUFFIX> (string), Defaults to ''
+#   -p : <PASSWORD> (string), Defaults to ''
 #
 #   With defaults values
 #     ./create-ace-config.sh
 #
 #   With overridden values
-#     ./create-ace-config.sh -n <NAMESPACE> -s <SUFFIX>
+#     ./create-ace-config.sh -n <NAMESPACE> -s <SUFFIX> -p <PASSWORD>
 
 function usage {
-  echo "Usage: $0 -n <namespace> -s <SUFFIX>"
+  echo "Usage: $0 -n <namespace> -s <SUFFIX> -p <PASSWORD>"
 }
 
 namespace="cp4i"
 
-while getopts "n:s:" opt; do
+while getopts "n:s:p:" opt; do
   case ${opt} in
     n ) namespace="$OPTARG"
       ;;
     s ) SUFFIX="$OPTARG"
+      ;;
+    p ) PASSWORD="$OPTARG"
       ;;
     \? ) usage; exit
       ;;
@@ -81,7 +84,7 @@ cat << EOF > ${PWD}/DefaultPolicies/PostgresqlPolicy.policyxml
     <databaseVersion>999</databaseVersion>
     <type4DriverClassName>org.postgresql.Driver</type4DriverClassName>
     <type4DatasourceClassName>org.postgresql.xa.PGXADataSource</type4DatasourceClassName>
-    <connectionUrlFormat>jdbc:postgresql://[serverName]:[portNumber]/[databaseName]?user=${namespace_for_db}&amp;password=password</connectionUrlFormat>
+    <connectionUrlFormat>jdbc:postgresql://[serverName]:[portNumber]/[databaseName]?user=${namespace_for_db}&amp;password=${PASSWORD}</connectionUrlFormat>
     <connectionUrlFormatAttr1></connectionUrlFormatAttr1>
     <connectionUrlFormatAttr2></connectionUrlFormatAttr2>
     <connectionUrlFormatAttr3></connectionUrlFormatAttr3>
