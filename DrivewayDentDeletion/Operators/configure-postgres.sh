@@ -65,7 +65,7 @@ EOF
 
 # Script to generate a .pgpass file so we don't have to authenticate every psql cmd
 # remove existing user and associated password in .pgpass file
-cat << EOF > script.sh
+cat << EOF > pgpass_gen.sh
 #!/bin/bash
 if [ -f /var/lib/pgsql/.pgpass ]; then
   sed -i '/$DB_NAME:$DB_USER/d' /var/lib/pgsql/.pgpass
@@ -84,7 +84,7 @@ fi
 EOF
 
 #copying the script to the postgres container and execute it
-chmod +x script.sh
+chmod +x pgpass_gen.sh
 
 # If rsync complains of error(s) similar to the following, ignore it:
 #
@@ -92,8 +92,8 @@ chmod +x script.sh
 # rsync error: some files could not be transferred (code 23)
 # error: exit status 23
 #
-oc rsync -n postgres . $DB_POD:/var/lib/pgsql --exclude="*" --include="script.sh"
-oc exec -n postgres -it $DB_POD -- /var/lib/pgsql/script.sh
+oc rsync -n postgres . $DB_POD:/var/lib/pgsql --exclude="*" --include="pgpass_gen.sh"
+oc exec -n postgres -it $DB_POD -- /var/lib/pgsql/pgpass_gen.sh
 
 if [ $? -ne 0 ]; then
   echo "ERROR: Failed to configure database password in the '$NAMESPACE' namespace"

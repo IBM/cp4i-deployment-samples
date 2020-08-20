@@ -124,7 +124,7 @@ echo -e "\n---------------------------------------------------------------------
 
 # Create a zip for default policies
 echo "INFO: Creating a zip for default policies"
-python -m zipfile -c policyproject.zip ${CURRENT_DIR}/DefaultPolicies
+python -m zipfile -c ${CURRENT_DIR}/policyproject.zip ${CURRENT_DIR}/DefaultPolicies
 
 echo "INFO: Printing contents of '${CURRENT_DIR}':"
 ls -lFA ${CURRENT_DIR}

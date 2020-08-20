@@ -45,8 +45,8 @@ done
 
 CURRENT_DIR=$(dirname $0)
 echo "Current directory: $CURRENT_DIR"
-
 echo "Namespace: $namespace"
+echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
 DOCKERCONFIGJSON_ER=$(oc get secret -n ${namespace} ibm-entitlement-key -o json | jq -r '.data.".dockerconfigjson"' | base64 --decode)
 if [ -z ${DOCKERCONFIGJSON_ER} ] ; then
@@ -69,7 +69,6 @@ oc adm policy add-scc-to-group privileged system:serviceaccounts:$dev_namespace
 echo "INFO: Namespace passed='${namespace}'"
 echo "INFO: Dev Namespace='${dev_namespace}'"
 echo "INFO: Test Namespace='${test_namespace}'"
-cd "$(dirname $0)"
 
 #creating new namespace for test/prod and adding namespace to sa
 oc create namespace ${test_namespace}
@@ -130,15 +129,6 @@ declare -a suffix=("ddd")
 
 for image_project in "${image_projects[@]}" #for_outer
 do
-  echo "INFO: Making 'create-ace-config.sh' executable"
-  if ! chmod +x ${CURRENT_DIR}/../../products/bash/create-ace-config.sh ; then
-    printf "$cross "
-    echo " ERROR: Failed to make 'create-ace-config.sh' executable in the namespace '$image_project'"
-    exit 1
-  else
-    printf "$tick "
-    echo "INFO: Made 'create-ace-config.sh' executable in the namespace '$image_project'"
-  fi
 
   for each_suffix in "${suffix[@]}" #for_inner
   do
