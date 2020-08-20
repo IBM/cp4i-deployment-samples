@@ -139,7 +139,7 @@ if [ "$post_response_code" == "200" ]; then
     echo -e "\nINFO: Select and print the row as user '${DB_USER}' from database '${DB_NAME}' with id '$quote_id' to confirm POST and GET..."
     oc exec -n postgres -it ${DB_POD} \
       -- psql -U ${DB_USER} -d ${DB_NAME} -h ${DB_SVC} -c \
-      "SELECT * FROM quotes WHERE quotes.quoteid=${quote_id};" < ${DB_PASS}
+      "SELECT * FROM quotes WHERE quotes.quoteid=${quote_id};"
 
     echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
   else
@@ -153,7 +153,7 @@ if [ "$post_response_code" == "200" ]; then
   echo -e "\nINFO: Deleting row from database '${DB_NAME}' as user '${DB_USER}' with quote id '$quote_id'..."
   oc exec -n postgres -it ${DB_POD} \
     -- psql -U ${DB_USER} -d ${DB_NAME} -h ${DB_SVC} -c \
-    "DELETE FROM quotes WHERE quotes.quoteid=${quote_id};" < ${DB_PASS}
+    "DELETE FROM quotes WHERE quotes.quoteid=${quote_id};"
 
   echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------"
 
@@ -161,7 +161,7 @@ if [ "$post_response_code" == "200" ]; then
   echo -e "\nINFO: Select and print the row as user '${DB_USER}' from database '${DB_NAME}' with id '$quote_id' to confirm deletion..."
   oc exec -n postgres -it ${DB_POD} \
     -- psql -U ${DB_USER} -d ${DB_NAME} -h ${DB_SVC} -c \
-    "SELECT * FROM quotes WHERE quotes.quoteid=${quote_id};" < ${DB_PASS}
+    "SELECT * FROM quotes WHERE quotes.quoteid=${quote_id};"
 
 else
   # Failure catch during POST
