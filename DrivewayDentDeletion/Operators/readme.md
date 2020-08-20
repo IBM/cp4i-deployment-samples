@@ -44,7 +44,11 @@ These steps will need to be documented in the demo docs:
 - The above script `cicd-apply-test-pipeline.sh` will create a dev and test pipeline in the `<NAMESPACE>` namepsace and will print the route to add to the webhook in the forked github repo. (This will be the same route as above, but updated to point to a service for the test pipeline in the dev namespace).
 
 # Pipelines
-![Overview of aaS](../media/dev-pipeline.svg)
+## Initial pipeline for just the dev environment
+![Overview of dev pipeline](../media/dev-pipeline.svg)	
+## Pipeline with added support for dev/test environments	
+![Overview of dev/test pipeline](../media/dev-test-pipeline.svg)	
+## Description of pipeline
 - Trigger: Whenever a commit is made to the forked repo it triggers the
   pipeline.
 - Build tasks: Each of these tasks builds an images and pushes it to the cluster's local OpenShift Image Registry in the `<NAMESPACE>` namespace. The latest dockerfile and related files (bar files) are pulled from the forked git repo.
