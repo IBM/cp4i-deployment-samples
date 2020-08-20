@@ -51,7 +51,7 @@ subjects:
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: Role
-  name: role-test-routes
+  name: role-for-test-in-dev-namespace
 
 ---
 

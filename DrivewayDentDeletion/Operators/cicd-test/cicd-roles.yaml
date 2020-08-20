@@ -52,16 +52,20 @@ rules:
 
 ---
 
-# Role for the test task to get routes in dev namespace
+# Role for the test task in the dev namespace
 kind: Role
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
-  name: role-test-routes
+  name: role-for-test-in-dev-namespace
 rules:
 # Permissions for test task to list routes in dev namespace
 - apiGroups: ["route.openshift.io"]
   resources: ["routes"]
   verbs: ["list"]
+# Permission to get secrets and configmaps for test script in dev namespace
+- apiGroups: [""]
+  resources: ["configmaps", "secrets"]
+  verbs: ["get"]
 
 ---
 
