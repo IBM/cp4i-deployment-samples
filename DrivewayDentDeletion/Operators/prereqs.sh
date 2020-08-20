@@ -26,6 +26,7 @@ function usage {
   exit 1
 }
 
+CURRENT_DIR=$(dirname $0)
 namespace="cp4i"
 nav_replicas="2"
 tick="\xE2\x9C\x85"
@@ -74,13 +75,24 @@ oc adm policy add-scc-to-group privileged system:serviceaccounts:${test_namespac
 
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
-echo "INFO: Installing tekton and its pre-reqs"
-oc apply --filename https://storage.googleapis.com/tekton-releases/pipeline/previous/v0.12.1/release.yaml
-echo -e "\nINFO: Installing tekton triggers"
-oc apply -f https://storage.googleapis.com/tekton-releases/triggers/previous/v0.5.0/release.yaml
-echo -e "\nINFO: Waiting for tekton and triggers deployment to finish..."
-oc wait -n tekton-pipelines --for=condition=available deployment --timeout=20m tekton-pipelines-controller \
-  tekton-pipelines-webhook tekton-triggers-controller tekton-triggers-webhook
+echo "INFO: Installing OCP pipelines"
+cat <<EOF | oc apply -f -
+apiVersion: operators.coreos.com/v1alpha1
+kind: Subscription
+metadata:
+  name: openshift-pipelines-operator
+  namespace: openshift-operators
+spec:
+  channel: ocp-4.4
+  name: openshift-pipelines-operator-rh
+  source: redhat-operators
+  sourceNamespace: openshift-marketplace
+EOF
+
+# TODO, needed?
+# echo -e "\nINFO: Waiting for tekton and triggers deployment to finish..."
+# oc wait -n tekton-pipelines --for=condition=available deployment --timeout=20m tekton-pipelines-controller \
+#   tekton-pipelines-webhook tekton-triggers-controller tekton-triggers-webhook
 
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
@@ -128,7 +140,7 @@ declare -a suffix=("ddd")
 for image_project in "${image_projects[@]}" #for_outer
 do
   echo "INFO: Making 'create-ace-config.sh' executable"
-  if ! chmod +x ${PWD}/../../products/bash/create-ace-config.sh ; then
+  if ! chmod +x ${CURRENT_DIR}/../../products/bash/create-ace-config.sh ; then
     printf "$cross "
     echo " ERROR: Failed to make 'create-ace-config.sh' executable in the namespace '$image_project'"
     exit 1
@@ -141,25 +153,25 @@ do
   do
     if [[ ("$each_suffix" == "ddd") ]]; then
       echo -e "\nINFO: Configuring postgres in the namespace '$image_project' with the suffix '$each_suffix'\n"
-      if ! ${PWD}/configure-postgres.sh -n ${image_project} -s $each_suffix; then
+      if ! ${CURRENT_DIR}/configure-postgres.sh -n ${image_project} -s $each_suffix; then
         echo -e "\n$cross ERROR: Failed to configure postgres in the namespace '$image_project' with the suffix '$each_suffix'"
         exit 1
       else
         printf "$tick "
         echo -e "\nINFO: Successfuly configured postgres in the namespace '$image_project' with the suffix '$each_suffix'"
-      fi  #${PWD}/configure-postgres.sh -n ${image_project} -s $each_suffix
+      fi  #${CURRENT_DIR}/configure-postgres.sh -n ${image_project} -s $each_suffix
 
       echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
       echo -e "INFO: Creating ace integration server configuration resources in the namespace '$image_project'"
 
-      if ! ${PWD}/../../products/bash/create-ace-config.sh -n ${image_project} -s $each_suffix; then
+      if ! ${CURRENT_DIR}/../../products/bash/create-ace-config.sh -n ${image_project} -s $each_suffix; then
         printf "$cross "
         echo "ERROR: Failed to configure ace in the namespace '$image_project'  with the suffix '$each_suffix'"
         exit 1
       else
         printf "$tick "
         echo "INFO: Successfuly configured ace in the namespace '$image_project' with the suffix '$each_suffix'"
-      fi  #${PWD}/../../products/bash/create-ace-config.sh -n ${image_project} -s $each_suffix
+      fi  #${CURRENT_DIR}/../../products/bash/create-ace-config.sh -n ${image_project} -s $each_suffix
     fi  #("$each_suffix" == "ddd")
   done #for_inner_done
   echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
@@ -178,7 +190,7 @@ echo -e "\n---------------------------------------------------------------------
 
 echo "INFO: Creating operator group and subscription in the namespace '${test_namespace}'"
 
-if ! ${PWD}/../../products/bash/deploy-og-sub.sh -n ${test_namespace} ; then
+if ! ${CURRENT_DIR}/../../products/bash/deploy-og-sub.sh -n ${test_namespace} ; then
   echo "ERROR: Failed to apply subscriptions and csv in the namespace '$test_namespace'"
   exit 1
 fi
@@ -187,7 +199,7 @@ echo -e "\n---------------------------------------------------------------------
 
 echo "INFO: Releasing Navigator in the namespace '${test_namespace}'"
 
-if ! ${PWD}/../../products/bash/release-navigator.sh -n ${test_namespace} -r ${nav_replicas} ; then
+if ! ${CURRENT_DIR}/../../products/bash/release-navigator.sh -n ${test_namespace} -r ${nav_replicas} ; then
   echo "ERROR: Failed to release the platform navigator in the namespace '$test_namespace'"
   exit 1
 fi
@@ -196,7 +208,7 @@ echo -e "\n---------------------------------------------------------------------
 
 echo "INFO: Releasing ACE dashboard in the namespace '${test_namespace}'"
 
-if ! ${PWD}/../../products/bash/release-ace-dashboard.sh -n ${test_namespace} ; then
+if ! ${CURRENT_DIR}/../../products/bash/release-ace-dashboard.sh -n ${test_namespace} ; then
   echo "ERROR: Failed to release the ace dashboard in the namespace '$test_namespace'"
   exit 1
 fi

@@ -28,6 +28,7 @@ function usage() {
 }
 
 # default vars
+CURRENT_DIR=$(dirname $0)
 namespace="cp4i"
 branch="master"
 repo="https://github.com/IBM/cp4i-deployment-samples.git"
@@ -79,7 +80,7 @@ echo -e "\n---------------------------------------------------------------------
 
 # apply pvc for buildah tasks
 echo "INFO: Apply pvc for buildah tasks"
-if oc apply -f $PWD/cicd-dev/cicd-pvc.yaml; then
+if oc apply -f $CURRENT_DIR/cicd-dev/cicd-pvc.yaml; then
   printf "$tick "
   echo "Successfully applied pvc in the '$namespace' namespace"
 else
@@ -92,7 +93,7 @@ echo -e "\n---------------------------------------------------------------------
 
 # create service accounts
 echo "INFO: Create service accounts"
-if cat $PWD/cicd-dev/cicd-service-accounts.yaml |
+if cat $CURRENT_DIR/cicd-dev/cicd-service-accounts.yaml |
   sed "s#{{NAMESPACE}}#$namespace#g;" |
   oc apply -f -; then
     printf "$tick "
@@ -107,7 +108,7 @@ echo -e "\n---------------------------------------------------------------------
 
 # create roles for tasks
 echo "INFO: Create roles for tasks"
-if cat $PWD/cicd-dev/cicd-roles.yaml |
+if cat $CURRENT_DIR/cicd-dev/cicd-roles.yaml |
   sed "s#{{NAMESPACE}}#$namespace#g;" |
   oc apply -f -; then
     printf "$tick "
@@ -122,7 +123,7 @@ echo -e "\n---------------------------------------------------------------------
 
 # create role bindings for roles
 echo "INFO: Create role bindings for roles"
-if cat $PWD/cicd-dev/cicd-rolebindings.yaml |
+if cat $CURRENT_DIR/cicd-dev/cicd-rolebindings.yaml |
   sed "s#{{NAMESPACE}}#$namespace#g;" |
   oc apply -f -; then
     printf "$tick "
@@ -135,25 +136,9 @@ fi
 
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
-# create pipeline resources
-echo "INFO: Create pipeline resources"
-if cat $PWD/cicd-dev/cicd-pipeline-resources.yaml |
-  sed "s#{{FORKED_REPO}}#$repo#g;" |
-  sed "s#{{BRANCH}}#$branch#g;" |
-  oc apply -f -; then
-    printf "$tick "
-    echo "Successfully applied pipeline resources in the '$namespace' namespace"
-else
-  printf "$cross "
-  echo "Failed to apply pipeline resources in the '$namespace' namespace"
-  sum=$((sum + 1))
-fi
-
-echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
-
 # create tekton tasks
 echo "INFO: Create tekton tasks"
-if cat $PWD/cicd-dev/cicd-tasks.yaml |
+if cat $CURRENT_DIR/cicd-dev/cicd-tasks.yaml |
   sed "s#{{NAMESPACE}}#$namespace#g;" |
   oc apply -f -; then
     printf "$tick "
@@ -168,9 +153,12 @@ echo -e "\n---------------------------------------------------------------------
 
 # create the pipeline to run tasks to build, deploy to dev, test e2e and push to test namespace
 echo "INFO: Create the pipeline to run tasks to build, deploy to dev, test e2e in '$namespace' and '$namespace-ddd-test' namespace"
-if oc apply -f $PWD/cicd-dev/cicd-pipeline.yaml; then
-  printf "$tick "
-  echo "Successfully applied the pipeline to run tasks to build, deploy to dev, test e2e in '$namespace' and '$namespace-ddd-test' namespace"
+if cat $PWD/cicd-dev/cicd-pipeline.yaml |
+  sed "s#{{FORKED_REPO}}#$repo#g;" |
+  sed "s#{{BRANCH}}#$branch#g;" |
+  oc apply -f -; then
+    printf "$tick "
+    echo "Successfully applied the pipeline to run tasks to build, deploy to dev, test e2e in '$namespace' and '$namespace-ddd-test' namespace"
 else
   printf "$cross "
   echo "Failed to apply the pipeline to run tasks to build, deploy to dev, test e2e in '$namespace' and '$namespace-ddd-test' namespace"
@@ -181,7 +169,7 @@ echo -e "\n---------------------------------------------------------------------
 
 # create the trigger template containing the pipelinerun
 echo "INFO: Create the trigger template containing the pipelinerun in the '$namespace' namespace"
-if oc apply -f $PWD/cicd-dev/cicd-trigger-template.yaml; then
+if oc apply -f $CURRENT_DIR/cicd-dev/cicd-trigger-template.yaml; then
   printf "$tick "
   echo "Successfully applied the trigger template containing the pipelinerun in the '$namespace' namespace"
 else
@@ -194,7 +182,7 @@ echo -e "\n---------------------------------------------------------------------
 
 # create the event listener and route for webhook
 echo "INFO : Create the event listener and route for webhook in the '$namespace' namespace"
-if oc apply -f $PWD/cicd-dev/cicd-events-routes.yaml; then
+if oc apply -f $CURRENT_DIR/cicd-dev/cicd-events-routes.yaml; then
   printf "$tick "
   echo "Successfully created the event listener and route for webhook in the '$namespace' namespace"
 else

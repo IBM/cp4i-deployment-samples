@@ -19,10 +19,8 @@ spec:
     - name: pvc
       type: string
       description: The PVC to use for layers
-  resources:
-    inputs:
-      - name: git-source
-        type: git
+  workspaces:
+    - name: git-source
   steps:
     - name: build
       image: quay.io/buildah/stable:latest
@@ -73,10 +71,8 @@ spec:
     - name: releaseScript
       type: string
       description: release name of script
-  resources:
-    inputs:
-      - name: git-source
-        type: git
+  workspaces:
+    - name: git-source
   steps:
     - name: oc
       image: quay.io/openshift/origin-cli:latest
