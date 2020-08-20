@@ -123,7 +123,7 @@ oc wait -n postgres --for=condition=available deploymentconfig --timeout=20m pos
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
 declare -a image_projects=("${dev_namespace}" "${test_namespace}")
-declare -a suffix=("ddd" "eei")
+declare -a suffix=("ddd")
 
 for image_project in "${image_projects[@]}" #for_outer
   do
@@ -139,7 +139,7 @@ for image_project in "${image_projects[@]}" #for_outer
 
     for each_suffix in "${suffix[@]}" #for_inner
       do
-        if [[ ("$each_suffix" == "ddd") || ("$each_suffix" == "eei" && "$image_project" != "${test_namespace}") ]]; then
+        if [[ ("$each_suffix" == "ddd") ]]; then
           echo -e "\nINFO: Configuring postgres in the namespace '$image_project' with the suffix '$each_suffix'\n"
           if ! ${PWD}/configure-postgres.sh -n ${image_project} -s $each_suffix; then
             echo -e "\n$cross ERROR: Failed to configure postgres in the namespace '$image_project' with the suffix '$each_suffix'"
@@ -159,8 +159,8 @@ for image_project in "${image_projects[@]}" #for_outer
           else
             printf "$tick "
             echo "INFO: Successfuly configured configured ace in the namespace '$image_project' with the suffix '$each_suffix'"
-          fi #  ${PWD}/../../products/bash/create-ace-config.sh -n ${image_project} -s $each_suffix
-        fi # ("$each_suffix" == "ddd") || ("$each_suffix" == "eei" && "$image_project" != "${test_namespace}")
+          fi  #${PWD}/../../products/bash/create-ace-config.sh -n ${image_project} -s $each_suffix
+        fi  #("$each_suffix" == "ddd")
 
          done #for_inner_done
     echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
