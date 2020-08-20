@@ -299,12 +299,7 @@ spec:
     # Deploy MQ in test namespace
     - name: deploy-wait-mq-test
       runAfter:
-        - image-push-to-test-ace-chris
-        - image-push-to-test-ace-acme
-        - image-push-to-test-ace-bernie
-        - image-push-to-test-ace-api
         - image-push-to-test-mq
-        - deploy-wait-mq
       taskRef:
         # name: deploy-test-task
         name: deploy-task
@@ -327,12 +322,7 @@ spec:
     # deploy all ace api in test namespace
     - name: deploy-wait-ace-api-test
       runAfter:
-        - image-push-to-test-ace-chris
-        - image-push-to-test-ace-acme
-        - image-push-to-test-ace-bernie
         - image-push-to-test-ace-api
-        - image-push-to-test-mq
-        - deploy-wait-mq
       taskRef:
         # name: deploy-test-task
         name: deploy-task
@@ -355,12 +345,7 @@ spec:
     # deploy all ace bernie in test namespace
     - name: deploy-wait-ace-bernie-test
       runAfter:
-        - image-push-to-test-ace-chris
-        - image-push-to-test-ace-acme
         - image-push-to-test-ace-bernie
-        - image-push-to-test-ace-api
-        - image-push-to-test-mq
-        - deploy-wait-mq
       taskRef:
         # name: deploy-test-task
         name: deploy-task
@@ -383,12 +368,7 @@ spec:
     # deploy all ace acme in test namespace
     - name: deploy-wait-ace-acme-test
       runAfter:
-        - image-push-to-test-ace-chris
         - image-push-to-test-ace-acme
-        - image-push-to-test-ace-bernie
-        - image-push-to-test-ace-api
-        - image-push-to-test-mq
-        - deploy-wait-mq
       taskRef:
         # name: deploy-test-task
         name: deploy-task
@@ -412,11 +392,6 @@ spec:
     - name: deploy-wait-ace-chris-test
       runAfter:
         - image-push-to-test-ace-chris
-        - image-push-to-test-ace-acme
-        - image-push-to-test-ace-bernie
-        - image-push-to-test-ace-api
-        - image-push-to-test-mq
-        - deploy-wait-mq
       taskRef:
         # name: deploy-test-task
         name: deploy-task
