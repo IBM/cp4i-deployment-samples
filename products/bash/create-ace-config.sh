@@ -9,44 +9,42 @@
 #****
 
 # PARAMETERS:
-#   -n : <namespace> (string), Defaults to 'cp4i'
+#   -n : <NAMESPACE> (string), Defaults to 'cp4i'
 #   -s : <SUFFIX> (string), Defaults to ''
-#   -p : <PASSWORD> (string), Defaults to ''
 #
 #   With defaults values
 #     ./create-ace-config.sh
 #
 #   With overridden values
-#     ./create-ace-config.sh -n <NAMESPACE> -s <SUFFIX> -p <PASSWORD>
+#     ./create-ace-config.sh -n <NAMESPACE> -s <SUFFIX>
 
 function usage {
-  echo "Usage: $0 -n <namespace> -s <SUFFIX> -p <PASSWORD>"
+  echo "Usage: $0 -n <NAMESPACE> -s <SUFFIX>"
 }
 
-namespace="cp4i"
+NAMESPACE="cp4i"
 
-while getopts "n:s:p:" opt; do
+while getopts "n:s:" opt; do
   case ${opt} in
-    n ) namespace="$OPTARG"
+    n ) NAMESPACE="$OPTARG"
       ;;
     s ) SUFFIX="$OPTARG"
-      ;;
-    p ) PASSWORD="$OPTARG"
       ;;
     \? ) usage; exit
       ;;
   esac
 done
 
-echo "INFO: Creating policyproject for ace in the '$namespace' namespace "
+echo "INFO: Creating policyproject for ace in the '$NAMESPACE' namespace"
 
 # Add suffix created for a user and database for the policy
-namespace_for_db="${namespace}_${SUFFIX}"
-namespace_for_db=$(echo $namespace_for_db | sed 's/-/_/g')
+DB_USER=$(echo ${NAMESPACE}_${SUFFIX} | sed 's/-/_/g')
+DB_NAME="db_$DB_USER"
+DB_SVC="$(oc get cm -n postgres postgres-config -o json | jq '.data["postgres.env"] | split("\n  ")' | grep DATABASE_SERVICE_NAME | cut -d "=" -f 2- | tr -dc '[a-z0-9-]\n').postgres.svc.cluster.local"
+DB_PASS=$(oc get secret -n $NAMESPACE postgres-credential --template={{.data.password}} | base64 --decode)
 
-echo "INFO: Namespace is: '$namespace'"
-echo "INFO: Database name is: 'db_$namespace_for_db'"
-echo "INFO: Username for the database is: '$namespace_for_db'"
+echo "INFO: Postgres db is: '$DB_NAME'"
+echo "INFO: Postgres user is: '$DB_USER'"
 
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
@@ -79,18 +77,18 @@ cat << EOF > ${PWD}/DefaultPolicies/PostgresqlPolicy.policyxml
 <?xml version="1.0" encoding="UTF-8"?>
 <policies>
   <policy policyType="JDBCProviders" policyName="PostgresqlPolicy" policyTemplate="DB2_91">
-    <databaseName>db_${namespace_for_db}</databaseName>
+    <databaseName>${DB_NAME}</databaseName>
     <databaseType>Postgresql</databaseType>
     <databaseVersion>999</databaseVersion>
     <type4DriverClassName>org.postgresql.Driver</type4DriverClassName>
     <type4DatasourceClassName>org.postgresql.xa.PGXADataSource</type4DatasourceClassName>
-    <connectionUrlFormat>jdbc:postgresql://[serverName]:[portNumber]/[databaseName]?user=${namespace_for_db}&amp;password=${PASSWORD}</connectionUrlFormat>
+    <connectionUrlFormat>jdbc:postgresql://[serverName]:[portNumber]/[databaseName]?user=${DB_USER}&amp;password=${DB_PASS}</connectionUrlFormat>
     <connectionUrlFormatAttr1></connectionUrlFormatAttr1>
     <connectionUrlFormatAttr2></connectionUrlFormatAttr2>
     <connectionUrlFormatAttr3></connectionUrlFormatAttr3>
     <connectionUrlFormatAttr4></connectionUrlFormatAttr4>
     <connectionUrlFormatAttr5></connectionUrlFormatAttr5>
-    <serverName>postgresql.postgres.svc.cluster.local</serverName>
+    <serverName>${DB_SVC}</serverName>
     <portNumber>5432</portNumber>
     <jarsURL></jarsURL>
     <databaseSchemaNames>useProvidedSchemaNames</databaseSchemaNames>
@@ -130,30 +128,30 @@ ls -lFA ${PWD}
 
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
-echo "INFO: encoding the policy project in the namespace '$namespace'"
+echo "INFO: encoding the policy project in the '$NAMESPACE' namespace"
 if [[ "$OSTYPE" == "linux-gnu"* ]]; then
-  temp=$(base64 --wrap=0 ${PWD}/policyproject.zip)
+  ENCODED=$(base64 --wrap=0 ${PWD}/policyproject.zip)
 elif [[ "$OSTYPE" == "darwin"* ]]; then
-  temp=$(base64 ${PWD}/policyproject.zip)
+  ENCODED=$(base64 ${PWD}/policyproject.zip)
 else
-  temp=$(base64 --wrap=0 ${PWD}/policyproject.zip)
+  ENCODED=$(base64 --wrap=0 ${PWD}/policyproject.zip)
 fi
 
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
 # setting up policyporject for namespace
-echo "INFO: Setting up policyporject in the namespace '$namespace'"
-configyaml="\
+echo "INFO: Setting up policyporject in the '$NAMESPACE' namespace"
+CONFIG="\
 apiVersion: appconnect.ibm.com/v1beta1
 kind: Configuration
 metadata:
   name: ace-policyproject
-  namespace: ${namespace}
+  namespace: $NAMESPACE
 spec:
-  contents: "$temp"
+  contents: "$ENCODED"
   type: policyproject
 "
-  echo "${configyaml}" > ${PWD}/tmp/policy-project-config.yaml
+  echo "${CONFIG}" > ${PWD}/tmp/policy-project-config.yaml
   echo "INFO: Output -> policy-project-config.yaml"
   cat ${PWD}/tmp/policy-project-config.yaml
   oc apply -f ${PWD}/tmp/policy-project-config.yaml

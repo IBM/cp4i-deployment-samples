@@ -14,16 +14,15 @@
 # PARAMETERS:
 #   -n : <NAMESPACE> (string), Defaults to 'cp4i'
 #   -s : <SUFFIX> (string), Defaults to ''
-#   -p : <PASSWORD> (string), Defaults to ''
 #
 #   With defaults values
 #     ./configure-postgres.sh
 #
 #   With overridden values
-#     ./configure-postgres.sh -n <NAMESPACE> -s <SUFFIX> -p <PASSWORD>
+#     ./configure-postgres.sh -n <NAMESPACE> -s <SUFFIX>
 
 function usage {
-  echo "Usage: $0 -n <NAMESPACE> -s <SUFFIX> -p <PASSWORD>"
+  echo "Usage: $0 -n <NAMESPACE> -s <SUFFIX>"
   exit 1
 }
 
@@ -36,8 +35,6 @@ while getopts "n:s:p:" opt; do
       ;;
     s ) SUFFIX="$OPTARG"
       ;;
-    p ) PASSWORD="$OPTARG"
-      ;;
     \? ) usage; exit
       ;;
   esac
@@ -46,8 +43,8 @@ done
 DB_POD=$(oc get pod -n postgres -l name=postgresql -o jsonpath='{.items[].metadata.name}')
 DB_SVC="$(oc get cm -n postgres postgres-config -o json | jq '.data["postgres.env"] | split("\n  ")' | grep DATABASE_SERVICE_NAME | cut -d "=" -f 2- | tr -dc '[a-z0-9-]\n').postgres.svc.cluster.local"
 DB_USER=$(echo ${NAMESPACE}_${SUFFIX} | sed 's/-/_/g')
-DB_NAME="db_${DB_USER}"
-DB_PASS=$PASSWORD
+DB_NAME="db_$DB_USER"
+DB_PASS=$(LC_ALL=C tr -dc 'A-Za-z0-9' </dev/urandom | head -c 32 ; echo)
 DB_PASSFILE="$DB_SVC:5432:$DB_NAME:$DB_USER:${DB_PASS}"
 
 PASSWORD_ENCODED=$(echo -n ${DB_PASS} | base64)
@@ -86,7 +83,7 @@ if [ $? -ne 0 ]; then
 fi
 EOF
 
-#copying the script to the postgres container and execute it 
+#copying the script to the postgres container and execute it
 chmod +x script.sh
 
 # If rsync complains of error(s) similar to the following, ignore it:
@@ -114,7 +111,7 @@ CREATE USER $DB_USER WITH PASSWORD `echo "'${DB_PASS}'"`;
 GRANT CONNECT ON DATABASE $DB_NAME TO $DB_USER;
 EOF
   if [ $? -ne 0 ]; then
-    echo "ERROR: Failed to create and setup database"  
+    echo "ERROR: Failed to create and setup database"
     exit 1
   fi
 else
