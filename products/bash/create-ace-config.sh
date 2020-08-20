@@ -35,6 +35,9 @@ while getopts "n:s:" opt; do
   esac
 done
 
+CURRENT_DIR=$(dirname $0)
+echo "Current directory: $CURRENT_DIR"
+
 echo "INFO: Creating policyproject for ace in the '$NAMESPACE' namespace"
 
 # Add suffix created for a user and database for the policy
@@ -49,11 +52,11 @@ echo "INFO: Postgres user is: '$DB_USER'"
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
 echo "INFO: Creating directories for default policies"
-mkdir -p ${PWD}/tmp
-mkdir -p ${PWD}/DefaultPolicies
+mkdir -p ${CURRENT_DIR}/tmp
+mkdir -p ${CURRENT_DIR}/DefaultPolicies
 
 echo "INFO: Creating default.policyxml"
-cat << EOF > ${PWD}/DefaultPolicies/default.policyxml
+cat << EOF > ${CURRENT_DIR}/DefaultPolicies/default.policyxml
 <?xml version="1.0" encoding="UTF-8"?>
 <policies>
   <policy policyType="MQEndpoint" policyName="MQEndpointPolicy" policyTemplate="MQEndpoint">
@@ -73,7 +76,7 @@ EOF
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
 echo "INFO: Creating PostgresqlPolicy.policyxml"
-cat << EOF > ${PWD}/DefaultPolicies/PostgresqlPolicy.policyxml
+cat << EOF > ${CURRENT_DIR}/DefaultPolicies/PostgresqlPolicy.policyxml
 <?xml version="1.0" encoding="UTF-8"?>
 <policies>
   <policy policyType="JDBCProviders" policyName="PostgresqlPolicy" policyTemplate="DB2_91">
@@ -105,7 +108,7 @@ EOF
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
 echo "INFO: Creating policy.descriptor"
-cat << EOF > ${PWD}/DefaultPolicies/policy.descriptor
+cat << EOF > ${CURRENT_DIR}/DefaultPolicies/policy.descriptor
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <ns2:policyProjectDescriptor xmlns="http://com.ibm.etools.mft.descriptor.base" xmlns:ns2="http://com.ibm.etools.mft.descriptor.policyProject">
   <references/>
@@ -114,27 +117,27 @@ EOF
 
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
-echo "INFO: Listing the files in ${PWD}/DefaultPolicies"
-ls ${PWD}/DefaultPolicies
+echo "INFO: Listing the files in ${CURRENT_DIR}/DefaultPolicies"
+ls ${CURRENT_DIR}/DefaultPolicies
 
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
 # Create a zip for default policies
 echo "INFO: Creating a zip for default policies"
-python -m zipfile -c policyproject.zip ${PWD}/DefaultPolicies
+python -m zipfile -c policyproject.zip ${CURRENT_DIR}/DefaultPolicies
 
-echo "INFO: Printing contents of '${PWD}':"
-ls -lFA ${PWD}
+echo "INFO: Printing contents of '${CURRENT_DIR}':"
+ls -lFA ${CURRENT_DIR}
 
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
 echo "INFO: encoding the policy project in the '$NAMESPACE' namespace"
 if [[ "$OSTYPE" == "linux-gnu"* ]]; then
-  ENCODED=$(base64 --wrap=0 ${PWD}/policyproject.zip)
+  ENCODED=$(base64 --wrap=0 ${CURRENT_DIR}/policyproject.zip)
 elif [[ "$OSTYPE" == "darwin"* ]]; then
-  ENCODED=$(base64 ${PWD}/policyproject.zip)
+  ENCODED=$(base64 ${CURRENT_DIR}/policyproject.zip)
 else
-  ENCODED=$(base64 --wrap=0 ${PWD}/policyproject.zip)
+  ENCODED=$(base64 --wrap=0 ${CURRENT_DIR}/policyproject.zip)
 fi
 
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
@@ -151,7 +154,7 @@ spec:
   contents: "$ENCODED"
   type: policyproject
 "
-  echo "${CONFIG}" > ${PWD}/tmp/policy-project-config.yaml
+  echo "${CONFIG}" > ${CURRENT_DIR}/tmp/policy-project-config.yaml
   echo "INFO: Output -> policy-project-config.yaml"
-  cat ${PWD}/tmp/policy-project-config.yaml
-  oc apply -f ${PWD}/tmp/policy-project-config.yaml
+  cat ${CURRENT_DIR}/tmp/policy-project-config.yaml
+  oc apply -f ${CURRENT_DIR}/tmp/policy-project-config.yaml
