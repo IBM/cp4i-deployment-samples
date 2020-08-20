@@ -237,6 +237,7 @@ echo -e "\n---------------------------------------------------------------------
 
 if [[ $sum -gt 0 ]]; then
   echo "ERROR: Creating the webhook is not recommended as some resources have not been applied successfully in the '$namespace' namespace"
+  exit 1
 else
   # print route for webbook
   echo "INFO: Your trigger route for the github webhook is: $WEBHOOK_ROUTE"

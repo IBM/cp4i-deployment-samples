@@ -40,7 +40,7 @@ roleRef:
 
 ---
 
-# Role binding for the tesk task to list routes in test task in dev namespace
+# Role binding for the tesk task in dev namespace
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:

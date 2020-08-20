@@ -62,9 +62,9 @@ rules:
 - apiGroups: ["route.openshift.io"]
   resources: ["routes"]
   verbs: ["list"]
-# Permission to get secrets and configmaps for test script in dev namespace
+# Permission to get secrets for test script in dev namespace
 - apiGroups: [""]
-  resources: ["configmaps", "secrets"]
+  resources: ["secrets"]
   verbs: ["get"]
 
 ---
@@ -76,9 +76,9 @@ metadata:
   name: role-postgres-test-task
   namespace: postgres
 rules:
-# Permissions for test task to list, get and create pods in postgres namespace
+# Permissions for test task to list, get and create pods and configmaps in postgres namespace
 - apiGroups: [""]
-  resources: ["pods", "pods/exec"]
+  resources: ["pods", "pods/exec", "configmaps"]
   verbs: ["list", "get", "create"]
 
 ---
