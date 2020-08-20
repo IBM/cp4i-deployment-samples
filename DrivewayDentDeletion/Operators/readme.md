@@ -7,27 +7,41 @@ upon this.
 # Prerequisites
 A [script](prereqs.sh) is provided to setup the prerequisits for this demo
 and this script is automatically run as part of the 1-click demo preparation.
-The script sets up the following:
+The script carries out the following:
 - Installs Tekton Pipelines v0.12.1
 - Installs Tekton Triggers v0.5.0
 - Creates a project to be used for the demo (default `cp4i`).
 - Creates secrets to allow the pipeline to push images to the above project (default `cp4i`).
 - Creates a secret to allow the pipeline to pull from the entitled registry
-- Creates a `quotes` table in the Postgres sampledb database
+- Creates a username and password for each of the dev (this is the namespace where the 1-click install ran in) and test namespace.
+- Creates a database for each of the user in each of the namespaces.
+- Creates a `quotes` table in each database.
+- Creates an operator group and product subscriptions.
+- Releases the platform navigator and ace dashboard.
 
 # User steps
 These steps will need to be documented in the demo docs:
 - Fork/clone the repo
-- Apply yaml to create the pipeline, configured to use the forked repo. Set
+- Run the script to create the dev pipeline, configured to use the forked repo. Set
 `FORKED_REPO` to the URL for your repo and change the `<NAMESPACE>` to the namespace of 1-click install in which you want the pipeline to run.
   ```
   export NAMESPACE=<NAMESPACE>
   oc project $NAMESPACE
   export BRANCH=master
   export FORKED_REPO=https://github.com/IBM/cp4i-deployment-samples.git
-  ./cicd-apply-pipeline.sh -n $NAMESPACE -r $FORKED_REPO -b $BRANCH
+  ./cicd-apply-dev-pipeline.sh -n $NAMESPACE -r $FORKED_REPO -b $BRANCH
   ```
-- The above script `cicd-apply-pipeline.sh` will print out the trigger URL and the next step.
+- The above script `cicd-apply-dev-pipeline.sh` will create a dev pipeline in the `<NAMESPACE>` namepsace and will print the route to add to the webhook in the forked github repo.
+- Run the script to create the test pipeline, configured to use the forked repo. Set
+`FORKED_REPO` to the URL for your repo and change the `<NAMESPACE>` to the namespace of 1-click install in which you want the pipeline to run.
+  ```
+  export NAMESPACE=<NAMESPACE>
+  oc project $NAMESPACE
+  export BRANCH=master
+  export FORKED_REPO=https://github.com/IBM/cp4i-deployment-samples.git
+  ./cicd-apply-test-pipeline.sh -n $NAMESPACE -r $FORKED_REPO -b $BRANCH
+  ```
+- The above script `cicd-apply-test-pipeline.sh` will create a dev and test pipeline in the `<NAMESPACE>` namepsace and will print the route to add to the webhook in the forked github repo. (This will be the same route as above, but updated to point to a service for the test pipeline in the dev namespace).
 
 # Pipelines
 ![Overview of aaS](../media/dev-pipeline.svg)
