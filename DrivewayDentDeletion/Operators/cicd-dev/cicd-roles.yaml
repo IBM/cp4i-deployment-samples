@@ -1,0 +1,51 @@
+kind: Role
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: tekton-triggers-role
+rules:
+# Permissions for every EventListener deployment to function
+- apiGroups: ["triggers.tekton.dev"]
+  resources: ["eventlisteners", "triggerbindings", "triggertemplates"]
+  verbs: ["get"]
+- apiGroups: [""]
+# secrets are only needed for Github/Gitlab interceptors, serviceaccounts only for per trigger authorization
+  resources: ["configmaps", "secrets", "serviceaccounts"]
+  verbs: ["get", "list", "watch"]
+# Permissions to create resources in associated TriggerTemplates
+- apiGroups: ["tekton.dev"]
+  resources: ["pipelineruns", "pipelineresources", "taskruns"]
+  verbs: ["create"]
+---
+
+# Ace Integration Service account configuration
+kind: Role
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: ace-int-srv-role
+rules:
+# Permissions for appconnect integration server
+- apiGroups: ["appconnect.ibm.com"]
+  resources: ["designerauthorings", "dashboards", "switchservers", "configurations", "integrationservers"]
+  verbs: ["create", "delete", "get", "list", "patch", "update", "watch"]
+# Permission to get pods
+- apiGroups: [""]
+  resources: ["pods"]
+  verbs: ["list", "get"]
+
+
+---
+
+# MQ Service account configuration
+kind: Role
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: mq-qm-role
+rules:
+# Permissions for MQ
+- apiGroups: ["mq.ibm.com"]
+  resources: ["queuemanagers", "queuemanagers/finalizers", "queuemanagers/status"]
+  verbs: ["create", "delete", "get", "list", "patch", "update", "watch"]
+# Permission to get pods during deploy stage
+- apiGroups: [""]
+  resources: ["pods"]
+  verbs: ["list", "get"]

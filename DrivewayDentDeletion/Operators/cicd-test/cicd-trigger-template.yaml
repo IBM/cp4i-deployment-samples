@@ -1,0 +1,69 @@
+apiVersion: triggers.tekton.dev/v1alpha1
+kind: TriggerTemplate
+metadata:
+  name: test-triggertemplate
+spec:
+  resourcetemplates:
+  - apiVersion: tekton.dev/v1beta1
+    kind: PipelineRun
+    metadata:
+      name: test-pipelinerun-$(uid)
+    spec:
+      pipelineRef:
+        name: test-pipeline
+      serviceAccountNames:
+        - taskName: clone-git-source
+          serviceAccountName: pipeline
+        - taskName: build-mq
+          serviceAccountName: cicd-mq-sa
+        - taskName: deploy-wait-mq
+          serviceAccountName: cicd-mq-sa
+        - taskName: build-ace-int-server-ace-api
+          serviceAccountName: cicd-ace-sa
+        - taskName: build-ace-int-server-ace-bernie
+          serviceAccountName: cicd-ace-sa
+        - taskName: build-ace-int-server-ace-acme
+          serviceAccountName: cicd-ace-sa
+        - taskName: build-ace-int-server-ace-chris
+          serviceAccountName: cicd-ace-sa
+        - taskName: deploy-wait-ace-api
+          serviceAccountName: cicd-ace-sa
+        - taskName: deploy-wait-ace-chris
+          serviceAccountName: cicd-ace-sa
+        - taskName: deploy-wait-ace-acme
+          serviceAccountName: cicd-ace-sa
+        - taskName: deploy-wait-ace-bernie
+          serviceAccountName: cicd-ace-sa
+        - taskName: test-e2e-api-in-dev-namespace
+          serviceAccountName: cicd-test
+        - taskName: image-push-to-test-ace-chris
+          serviceAccountName: cicd-push-to-test
+        - taskName: image-push-to-test-ace-acme
+          serviceAccountName: cicd-push-to-test
+        - taskName: image-push-to-test-ace-bernie
+          serviceAccountName: cicd-push-to-test
+        - taskName: image-push-to-test-ace-api
+          serviceAccountName: cicd-push-to-test
+        - taskName: image-push-to-test-mq
+          serviceAccountName: cicd-push-to-test
+        - taskName: cicd-deploy-in-test-namespace
+          serviceAccountName: cicd-deploy-to-test
+        - taskName: deploy-wait-mq-test
+          serviceAccountName: cicd-mq-deploy-in-test-sa
+        - taskName: deploy-wait-ace-api-test
+          serviceAccountName: cicd-ace-deploy-in-test-sa
+        - taskName: deploy-wait-ace-bernie-test
+          serviceAccountName: cicd-ace-deploy-in-test-sa
+        - taskName: deploy-wait-ace-chris-test
+          serviceAccountName: cicd-ace-deploy-in-test-sa
+        - taskName: deploy-wait-ace-acme-test
+          serviceAccountName: cicd-ace-deploy-in-test-sa
+        - taskName: test-e2e-api-in-test-namespace
+          serviceAccountName: cicd-api-e2e-in-test-sa
+      workspaces:
+        - name: git-source
+          persistentvolumeclaim:
+            claimName: git-source-workspace
+      params:
+      - name: imageTag
+        value: $(uid)

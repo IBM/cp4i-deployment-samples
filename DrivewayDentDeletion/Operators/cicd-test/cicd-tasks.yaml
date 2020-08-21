@@ -1,0 +1,151 @@
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: build-task
+spec:
+  params:
+    - name: imageTag
+      type: string
+      description: The image tag
+    - name: imageName
+      type: string
+      description: The image name
+    - name: dockerfile
+      type: string
+      description: The dockerfile
+    - name: contextPath
+      type: string
+      description: The context to run the commands
+    - name: pvc
+      type: string
+      description: The PVC to use for layers
+  workspaces:
+    - name: git-source
+  steps:
+    - name: build
+      image: quay.io/buildah/stable:latest
+      securityContext:
+        privileged: true
+      script: |
+        df -h /var/lib/containers
+        buildah --storage-driver vfs bud \
+          -f /workspace/git-source/DrivewayDentDeletion/Operators/Dockerfiles/$(params.dockerfile) \
+          -t image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}/$(params.imageName):$(params.imageTag) \
+          /workspace/git-source/DrivewayDentDeletion/$(params.contextPath)
+        buildah --storage-driver vfs push \
+          --tls-verify=false \
+          image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}/$(params.imageName):$(params.imageTag)
+        df -h /var/lib/containers
+      volumeMounts:
+         - mountPath: /var/lib/containers
+           name: varlibcontainers
+      resources:
+        requests:
+          memory: "4Gi"
+          cpu: "1"
+          ephemeral-storage: "1Gi"
+        limits:
+          ephemeral-storage: "1Gi"
+  volumes:
+    - name: varlibcontainers
+      persistentVolumeClaim:
+        claimName: $(params.pvc)
+
+---
+
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: deploy-task
+spec:
+  params:
+    - name: imageTag
+      type: string
+      description: The image tag
+    - name: imageName
+      type: string
+      description: The image name
+    - name: releaseName
+      type: string
+      description: release name of the deployment
+    - name: releaseScript
+      type: string
+      description: release name of script
+    - name: namespace
+      type: string
+      description: release name of script
+  workspaces:
+    - name: git-source
+  steps:
+    - name: oc
+      image: quay.io/openshift/origin-cli:latest
+      script: "/workspace/git-source/products/bash/$(params.releaseScript) -n $(params.namespace) -r $(params.releaseName) -i image-registry.openshift-image-registry.svc:5000/$(params.namespace)/$(params.imageName):$(params.imageTag)"
+
+---
+
+# this task is to push the images that our tested to test namespace
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: image-push-to-test
+spec:
+  params:
+    - name: imageTag
+      type: string
+      description: The image tag
+    - name: imageName
+      type: string
+      description: The image tag
+    - name: pvc
+      type: string
+      description: The PVC to use for layers
+  steps:
+    - name: pull-retag-push-to-test
+      image: quay.io/buildah/stable:latest
+      securityContext:
+        privileged: true
+      script: |
+        df -h /var/lib/containers
+        buildah pull --tls-verify=false \
+          image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}/$(params.imageName):$(params.imageTag)
+        buildah tag \
+          image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}/$(params.imageName):$(params.imageTag) \
+          image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}-ddd-test/$(params.imageName):$(params.imageTag)-test
+        buildah push --tls-verify=false \
+          image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}-ddd-test/$(params.imageName):$(params.imageTag)-test
+        df -h /var/lib/containers
+      volumeMounts:
+         - mountPath: /var/lib/containers
+           name: varlibcontainers
+      resources:
+        requests:
+          memory: "4Gi"
+          cpu: "1"
+          ephemeral-storage: "1Gi"
+        limits:
+          ephemeral-storage: "1Gi"
+  volumes:
+    - name: varlibcontainers
+      persistentVolumeClaim:
+        claimName: $(params.pvc)
+
+---
+
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: api-test-e2e
+spec:
+  params:
+    - name: namespaceSuffix
+      type: string
+      description: The namespace suffix
+    - name: suffix
+      type: string
+      description: The suffix for the user and database name
+  workspaces:
+    - name: git-source
+  steps:
+    - name: oc
+      image: quay.io/openshift/origin-cli:latest
+      script: "/workspace/git-source/DrivewayDentDeletion/Operators/test-api-e2e.sh -n {{NAMESPACE}} -s $(params.suffix) -p $(params.namespaceSuffix)"

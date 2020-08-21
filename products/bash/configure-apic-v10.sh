@@ -57,7 +57,7 @@ MAIL_SERVER_PASSWORD=${MAIL_SERVER_PASSWORD:-"<your-password>"}
 
 echo "Waiting for APIC installation to complete..."
 for i in `seq 1 60`; do
-  APIC_STATUS=$(kubectl get apiconnectcluster.apiconnect.ibm.com -n $NAMESPACE ${release_name} -ojsonpath='{.status.phase}')
+  APIC_STATUS=$(kubectl get apiconnectcluster.apiconnect.ibm.com -n $NAMESPACE ${release_name} -o jsonpath='{.status.phase}')
   if [ "$APIC_STATUS" == "Ready" ]; then
     echo "[OK] APIC is ready"
     break
@@ -100,14 +100,14 @@ echo "Pod listing for information"
 kubectl get pod -n $NAMESPACE
 
 # obtain cloud manager credentials secret name
-CLOUD_MANAGER_PASS="$(oc get secret -n $NAMESPACE "${release_name}-mgmt-admin-pass" -ojsonpath='{.data.password}' | base64 --decode)"
+CLOUD_MANAGER_PASS="$(oc get secret -n $NAMESPACE "${release_name}-mgmt-admin-pass" -o jsonpath='{.data.password}' | base64 --decode)"
 
 # obtain endpoint info from APIC v10 routes
-APIM_UI_EP=$(oc get route -n $NAMESPACE ${release_name}-mgmt-api-manager -ojsonpath='{.spec.host}')
-CMC_UI_EP=$(oc get route -n $NAMESPACE ${release_name}-mgmt-admin -ojsonpath='{.spec.host}')
-C_API_EP=$(oc get route -n $NAMESPACE ${release_name}-mgmt-consumer-api -ojsonpath='{.spec.host}')
-API_EP=$(oc get route -n $NAMESPACE ${release_name}-mgmt-platform-api -ojsonpath='{.spec.host}')
-PTL_WEB_EP=$(oc get route -n $NAMESPACE ${release_name}-ptl-portal-web -ojsonpath='{.spec.host}')
+APIM_UI_EP=$(oc get route -n $NAMESPACE ${release_name}-mgmt-api-manager -o jsonpath='{.spec.host}')
+CMC_UI_EP=$(oc get route -n $NAMESPACE ${release_name}-mgmt-admin -o jsonpath='{.spec.host}')
+C_API_EP=$(oc get route -n $NAMESPACE ${release_name}-mgmt-consumer-api -o jsonpath='{.spec.host}')
+API_EP=$(oc get route -n $NAMESPACE ${release_name}-mgmt-platform-api -o jsonpath='{.spec.host}')
+PTL_WEB_EP=$(oc get route -n $NAMESPACE ${release_name}-ptl-portal-web -o jsonpath='{.spec.host}')
 
 # create the k8s resources
 echo "Applying manifests"

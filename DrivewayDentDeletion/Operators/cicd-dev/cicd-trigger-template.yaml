@@ -1,0 +1,43 @@
+apiVersion: triggers.tekton.dev/v1alpha1
+kind: TriggerTemplate
+metadata:
+  name: dev-triggertemplate
+spec:
+  resourcetemplates:
+  - apiVersion: tekton.dev/v1beta1
+    kind: PipelineRun
+    metadata:
+      name: dev-pipelinerun-$(uid)
+    spec:
+      pipelineRef:
+        name: dev-pipeline
+      serviceAccountNames:
+        - taskName: clone-git-source
+          serviceAccountName: pipeline
+        - taskName: build-mq
+          serviceAccountName: cicd-mq-sa
+        - taskName: deploy-wait-mq
+          serviceAccountName: cicd-mq-sa
+        - taskName: build-ace-int-server-ace-api
+          serviceAccountName: cicd-ace-sa
+        - taskName: build-ace-int-server-ace-bernie
+          serviceAccountName: cicd-ace-sa
+        - taskName: build-ace-int-server-ace-acme
+          serviceAccountName: cicd-ace-sa
+        - taskName: build-ace-int-server-ace-chris
+          serviceAccountName: cicd-ace-sa
+        - taskName: deploy-wait-ace-api
+          serviceAccountName: cicd-ace-sa
+        - taskName: deploy-wait-ace-chris
+          serviceAccountName: cicd-ace-sa
+        - taskName: deploy-wait-ace-acme
+          serviceAccountName: cicd-ace-sa
+        - taskName: deploy-wait-ace-bernie
+          serviceAccountName: cicd-ace-sa
+      workspaces:
+        - name: git-source
+          persistentvolumeclaim:
+            claimName: git-source-workspace
+      params:
+      - name: imageTag
+        value: $(uid)
