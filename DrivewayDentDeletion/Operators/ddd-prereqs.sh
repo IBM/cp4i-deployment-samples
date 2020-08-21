@@ -44,8 +44,8 @@ while getopts "n:r:" opt; do
 done
 
 CURRENT_DIR=$(dirname $0)
-echo "Current directory: $CURRENT_DIR"
-echo "Namespace: $namespace"
+echo "INFO: Current directory: $CURRENT_DIR"
+echo "INFO: Namespace: $namespace"
 
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
@@ -88,13 +88,13 @@ suffix="ddd"
 for image_project in "${image_projects[@]}" #for_outer
 do
   echo -e "\nINFO: Configuring postgres in the namespace '$image_project' with the suffix '$suffix'\n"
-  if ! ${CURRENT_DIR}/configure-postgres.sh -n ${image_project} -s $suffix; then
+  if ! ${CURRENT_DIR}/../../products/bash/configure-postgres.sh -n ${image_project} -s $suffix; then
     echo -e "\n$cross ERROR: Failed to configure postgres in the namespace '$image_project' with the suffix '$suffix'"
     exit 1
   else
     printf "$tick "
     echo -e "\nINFO: Successfuly configured postgres in the namespace '$image_project' with the suffix '$suffix'"
-  fi  #${CURRENT_DIR}/configure-postgres.sh -n ${image_project} -s $suffix
+  fi  #${CURRENT_DIR}/../../products/bash/configure-postgres.sh -n ${image_project} -s $suffix
 
   echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
   echo -e "INFO: Creating ace integration server configuration resources in the namespace '$image_project'"

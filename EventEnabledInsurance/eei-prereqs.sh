@@ -30,6 +30,7 @@ namespace="cp4i"
 tick="\xE2\x9C\x85"
 cross="\xE2\x9D\x8C"
 all_done="\xF0\x9F\x92\xAF"
+suffix="eei"
 
 while getopts "n:r:" opt; do
   case ${opt} in
@@ -41,19 +42,39 @@ while getopts "n:r:" opt; do
 done
 
 CURRENT_DIR=$(dirname $0)
-echo "Current directory: $CURRENT_DIR"
-echo "Namespace: $namespace"
+echo "INFO: Current directory: $CURRENT_DIR"
+echo "INFO: Namespace: $namespace"
+echo "INFO: Suffix is: $suffix"
 
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
 echo -e "INFO: Installing common prerequisites in the namespace '$namespace' for eei demo...\n"
 if ! ${CURRENT_DIR}/../products/bash/common-prereqs.sh -n ${namespace}; then
   printf "$cross "
-  echo "ERROR: Failed to install common-prereqs in the namespace '$namespace' for the eei demo"
+  echo "ERROR: Failed to install common-prereqs in the namespace '$namespace'"
   exit 1
 else
   printf "$tick "
-  echo "INFO: Successfuly installed common-prereqs in the namespace '$namespace' for the eei demo"
-fi  #${CURRENT_DIR}/../../products/bash/common-prereqs.sh -n ${namespace}
+  echo "INFO: Successfuly installed common-prereqs in the namespace '$namespace'"
+fi  #${CURRENT_DIR}/../products/bash/common-prereqs.sh -n ${namespace}
 
+echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
+
+echo -e "\nINFO: Configuring postgres in the namespace '$namespace' with the suffix '$suffix' for the eei demo\n"
+if ! ${CURRENT_DIR}/../products/bash/configure-postgres.sh -n ${namespace} -s $suffix; then
+    echo -e "$cross ERROR: Failed to configure postgres in the namespace '$namespace' with the suffix '$suffix'"
+    exit 1
+else
+    echo -e "$tick INFO: Successfuly configured postgres in the namespace '$namespace' with the suffix '$suffix'"
+fi  #${CURRENT_DIR}/../products/bash/configure-postgres.sh -n ${namespace} -s $suffix
+
+echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
+
+echo -e "INFO: Creating ace integration server configuration resources in the namespace '$namespace' for the eei demo"
+if ! ${CURRENT_DIR}/../products/bash/create-ace-config.sh -n ${namespace} -s $suffix; then
+    echo -e "$cross ERROR: Failed to configure ace in the namespace '$namespace' with the suffix '$suffix'"
+    exit 1
+else
+    echo -e "$tick INFO: Successfuly configured ace in the namespace '$namespace' with the suffix '$suffix'"
+fi  #${CURRENT_DIR}/../products/bash/create-ace-config.sh -n ${namespace} -s $suffix
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
