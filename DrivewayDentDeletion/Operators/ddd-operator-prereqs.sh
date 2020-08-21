@@ -58,7 +58,6 @@ if ! ${CURRENT_DIR}/../../products/bash/common-prereqs.sh -n ${namespace}; then
   echo "ERROR: Failed to install common-prereqs in the namespace '$namespace' for the ddd demo"
   exit 1
 else
-  printf "$tick "
   echo "INFO: Successfuly installed common-prereqs in the namespace '$namespace' for the ddd demo"
 fi  #${CURRENT_DIR}/../../products/bash/common-prereqs.sh -n ${namespace}
 
@@ -88,7 +87,7 @@ declare -a image_projects=("${dev_namespace}" "${test_namespace}")
 
 for image_project in "${image_projects[@]}" #for_outer
 do
-  echo -e "\nINFO: Configuring postgres in the namespace '$image_project' with the suffix '$suffix'\n"
+  echo -e "INFO: Configuring postgres in the namespace '$image_project' with the suffix '$suffix'\n"
   if ! ${CURRENT_DIR}/../../products/bash/configure-postgres.sh -n ${image_project} -s $suffix; then
     echo -e "\n$cross ERROR: Failed to configure postgres in the namespace '$image_project' with the suffix '$suffix'"
     exit 1
@@ -145,6 +144,6 @@ if ! ${CURRENT_DIR}/../../products/bash/release-ace-dashboard.sh -n ${test_names
 fi
 
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
-echo -e "$tick $all_done INFO: All prerequisites for the driveway dent deletion have been applied successfully $all_done $tick"
+echo -e "$tick $all_done INFO: All prerequisites for the driveway dent deletion demo have been applied successfully $all_done $tick"
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 

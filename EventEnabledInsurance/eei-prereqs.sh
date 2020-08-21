@@ -75,4 +75,7 @@ if ! ${CURRENT_DIR}/../products/bash/create-ace-config.sh -n ${namespace} -s $su
 else
     echo -e "\n$tick INFO: Successfuly configured ace in the namespace '$namespace' with the suffix '$suffix'"
 fi  #${CURRENT_DIR}/../products/bash/create-ace-config.sh -n ${namespace} -s $suffix
+
+echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
+echo -e "$tick $all_done INFO: All prerequisites for the event enabled insurance demo have been applied successfully $all_done $tick"
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
