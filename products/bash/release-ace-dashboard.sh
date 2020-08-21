@@ -15,47 +15,50 @@
 # PARAMETERS:
 #   -n : <namespace> (string), Defaults to "cp4i"
 #   -r : <dashboard-release-name> (string), Defaults to "ace-dashboard-demo"
-#   -e : <designer-release-name> (string), Defaults to "ace-designer-demo"
 #
 # USAGE:
 #   With defaults values
-#     ./release-ace.sh
+#     ./release-ace-dashboard.sh
 #
 #   Overriding the namespace and release-name
-#     ./release-ace.sh -n cp4i-prod -r prod
+#     ./release-ace-dashboard.sh -n cp4i-prod -r prod
 
 function usage {
-    echo "Usage: $0 -n <namespace> -r <dashboard-release-name> -e <designer-release-name>"
+    echo "Usage: $0 -n <namespace> -r <dashboard-release-name>"
 }
 
 namespace="cp4i"
 dashboard_release_name="ace-dashboard-demo"
-designer_release_name="ace-designer-demo"
 
-while getopts "n:r:e:" opt; do
+while getopts "n:r:" opt; do
   case ${opt} in
     n ) namespace="$OPTARG"
       ;;
     r ) dashboard_release_name="$OPTARG"
-      ;;
-    e ) designer_release_name="$OPTARG"
       ;;
     \? ) usage; exit
       ;;
   esac
 done
 
-CURRENT_DIR=$(dirname $0)
-echo "Current directory: $CURRENT_DIR"
+echo "INFO: Release ACE Dashboard..."
+echo "INFO: Namepace: '$namespace'"
+echo "INFO: Dashboard Release Name: '$dashboard_release_name'"
 
-# Ace Dashboard release
-if ! ${CURRENT_DIR}/release-ace-dashboard.sh -n ${namespace} -r ${dashboard_release_name} ; then
-  echo "ERROR: Failed to release the ace dashboard in the namespace '$namespace'" 1>&2
-  exit 1
-fi
-
-# Ace Designer release
-if ! ${CURRENT_DIR}/release-ace-designer.sh -n ${namespace} -r ${designer_release_name} ; then
-  echo "ERROR: Failed to release the ace designer in the namespace '$namespace'" 1>&2
-  exit 1
-fi
+cat << EOF | oc apply -f -
+apiVersion: appconnect.ibm.com/v1beta1
+kind: Dashboard
+metadata:
+  name: ${dashboard_release_name}
+  namespace: ${namespace}
+spec:
+  license:
+    accept: true
+    license: L-AMYG-BQ2E4U
+    use: CloudPakForIntegrationNonProduction
+  replicas: 1
+  storage:
+    class: ibmc-file-gold-gid
+    type: persistent-claim
+  version: 11.0.0
+EOF

@@ -1,0 +1,216 @@
+apiVersion: tekton.dev/v1beta1
+kind: Pipeline
+metadata:
+  name: dev-pipeline
+spec:
+  params:
+    - name: imageTag
+      type: string
+      description: The image tag
+  workspaces:
+    - name: git-source
+  tasks:
+    - name: clone-git-source
+      taskRef:
+        name: git-clone
+        kind: ClusterTask
+      params:
+        - name: url
+          value: "{{FORKED_REPO}}"
+        - name: subdirectory
+          value: ""
+        - name: deleteExisting
+          value: "true"
+        - name: revision
+          value: "{{BRANCH}}"
+      workspaces:
+        - name: output
+          workspace: git-source
+
+    # MQ build in dev namespace
+    - name: build-mq
+      runAfter:
+        - clone-git-source
+      taskRef:
+        name: build-task
+      params:
+        - name: imageName
+          value: "mq-ddd"
+        - name: imageTag
+          value: "latest"
+        - name: dockerfile
+          value: "MQ.Dockerfile"
+        - name: contextPath
+          value: ""
+        - name: pvc
+          value: "buildah-mq"
+      workspaces:
+        - name: git-source
+          workspace: git-source
+
+    # MQ deploy in dev namesapce
+    - name: deploy-wait-mq
+      runAfter:
+        - build-mq
+      taskRef:
+        name: deploy-task
+      params:
+        - name: imageTag
+          value: "latest"
+        - name: imageName
+          value: "mq-ddd"
+        - name: releaseName
+          value: "mq-ddd-qm"
+        - name: releaseScript
+          value: release-mq.sh
+      workspaces:
+        - name: git-source
+          workspace: git-source
+
+    # build all ace in dev namespace
+    - name: build-ace-int-server-ace-api
+      runAfter:
+        - clone-git-source
+      taskRef:
+        name: build-task
+      params:
+        - name: imageTag
+          value: "$(params.imageTag)"
+        - name: imageName
+          value: "ace-api"
+        - name: dockerfile
+          value: "ACE-API.Dockerfile"
+        - name: contextPath
+          value: "Bar_files/ace-api"
+        - name: pvc
+          value: "buildah-ace-api"
+      workspaces:
+        - name: git-source
+          workspace: git-source
+    - name: build-ace-int-server-ace-acme
+      runAfter:
+        - clone-git-source
+      taskRef:
+        name: build-task
+      params:
+        - name: imageTag
+          value: "$(params.imageTag)"
+        - name: imageName
+          value: "ace-acme"
+        - name: dockerfile
+          value: "ACE-Acme.Dockerfile"
+        - name: contextPath
+          value: "Bar_files/ace-acme"
+        - name: pvc
+          value: "buildah-ace-acme"
+      workspaces:
+        - name: git-source
+          workspace: git-source
+    - name: build-ace-int-server-ace-bernie
+      runAfter:
+        - clone-git-source
+      taskRef:
+        name: build-task
+      params:
+        - name: imageTag
+          value: "$(params.imageTag)"
+        - name: imageName
+          value: "ace-bernie"
+        - name: dockerfile
+          value: "ACE-Bernie.Dockerfile"
+        - name: contextPath
+          value: "Bar_files/ace-bernie"
+        - name: pvc
+          value: "buildah-ace-bernie"
+      workspaces:
+        - name: git-source
+          workspace: git-source
+    - name: build-ace-int-server-ace-chris
+      runAfter:
+        - clone-git-source
+      taskRef:
+        name: build-task
+      params:
+        - name: imageTag
+          value: "$(params.imageTag)"
+        - name: imageName
+          value: "ace-chris"
+        - name: dockerfile
+          value: "ACE-Chris.Dockerfile"
+        - name: contextPath
+          value: "Bar_files/ace-chris"
+        - name: pvc
+          value: "buildah-ace-chris"
+      workspaces:
+        - name: git-source
+          workspace: git-source
+
+    # deploy all ace in dev namespace
+    - name: deploy-wait-ace-api
+      runAfter:
+        - build-ace-int-server-ace-api
+      taskRef:
+        name: deploy-task
+      params:
+        - name: imageTag
+          value: "$(params.imageTag)"
+        - name: imageName
+          value: "ace-api"
+        - name: releaseName
+          value: "ace-api-int-srv"
+        - name: releaseScript
+          value: release-ace-integration-server.sh
+      workspaces:
+        - name: git-source
+          workspace: git-source
+    - name: deploy-wait-ace-bernie
+      runAfter:
+        - build-ace-int-server-ace-bernie
+      taskRef:
+        name: deploy-task
+      params:
+        - name: imageTag
+          value: "$(params.imageTag)"
+        - name: imageName
+          value: "ace-bernie"
+        - name: releaseName
+          value: "ace-bernie-int-srv"
+        - name: releaseScript
+          value: release-ace-integration-server.sh
+      workspaces:
+        - name: git-source
+          workspace: git-source
+    - name: deploy-wait-ace-acme
+      runAfter:
+        - build-ace-int-server-ace-acme
+      taskRef:
+        name: deploy-task
+      params:
+        - name: imageTag
+          value: "$(params.imageTag)"
+        - name: imageName
+          value: "ace-acme"
+        - name: releaseName
+          value: "ace-acme-int-srv"
+        - name: releaseScript
+          value: release-ace-integration-server.sh
+      workspaces:
+        - name: git-source
+          workspace: git-source
+    - name: deploy-wait-ace-chris
+      runAfter:
+        - build-ace-int-server-ace-chris
+      taskRef:
+        name: deploy-task
+      params:
+        - name: imageTag
+          value: "$(params.imageTag)"
+        - name: imageName
+          value: "ace-chris"
+        - name: releaseName
+          value: "ace-chris-int-srv"
+        - name: releaseScript
+          value: release-ace-integration-server.sh
+      workspaces:
+        - name: git-source
+          workspace: git-source

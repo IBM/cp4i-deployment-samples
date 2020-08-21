@@ -29,9 +29,10 @@
 
 function usage() {
   echo "Usage: $0 -n <namespace> -a <api_base_url> -t <retry_interval> -c -i -s"
+  exit 1
 }
 
-namespace="cp4i"
+NAMESPACE="cp4i"
 should_cleanup_table=false
 condensed_info=false
 save_row_after_run=false
@@ -39,7 +40,8 @@ retry_interval=5
 
 while getopts "n:a:t:cis" opt; do
   case ${opt} in
-    n ) namespace="$OPTARG"
+    n )
+      NAMESPACE="$OPTARG"
       ;;
     a)
       api_base_url="$OPTARG"
@@ -62,8 +64,16 @@ while getopts "n:a:t:cis" opt; do
   esac
 done
 
+DB_USER=$(echo ${NAMESPACE} | sed 's/-/_/g')
+DB_NAME=db_${DB_USER}
+DB_PASS=$(oc get secret -n ${NAMESPACE} postgres-credential --template={{.data.password}} | base64 --decode)
+DB_POD=$(oc get pod -n postgres -l name=postgresql -o jsonpath='{.items[].metadata.name}')
+DB_SVC="$(oc get cm postgres-config -o json | jq '.data["postgres.env"] | split("\n  ")' | grep DATABASE_SERVICE_NAME | cut -d "=" -f 2- | tr -dc '[a-z0-9-]\n').postgres.svc.cluster.local"
+echo "INFO: Username name is: '${DB_USER}'"
+echo "INFO: Database name is: '${DB_NAME}'"
+
 if [ -z "${api_base_url}" ]; then
-  api_base_url=$(echo "http://$(oc get routes -n ${namespace} | grep ace-api-int-srv-http | grep -v ace-api-int-srv-https | awk '{print $2}')/drivewayrepair")
+  api_base_url=$(echo "http://$(oc get routes -n ${NAMESPACE} | grep ace-api-int-srv-http | grep -v ace-api-int-srv-https | awk '{print $2}')/drivewayrepair")
 fi
 
 echo "API base URL: $api_base_url"
@@ -76,8 +86,8 @@ fi
 function cleanup_table() {
   table_name="quotes"
   echo -e "\Clearing '${table_name}' database of all rows..."
-  oc exec -n postgres -it $(oc get pod -n postgres -l name=postgresql -o jsonpath='{.items[].metadata.name}') \
-    -- psql -U admin -d sampledb -c \
+  oc exec -n postgres -it ${DB_POD} \
+    -- psql -U ${DB_USER} -d ${DB_NAME} -h ${DB_SVC} -c \
     "TRUNCATE ${table_name};"
 }
 
@@ -125,8 +135,8 @@ while true; do
     # - DELETE ---
     if [ "$save_row_after_run" = false ]; then
       echo -e "\nDeleting row from database..."
-      oc exec -n postgres -it $(oc get pod -n postgres -l name=postgresql -o jsonpath='{.items[].metadata.name}') \
-        -- psql -U admin -d sampledb -c \
+      oc exec -n postgres -it ${DB_POD} \
+        -- psql -U ${DB_USER} -d ${DB_NAME} -h ${DB_SVC} -c \
         "DELETE FROM quotes WHERE quotes.quoteid = ${quote_id};"
     fi
   else

@@ -1,0 +1,168 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: tekton-triggers-rolebinding
+subjects:
+- kind: ServiceAccount
+  name: cicd-pipeline
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: tekton-triggers-role
+
+---
+
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: ace-int-srv-rolebinding
+subjects:
+- kind: ServiceAccount
+  name: cicd-ace-sa
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: ace-int-srv-role
+
+---
+
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: mq-rolebinding
+subjects:
+- kind: ServiceAccount
+  name: cicd-mq-sa
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: mq-qm-role
+
+---
+
+# Role binding for the tesk task in dev namespace
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: test-routes-rolebinding
+subjects:
+- kind: ServiceAccount
+  name: cicd-test
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: role-for-test-in-dev-namespace
+
+---
+
+# Role binding for the tesk task in postgres namespace
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: test-postgres-rolebinding
+  namespace: postgres
+subjects:
+- kind: ServiceAccount
+  name: cicd-test
+  namespace: "{{NAMESPACE}}"
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: role-postgres-test-task
+
+---
+
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: role-deploy-test-rolebinding
+subjects:
+- kind: ServiceAccount
+  name: cicd-deploy-to-test
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: role-deploy-test
+
+---
+
+# Role binding for the mq deploy in test namespace
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: deploy-mq-in-test-rolebinding
+  namespace: "{{NAMESPACE}}-ddd-test"
+subjects:
+- kind: ServiceAccount
+  name: cicd-mq-deploy-in-test-sa
+  namespace: "{{NAMESPACE}}"
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: role-deploy-mq-in-test-namespace
+
+---
+
+# Role binding for the mq deploy in test namespace
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: deploy-ace-in-test-rolebinding
+  namespace: "{{NAMESPACE}}-ddd-test"
+subjects:
+- kind: ServiceAccount
+  name: cicd-ace-deploy-in-test-sa
+  namespace: "{{NAMESPACE}}"
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: role-deploy-ace-in-test-namespace
+
+---
+
+# Role binding for the tesk task to list routes in test task in dev namespace
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: test-routes-in-test-namespace-rolebinding
+  namespace: "{{NAMESPACE}}-ddd-test"
+subjects:
+- kind: ServiceAccount
+  name: cicd-api-e2e-in-test-sa
+  namespace: "{{NAMESPACE}}"
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: role-test-routes-in-test-namespace
+
+---
+
+# Role binding for the tesk task in postgres namespace
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: test-postgres-in-test-namespace-rolebinding
+  namespace: postgres
+subjects:
+- kind: ServiceAccount
+  name: cicd-api-e2e-in-test-sa
+  namespace: "{{NAMESPACE}}"
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: role-postgres-test-task
+
+---
+
+# Role binding for the test task to get configmaps in dev namespace
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: get-configmap-dev-namespace-rolebinding
+subjects:
+- kind: ServiceAccount
+  name: cicd-api-e2e-in-test-sa
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: role-get-configmap-in-dev-namespace
