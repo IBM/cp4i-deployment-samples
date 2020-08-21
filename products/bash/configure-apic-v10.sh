@@ -52,7 +52,6 @@ done
 set -e
 
 NAMESPACE="${NAMESPACE}"
-ORG_NAME=""
 CATALOG_NAME="${ORG_NAME}-catalog"
 PORG_ADMIN_EMAIL=${PORG_ADMIN_EMAIL:-"cp4i-admin@apiconnect.net"} # update to recipient of portal site creation email
 ACE_REGISTRATION_SECRET_NAME="ace-v11-service-creds" # corresponds to registration obj currently hard-coded in configmap
@@ -126,7 +125,7 @@ cat << EOF | oc apply -f -
 apiVersion: v1
 kind: ServiceAccount
 metadata:
-  NAMESPACE: ${NAMESPACE}
+  namespace: ${NAMESPACE}
   name: ${RELEASE_NAME}-apic-configurator-post-install-sa
 imagePullSecrets:
 - name: ibm-entitlement-key
@@ -134,7 +133,7 @@ imagePullSecrets:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
-  NAMESPACE: ${NAMESPACE}
+  namespace: ${NAMESPACE}
   name: ${RELEASE_NAME}-apic-configurator-post-install-role
 rules:
 - apiGroups:
@@ -149,12 +148,12 @@ rules:
 kind: RoleBinding
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
-  NAMESPACE: ${NAMESPACE}
+  namespace: ${NAMESPACE}
   name: ${RELEASE_NAME}-apic-configurator-post-install-rolebinding
 subjects:
 - kind: ServiceAccount
   name: ${RELEASE_NAME}-apic-configurator-post-install-sa
-  NAMESPACE: ${NAMESPACE}
+  namespace: ${NAMESPACE}
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: Role
@@ -163,7 +162,7 @@ roleRef:
 apiVersion: v1
 kind: Secret
 metadata:
-  NAMESPACE: ${NAMESPACE}
+  namespace: ${NAMESPACE}
   name: ${RELEASE_NAME}-default-mail-server-creds
 type: Opaque
 stringData:
@@ -177,13 +176,13 @@ stringData:
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  NAMESPACE: ${NAMESPACE}
+  namespace: ${NAMESPACE}
   name: ${RELEASE_NAME}-configurator-base
 data:
   configurator-base.yaml: |-
     logger:
       level: trace
-    NAMESPACE: ${NAMESPACE}
+    namespace: ${NAMESPACE}
     api_endpoint: https://${API_EP}
     credentials:
       admin:
@@ -266,8 +265,8 @@ kind: Job
 metadata:
   labels:
     app: apic-configurator-post-install
-  NAMESPACE: ${NAMESPACE}
-  name: ${RELEASE_NAME}-apic-configurator-post-install
+  namespace: ${NAMESPACE}
+  name: ${RELEASE_NAME}-apic-configurator-post-install-${ORG_NAME}
 spec:
   backoffLimit: 1
   template:
