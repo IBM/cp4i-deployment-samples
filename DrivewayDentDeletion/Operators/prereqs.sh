@@ -67,7 +67,6 @@ oc adm policy add-scc-to-group privileged system:serviceaccounts:$dev_namespace
 echo "INFO: Namespace passed='${namespace}'"
 echo "INFO: Dev Namespace='${dev_namespace}'"
 echo "INFO: Test Namespace='${test_namespace}'"
-cd "$(dirname $0)"
 
 #creating new namespace for test/prod and adding namespace to sa
 oc create namespace ${test_namespace}
