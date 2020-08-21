@@ -45,14 +45,17 @@ while getopts "n:r:e:" opt; do
   esac
 done
 
+CURRENT_DIR=$(dirname $0)
+echo "Current directory: $CURRENT_DIR"
+
 # Ace Dashboard release
-if ! ${PWD}/release-ace-dashboard.sh -n ${namespace} -r ${dashboard_release_name} ; then
+if ! ${CURRENT_DIR}/release-ace-dashboard.sh -n ${namespace} -r ${dashboard_release_name} ; then
   echo "ERROR: Failed to release the ace dashboard in the namespace '$namespace'" 1>&2
   exit 1
 fi
 
 # Ace Designer release
-if ! ${PWD}/release-ace-designer.sh -n ${namespace} -r ${designer_release_name} ; then
+if ! ${CURRENT_DIR}/release-ace-designer.sh -n ${namespace} -r ${designer_release_name} ; then
   echo "ERROR: Failed to release the ace designer in the namespace '$namespace'" 1>&2
   exit 1
 fi

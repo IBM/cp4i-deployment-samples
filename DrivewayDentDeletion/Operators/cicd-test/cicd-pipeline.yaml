@@ -1,0 +1,441 @@
+apiVersion: tekton.dev/v1beta1
+kind: Pipeline
+metadata:
+  name: test-pipeline
+spec:
+  params:
+    - name: imageTag
+      type: string
+      description: The image tag
+  workspaces:
+    - name: git-source
+  tasks:
+    - name: clone-git-source
+      taskRef:
+        name: git-clone
+        kind: ClusterTask
+      params:
+        - name: url
+          value: "{{FORKED_REPO}}"
+        - name: subdirectory
+          value: ""
+        - name: deleteExisting
+          value: "true"
+        - name: revision
+          value: "{{BRANCH}}"
+      workspaces:
+        - name: output
+          workspace: git-source
+
+    # MQ build in dev namespace
+    - name: build-mq
+      runAfter:
+        - clone-git-source
+      taskRef:
+        name: build-task
+      params:
+        - name: imageName
+          value: "mq-ddd"
+        - name: imageTag
+          value: "latest"
+        - name: dockerfile
+          value: "MQ.Dockerfile"
+        - name: contextPath
+          value: ""
+        - name: pvc
+          value: "buildah-mq"
+      workspaces:
+        - name: git-source
+          workspace: git-source
+
+    # MQ deploy in dev namesapce
+    - name: deploy-wait-mq
+      runAfter:
+        - build-mq
+      taskRef:
+        name: deploy-task
+      params:
+        - name: imageTag
+          value: "latest"
+        - name: imageName
+          value: "mq-ddd"
+        - name: releaseName
+          value: "mq-ddd-qm"
+        - name: releaseScript
+          value: release-mq.sh
+        - name: namespace
+          value: "{{NAMESPACE}}"
+      workspaces:
+        - name: git-source
+          workspace: git-source
+
+    # build all ace in dev namespace
+    - name: build-ace-int-server-ace-api
+      runAfter:
+        - clone-git-source
+      taskRef:
+        name: build-task
+      params:
+        - name: imageTag
+          value: "$(params.imageTag)"
+        - name: imageName
+          value: "ace-api"
+        - name: dockerfile
+          value: "ACE-API.Dockerfile"
+        - name: contextPath
+          value: "Bar_files/ace-api"
+        - name: pvc
+          value: "buildah-ace-api"
+      workspaces:
+        - name: git-source
+          workspace: git-source
+    - name: build-ace-int-server-ace-acme
+      runAfter:
+        - clone-git-source
+      taskRef:
+        name: build-task
+      params:
+        - name: imageTag
+          value: "$(params.imageTag)"
+        - name: imageName
+          value: "ace-acme"
+        - name: dockerfile
+          value: "ACE-Acme.Dockerfile"
+        - name: contextPath
+          value: "Bar_files/ace-acme"
+        - name: pvc
+          value: "buildah-ace-acme"
+      workspaces:
+        - name: git-source
+          workspace: git-source
+    - name: build-ace-int-server-ace-bernie
+      runAfter:
+        - clone-git-source
+      taskRef:
+        name: build-task
+      params:
+        - name: imageTag
+          value: "$(params.imageTag)"
+        - name: imageName
+          value: "ace-bernie"
+        - name: dockerfile
+          value: "ACE-Bernie.Dockerfile"
+        - name: contextPath
+          value: "Bar_files/ace-bernie"
+        - name: pvc
+          value: "buildah-ace-bernie"
+      workspaces:
+        - name: git-source
+          workspace: git-source
+    - name: build-ace-int-server-ace-chris
+      runAfter:
+        - clone-git-source
+      taskRef:
+        name: build-task
+      params:
+        - name: imageTag
+          value: "$(params.imageTag)"
+        - name: imageName
+          value: "ace-chris"
+        - name: dockerfile
+          value: "ACE-Chris.Dockerfile"
+        - name: contextPath
+          value: "Bar_files/ace-chris"
+        - name: pvc
+          value: "buildah-ace-chris"
+      workspaces:
+        - name: git-source
+          workspace: git-source
+
+    # deploy all ace in dev namespace
+    - name: deploy-wait-ace-api
+      runAfter:
+        - build-ace-int-server-ace-api
+      taskRef:
+        name: deploy-task
+      params:
+        - name: imageTag
+          value: "$(params.imageTag)"
+        - name: imageName
+          value: "ace-api"
+        - name: releaseName
+          value: "ace-api-int-srv"
+        - name: releaseScript
+          value: release-ace-integration-server.sh
+        - name: namespace
+          value: "{{NAMESPACE}}"
+      workspaces:
+        - name: git-source
+          workspace: git-source
+    - name: deploy-wait-ace-bernie
+      runAfter:
+        - build-ace-int-server-ace-bernie
+      taskRef:
+        name: deploy-task
+      params:
+        - name: imageTag
+          value: "$(params.imageTag)"
+        - name: imageName
+          value: "ace-bernie"
+        - name: releaseName
+          value: "ace-bernie-int-srv"
+        - name: releaseScript
+          value: release-ace-integration-server.sh
+        - name: namespace
+          value: "{{NAMESPACE}}"
+      workspaces:
+        - name: git-source
+          workspace: git-source
+    - name: deploy-wait-ace-acme
+      runAfter:
+        - build-ace-int-server-ace-acme
+      taskRef:
+        name: deploy-task
+      params:
+        - name: imageTag
+          value: "$(params.imageTag)"
+        - name: imageName
+          value: "ace-acme"
+        - name: releaseName
+          value: "ace-acme-int-srv"
+        - name: releaseScript
+          value: release-ace-integration-server.sh
+        - name: namespace
+          value: "{{NAMESPACE}}"
+      workspaces:
+        - name: git-source
+          workspace: git-source
+    - name: deploy-wait-ace-chris
+      runAfter:
+        - build-ace-int-server-ace-chris
+      taskRef:
+        name: deploy-task
+      params:
+        - name: imageTag
+          value: "$(params.imageTag)"
+        - name: imageName
+          value: "ace-chris"
+        - name: releaseName
+          value: "ace-chris-int-srv"
+        - name: releaseScript
+          value: release-ace-integration-server.sh
+        - name: namespace
+          value: "{{NAMESPACE}}"
+      workspaces:
+        - name: git-source
+          workspace: git-source
+
+    # test end-to-end API in dev namespace
+    - name: test-e2e-api-in-dev-namespace
+      runAfter:
+        - deploy-wait-ace-chris
+        - deploy-wait-mq
+        - deploy-wait-ace-api
+        - deploy-wait-ace-acme
+        - deploy-wait-ace-bernie
+      taskRef:
+        name: api-test-e2e
+      params:
+        - name: namespaceSuffix
+          #this will not be appended to the namespace name in the test-api-e2e script
+          value: "dev"
+        - name: suffix
+          value: "ddd"
+      workspaces:
+        - name: git-source
+          workspace: git-source
+
+    # push ace images to test namespace
+    - name: image-push-to-test-ace-chris
+      runAfter:
+        - test-e2e-api-in-dev-namespace
+      taskRef:
+        name: image-push-to-test
+      params:
+        - name: imageTag
+          value: "$(params.imageTag)"
+        - name: imageName
+          value: "ace-chris"
+        - name: pvc
+          value: "buildah-ace-chris"
+    - name: image-push-to-test-ace-acme
+      runAfter:
+        - test-e2e-api-in-dev-namespace
+      taskRef:
+        name: image-push-to-test
+      params:
+        - name: imageTag
+          value: "$(params.imageTag)"
+        - name: imageName
+          value: "ace-acme"
+        - name: pvc
+          value: "buildah-ace-acme"
+    - name: image-push-to-test-ace-bernie
+      runAfter:
+        - test-e2e-api-in-dev-namespace
+      taskRef:
+        name: image-push-to-test
+      params:
+        - name: imageTag
+          value: "$(params.imageTag)"
+        - name: imageName
+          value: "ace-bernie"
+        - name: pvc
+          value: "buildah-ace-bernie"
+    - name: image-push-to-test-ace-api
+      runAfter:
+        - test-e2e-api-in-dev-namespace
+      taskRef:
+        name: image-push-to-test
+      params:
+        - name: imageTag
+          value: "$(params.imageTag)"
+        - name: imageName
+          value: "ace-api"
+        - name: pvc
+          value: "buildah-ace-api"
+
+    # push mq image to test namespace
+    - name: image-push-to-test-mq
+      runAfter:
+        - test-e2e-api-in-dev-namespace
+      taskRef:
+        name: image-push-to-test
+      params:
+        - name: imageTag
+          value: "latest"
+        - name: imageName
+          value: "mq-ddd"
+        - name: pvc
+          value: "buildah-mq"
+
+# --------------------------------- IN TEST NAMESPACE ---------------------------------------------
+
+    # Deploy MQ in test namespace
+    - name: deploy-wait-mq-test
+      runAfter:
+        - image-push-to-test-mq
+      taskRef:
+        # name: deploy-test-task
+        name: deploy-task
+      params:
+        - name: imageTag
+          value: "latest-test"
+        - name: imageName
+          value: "mq-ddd"
+        - name: releaseName
+          value: "mq-ddd-qm"
+        - name: releaseScript
+          value: release-mq.sh
+        - name: namespace
+          value: "{{NAMESPACE}}-ddd-test"
+      workspaces:
+        - name: git-source
+          workspace: git-source
+
+    # deploy all ace api in test namespace
+    - name: deploy-wait-ace-api-test
+      runAfter:
+        - image-push-to-test-ace-api
+      taskRef:
+        # name: deploy-test-task
+        name: deploy-task
+      params:
+        - name: imageTag
+          value: "$(params.imageTag)-test"
+        - name: imageName
+          value: "ace-api"
+        - name: releaseName
+          value: "ace-api-int-srv"
+        - name: releaseScript
+          value: release-ace-integration-server.sh
+        - name: namespace
+          value: "{{NAMESPACE}}-ddd-test"
+      workspaces:
+        - name: git-source
+          workspace: git-source
+
+    # deploy all ace bernie in test namespace
+    - name: deploy-wait-ace-bernie-test
+      runAfter:
+        - image-push-to-test-ace-bernie
+      taskRef:
+        # name: deploy-test-task
+        name: deploy-task
+      params:
+        - name: imageTag
+          value: "$(params.imageTag)-test"
+        - name: imageName
+          value: "ace-bernie"
+        - name: releaseName
+          value: "ace-bernie-int-srv"
+        - name: releaseScript
+          value: release-ace-integration-server.sh
+        - name: namespace
+          value: "{{NAMESPACE}}-ddd-test"
+      workspaces:
+        - name: git-source
+          workspace: git-source
+
+    # deploy all ace acme in test namespace
+    - name: deploy-wait-ace-acme-test
+      runAfter:
+        - image-push-to-test-ace-acme
+      taskRef:
+        # name: deploy-test-task
+        name: deploy-task
+      params:
+        - name: imageTag
+          value: "$(params.imageTag)-test"
+        - name: imageName
+          value: "ace-acme"
+        - name: releaseName
+          value: "ace-acme-int-srv"
+        - name: releaseScript
+          value: release-ace-integration-server.sh
+        - name: namespace
+          value: "{{NAMESPACE}}-ddd-test"
+      workspaces:
+        - name: git-source
+          workspace: git-source
+
+    # deploy all ace chris in test namespace
+    - name: deploy-wait-ace-chris-test
+      runAfter:
+        - image-push-to-test-ace-chris
+      taskRef:
+        # name: deploy-test-task
+        name: deploy-task
+      params:
+        - name: imageTag
+          value: "$(params.imageTag)-test"
+        - name: imageName
+          value: "ace-chris"
+        - name: releaseName
+          value: "ace-chris-int-srv"
+        - name: releaseScript
+          value: release-ace-integration-server.sh
+        - name: namespace
+          value: "{{NAMESPACE}}-ddd-test"
+      workspaces:
+        - name: git-source
+          workspace: git-source
+
+    # test end-to-end API in test namespace
+    - name: test-e2e-api-in-test-namespace
+      runAfter:
+        - deploy-wait-ace-chris-test
+        - deploy-wait-mq-test
+        - deploy-wait-ace-api-test
+        - deploy-wait-ace-acme-test
+        - deploy-wait-ace-bernie-test
+      taskRef:
+        name: api-test-e2e
+      params:
+        - name: namespaceSuffix
+          value: "ddd-test"
+        - name: suffix
+          value: "ddd"
+      workspaces:
+        - name: git-source
+          workspace: git-source

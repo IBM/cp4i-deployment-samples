@@ -17,13 +17,14 @@
 #   -b : <branch> (string), Defaults to 'master'
 #
 #   With defaults values
-#     ./test-api-e2e.sh
+#     ./cicd-apply-test-pipeline.sh
 #
 #   With overridden values
-#     ./test-api-e2e.sh -n <namespace> -r <repo> -b <branch>
+#     ./cicd-apply-test-pipeline.sh -n <namespace> -r <repo> -b <branch>
 
 function usage() {
   echo "Usage: $0 -n <namespace> -r <repo> -b <branch>"
+  exit 1
 }
 
 # default vars
@@ -53,8 +54,11 @@ while getopts "n:r:b:" opt; do
   esac
 done
 
-if ! oc project $namespace-ddd-dev >/dev/null 2>&1 ; then
-  echo "ERROR: The dev namespace '$namespace-ddd-dev' does not exist"
+CURRENT_DIR=$(dirname $0)
+echo "Current directory: $CURRENT_DIR"
+
+if ! oc project $namespace >/dev/null 2>&1 ; then
+  echo "ERROR: The dev namespace '$namespace' does not exist"
   exit 1
 fi
 
@@ -64,7 +68,7 @@ if ! oc project $namespace-ddd-test >/dev/null 2>&1 ; then
 fi
 
 echo "INFO: Namespace: $namespace"
-echo "INFO: Dev Namespace: $namespace-ddd-dev"
+echo "INFO: Dev Namespace: $namespace"
 echo "INFO: Test Namespace: $namespace-ddd-test"
 echo "INFO: Branch: $branch"
 echo "INFO: Repo: $repo"
@@ -72,18 +76,18 @@ echo "INFO: Repo: $repo"
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
 # switch namespace
-oc project $namespace-ddd-dev
+oc project $namespace
 
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
 # apply pvc for buildah tasks
 echo "INFO: Apply pvc for buildah tasks"
-if oc apply -f cicd-pvc.yaml; then
+if oc apply -f $CURRENT_DIR/cicd-dev/cicd-pvc.yaml; then
   printf "$tick "
-  echo "Successfully applied pvc"
+  echo "Successfully applied pvc in the '$namespace' namespace"
 else
   printf "$cross "
-  echo "Failed to apply pvc"
+  echo "Failed to apply pvc in the '$namespace' namespace"
   sum=$((sum + 1))
 fi
 
@@ -91,14 +95,14 @@ echo -e "\n---------------------------------------------------------------------
 
 # create service accounts
 echo "INFO: Create service accounts"
-if cat cicd-service-accounts.yaml |
+if cat $CURRENT_DIR/cicd-dev/cicd-service-accounts.yaml |
   sed "s#{{NAMESPACE}}#$namespace#g;" |
   oc apply -f -; then
-  printf "$tick "
-  echo "Successfully applied service accounts"
+    printf "$tick "
+    echo "Successfully applied service accounts in the '$namespace' namespace"
 else
   printf "$cross "
-  echo "Failed to apply service accounts"
+  echo "Failed to apply service accounts in the '$namespace' namespace"
   sum=$((sum + 1))
 fi
 
@@ -106,12 +110,14 @@ echo -e "\n---------------------------------------------------------------------
 
 # create roles for tasks
 echo "INFO: Create roles for tasks"
-if oc apply -f cicd-roles.yaml; then
-  printf "$tick "
-  echo "Successfully created roles for tasks"
+if cat $CURRENT_DIR/cicd-dev/cicd-roles.yaml |
+  sed "s#{{NAMESPACE}}#$namespace#g;" |
+  oc apply -f -; then
+    printf "$tick "
+    echo "Successfully created roles for tasks in the '$namespace' namespace"
 else
   printf "$cross "
-  echo "Failed to create roles for tasks"
+  echo "Failed to create roles for tasks in the '$namespace' namespace"
   sum=$((sum + 1))
 fi
 
@@ -119,30 +125,14 @@ echo -e "\n---------------------------------------------------------------------
 
 # create role bindings for roles
 echo "INFO: Create role bindings for roles"
-if cat cicd-rolebindings.yaml |
+if cat $CURRENT_DIR/cicd-dev/cicd-rolebindings.yaml |
   sed "s#{{NAMESPACE}}#$namespace#g;" |
   oc apply -f -; then
-  printf "$tick "
-  echo "Successfully applied role bindings for roles"
+    printf "$tick "
+    echo "Successfully applied role bindings for roles in the '$namespace' namespace"
 else
   printf "$cross "
-  echo "Failed to apply role bindings for roles"
-  sum=$((sum + 1))
-fi
-
-echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
-
-# create pipeline resources
-echo "INFO: Create pipeline resources"
-if cat cicd-pipeline-resources.yaml |
-  sed "s#{{FORKED_REPO}}#$repo#g;" |
-  sed "s#{{BRANCH}}#$branch#g;" |
-  oc apply -f -; then
-  printf "$tick "
-  echo "Successfully applied pipeline resources"
-else
-  printf "$cross "
-  echo "Failed to apply pipeline resources"
+  echo "Failed to apply role bindings for roles in the '$namespace' namespace"
   sum=$((sum + 1))
 fi
 
@@ -150,94 +140,99 @@ echo -e "\n---------------------------------------------------------------------
 
 # create tekton tasks
 echo "INFO: Create tekton tasks"
-if cat cicd-tasks.yaml |
+if cat $CURRENT_DIR/cicd-dev/cicd-tasks.yaml |
   sed "s#{{NAMESPACE}}#$namespace#g;" |
   oc apply -f -; then
-  printf "$tick "
-  echo "Successfully applied tekton tasks"
+    printf "$tick "
+    echo "Successfully applied tekton tasks in the '$namespace' namespace"
 else
   printf "$cross "
-  echo "Failed to apply tekton tasks"
+  echo "Failed to apply tekton tasks in the '$namespace' namespace"
   sum=$((sum + 1))
 fi
 
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
 # create the pipeline to run tasks to build, deploy to dev, test e2e and push to test namespace
-echo "INFO: Create the pipeline to run tasks to build, deploy to dev, test e2e and push to test namespace"
-if oc apply -f cicd-pipeline.yaml; then
-  printf "$tick "
-  echo "Successfully applied the pipeline to run tasks to build, deploy to dev, test e2e and push to test namespace"
+echo "INFO: Create the pipeline to run tasks to build, deploy to dev, test e2e in '$namespace' and '$namespace-ddd-test' namespace"
+if cat $CURRENT_DIR/cicd-dev/cicd-pipeline.yaml |
+  sed "s#{{NAMESPACE}}#$namespace#g;" |
+  sed "s#{{FORKED_REPO}}#$repo#g;" |
+  sed "s#{{BRANCH}}#$branch#g;" |
+  oc apply -f -; then
+    printf "$tick "
+    echo "Successfully applied the pipeline to run tasks to build, deploy to dev, test e2e in '$namespace' and '$namespace-ddd-test' namespace"
 else
   printf "$cross "
-  echo "Failed to apply the pipeline to run tasks to build, deploy to dev, test e2e and push to test namespace"
+  echo "Failed to apply the pipeline to run tasks to build, deploy to dev, test e2e in '$namespace' and '$namespace-ddd-test' namespace"
   sum=$((sum + 1))
 fi
 
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
 # create the trigger template containing the pipelinerun
-echo "INFO: Create the trigger template containing the pipelinerun"
-if oc apply -f cicd-trigger-template.yaml; then
+echo "INFO: Create the trigger template containing the pipelinerun in the '$namespace' namespace"
+if oc apply -f $CURRENT_DIR/cicd-dev/cicd-trigger-template.yaml; then
   printf "$tick "
-  echo "Successfully applied the trigger template containing the pipelinerun"
+  echo "Successfully applied the trigger template containing the pipelinerun in the '$namespace' namespace"
 else
   printf "$cross "
-  echo "Failed to apply the trigger template containing the pipelinerun"
+  echo "Failed to apply the trigger template containing the pipelinerun in the '$namespace' namespace"
   sum=$((sum + 1))
 fi
 
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
 # create the event listener and route for webhook
-echo "INFO : Create the event listener and route for webhook"
-if oc apply -f cicd-events-routes.yaml; then
+echo "INFO : Create the event listener and route for webhook in the '$namespace' namespace"
+if oc apply -f $CURRENT_DIR/cicd-dev/cicd-events-routes.yaml; then
   printf "$tick "
-  echo "Successfully created the event listener and route for webhook"
+  echo "Successfully created the event listener and route for webhook in the '$namespace' namespace"
 else
   printf "$cross "
-  echo "Failed to apply the event listener and route for webhook"
+  echo "Failed to apply the event listener and route for webhook in the '$namespace' namespace"
   sum=$((sum + 1))
 fi
 
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
-echo "INFO: Waiting for webhook to appear before"
+echo "INFO: Waiting for webhook to appear in the '$namespace' namespace..."
 
 time=0
-while ! oc get route -n $namespace-ddd-dev el-main-trigger --template='http://{{.spec.host}}'; do
+while ! oc get route -n $namespace el-main-trigger-route --template='http://{{.spec.host}}'; do
   if [ $time -gt 5 ]; then
-    echo "ERROR: Timed-out trying to wait for webhook to appear"
+    echo "ERROR: Timed-out trying to wait for webhook to appear in the '$namespace' namespace"
     echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
     exit 1
   fi
-  echo "INFO: Waiting for upto 5 minutes for the webhook route to appear for the tekton pipeline trigger. Waited $time minute(s)"
+  echo "INFO: Waiting for upto 5 minutes for the webhook route to appear for the tekton pipeline trigger in the '$namespace' namespace. Waited $time minute(s)"
   time=$((time + 1))
   sleep 60
 done
 
-WEBHOOK_ROUTE=$(oc get route -n $namespace-ddd-dev el-main-trigger --template='http://{{.spec.host}}')
-echo "INFO: Webhook route got is: $WEBHOOK_ROUTE"
+WEBHOOK_ROUTE=$(oc get route -n $namespace el-main-trigger-route --template='http://{{.spec.host}}')
+echo -e "\n\nINFO: Webhook route in the '$namespace' namespace: $WEBHOOK_ROUTE"
 
 if [[ -z $WEBHOOK_ROUTE ]]; then
   printf "$cross "
-  echo "Failed to get route for the webhook"
+  echo "Failed to get route for the webhook in the '$namespace' namespace"
   sum=$((sum + 1))
 else
   printf "$tick "
-  echo "Successfully got route for the webhook"
+  echo "Successfully got route for the webhook in the '$namespace' namespace"
 fi
 
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
 if [[ $sum -gt 0 ]]; then
-  echo "WARNING: Creating the webhook is not recommended as some resources have not been applied successfully"
+  echo "ERROR: Creating the webhook is not recommended as some resources have not been applied successfully in the '$namespace' namespace"
+  exit 1
 else
   # print route for webbook
-  echo "INFO: Your trigger route for the git webhook is: $WEBHOOK_ROUTE"
+  echo "INFO: Your trigger route for the github webhook is: $WEBHOOK_ROUTE"
   echo -e "\nINFO: The next step is to add the trigger URL to the forked repo as a webhook with the Content type as 'application/json', which triggers an initial run of the pipeline.\n"
   printf "$tick  $all_done "
-  echo "Successfully applied all the cicd pipeline resources and requirements"
+  echo "Successfully applied all the cicd pipeline resources and requirements in the '$namespace' namespace"
 fi
 
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"

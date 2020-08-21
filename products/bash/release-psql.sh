@@ -11,8 +11,9 @@
 #******************************************************************************
 # PREREQUISITES:
 #   - Logged into cluster on the OC CLI (https://docs.openshift.com/container-platform/4.4/cli_reference/openshift_cli/getting-started-cli.html)
+#
 # USAGE:
-#   ./release-psql.sh
+#   ./release-psql.sh
 #******************************************************************************
 
 echo "Installing PostgreSQL..."
@@ -33,3 +34,4 @@ oc process -n openshift postgresql-persistent --param-file=postgres.env > postgr
 oc create namespace postgres
 oc project postgres
 oc apply -f postgres.yaml
+oc create configmap -n postgres postgres-config --from-file=postgres.env

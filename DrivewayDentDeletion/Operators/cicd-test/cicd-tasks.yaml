@@ -19,10 +19,8 @@ spec:
     - name: pvc
       type: string
       description: The PVC to use for layers
-  resources:
-    inputs:
-      - name: git-source
-        type: git
+  workspaces:
+    - name: git-source
   steps:
     - name: build
       image: quay.io/buildah/stable:latest
@@ -32,11 +30,11 @@ spec:
         df -h /var/lib/containers
         buildah --storage-driver vfs bud \
           -f /workspace/git-source/DrivewayDentDeletion/Operators/Dockerfiles/$(params.dockerfile) \
-          -t image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}-ddd-dev/$(params.imageName):$(params.imageTag) \
+          -t image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}/$(params.imageName):$(params.imageTag) \
           /workspace/git-source/DrivewayDentDeletion/$(params.contextPath)
         buildah --storage-driver vfs push \
           --tls-verify=false \
-          image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}-ddd-dev/$(params.imageName):$(params.imageTag)
+          image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}/$(params.imageName):$(params.imageTag)
         df -h /var/lib/containers
       volumeMounts:
          - mountPath: /var/lib/containers
@@ -73,14 +71,15 @@ spec:
     - name: releaseScript
       type: string
       description: release name of script
-  resources:
-    inputs:
-      - name: git-source
-        type: git
+    - name: namespace
+      type: string
+      description: release name of script
+  workspaces:
+    - name: git-source
   steps:
     - name: oc
       image: quay.io/openshift/origin-cli:latest
-      script: "/workspace/git-source/products/bash/$(params.releaseScript) -n {{NAMESPACE}}-ddd-dev -r $(params.releaseName) -i image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}-ddd-dev/$(params.imageName):$(params.imageTag)"
+      script: "/workspace/git-source/products/bash/$(params.releaseScript) -n $(params.namespace) -r $(params.releaseName) -i image-registry.openshift-image-registry.svc:5000/$(params.namespace)/$(params.imageName):$(params.imageTag)"
 
 ---
 
@@ -108,9 +107,9 @@ spec:
       script: |
         df -h /var/lib/containers
         buildah pull --tls-verify=false \
-          image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}-ddd-dev/$(params.imageName):$(params.imageTag)
+          image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}/$(params.imageName):$(params.imageTag)
         buildah tag \
-          image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}-ddd-dev/$(params.imageName):$(params.imageTag) \
+          image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}/$(params.imageName):$(params.imageTag) \
           image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}-ddd-test/$(params.imageName):$(params.imageTag)-test
         buildah push --tls-verify=false \
           image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}-ddd-test/$(params.imageName):$(params.imageTag)-test
@@ -135,17 +134,18 @@ spec:
 apiVersion: tekton.dev/v1beta1
 kind: Task
 metadata:
-  name: test-task
+  name: api-test-e2e
 spec:
   params:
-    - name: imageTag
+    - name: namespaceSuffix
       type: string
-      description: The image tag
-  resources:
-    inputs:
-      - name: git-source
-        type: git
+      description: The namespace suffix
+    - name: suffix
+      type: string
+      description: The suffix for the user and database name
+  workspaces:
+    - name: git-source
   steps:
     - name: oc
       image: quay.io/openshift/origin-cli:latest
-      script: "/workspace/git-source/DrivewayDentDeletion/Operators/test-api-e2e.sh -n {{NAMESPACE}}-ddd-dev"
+      script: "/workspace/git-source/DrivewayDentDeletion/Operators/test-api-e2e.sh -n {{NAMESPACE}} -s $(params.suffix) -p $(params.namespaceSuffix)"

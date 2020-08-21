@@ -1,12 +1,12 @@
 apiVersion: triggers.tekton.dev/v1alpha1
 kind: EventListener
 metadata:
-  name: main-trigger
+  name: test-event-listener
 spec:
   serviceAccountName: cicd-pipeline
   triggers:
   - template:
-      name: main-triggertemplate
+      name: test-triggertemplate
 
 ---
 
@@ -16,13 +16,13 @@ metadata:
   labels:
     app.kubernetes.io/managed-by: EventListener
     app.kubernetes.io/part-of: Triggers
-    eventlistener: main-trigger
-  name: el-main-trigger
+    eventlistener: test-event-listener
+  name: el-main-trigger-route
 spec:
   host: ""
   port:
     targetPort: http-listener
   to:
-    kind: ""
-    name: el-main-trigger
+    kind: Service
+    name: el-test-event-listener
     weight: null

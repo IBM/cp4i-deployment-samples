@@ -12,13 +12,16 @@
 #   - Logged into cluster on the OC CLI (https://docs.openshift.com/container-platform/4.4/cli_reference/openshift_cli/getting-started-cli.html)
 #
 # PARAMETERS:
-#   -n : <namespace> (string), Defaults to "cp4i"
+#   -n  : <NAMESPACE> (string), Defaults to "cp4i"
+#   -p : <NAMESPACE_SUFFIX> (string), Defaults to ''
+#   -s  : <USER_DB_SUFFIX> (string), defaults to ''
 #
 #   With defaults values
-#     ./test-api-e2e.sh -n <namesapce>
+#     ./test-api-e2e.sh -n <NAMESPACE>
 
 function usage {
-    echo "Usage: $0 -n <namespace>"
+    echo "Usage: $0 -n <NAMESPACE> -s <USER_DB_SUFFIX> -p <NAMESPACE_SUFFIX>"
+    exit 1
 }
 
 NAMESPACE="cp4i"
@@ -28,18 +31,37 @@ if [[ $(uname) == Darwin ]]; then
   os_sed_flag="-e"
 fi
 
-while getopts "n:" opt; do
+while getopts "n:s:p:" opt; do
   case ${opt} in
     n ) NAMESPACE="$OPTARG"
+      ;;
+    p ) NAMESPACE_SUFFIX="$OPTARG"
+      ;;
+    s ) USER_DB_SUFFIX="$OPTARG"
       ;;
     \? ) usage; exit
       ;;
   esac
 done
 
-# -------------------------------------- INSTALL JQ ---------------------------------------------------------------------
+# -------------------------------------- CHECK SUFFIX FOR NAMESPACE, USER AND DATABASE NAME ---------------------------------------------------------------------
 
+echo "Namespace passed: $NAMESPACE"
+echo "User name suffix: $USER_DB_SUFFIX"
+
+# check if the namespace is dev or test
+if [[ "$NAMESPACE_SUFFIX" == "dev" ]]; then
+  NAMESPACE="${NAMESPACE}"
+else
+  echo "Namespace suffix: $NAMESPACE_SUFFIX"
+  NAMESPACE="${NAMESPACE}-${NAMESPACE_SUFFIX}"
+fi
+
+echo "Namespace for postgres: $NAMESPACE"
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
+
+
+# -------------------------------------- INSTALL JQ ---------------------------------------------------------------------
 
 echo -e "\nINFO: Checking if jq is pre-installed..."
 jqInstalled=false
@@ -75,13 +97,14 @@ echo -e "\n---------------------------------------------------------------------
 export HOST=http://$(oc get routes -n ${NAMESPACE} | grep ace-api-int-srv-http | grep -v ace-api-int-srv-https | awk '{print $2}')/drivewayrepair
 echo "INFO: Host: ${HOST}"
 
-DB_USER=$(echo ${NAMESPACE} | sed 's/-/_/g')
-DB_NAME=db_${DB_USER}
-DB_PASS=$(oc get secret -n ${NAMESPACE} postgres-credential --template={{.data.password}} | base64 -D)
+DB_USER=$(echo ${NAMESPACE}_${USER_DB_SUFFIX} | sed 's/-/_/g')
+DB_NAME="db_${DB_USER}"
 DB_POD=$(oc get pod -n postgres -l name=postgresql -o jsonpath='{.items[].metadata.name}')
-DB_SVC="$(oc get cm postgres-config -ojson | jq '.data["postgres.env"] | split("\n  ")' | grep DATABASE_SERVICE_NAME | cut -d "=" -f 2- | tr -dc '[a-z0-9-]\n').postgres.svc.cluster.local"
+DB_SVC="$(oc get cm -n postgres postgres-config -o json | $JQ '.data["postgres.env"] | split("\n  ")' | grep DATABASE_SERVICE_NAME | cut -d "=" -f 2- | tr -dc '[a-z0-9-]\n').postgres.svc.cluster.local"
 echo "INFO: Username name is: '${DB_USER}'"
 echo "INFO: Database name is: '${DB_NAME}'"
+
+echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
 echo -e "\nINFO: Testing E2E API now..."
 
@@ -112,12 +135,10 @@ if [ "$post_response_code" == "200" ]; then
     echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------"
 
     #  ------- Get row to confirm post -------
-    echo -e "\nINFO: Select and print the row as user '${DB_USER}' from database '${DB_NAME}' with id '$quote_id' to confirm deletion..."
+    echo -e "\nINFO: Select and print the row as user '${DB_USER}' from database '${DB_NAME}' with id '$quote_id' to confirm POST and GET..."
     oc exec -n postgres -it ${DB_POD} \
       -- psql -U ${DB_USER} -d ${DB_NAME} -h ${DB_SVC} -c \
-      "SELECT * FROM quotes WHERE quotes.quoteid=${quote_id};" < ${DB_PASS}
-
-    echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
+      "SELECT * FROM quotes WHERE quotes.quoteid=${quote_id};"
   else
     echo "ERROR: FAILED - Error code: ${get_response_code}"
     echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
@@ -126,11 +147,10 @@ if [ "$post_response_code" == "200" ]; then
 
   echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------"
   # ------- Delete from the database -------
-  echo -e "\nINFO: Deleting row from database '${DB_NAME}' as user '${DB_USER}'..."
-  echo "INFO: Deleting the row with quote id $quote_id from the database"
+  echo -e "\nINFO: Deleting row from database '${DB_NAME}' as user '${DB_USER}' with quote id '$quote_id'..."
   oc exec -n postgres -it ${DB_POD} \
     -- psql -U ${DB_USER} -d ${DB_NAME} -h ${DB_SVC} -c \
-    "DELETE FROM quotes WHERE quotes.quoteid=${quote_id};" < ${DB_PASS}
+    "DELETE FROM quotes WHERE quotes.quoteid=${quote_id};"
 
   echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------"
 
@@ -138,7 +158,7 @@ if [ "$post_response_code" == "200" ]; then
   echo -e "\nINFO: Select and print the row as user '${DB_USER}' from database '${DB_NAME}' with id '$quote_id' to confirm deletion..."
   oc exec -n postgres -it ${DB_POD} \
     -- psql -U ${DB_USER} -d ${DB_NAME} -h ${DB_SVC} -c \
-    "SELECT * FROM quotes WHERE quotes.quoteid=${quote_id};" < ${DB_PASS}
+    "SELECT * FROM quotes WHERE quotes.quoteid=${quote_id};"
 
 else
   # Failure catch during POST
