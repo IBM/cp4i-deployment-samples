@@ -46,28 +46,27 @@ done
 CURRENT_DIR=$(dirname $0)
 echo "Current directory: $CURRENT_DIR"
 echo "Namespace: $namespace"
+
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
-DOCKERCONFIGJSON_ER=$(oc get secret -n ${namespace} ibm-entitlement-key -o json | jq -r '.data.".dockerconfigjson"' | base64 --decode)
-if [ -z ${DOCKERCONFIGJSON_ER} ] ; then
-  echo "ERROR: Failed to find ibm-entitlement-key secret in the namespace '${namespace}'" 1>&2
+echo -e "INFO: Installing common prerequisites in the namespace '$namespace' for the ddd demo...\n"
+if ! ${CURRENT_DIR}/../../products/bash/common-prereqs.sh -n ${namespace}; then
+  printf "$cross "
+  echo "ERROR: Failed to install common-prereqs in the namespace '$namespace' for the ddd demo"
   exit 1
-fi
+else
+  printf "$tick "
+  echo "INFO: Successfuly installed common-prereqs in the namespace '$namespace' for the ddd demo"
+fi  #${CURRENT_DIR}/../../products/bash/common-prereqs.sh -n ${namespace}
 
-export ER_REGISTRY=$(echo "$DOCKERCONFIGJSON_ER" | jq -r '.auths' | jq 'keys[]' | tr -d '"')
-export ER_USERNAME=$(echo "$DOCKERCONFIGJSON_ER" | jq -r '.auths."cp.icr.io".username')
-export ER_PASSWORD=$(echo "$DOCKERCONFIGJSON_ER" | jq -r '.auths."cp.icr.io".password')
+echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
-#namespaces for the pipeline
+#namespaces for the driveway dent deletion demo pipeline
 export dev_namespace=${namespace}
 export test_namespace=${namespace}-ddd-test
 
 oc project ${dev_namespace}
 
-oc adm policy add-scc-to-group privileged system:serviceaccounts:$dev_namespace
-
-echo "INFO: Namespace passed='${namespace}'"
-echo "INFO: Dev Namespace='${dev_namespace}'"
 echo "INFO: Test Namespace='${test_namespace}'"
 
 #creating new namespace for test/prod and adding namespace to sa
@@ -76,90 +75,38 @@ oc adm policy add-scc-to-group privileged system:serviceaccounts:${test_namespac
 
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
-echo "INFO: Installing OCP pipelines"
-cat <<EOF | oc apply -f -
-apiVersion: operators.coreos.com/v1alpha1
-kind: Subscription
-metadata:
-  name: openshift-pipelines-operator
-  namespace: openshift-operators
-spec:
-  channel: ocp-4.4
-  name: openshift-pipelines-operator-rh
-  source: redhat-operators
-  sourceNamespace: openshift-marketplace
-EOF
-
-echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
-
-echo "Creating secrets to push images to openshift local registry"
 export DOCKER_REGISTRY="image-registry.openshift-image-registry.svc:5000"
 export username=image-bot
-kubectl -n ${dev_namespace} create serviceaccount image-bot
-oc -n ${dev_namespace} policy add-role-to-user registry-editor system:serviceaccount:${dev_namespace}:image-bot
 # enable dev namespace to push to test namespace
 oc -n ${test_namespace} policy add-role-to-user registry-editor system:serviceaccount:${dev_namespace}:image-bot
-export password="$(oc -n ${dev_namespace} serviceaccounts get-token image-bot)"
-
-echo -e "\nCreating secrets to push images to openshift local registry"
-oc create -n ${dev_namespace} secret docker-registry cicd-${dev_namespace} --docker-server=${DOCKER_REGISTRY} \
-  --docker-username=${username} --docker-password=${password} -o yaml | oc apply -f -
-
-echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
-
-# Creating a new secret as the type of entitlement key is 'kubernetes.io/DOCKERCONFIGJSON_ER' but we need secret of type 'kubernetes.io/basic-auth'
-# to pull imags from the ER
-echo "Creating secret to pull base images from Entitled Registry"
-cat << EOF | oc apply --namespace ${dev_namespace} -f -
-apiVersion: v1
-kind: Secret
-metadata:
-  name: er-pull-secret
-  annotations:
-    tekton.dev/docker-0: ${ER_REGISTRY}
-type: kubernetes.io/basic-auth
-stringData:
-  username: ${ER_USERNAME}
-  password: ${ER_PASSWORD}
-EOF
-
-echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
-
-echo "Waiting for postgres to be ready"
-oc wait -n postgres --for=condition=available deploymentconfig --timeout=20m postgresql
 
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
 declare -a image_projects=("${dev_namespace}" "${test_namespace}")
-declare -a suffix=("ddd")
+suffix="ddd"
 
 for image_project in "${image_projects[@]}" #for_outer
 do
-  for each_suffix in "${suffix[@]}" #for_inner
-  do
-    if [[ ("$each_suffix" == "ddd") ]]; then
-      echo -e "\nINFO: Configuring postgres in the namespace '$image_project' with the suffix '$each_suffix'\n"
-      if ! ${CURRENT_DIR}/configure-postgres.sh -n ${image_project} -s $each_suffix; then
-        echo -e "\n$cross ERROR: Failed to configure postgres in the namespace '$image_project' with the suffix '$each_suffix'"
-        exit 1
-      else
-        printf "$tick "
-        echo -e "\nINFO: Successfuly configured postgres in the namespace '$image_project' with the suffix '$each_suffix'"
-      fi  #${CURRENT_DIR}/configure-postgres.sh -n ${image_project} -s $each_suffix
+  echo -e "\nINFO: Configuring postgres in the namespace '$image_project' with the suffix '$suffix'\n"
+  if ! ${CURRENT_DIR}/configure-postgres.sh -n ${image_project} -s $suffix; then
+    echo -e "\n$cross ERROR: Failed to configure postgres in the namespace '$image_project' with the suffix '$suffix'"
+    exit 1
+  else
+    printf "$tick "
+    echo -e "\nINFO: Successfuly configured postgres in the namespace '$image_project' with the suffix '$suffix'"
+  fi  #${CURRENT_DIR}/configure-postgres.sh -n ${image_project} -s $suffix
 
-      echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
-      echo -e "INFO: Creating ace integration server configuration resources in the namespace '$image_project'"
+  echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
+  echo -e "INFO: Creating ace integration server configuration resources in the namespace '$image_project'"
 
-      if ! ${CURRENT_DIR}/../../products/bash/create-ace-config.sh -n ${image_project} -s $each_suffix; then
-        printf "$cross "
-        echo "ERROR: Failed to configure ace in the namespace '$image_project'  with the suffix '$each_suffix'"
-        exit 1
-      else
-        printf "$tick "
-        echo "INFO: Successfuly configured ace in the namespace '$image_project' with the suffix '$each_suffix'"
-      fi  #${CURRENT_DIR}/../../products/bash/create-ace-config.sh -n ${image_project} -s $each_suffix
-    fi  #("$each_suffix" == "ddd")
-  done #for_inner_done
+  if ! ${CURRENT_DIR}/../../products/bash/create-ace-config.sh -n ${image_project} -s $suffix; then
+    printf "$cross "
+    echo "ERROR: Failed to configure ace in the namespace '$image_project'  with the suffix '$suffix'"
+    exit 1
+  else
+    printf "$tick "
+    echo "INFO: Successfuly configured ace in the namespace '$image_project' with the suffix '$suffix'"
+  fi  #${CURRENT_DIR}/../../products/bash/create-ace-config.sh -n ${image_project} -s $suffix
   echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 done #for_outer_done
 
