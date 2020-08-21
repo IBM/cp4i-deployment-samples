@@ -51,6 +51,7 @@ These steps will need to be documented in the demo docs:
 ## Description of pipeline
 - Trigger: Whenever a commit is made to the forked repo it triggers the
   pipeline.
+- Clone git repo: Clones this git repo into a workspace PVC that is then used by the rest of the tasks in the pipeline.
 - Build images tasks: Each of these tasks builds an image and pushes it to the cluster's local OpenShift Image Registry. The latest dockerfile and related files (bar files) are pulled from the forked git repo.
 - Deploy to dev/test and wait for rollout tasks: Each of these tasks applies a CR to deploy/update an MQ/ACE microservice and waits for the deploy/update to rollout so the microservice is running the newly built image once the task has completed.
 - Test ACE API task: Runs a test of the POST/GET endpoints to verify that the dev environment is working. This acts as a gate for rolling out the change to the test environment.
