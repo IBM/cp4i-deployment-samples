@@ -26,7 +26,6 @@ function usage {
   exit 1
 }
 
-CURRENT_DIR=$(dirname $0)
 namespace="cp4i"
 nav_replicas="2"
 tick="\xE2\x9C\x85"
