@@ -44,7 +44,10 @@ while getopts "n:r:" opt; do
   esac
 done
 
+CURRENT_DIR=$(dirname $0)
+echo "Current directory: $CURRENT_DIR"
 echo "Namespace: $namespace"
+echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
 DOCKERCONFIGJSON_ER=$(oc get secret -n ${namespace} ibm-entitlement-key -o json | jq -r '.data.".dockerconfigjson"' | base64 --decode)
 if [ -z ${DOCKERCONFIGJSON_ER} ] ; then
@@ -138,16 +141,6 @@ declare -a suffix=("ddd")
 
 for image_project in "${image_projects[@]}" #for_outer
 do
-  echo "INFO: Making 'create-ace-config.sh' executable"
-  if ! chmod +x ${CURRENT_DIR}/../../products/bash/create-ace-config.sh ; then
-    printf "$cross "
-    echo " ERROR: Failed to make 'create-ace-config.sh' executable in the namespace '$image_project'"
-    exit 1
-  else
-    printf "$tick "
-    echo "INFO: Made 'create-ace-config.sh' executable in the namespace '$image_project'"
-  fi
-
   for each_suffix in "${suffix[@]}" #for_inner
   do
     if [[ ("$each_suffix" == "ddd") ]]; then
@@ -213,5 +206,5 @@ if ! ${CURRENT_DIR}/../../products/bash/release-ace-dashboard.sh -n ${test_names
 fi
 
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
-echo -e "$tick $all_done INFO: All prerequisites have been applied successfully $all_done $tick"
+echo -e "$tick $all_done INFO: All prerequisites for the driveway dent deletion have been applied successfully $all_done $tick"
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
