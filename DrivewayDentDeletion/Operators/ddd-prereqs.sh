@@ -31,6 +31,7 @@ nav_replicas="2"
 tick="\xE2\x9C\x85"
 cross="\xE2\x9D\x8C"
 all_done="\xF0\x9F\x92\xAF"
+suffix="ddd"
 
 while getopts "n:r:" opt; do
   case ${opt} in
@@ -44,8 +45,10 @@ while getopts "n:r:" opt; do
 done
 
 CURRENT_DIR=$(dirname $0)
-echo "INFO: Current directory: $CURRENT_DIR"
-echo "INFO: Namespace: $namespace"
+echo "INFO: Current directory: '$CURRENT_DIR'"
+echo "INFO: Namespace: '$namespace'"
+echo "INFO: Suffix for the postgres is: '$suffix'"
+
 
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
@@ -75,15 +78,13 @@ oc adm policy add-scc-to-group privileged system:serviceaccounts:${test_namespac
 
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
-export DOCKER_REGISTRY="image-registry.openshift-image-registry.svc:5000"
-export username=image-bot
+echo "INFO: Adding permission for '$dev_namespace' to write images to openshift local registry in the '$test_namespace'"
 # enable dev namespace to push to test namespace
 oc -n ${test_namespace} policy add-role-to-user registry-editor system:serviceaccount:${dev_namespace}:image-bot
 
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
 declare -a image_projects=("${dev_namespace}" "${test_namespace}")
-suffix="ddd"
 
 for image_project in "${image_projects[@]}" #for_outer
 do
