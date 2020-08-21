@@ -1,6 +1,20 @@
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
+  name: git-source-workspace
+spec:
+  storageClassName: ibmc-file-gold-gid
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 10Gi
+
+---
+
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
   name: buildah-mq
 spec:
   storageClassName: cp4i-block-performance

@@ -76,13 +76,19 @@ oc adm policy add-scc-to-group privileged system:serviceaccounts:${test_namespac
 
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
-echo "INFO: Installing tekton and its pre-reqs"
-oc apply --filename https://storage.googleapis.com/tekton-releases/pipeline/previous/v0.12.1/release.yaml
-echo -e "\nINFO: Installing tekton triggers"
-oc apply -f https://storage.googleapis.com/tekton-releases/triggers/previous/v0.5.0/release.yaml
-echo -e "\nINFO: Waiting for tekton and triggers deployment to finish..."
-oc wait -n tekton-pipelines --for=condition=available deployment --timeout=20m tekton-pipelines-controller \
-  tekton-pipelines-webhook tekton-triggers-controller tekton-triggers-webhook
+echo "INFO: Installing OCP pipelines"
+cat <<EOF | oc apply -f -
+apiVersion: operators.coreos.com/v1alpha1
+kind: Subscription
+metadata:
+  name: openshift-pipelines-operator
+  namespace: openshift-operators
+spec:
+  channel: ocp-4.4
+  name: openshift-pipelines-operator-rh
+  source: redhat-operators
+  sourceNamespace: openshift-marketplace
+EOF
 
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
@@ -129,7 +135,6 @@ declare -a suffix=("ddd")
 
 for image_project in "${image_projects[@]}" #for_outer
 do
-
   for each_suffix in "${suffix[@]}" #for_inner
   do
     if [[ ("$each_suffix" == "ddd") ]]; then

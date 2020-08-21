@@ -4,7 +4,7 @@ metadata:
   name: test-triggertemplate
 spec:
   resourcetemplates:
-  - apiVersion: tekton.dev/v1alpha1
+  - apiVersion: tekton.dev/v1beta1
     kind: PipelineRun
     metadata:
       name: test-pipelinerun-$(uid)
@@ -12,6 +12,8 @@ spec:
       pipelineRef:
         name: test-pipeline
       serviceAccountNames:
+        - taskName: clone-git-source
+          serviceAccountName: pipeline
         - taskName: build-mq
           serviceAccountName: cicd-mq-sa
         - taskName: deploy-wait-mq
@@ -58,10 +60,10 @@ spec:
           serviceAccountName: cicd-ace-deploy-in-test-sa
         - taskName: test-e2e-api-in-test-namespace
           serviceAccountName: cicd-api-e2e-in-test-sa
-      resources:
-      - name: git-source
-        resourceRef:
-          name: git-source
+      workspaces:
+        - name: git-source
+          persistentvolumeclaim:
+            claimName: git-source-workspace
       params:
       - name: imageTag
         value: $(uid)

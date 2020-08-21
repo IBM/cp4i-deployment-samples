@@ -138,22 +138,6 @@ fi
 
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
-# create pipeline resources
-echo "INFO: Create pipeline resources"
-if cat $CURRENT_DIR/cicd-test/cicd-pipeline-resources.yaml |
-  sed "s#{{FORKED_REPO}}#$repo#g;" |
-  sed "s#{{BRANCH}}#$branch#g;" |
-  oc apply -f -; then
-    printf "$tick "
-    echo "Successfully applied pipeline resources in the '$namespace' namespace"
-else
-  printf "$cross "
-  echo "Failed to apply pipeline resources in the '$namespace' namespace"
-  sum=$((sum + 1))
-fi
-
-echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
-
 # create tekton tasks
 echo "INFO: Create tekton tasks"
 if cat $CURRENT_DIR/cicd-test/cicd-tasks.yaml |
@@ -173,9 +157,11 @@ echo -e "\n---------------------------------------------------------------------
 echo "INFO: Create the pipeline to run tasks to build, deploy, test e2e in '$namespace' and '$namespace-ddd-test' namespace"
 if cat $CURRENT_DIR/cicd-test/cicd-pipeline.yaml |
   sed "s#{{NAMESPACE}}#$namespace#g;" |
+  sed "s#{{FORKED_REPO}}#$repo#g;" |
+  sed "s#{{BRANCH}}#$branch#g;" |
   oc apply -f -; then
-  printf "$tick "
-  echo "Successfully applied the pipeline to run tasks to build, deploy, test e2e in '$namespace' and '$namespace-ddd-test' namespace"
+    printf "$tick "
+    echo "Successfully applied the pipeline to run tasks to build, deploy, test e2e in '$namespace' and '$namespace-ddd-test' namespace"
 else
   printf "$cross "
   echo "Failed to apply the pipeline to run tasks to build, deploy test e2e in '$namespace' and '$namespace-ddd-test' namespace"
