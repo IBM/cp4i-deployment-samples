@@ -93,20 +93,17 @@ do
     echo -e "\n$cross ERROR: Failed to configure postgres in the namespace '$image_project' with the suffix '$suffix'"
     exit 1
   else
-    printf "$tick "
-    echo -e "\nINFO: Successfuly configured postgres in the namespace '$image_project' with the suffix '$suffix'"
+    echo -e "\n$tick INFO: Successfuly configured postgres in the namespace '$image_project' with the suffix '$suffix'"
   fi  #${CURRENT_DIR}/../../products/bash/configure-postgres.sh -n ${image_project} -s $suffix
 
   echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
   echo -e "INFO: Creating ace integration server configuration resources in the namespace '$image_project'"
 
   if ! ${CURRENT_DIR}/../../products/bash/create-ace-config.sh -n ${image_project} -s $suffix; then
-    printf "$cross "
-    echo "ERROR: Failed to configure ace in the namespace '$image_project'  with the suffix '$suffix'"
+    echo -e "\n$cross ERROR: Failed to configure ace in the namespace '$image_project'  with the suffix '$suffix'"
     exit 1
   else
-    printf "$tick "
-    echo "INFO: Successfuly configured ace in the namespace '$image_project' with the suffix '$suffix'"
+    echo -e "\n$tick INFO: Successfuly configured ace in the namespace '$image_project' with the suffix '$suffix'"
   fi  #${CURRENT_DIR}/../../products/bash/create-ace-config.sh -n ${image_project} -s $suffix
   echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 done #for_outer_done

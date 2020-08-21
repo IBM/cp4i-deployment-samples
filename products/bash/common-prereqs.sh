@@ -102,7 +102,6 @@ kubectl -n ${namespace} create serviceaccount image-bot
 export password="$(oc -n ${namespace} serviceaccounts get-token image-bot)"
 echo "INFO: Adding permission for '$namespace' to write images to openshift local registry in the '$namespace'"
 oc -n ${namespace} policy add-role-to-user registry-editor system:serviceaccount:${namespace}:image-bot
-
 echo -e "\nCreating secret to push images to openshift local registry"
 oc create -n ${namespace} secret docker-registry cicd-${namespace} --docker-server=${DOCKER_REGISTRY} \
   --docker-username=${username} --docker-password=${password} -o yaml | oc apply -f -
@@ -112,5 +111,8 @@ echo -e "\n---------------------------------------------------------------------
 echo "Waiting for postgres to be ready in the 'postgres' namespace"
 oc wait -n postgres --for=condition=available deploymentconfig --timeout=20m postgresql
 
-echo -e "$tick INFO: Common prerequisites applied successfully. $tick"
+echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
+
+echo -e "\n$tick INFO: Common prerequisites applied successfully. $tick"
+
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
