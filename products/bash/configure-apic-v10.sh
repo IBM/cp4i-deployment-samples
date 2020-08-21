@@ -13,30 +13,36 @@
 #   - Logged into cluster on the OC CLI (https://docs.openshift.com/container-platform/4.4/cli_reference/openshift_cli/getting-started-cli.html)
 #
 # PARAMETERS:
-#   -n : <namespace> (string), Defaults to "cp4i"
-#   -r : <release-name> (string), Defaults to "ademo"
+#   -n : <NAMESPACE> (string), Defaults to "cp4i"
+#   -r : <RELEASE_NAME> (string), Defaults to "ademo"
+#   -o : <ORG_NAME> (string), Defaults to "demoorg"
 #
 # USAGE:
 #   With defaults values
 #     ./configure-apic-v10.sh
 #
-#   Overriding the namespace and release-name
-#     ./configure-apic-v10 -n cp4i-prod -r prod
+#   Overriding the NAMESPACE and release-name
+#     ./configure-apic-v10 -n cp4i-prod -r prod -o someorg
 
 function usage {
-    echo "Usage: $0 -n <namespace> -r <release-name>"
+    echo "Usage: $0 -n <NAMESPACE> -r <RELEASE_NAME> -o <ORG_NAME>"
 }
 
 CURRENT_DIR=$(dirname $0)
 
-namespace="cp4i"
-release_name="ademo"
+NAMESPACE="cp4i"
+RELEASE_NAME="ademo"
+ORG_NAME="demoorg"
+tick="\xE2\x9C\x85"
+cross="\xE2\x9D\x8C"
 
-while getopts "n:r:" opt; do
+while getopts "n:r:o:" opt; do
   case ${opt} in
-    n ) namespace="$OPTARG"
+    n ) NAMESPACE="$OPTARG"
       ;;
-    r ) release_name="$OPTARG"
+    r ) RELEASE_NAME="$OPTARG"
+      ;;
+    o ) ORG_NAME="$OPTARG"
       ;;
     \? ) usage; exit
       ;;
@@ -45,7 +51,9 @@ done
 
 set -e
 
-NAMESPACE="${namespace}"
+NAMESPACE="${NAMESPACE}"
+ORG_NAME=""
+CATALOG_NAME="${ORG_NAME}-catalog"
 PORG_ADMIN_EMAIL=${PORG_ADMIN_EMAIL:-"cp4i-admin@apiconnect.net"} # update to recipient of portal site creation email
 ACE_REGISTRATION_SECRET_NAME="ace-v11-service-creds" # corresponds to registration obj currently hard-coded in configmap
 PROVIDER_SECRET_NAME="cp4i-admin-creds" # corresponds to credentials obj currently hard-coded in configmap
@@ -57,8 +65,9 @@ MAIL_SERVER_PASSWORD=${MAIL_SERVER_PASSWORD:-"<your-password>"}
 
 echo "Waiting for APIC installation to complete..."
 for i in `seq 1 60`; do
-  APIC_STATUS=$(kubectl get apiconnectcluster.apiconnect.ibm.com -n $NAMESPACE ${release_name} -o jsonpath='{.status.phase}')
+  APIC_STATUS=$(kubectl get apiconnectcluster.apiconnect.ibm.com -n $NAMESPACE ${RELEASE_NAME} -o jsonpath='{.status.phase}')
   if [ "$APIC_STATUS" == "Ready" ]; then
+    printf "$tick"
     echo "[OK] APIC is ready"
     break
   else
@@ -73,17 +82,19 @@ for i in `seq 1 60`; do
 done
 
 if [ "$APIC_STATUS" != "Ready" ]; then
+  printf "$cross"
   echo "[ERROR] APIC failed to install"
   exit 1
 fi
 
 for i in `seq 1 60`; do
-  PORTAL_WWW_POD=$(oc get pods -n $NAMESPACE | grep -m1 "${release_name}-ptl.*www" | awk '{print $1}')
+  PORTAL_WWW_POD=$(oc get pods -n $NAMESPACE | grep -m1 "${RELEASE_NAME}-ptl.*www" | awk '{print $1}')
   if [ -z "$PORTAL_WWW_POD" ]; then
     echo "Not got portal pod yet"
   else
     PORTAL_WWW_ADMIN_READY=$(oc get pod -n ${NAMESPACE} ${PORTAL_WWW_POD} -o json | jq '.status.containerStatuses[0].ready')
     if [[ "$PORTAL_WWW_ADMIN_READY" == "true" ]]; then
+      printf "$tick"
       echo "PORTAL_WWW_POD (${PORTAL_WWW_POD}) ready, patching..."
       oc exec -n ${NAMESPACE} ${PORTAL_WWW_POD} -c admin -- bash -ic "sed -i '/^add_uuid_and_alias/a drush \"@\$SITE_ALIAS\" pm-list --type=Module --status=enabled' /opt/ibm/bin/restore_site"
       break
@@ -100,14 +111,14 @@ echo "Pod listing for information"
 kubectl get pod -n $NAMESPACE
 
 # obtain cloud manager credentials secret name
-CLOUD_MANAGER_PASS="$(oc get secret -n $NAMESPACE "${release_name}-mgmt-admin-pass" -o jsonpath='{.data.password}' | base64 --decode)"
+CLOUD_MANAGER_PASS="$(oc get secret -n $NAMESPACE "${RELEASE_NAME}-mgmt-admin-pass" -o jsonpath='{.data.password}' | base64 --decode)"
 
 # obtain endpoint info from APIC v10 routes
-APIM_UI_EP=$(oc get route -n $NAMESPACE ${release_name}-mgmt-api-manager -o jsonpath='{.spec.host}')
-CMC_UI_EP=$(oc get route -n $NAMESPACE ${release_name}-mgmt-admin -o jsonpath='{.spec.host}')
-C_API_EP=$(oc get route -n $NAMESPACE ${release_name}-mgmt-consumer-api -o jsonpath='{.spec.host}')
-API_EP=$(oc get route -n $NAMESPACE ${release_name}-mgmt-platform-api -o jsonpath='{.spec.host}')
-PTL_WEB_EP=$(oc get route -n $NAMESPACE ${release_name}-ptl-portal-web -o jsonpath='{.spec.host}')
+APIM_UI_EP=$(oc get route -n $NAMESPACE ${RELEASE_NAME}-mgmt-api-manager -o jsonpath='{.spec.host}')
+CMC_UI_EP=$(oc get route -n $NAMESPACE ${RELEASE_NAME}-mgmt-admin -o jsonpath='{.spec.host}')
+C_API_EP=$(oc get route -n $NAMESPACE ${RELEASE_NAME}-mgmt-consumer-api -o jsonpath='{.spec.host}')
+API_EP=$(oc get route -n $NAMESPACE ${RELEASE_NAME}-mgmt-platform-api -o jsonpath='{.spec.host}')
+PTL_WEB_EP=$(oc get route -n $NAMESPACE ${RELEASE_NAME}-ptl-portal-web -o jsonpath='{.spec.host}')
 
 # create the k8s resources
 echo "Applying manifests"
@@ -115,16 +126,16 @@ cat << EOF | oc apply -f -
 apiVersion: v1
 kind: ServiceAccount
 metadata:
-  namespace: ${NAMESPACE}
-  name: ${release_name}-apic-configurator-post-install-sa
+  NAMESPACE: ${NAMESPACE}
+  name: ${RELEASE_NAME}-apic-configurator-post-install-sa
 imagePullSecrets:
 - name: ibm-entitlement-key
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
-  namespace: ${NAMESPACE}
-  name: ${release_name}-apic-configurator-post-install-role
+  NAMESPACE: ${NAMESPACE}
+  name: ${RELEASE_NAME}-apic-configurator-post-install-role
 rules:
 - apiGroups:
   - ""
@@ -138,22 +149,22 @@ rules:
 kind: RoleBinding
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
-  namespace: ${NAMESPACE}
-  name: ${release_name}-apic-configurator-post-install-rolebinding
+  NAMESPACE: ${NAMESPACE}
+  name: ${RELEASE_NAME}-apic-configurator-post-install-rolebinding
 subjects:
 - kind: ServiceAccount
-  name: ${release_name}-apic-configurator-post-install-sa
-  namespace: ${NAMESPACE}
+  name: ${RELEASE_NAME}-apic-configurator-post-install-sa
+  NAMESPACE: ${NAMESPACE}
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: Role
-  name: ${release_name}-apic-configurator-post-install-role
+  name: ${RELEASE_NAME}-apic-configurator-post-install-role
 ---
 apiVersion: v1
 kind: Secret
 metadata:
-  namespace: ${NAMESPACE}
-  name: ${release_name}-default-mail-server-creds
+  NAMESPACE: ${NAMESPACE}
+  name: ${RELEASE_NAME}-default-mail-server-creds
 type: Opaque
 stringData:
   default-mail-server-creds.yaml: |-
@@ -166,13 +177,13 @@ stringData:
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  namespace: ${NAMESPACE}
-  name: ${release_name}-configurator-base
+  NAMESPACE: ${NAMESPACE}
+  name: ${RELEASE_NAME}-configurator-base
 data:
   configurator-base.yaml: |-
     logger:
       level: trace
-    namespace: ${NAMESPACE}
+    NAMESPACE: ${NAMESPACE}
     api_endpoint: https://${API_EP}
     credentials:
       admin:
@@ -222,8 +233,8 @@ data:
           secret_name: ${PROVIDER_SECRET_NAME}
     orgs:
       - org:
-          name: demoorg
-          title: Org for Demo use
+          name: ${ORG_NAME}
+          title: Org for Demo use (${ORG_NAME})
           org_type: provider
           owner_url: https://${API_EP}/api/user-registries/admin/api-manager-lur/users/cp4i-admin
         members:
@@ -235,13 +246,13 @@ data:
               - https://${API_EP}/api/orgs/demoorg/roles/administrator
         catalogs:
           - catalog:
-              name: democatalog
-              title: Catalog for Demo use
+              name: ${CATALOG_NAME}
+              title: Catalog for Demo use (${CATALOG_NAME})
             settings:
               portal:
                 type: drupal
-                endpoint: https://${PTL_WEB_EP}/demoorg/democatalog
-                portal_service_url: https://${API_EP}/api/orgs/demoorg/portal-services/portal-service
+                endpoint: https://${PTL_WEB_EP}/${ORG_NAME}/${CATALOG_NAME}
+                portal_service_url: https://${API_EP}/api/orgs/${ORG_NAME}/portal-services/portal-service
     services: []
     mail_settings:
       mail_server_url: https://${API_EP}/api/orgs/admin/mail-servers/default-mail-server
@@ -255,8 +266,8 @@ kind: Job
 metadata:
   labels:
     app: apic-configurator-post-install
-  namespace: ${NAMESPACE}
-  name: ${release_name}-apic-configurator-post-install
+  NAMESPACE: ${NAMESPACE}
+  name: ${RELEASE_NAME}-apic-configurator-post-install
 spec:
   backoffLimit: 1
   template:
@@ -264,7 +275,7 @@ spec:
       labels:
         app: apic-configurator-post-install
     spec:
-      serviceAccountName: ${release_name}-apic-configurator-post-install-sa
+      serviceAccountName: ${RELEASE_NAME}-apic-configurator-post-install-sa
       restartPolicy: Never
       containers:
         - name: configurator
@@ -277,12 +288,12 @@ spec:
           projected:
             sources:
             - configMap:
-                name: ${release_name}-configurator-base
+                name: ${RELEASE_NAME}-configurator-base
                 items:
                   - key: configurator-base.yaml
                     path: overrides/configurator-base.yaml
             - secret:
-                name: ${release_name}-default-mail-server-creds
+                name: ${RELEASE_NAME}-default-mail-server-creds
                 items:
                   - key: default-mail-server-creds.yaml
                     path: overrides/default-mail-server-creds.yaml
@@ -290,17 +301,18 @@ EOF
 
 # wait for the job to complete
 echo "Waiting for configurator job to complete"
-kubectl wait --for=condition=complete --timeout=300s -n $NAMESPACE job/${release_name}-apic-configurator-post-install
+kubectl wait --for=condition=complete --timeout=300s -n $NAMESPACE job/${RELEASE_NAME}-apic-configurator-post-install
 
 # pull together any necessary info from in-cluster resources
 PROVIDER_CREDENTIALS=$(kubectl get secret $PROVIDER_SECRET_NAME -n $NAMESPACE -o json | jq .data)
 ACE_CREDENTIALS=$(kubectl get secret $ACE_REGISTRATION_SECRET_NAME -n $NAMESPACE -o json | jq .data)
 
 for i in `seq 1 60`; do
-  PORTAL_WWW_POD=$(kubectl get pods -n $NAMESPACE | grep -m1 "${release_name}-ptl.*www" | awk '{print $1}')
+  PORTAL_WWW_POD=$(kubectl get pods -n $NAMESPACE | grep -m1 "${RELEASE_NAME}-ptl.*www" | awk '{print $1}')
   PORTAL_SITE_UUID=$(kubectl exec -n $NAMESPACE -it $PORTAL_WWW_POD -c admin /opt/ibm/bin/list_sites | awk '{print $1}')
   PORTAL_SITE_RESET_URL=$(kubectl exec -n $NAMESPACE -it $PORTAL_WWW_POD -c admin /opt/ibm/bin/site_login_link $PORTAL_SITE_UUID | tail -1)
   if [[ "$PORTAL_SITE_RESET_URL" =~ "https://$PTL_WEB_EP" ]]; then
+    printf "$tick"
     echo "[OK] Got the portal_site_password_reset_link"
     break
   else
@@ -310,6 +322,7 @@ for i in `seq 1 60`; do
   fi
 done
 
+printf "$tick"
 echo "
 ********** Configuration **********
 api_manager_ui: https://$APIM_UI_EP/manager
