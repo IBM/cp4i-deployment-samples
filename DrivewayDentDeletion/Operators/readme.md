@@ -8,8 +8,7 @@ upon this.
 A [script](prereqs.sh) is provided to setup the prerequisits for this demo
 and this script is automatically run as part of the 1-click demo preparation.
 The script carries out the following:
-- Installs Tekton Pipelines v0.12.1
-- Installs Tekton Triggers v0.5.0
+- Installs Openshift pipelines from the ocp-4.4 channel
 - Creates a project to be used for the demo (default `cp4i`).
 - Creates secrets to allow the pipeline to push images to the above project (default `cp4i`).
 - Creates a secret to allow the pipeline to pull from the entitled registry
