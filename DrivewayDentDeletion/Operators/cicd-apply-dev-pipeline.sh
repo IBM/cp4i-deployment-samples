@@ -28,7 +28,6 @@ function usage() {
 }
 
 # default vars
-CURRENT_DIR=$(dirname $0)
 namespace="cp4i"
 branch="master"
 repo="https://github.com/IBM/cp4i-deployment-samples.git"
