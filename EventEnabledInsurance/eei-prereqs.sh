@@ -58,7 +58,7 @@ fi  #${CURRENT_DIR}/../products/bash/common-prereqs.sh -n ${namespace}
 
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
-echo -e "\nINFO: Configuring postgres in the namespace '$namespace' with the suffix '$suffix' for the eei demo\n"
+echo -e "INFO: Configuring postgres in the namespace '$namespace' with the suffix '$suffix' for the eei demo\n"
 if ! ${CURRENT_DIR}/../products/bash/configure-postgres.sh -n ${namespace} -s $suffix; then
     echo -e "\n$cross ERROR: Failed to configure postgres in the namespace '$namespace' with the suffix '$suffix'"
     exit 1
