@@ -90,11 +90,6 @@ spec:
   sourceNamespace: openshift-marketplace
 EOF
 
-# TODO, needed?
-# echo -e "\nINFO: Waiting for tekton and triggers deployment to finish..."
-# oc wait -n tekton-pipelines --for=condition=available deployment --timeout=20m tekton-pipelines-controller \
-#   tekton-pipelines-webhook tekton-triggers-controller tekton-triggers-webhook
-
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
 echo "Creating secrets to push images to openshift local registry"
