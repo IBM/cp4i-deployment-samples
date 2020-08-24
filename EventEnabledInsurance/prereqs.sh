@@ -57,7 +57,7 @@ if ! ${CURRENT_DIR}/../products/bash/create-ocp-pipeline.sh; then
   echo -e "ERROR: Failed to install OCP pipelines\n"
   exit 1
 else
-  echo -e "$tick INFO: Successfuly installed OCP pipelines\n"
+  echo -e "$tick INFO: Successfuly installed OCP pipelines"
 fi #${CURRENT_DIR}/../products/bash/create-ocp-pipeline
 
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
@@ -68,7 +68,7 @@ if ! ${CURRENT_DIR}/../products/bash/entitled-registry.sh -n ${namespace}; then
   echo "ERROR: Failed to set up images from the entitled registry in the namespace '$namespace' for the eei demo"
   exit 1
 else
-  echo -e "$tick INFO: Successfuly set up images from the entitled registry in the namespace '$namespace' for the eei demo\n"
+  echo -e "$tick INFO: Successfuly set up images from the entitled registry in the namespace '$namespace' for the eei demo"
 fi #${CURRENT_DIR}/../products/bash/entitled-registry.sh -n ${namespace}
 
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"

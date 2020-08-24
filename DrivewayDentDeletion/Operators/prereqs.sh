@@ -58,7 +58,7 @@ if ! ${CURRENT_DIR}/../../products/bash/create-ocp-pipeline.sh; then
   echo -e "$cross ERROR: Failed to install OCP pipelines\n"
   exit 1
 else
-  echo -e "$tick INFO: Successfuly installed OCP pipelines\n"
+  echo -e "$tick INFO: Successfuly installed OCP pipelines"
 fi  #${CURRENT_DIR}/../../products/bash/create-ocp-pipeline
 
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
