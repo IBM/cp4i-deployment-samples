@@ -26,6 +26,25 @@ Loop around. For each ‘Tick’:
 4. Every 3rd tick, create a new claim with random user data and a 'non mobile' source and a status of 1 and a claim cost of null.
 
 # To run locally
+## Postgres setup
+Ensure the database has the following type and table created:
+```
+CREATE TYPE SOURCE AS ENUM ('Mobile', 'Web', 'Email', 'Letter', 'Call Center', 'Police');
+
+CREATE TABLE IF NOT EXISTS QUOTES (
+  QuoteID SERIAL PRIMARY KEY NOT NULL,
+  Source SOURCE,
+  Name VARCHAR(100),
+  EMail VARCHAR(100),
+  Age INTEGER,
+  Address VARCHAR(100),
+  USState VARCHAR(100),
+  LicensePlate VARCHAR(100),
+  DescriptionOfDamage VARCHAR(100),
+  ClaimStatus INTEGER,
+  ClaimCost INTEGER
+);
+```
 ## Give access to postgres
 Setup port forwarding from a local port to the postgres service on the cluster:
 ```
