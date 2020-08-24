@@ -7,4 +7,3 @@ run.sh
 postgres.env
 postgres.yaml
 pgpass_gen.sh
-pgpass_gen.sh
