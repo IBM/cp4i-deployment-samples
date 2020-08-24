@@ -53,6 +53,16 @@ echo "INFO: Suffix for the postgres is: '$SUFFIX'"
 
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
+echo "INFO: Installing OCP pipelines..."
+if ! ${CURRENT_DIR}/../../products/bash/create-ocp-pipeline.sh; then
+  echo -e "$cross ERROR: Failed to install OCP pipelines\n"
+  exit 1
+else
+  echo -e "$tick INFO: Successfuly installed OCP pipelines\n"
+fi  #${CURRENT_DIR}/../../products/bash/create-ocp-pipeline
+
+echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
+
 echo -e "INFO: Creating secret in the '$namespace' namespace to pull images ER for pipelines in the ddd demo...\n"
 if ! ${CURRENT_DIR}/../../products/bash/entitled-registry.sh -n ${namespace}; then
   echo -e "$cross ERROR: Failed to create the secret to pull from ER in the namespace '$namespace' for the ddd demo\n"
@@ -61,13 +71,7 @@ else
   echo -e "$tick INFO: Successfuly created the secret to pull from ER in the namespace '$namespace' for the ddd demo\n"
 fi  #${CURRENT_DIR}/../../products/bash/entitled-registry.sh -n ${namespace}
 
-echo "INFO: Installing OCP pipelines..."
-if ! ${CURRENT_DIR}/../../products/bash/create-ocp-pipeline.sh; then
-  echo -e "$cross ERROR: Failed to install OCP pipelines\n"
-  exit 1
-else
-  echo -e "$tick INFO: Successfuly installed OCP pipelines\n"
-fi  #${CURRENT_DIR}/../../products/bash/create-ocp-pipeline
+echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
 echo "INFO: Configuring secrets and permissions related to ocp pipelines in the '$namespace' namespace for the ddd demo..."
 if ! ${CURRENT_DIR}/../../products/bash/configure-ocp-pipeline.sh -n ${namespace}; then
@@ -153,6 +157,8 @@ EOF
       ChrisDate DATE);'; then
     echo -e "\n$cross ERROR: Failed to create the table 'QUOTES' in the database '$DB_NAME' with the username '$DB_USER' in the namespace '$image_project'"
     exit 1
+  else
+    echo -e "\n$tick INFO: Created the table 'QUOTES' in the database '$DB_NAME' with the username '$DB_USER' in the namespace '$namespace'"
   fi
 
   echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
