@@ -107,8 +107,6 @@ func createNewClaim(db *sql.DB, mobile bool) {
   } else {
     source = pickRandomString(nonMobileSources)
   }
-  var damageDescriptions = []string{"Cracked windscreen", "Wheel fell off", "Dent in door", "Won't start"}
-
   customerInfo := pickRandomStringArray(customers)
   name := customerInfo[0]
   email := customerInfo[1]
