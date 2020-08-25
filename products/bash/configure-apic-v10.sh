@@ -51,8 +51,10 @@ done
 
 set -e
 
+ORG_NAME1="${ORG_NAME}-1"
 NAMESPACE="${NAMESPACE}"
 CATALOG_NAME="${ORG_NAME}-catalog"
+CATALOG_NAME1="${ORG_NAME1}-catalog"
 PORG_ADMIN_EMAIL=${PORG_ADMIN_EMAIL:-"cp4i-admin@apiconnect.net"} # update to recipient of portal site creation email
 ACE_REGISTRATION_SECRET_NAME="ace-v11-service-creds" # corresponds to registration obj currently hard-coded in configmap
 PROVIDER_SECRET_NAME="cp4i-admin-creds" # corresponds to credentials obj currently hard-coded in configmap
@@ -252,6 +254,27 @@ data:
                 type: drupal
                 endpoint: https://${PTL_WEB_EP}/${ORG_NAME}/${CATALOG_NAME}
                 portal_service_url: https://${API_EP}/api/orgs/${ORG_NAME}/portal-services/portal-service
+      - org:
+          name: ${ORG_NAME1}
+          title: Org for Demo use (${ORG_NAME1})
+          org_type: provider
+          owner_url: https://${API_EP}/api/user-registries/admin/api-manager-lur/users/cp4i-admin
+        members:
+          - name: cs-admin
+            user:
+              identity_provider: common-services
+              url: https://${API_EP}/api/user-registries/admin/common-services/users/admin
+            role_urls:
+              - https://${API_EP}/api/orgs/demoorg/roles/administrator
+        catalogs:
+          - catalog:
+              name: ${CATALOG_NAME1}
+              title: Catalog for Demo use (${CATALOG_NAME1})
+            settings:
+              portal:
+                type: drupal
+                endpoint: https://${PTL_WEB_EP}/${ORG_NAME1}/${CATALOG_NAME1}
+                portal_service_url: https://${API_EP}/api/orgs/${ORG_NAME1}/portal-services/portal-service
     services: []
     mail_settings:
       mail_server_url: https://${API_EP}/api/orgs/admin/mail-servers/default-mail-server
