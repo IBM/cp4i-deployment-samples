@@ -1,0 +1,105 @@
+swagger: '2.0'
+info:
+  title: DrivewayDentDeletion
+  version: 1.0.0
+  description: DrivewayDentDeletion
+  x-ibm-name: drivewaydentdeletion
+paths:
+  /quote:
+    get:
+      operationId: getQuote
+      responses:
+        '200':
+          description: The operation was successful.
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/Quote'
+      produces:
+        - application/json
+      description: Retrieve quote
+      parameters:
+        - name: QuoteID
+          in: query
+          type: string
+        - name: Email
+          in: query
+          type: string
+        - name: Name
+          in: query
+          type: string
+    post:
+      operationId: postQuote
+      responses:
+        '200':
+          description: The operation was successful.
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      description: Insert a quote
+      parameters:
+        - name: body
+          in: body
+          schema:
+            $ref: '#/definitions/Quote'
+          description: The request body for the operation
+          required: true
+basePath: /drivewayrepair
+definitions:
+  Quote:
+    type: object
+    properties:
+      QuoteID:
+        type: string
+      Name:
+        type: string
+      Email:
+        type: string
+      Address:
+        type: string
+      USState:
+        type: string
+      LicensePlate:
+        type: string
+      Versions:
+        type: string
+host: $(catalog.host)
+schemes:
+  - https
+x-ibm-configuration:
+  cors:
+    enabled: true
+  gateway: datapower-api-gateway
+  properties:
+    target-url:
+      value: >-
+        http://ace-api-int-srv-http-cp4i.agdemo13-252622168ef3ca91d0666944581f016f-0000.eu-gb.containers.appdomain.cloud:80
+      description: The URL of the target service
+      encoded: false
+  assembly:
+    execute:
+      - invoke:
+          title: invoke
+          version: 2.0.0
+          verb: keep
+          target-url: $(target-url)$(request.path)
+          follow-redirects: false
+          timeout: 60
+          parameter-control:
+            type: blacklist
+          header-control:
+            type: blacklist
+            values:
+              - ^X-IBM-Client-Id$
+          inject-proxy-headers: true
+  type: rest
+  phase: realized
+  enforced: true
+  testable: true
+securityDefinitions:
+  clientID:
+    type: apiKey
+    in: header
+    name: X-IBM-Client-Id
+security: null
