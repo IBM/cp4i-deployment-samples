@@ -15,17 +15,16 @@
 # PARAMETERS:
 #   -n : <NAMESPACE> (string), Defaults to "cp4i"
 #   -r : <RELEASE_NAME> (string), Defaults to "ademo"
-#  
 #
 # USAGE:
-#   With defaults values
+#   With default values
 #     ./configure-apic-v10.sh
 #
 #   Overriding the NAMESPACE and release-name
 #     ./configure-apic-v10 -n cp4i-prod -r prod
 
 function usage {
-    echo "Usage: $0 -n <NAMESPACE> -r <RELEASE_NAME>"
+  echo "Usage: $0 -n <NAMESPACE> -r <RELEASE_NAME>"
 }
 
 CURRENT_DIR=$(dirname $0)
@@ -49,7 +48,6 @@ while getopts "n:r:" opt; do
 done
 
 set -e
-
 
 NAMESPACE="${NAMESPACE}"
 CATALOG_NAME="${ORG_NAME}-catalog"
@@ -343,6 +341,11 @@ for i in `seq 1 60`; do
   fi
 done
 
+API_MANAGER_USER=$(echo $PROVIDER_CREDENTIALS | jq -r .username | base64 --decode)
+API_MANAGER_PASS=$(echo $PROVIDER_CREDENTIALS | jq -r .password | base64 --decode)
+ACE_CLIENT_ID=$(echo $ACE_CREDENTIALS | jq -r .client_id | base64 --decode)
+ACE_CLIENT_SECRET=$(echo $ACE_CREDENTIALS | jq -r .client_secret | base64 --decode)
+
 printf "$tick"
 echo "
 ********** Configuration **********
@@ -352,12 +355,12 @@ platform_api: https://$API_EP/api
 consumer_api: https://$C_API_EP/consumer-api
 
 provider_credentials (api manager):
-  username: $(echo $PROVIDER_CREDENTIALS | jq -r .username | base64 --decode)
-  password: $(echo $PROVIDER_CREDENTIALS | jq -r .password | base64 --decode)
+  username: ${API_MANAGER_USER}
+  password: ${API_MANAGER_PASS}
 
 portal_site_password_reset_link: $PORTAL_SITE_RESET_URL
 
 ace_registration:
-  client_id: $(echo $ACE_CREDENTIALS | jq -r .client_id | base64 --decode)
-  client_secret: $(echo $ACE_CREDENTIALS | jq -r .client_secret | base64 --decode)
+  client_id: ${ACE_CLIENT_ID}
+  client_secret: ${ACE_CLIENT_SECRET}
 "

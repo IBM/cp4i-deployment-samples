@@ -1,0 +1,29 @@
+info:
+  version: 1.0.0
+  title: test-product-ddd
+  name: test-product-ddd
+gateways:
+  - datapower-api-gateway
+plans:
+  default-plan:
+    rate-limits:
+      default:
+        value: 100/1hour
+    title: Default Plan
+    description: Default Plan
+    approval: false
+visibility:
+  view:
+    type: public
+    orgs: []
+    tags: []
+    enabled: true
+  subscribe:
+    type: authenticated
+    orgs: []
+    tags: []
+    enabled: true
+product: 1.0.0
+apis:
+  drivewaydentdeletion:
+    $ref: DrivewayDentDeletion.yaml
