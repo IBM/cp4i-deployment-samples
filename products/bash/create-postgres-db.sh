@@ -18,10 +18,10 @@
 #   -p : <DB_PASS> (string), Defaults to ''
 #
 #   With defaults values
-#     ./configure-postgres.sh
+#     ./create-postgres-db.sh
 #
 #   With overridden values
-#     ./configure-postgres.sh -n <POSTGRES_NAMESPACE> -u <DB_USER> -d <DB_NAME> -p <DB_PASS>
+#     ./create-postgres-db.sh -n <POSTGRES_NAMESPACE> -u <DB_USER> -d <DB_NAME> -p <DB_PASS>
 
 function usage {
   echo "Usage: $0 -n <POSTGRES_NAMESPACE> -u <DB_USER> -d <DB_NAME> -p <DB_PASS>"
@@ -32,10 +32,12 @@ POSTGRES_NAMESPACE="postgres"
 DB_USER="cp4i"
 DB_NAME="db_cp4i"
 DB_PASS=""
+tick="\xE2\x9C\x85"
+cross="\xE2\x9D\x8C"
 
 while getopts "n:u:d:p:" opt; do
   case ${opt} in
-    n ) NAMESPACE="$OPTARG"
+    n ) POSTGRES_NAMESPACE="$OPTARG"
       ;;
     u ) DB_USER="$OPTARG"
       ;;
@@ -48,6 +50,11 @@ while getopts "n:u:d:p:" opt; do
   esac
 done
 
+if [[ -z "${DB_PASS// }" || -z "${POSTGRES_NAMESPACE// }" || -z "${DB_USER// }" || -z "${DB_NAME// }" ]]; then
+  echo -e "$cross ERROR: Some mandatory parameters are empty"
+  usage
+fi
+
 echo "INFO: Waiting for postgres to be ready in the '$POSTGRES_NAMESPACE' namespace"
 oc wait -n $POSTGRES_NAMESPACE --for=condition=available deploymentconfig --timeout=20m postgresql
 
@@ -56,6 +63,7 @@ echo -e "\n---------------------------------------------------------------------
 DB_POD=$(oc get pod -n $POSTGRES_NAMESPACE -l name=postgresql -o jsonpath='{.items[].metadata.name}')
 DB_SVC="$(oc get cm -n $POSTGRES_NAMESPACE postgres-config -o json | jq '.data["postgres.env"] | split("\n  ")' | grep DATABASE_SERVICE_NAME | cut -d "=" -f 2- | tr -dc '[a-z0-9-]\n').postgres.svc.cluster.local"
 
+echo "INFO: Postgres namespace passed: $POSTGRES_NAMESPACE"
 echo "INFO: Database user name: '$DB_USER'"
 echo "INFO: Database name: '$DB_NAME'"
 echo "INFO: Postgres pod name in the '$POSTGRES_NAMESPACE' namespace: '$DB_POD'"
@@ -84,3 +92,5 @@ else
 ALTER USER $DB_USER WITH PASSWORD `echo "'${DB_PASS}'"`;
 EOF
 fi
+
+echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"

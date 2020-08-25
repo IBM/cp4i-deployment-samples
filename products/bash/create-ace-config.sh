@@ -30,6 +30,8 @@ POSTGRES_NAMESPACE="postgres"
 DB_USER="cp4i"
 DB_NAME="db_cp4i"
 DB_PASS=""
+tick="\xE2\x9C\x85"
+cross="\xE2\x9D\x8C"
 
 while getopts "n:g:u:d:p:" opt; do
   case ${opt} in
@@ -47,6 +49,11 @@ while getopts "n:g:u:d:p:" opt; do
       ;;
   esac
 done
+
+if [[ -z "${DB_PASS// }" || -z "${NAMESPACE// }" || -z "${DB_USER// }" || -z "${DB_NAME// }" || -z "${POSTGRES_NAMESPACE// }" ]]; then
+  echo -e "$cross ERROR: Some mandatory parameters are empty"
+  usage
+fi
 
 CURRENT_DIR=$(dirname $0)
 echo "Current directory: $CURRENT_DIR"

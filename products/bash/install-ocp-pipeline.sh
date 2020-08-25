@@ -12,7 +12,7 @@
 #   - Logged into cluster on the OC CLI (https://docs.openshift.com/container-platform/4.4/cli_reference/openshift_cli/getting-started-cli.html)
 #
 #   With defaults values
-#     ./create-ocp-pipeline.sh
+#     ./install-ocp-pipeline.sh
 
 cat <<EOF | oc apply -f -
 apiVersion: operators.coreos.com/v1alpha1
