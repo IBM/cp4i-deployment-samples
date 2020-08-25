@@ -66,7 +66,7 @@ EOF
 
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
-echo -e "\nINFO: Adding permissions to '$namespace' to run tekton tasks..."
+echo -e "INFO: Adding permissions to '$namespace' to run tekton tasks..."
 oc adm policy add-scc-to-group privileged system:serviceaccounts:$namespace
 
 echo "INFO: Creating 'image-bot' service account to create a secret to push to the openshift local registry"
