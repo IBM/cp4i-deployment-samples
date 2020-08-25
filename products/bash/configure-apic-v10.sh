@@ -15,14 +15,14 @@
 # PARAMETERS:
 #   -n : <NAMESPACE> (string), Defaults to "cp4i"
 #   -r : <RELEASE_NAME> (string), Defaults to "ademo"
-#   -o : <ORG_NAME> (string), Defaults to "demoorg"
+#  
 #
 # USAGE:
 #   With defaults values
 #     ./configure-apic-v10.sh
 #
 #   Overriding the NAMESPACE and release-name
-#     ./configure-apic-v10 -n cp4i-prod -r prod -o someorg
+#     ./configure-apic-v10 -n cp4i-prod -r prod
 
 function usage {
     echo "Usage: $0 -n <NAMESPACE> -r <RELEASE_NAME>"
