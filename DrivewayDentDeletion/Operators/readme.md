@@ -47,22 +47,13 @@ These steps will need to be documented in the demo docs:
 ![Overview of dev pipeline](../media/dev-pipeline.svg)
 ## Pipeline with added support for dev/test environments
 ![Overview of dev/test pipeline](../media/dev-test-pipeline.svg)
+## Pipeline with added support for IBM App Connect Integration
+![Overview of dev/test pipeline](../media/dev-test-apic-pipeline.svg)
 ## Description of pipeline
 - Trigger: Whenever a commit is made to the forked repo it triggers the
   pipeline.
-- Build tasks: Each of these tasks builds an images and pushes it to the cluster's local OpenShift Image Registry. The latest dockerfile and related files (bar files) are pulled from the forked git repo.
-- Deploy to dev tasks: Each of these tasks invokes helm to deploy/upgrade the deployments using the newly built image.
-## Pipeline with added support for dev/test environments
-![Overview of dev/test pipeline](../media/dev-test-pipeline.svg)
-## Pipeline with added support for APIC
-![Overview of aaS](../media/dev-test-apic-pipeline.svg)
-## Description of pipeline
-- Trigger: Whenever a commit is made to the forked repo it triggers the
-  pipeline.
+- Clone git repo: Clones this git repo into a workspace PVC that is then used by the rest of the tasks in the pipeline.
 - Build images tasks: Each of these tasks builds an image and pushes it to the cluster's local OpenShift Image Registry. The latest dockerfile and related files (bar files) are pulled from the forked git repo.
 - Deploy to dev/test and wait for rollout tasks: Each of these tasks applies a CR to deploy/update an MQ/ACE microservice and waits for the deploy/update to rollout so the microservice is running the newly built image once the task has completed.
-- Create an APIC API and publish it: Create APIC API pointing to ACE integration server and publish the APIC API using APIC catalog
-- Test APIC API task: Runs a test of the POST/GET endpoints to verify that the dev environment is working. This acts as a gate for rolling out the change to the test environment.
+- Test ACE API task: Runs a test of the POST/GET endpoints to verify that the dev environment is working. This acts as a gate for rolling out the change to the test environment.
 - Copy images to test tasks: Copies the images from the dev project to the test project.
-
-
