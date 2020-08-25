@@ -32,7 +32,7 @@ CURRENT_DIR=$(dirname $0)
 
 NAMESPACE="cp4i"
 RELEASE_NAME="ademo"
-ORG_NAME="demoorg"
+ORG_NAME="main-demo"
 ORG_NAME_DDD="ddd-demo-test"
 tick="\xE2\x9C\x85"
 cross="\xE2\x9D\x8C"
