@@ -63,6 +63,8 @@ spec:
           value: "mq-ddd-qm"
         - name: releaseScript
           value: release-mq.sh
+        - name: namespace
+          value: "{{NAMESPACE}}"
       workspaces:
         - name: git-source
           workspace: git-source
@@ -160,6 +162,8 @@ spec:
           value: "ace-api-int-srv"
         - name: releaseScript
           value: release-ace-integration-server.sh
+        - name: namespace
+          value: "{{NAMESPACE}}"
       workspaces:
         - name: git-source
           workspace: git-source
@@ -177,6 +181,8 @@ spec:
           value: "ace-bernie-int-srv"
         - name: releaseScript
           value: release-ace-integration-server.sh
+        - name: namespace
+          value: "{{NAMESPACE}}"
       workspaces:
         - name: git-source
           workspace: git-source
@@ -194,6 +200,8 @@ spec:
           value: "ace-acme-int-srv"
         - name: releaseScript
           value: release-ace-integration-server.sh
+        - name: namespace
+          value: "{{NAMESPACE}}"
       workspaces:
         - name: git-source
           workspace: git-source
@@ -211,6 +219,8 @@ spec:
           value: "ace-chris-int-srv"
         - name: releaseScript
           value: release-ace-integration-server.sh
+        - name: namespace
+          value: "{{NAMESPACE}}"
       workspaces:
         - name: git-source
           workspace: git-source
