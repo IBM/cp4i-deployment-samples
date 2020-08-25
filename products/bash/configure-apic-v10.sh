@@ -25,7 +25,7 @@
 #     ./configure-apic-v10 -n cp4i-prod -r prod -o someorg
 
 function usage {
-    echo "Usage: $0 -n <NAMESPACE> -r <RELEASE_NAME> -o <ORG_NAME>"
+    echo "Usage: $0 -n <NAMESPACE> -r <RELEASE_NAME>"
 }
 
 CURRENT_DIR=$(dirname $0)
@@ -33,16 +33,15 @@ CURRENT_DIR=$(dirname $0)
 NAMESPACE="cp4i"
 RELEASE_NAME="ademo"
 ORG_NAME="demoorg"
+ORG_NAME_DDD="ddd-demo-test"
 tick="\xE2\x9C\x85"
 cross="\xE2\x9D\x8C"
 
-while getopts "n:r:o:" opt; do
+while getopts "n:r:" opt; do
   case ${opt} in
     n ) NAMESPACE="$OPTARG"
       ;;
     r ) RELEASE_NAME="$OPTARG"
-      ;;
-    o ) ORG_NAME="$OPTARG"
       ;;
     \? ) usage; exit
       ;;
@@ -51,10 +50,10 @@ done
 
 set -e
 
-ORG_NAME1="${ORG_NAME}-1"
+
 NAMESPACE="${NAMESPACE}"
 CATALOG_NAME="${ORG_NAME}-catalog"
-CATALOG_NAME1="${ORG_NAME1}-catalog"
+CATALOG_NAME_DDD="${ORG_NAME_DDD}-catalog"
 PORG_ADMIN_EMAIL=${PORG_ADMIN_EMAIL:-"cp4i-admin@apiconnect.net"} # update to recipient of portal site creation email
 ACE_REGISTRATION_SECRET_NAME="ace-v11-service-creds" # corresponds to registration obj currently hard-coded in configmap
 PROVIDER_SECRET_NAME="cp4i-admin-creds" # corresponds to credentials obj currently hard-coded in configmap
@@ -255,8 +254,8 @@ data:
                 endpoint: https://${PTL_WEB_EP}/${ORG_NAME}/${CATALOG_NAME}
                 portal_service_url: https://${API_EP}/api/orgs/${ORG_NAME}/portal-services/portal-service
       - org:
-          name: ${ORG_NAME1}
-          title: Org for Demo use (${ORG_NAME1})
+          name: ${ORG_NAME_DDD}
+          title: Org for Demo use (${ORG_NAME_DDD})
           org_type: provider
           owner_url: https://${API_EP}/api/user-registries/admin/api-manager-lur/users/cp4i-admin
         members:
@@ -268,13 +267,13 @@ data:
               - https://${API_EP}/api/orgs/demoorg/roles/administrator
         catalogs:
           - catalog:
-              name: ${CATALOG_NAME1}
-              title: Catalog for Demo use (${CATALOG_NAME1})
+              name: ${CATALOG_NAME_DDD}
+              title: Catalog for Demo use (${CATALOG_NAME_DDD})
             settings:
               portal:
                 type: drupal
-                endpoint: https://${PTL_WEB_EP}/${ORG_NAME1}/${CATALOG_NAME1}
-                portal_service_url: https://${API_EP}/api/orgs/${ORG_NAME1}/portal-services/portal-service
+                endpoint: https://${PTL_WEB_EP}/${ORG_NAME_DDD}/${CATALOG_NAME_DDD}
+                portal_service_url: https://${API_EP}/api/orgs/${ORG_NAME_DDD}/portal-services/portal-service
     services: []
     mail_settings:
       mail_server_url: https://${API_EP}/api/orgs/admin/mail-servers/default-mail-server
@@ -289,7 +288,7 @@ metadata:
   labels:
     app: apic-configurator-post-install
   namespace: ${NAMESPACE}
-  name: ${RELEASE_NAME}-apic-configurator-post-install-${ORG_NAME}
+  name: ${RELEASE_NAME}-apic-configurator-post-install
 spec:
   backoffLimit: 1
   template:
