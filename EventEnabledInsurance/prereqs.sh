@@ -32,7 +32,7 @@ all_done="\xF0\x9F\x92\xAF"
 SUFFIX="eei"
 POSTGRES_NAMESPACE="postgres"
 
-while getopts "n:r:" opt; do
+while getopts "n:" opt; do
   case ${opt} in
   n)
     namespace="$OPTARG"
@@ -52,31 +52,20 @@ echo "INFO: Suffix for the postgres is: '$SUFFIX'"
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
 echo "INFO: Installing OCP pipelines..."
-if ! ${CURRENT_DIR}/../products/bash/create-ocp-pipeline.sh; then
+if ! ${CURRENT_DIR}/../products/bash/install-ocp-pipeline.sh; then
   printf "$cross "
   echo -e "ERROR: Failed to install OCP pipelines\n"
   exit 1
 else
   echo -e "$tick INFO: Successfuly installed OCP pipelines"
-fi #${CURRENT_DIR}/../products/bash/create-ocp-pipeline
-
-echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
-
-echo -e "INFO: Creating secret in the '$namespace' namespace to pull images ER for pipelines in the eei demo...\n"
-if ! ${CURRENT_DIR}/../products/bash/entitled-registry.sh -n ${namespace}; then
-  printf "$cross "
-  echo "ERROR: Failed to set up images from the entitled registry in the namespace '$namespace' for the eei demo"
-  exit 1
-else
-  echo -e "$tick INFO: Successfuly set up images from the entitled registry in the namespace '$namespace' for the eei demo"
-fi #${CURRENT_DIR}/../products/bash/entitled-registry.sh -n ${namespace}
+fi #${CURRENT_DIR}/../products/bash/install-ocp-pipeline
 
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
 echo "INFO: Configuring secrets and permissions related to ocp pipelines in the '$namespace' namespace for the eei demo..."
 if ! ${CURRENT_DIR}/../products/bash/configure-ocp-pipeline.sh -n ${namespace}; then
   printf "$cross "
-  echo -e "$cross ERROR: Failed to secrets and permissions related to ocp pipelines in the '$namespace' namespace for the eei demo\n"
+  echo -e "$cross ERROR: Failed to create secrets and permissions related to ocp pipelines in the '$namespace' namespace for the eei demo\n"
   exit 1
 else
   echo -e "$tick INFO: Successfuly configured secrets and permissions related to ocp pipelines in the '$namespace' namespace for the eei demo"
@@ -98,12 +87,12 @@ PASSWORD_ENCODED=$(echo -n ${DB_PASS} | base64)
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
 echo -e "INFO: Configuring postgres in the '$namespace' namespace with the user '$DB_USER' and database name '$DB_NAME' and suffix '$SUFFIX'\n"
-if ! ${CURRENT_DIR}/../products/bash/configure-postgres.sh -n ${POSTGRES_NAMESPACE} -u $DB_USER -d $DB_NAME -p $DB_PASS; then
+if ! ${CURRENT_DIR}/../products/bash/create-postgres-db.sh -n ${POSTGRES_NAMESPACE} -u $DB_USER -d $DB_NAME -p $DB_PASS; then
   echo -e "\n$cross ERROR: Failed to configure postgres in the '$namespace' namespace with the user '$DB_USER' and database name '$DB_NAME' amd suffix '$SUFFIX'"
   exit 1
 else
   echo -e "\n$tick INFO: Successfuly configured postgres in the '$namespace' namespace with the user '$DB_USER' and database name '$DB_NAME' and suffix '$SUFFIX'"
-fi #${CURRENT_DIR}/../products/bash/configure-postgres.sh -n ${POSTGRES_NAMESPACE} -u $DB_USER -d $DB_NAME -p $DB_PASS
+fi #${CURRENT_DIR}/../products/bash/create-postgres-db.sh -n ${POSTGRES_NAMESPACE} -u $DB_USER -d $DB_NAME -p $DB_PASS
 
 echo -e "\nINFO: Creating the table 'QUOTES' and in the database '$DB_NAME' with the username '$DB_USER' in the '$namespace' namespace"
 if ! oc exec -n $POSTGRES_NAMESPACE -it $DB_POD \

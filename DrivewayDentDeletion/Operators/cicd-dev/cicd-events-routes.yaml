@@ -3,7 +3,7 @@ kind: EventListener
 metadata:
   name: dev-event-listener
 spec:
-  serviceAccountName: cicd-pipeline
+  serviceAccountName: pipeline
   triggers:
   - template:
       name: dev-triggertemplate

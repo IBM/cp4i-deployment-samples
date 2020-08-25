@@ -54,28 +54,18 @@ echo "INFO: Suffix for the postgres is: '$SUFFIX'"
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
 echo "INFO: Installing OCP pipelines..."
-if ! ${CURRENT_DIR}/../../products/bash/create-ocp-pipeline.sh; then
+if ! ${CURRENT_DIR}/../../products/bash/install-ocp-pipeline.sh; then
   echo -e "$cross ERROR: Failed to install OCP pipelines\n"
   exit 1
 else
   echo -e "$tick INFO: Successfuly installed OCP pipelines"
-fi  #${CURRENT_DIR}/../../products/bash/create-ocp-pipeline
-
-echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
-
-echo -e "INFO: Creating secret in the '$namespace' namespace to pull images ER for pipelines in the ddd demo...\n"
-if ! ${CURRENT_DIR}/../../products/bash/entitled-registry.sh -n ${namespace}; then
-  echo -e "$cross ERROR: Failed to create the secret to pull from ER in the namespace '$namespace' for the ddd demo\n"
-  exit 1
-else
-  echo -e "$tick INFO: Successfuly created the secret to pull from ER in the namespace '$namespace' for the ddd demo\n"
-fi  #${CURRENT_DIR}/../../products/bash/entitled-registry.sh -n ${namespace}
+fi  #${CURRENT_DIR}/../../products/bash/install-ocp-pipeline
 
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
 echo "INFO: Configuring secrets and permissions related to ocp pipelines in the '$namespace' namespace for the ddd demo..."
 if ! ${CURRENT_DIR}/../../products/bash/configure-ocp-pipeline.sh -n ${namespace}; then
-  echo -e "$cross ERROR: Failed to secrets and permissions related to ocp pipelines in the '$namespace' namespace for the ddd demo\n"
+  echo -e "$cross ERROR: Failed to create secrets and permissions related to ocp pipelines in the '$namespace' namespace for the ddd demo\n"
   exit 1
 else
   echo -e "$tick INFO: Successfuly configured secrets and permissions related to ocp pipelines in the '$namespace' namespace for the ddd demo"
@@ -131,13 +121,13 @@ data:
   password: ${PASSWORD_ENCODED}
 EOF
 
-  echo -e "INFO: Configuring postgres in the '$image_project' namespace with the user '$DB_USER' and database name '$DB_NAME' and suffix '$SUFFIX'\n"
-  if ! ${CURRENT_DIR}/../../products/bash/configure-postgres.sh -n ${POSTGRES_NAMESPACE} -u $DB_USER -d $DB_NAME -p $DB_PASS; then
-    echo -e "\n$cross ERROR: Failed to configure postgres in the '$image_project' namespace with the user '$DB_USER' and database name '$DB_NAME' amd suffix '$SUFFIX'"
+  echo -e "INFO: Creating '$DB_NAME' database and '$DB_USER' user in the postgres instance in the ${POSTGRES_NAMESPACE} namespace\n"
+  if ! ${CURRENT_DIR}/../../products/bash/create-postgres-db.sh -n ${POSTGRES_NAMESPACE} -u $DB_USER -d $DB_NAME -p $DB_PASS; then
+    echo -e "\n$cross ERROR: Failed to configure postgres in the '$POSTGRES_NAMESPACE' namespace with the user '$DB_USER' and database name '$DB_NAME'\n"
     exit 1
   else
-    echo -e "\n$tick INFO: Successfuly configured postgres in the '$image_project' namespace with the user '$DB_USER' and database name '$DB_NAME' and suffix '$SUFFIX'\n"
-  fi  #${CURRENT_DIR}/../../products/bash/configure-postgres.sh -n ${image_project} -u $DB_USER -d $DB_NAME -p $DB_PASS
+    echo -e "\n$tick INFO: Successfuly configured postgres in the '$POSTGRES_NAMESPACE' namespace with the user '$DB_USER' and database name '$DB_NAME'\n"
+  fi  #${CURRENT_DIR}/../../products/bash/create-postgres-db.sh -n ${image_project} -u $DB_USER -d $DB_NAME -p $DB_PASS
 
   echo "INFO: Creating the table 'QUOTES' in the database '$DB_NAME' with the username '$DB_USER' in the '$image_project' namespace"
   if ! oc exec -n $POSTGRES_NAMESPACE -it $DB_POD \

@@ -2,7 +2,7 @@
 This dir is for a demo name "Event Enabled Insurance".
 
 # Prerequisites
-A [script](prereqs.sh) is provided to setup the prerequisits for this demo
+A [script](prereqs.sh) is provided to setup the prerequisites for this demo
 and this script is automatically run as part of the 1-click demo preparation.
 The script carries out the following:
 - Installs Openshift pipelines from the ocp-4.4 channel.
