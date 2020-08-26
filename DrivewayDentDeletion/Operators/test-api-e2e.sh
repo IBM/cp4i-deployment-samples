@@ -107,7 +107,7 @@ echo "INFO: Database name is: '${DB_NAME}'"
 
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
-echo -e "\nINFO: Testing E2E API now..."
+echo -e "INFO: Testing E2E API now..."
 
 # ------- Post to the database -------
 post_response=$(curl -s -w " %{http_code}" -X POST ${HOST}/quote -d "{\"Name\": \"Mickey Mouse\",\"EMail\": \"MickeyMouse@us.ibm.com\",\"Address\": \"30DisneyLand\",\"USState\": \"FL\",\"LicensePlate\": \"MMM123\",\"DentLocations\": [{\"PanelType\": \"Door\",\"NumberOfDents\": 2},{\"PanelType\": \"Fender\",\"NumberOfDents\": 1}]}")
@@ -139,11 +139,12 @@ if [ "$post_response_code" == "200" ]; then
     echo -e "\nINFO: Select and print the row as user '${DB_USER}' from database '${DB_NAME}' with id '$quote_id' to confirm POST and GET..."
     if ! oc exec -n postgres -it ${DB_POD} \
       -- psql -U ${DB_USER} -d ${DB_NAME} -c \
-      "SELECT * FROM quotes WHERE quotes.quoteid=${quote_id};" then
-      echo -e "$cross ERROR: Cannot get row with quote id '$quote_id' to confirm POST and GET"
+      "SELECT * FROM quotes WHERE quotes.quoteid=${quote_id};"; then
+      echo -e "\n$cross ERROR: Cannot get row with quote id '$quote_id' to confirm POST and GET"
     else
-      echo -e "$tick INFO: Successfully got row to confirm POST and GET"
+      echo -e "\n$tick INFO: Successfully got row to confirm POST and GET"
     fi
+
   else
     echo "$cross ERROR: FAILED - Error code: ${get_response_code}"
     echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
@@ -155,22 +156,25 @@ if [ "$post_response_code" == "200" ]; then
   echo -e "\nINFO: Deleting row from database '${DB_NAME}' as user '${DB_USER}' with quote id '$quote_id'..."
   if ! oc exec -n postgres -it ${DB_POD} \
     -- psql -U ${DB_USER} -d ${DB_NAME} -c \
-    "DELETE FROM quotes WHERE quotes.quoteid=${quote_id};" then
-    echo -e "$cross ERROR: Cannot delete the row with quote id '$quote_id'"
+    "DELETE FROM quotes WHERE quotes.quoteid=${quote_id};"; then
+    echo -e "\n$cross ERROR: Cannot delete the row with quote id '$quote_id'"
   else
-    echo -e "$tick INFO: Successfully deleted the row with quote id '$quote_id'"
+    echo -e "\n$tick INFO: Successfully deleted the row with quote id '$quote_id'"
   fi
 
   echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------"
 
-  #  ------- Get row to confirm deletion -------
+  #  ------- Get row output and check for '0 rows' in output to confirm deletion -------
   echo -e "\nINFO: Select and print the row as user '${DB_USER}' from database '${DB_NAME}' with id '$quote_id' to confirm deletion..."
-  if ! oc exec -n postgres -it ${DB_POD} \
+  oc exec -n postgres -it ${DB_POD} \
     -- psql -U ${DB_USER} -d ${DB_NAME} -c \
-    "SELECT * FROM quotes WHERE quotes.quoteid=${quote_id};" then
-    echo -e "$cross ERROR: Cannot get row with quote id '$quote_id' to confirm the deletion"
+    "SELECT * FROM quotes WHERE quotes.quoteid=${quote_id};" \
+    | grep '0 rows'
+
+  if [ $? -eq 0 ]; then
+    echo -e "\n$cross ERROR: Deletion of the row with quote id '$quote_id' failed"
   else
-    echo -e "$tick INFO: Successfully confirmed deletion of row with quote id '$quote_id'"
+    echo -e "\n$tick INFO: Successfully confirmed deletion of row with quote id '$quote_id'"
   fi
 
 else
