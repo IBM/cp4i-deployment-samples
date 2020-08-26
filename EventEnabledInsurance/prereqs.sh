@@ -57,7 +57,7 @@ if ! ${CURRENT_DIR}/../products/bash/install-ocp-pipeline.sh; then
   echo -e "$cross ERROR: Failed to install OCP pipelines\n"
   exit 1
 else
-  echo -e "$tick INFO: Successfuly installed OCP pipelines"
+  echo -e "$tick INFO: Successfully installed OCP pipelines"
 fi #${CURRENT_DIR}/../products/bash/install-ocp-pipeline
 
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
@@ -67,7 +67,7 @@ if ! ${CURRENT_DIR}/../products/bash/configure-ocp-pipeline.sh -n ${namespace}; 
   echo -e "$cross ERROR: Failed to create secrets and permissions related to ocp pipelines in the '$namespace' namespace for the eei demo\n"
   exit 1
 else
-  echo -e "$tick INFO: Successfuly configured secrets and permissions related to ocp pipelines in the '$namespace' namespace for the eei demo"
+  echo -e "$tick INFO: Successfully configured secrets and permissions related to ocp pipelines in the '$namespace' namespace for the eei demo"
 fi #${CURRENT_DIR}/../products/bash/configure-ocp-pipeline.sh -n ${namespace}
 
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
@@ -90,7 +90,7 @@ if ! ${CURRENT_DIR}/../products/bash/create-postgres-db.sh -n ${POSTGRES_NAMESPA
   echo -e "\n$cross ERROR: Failed to configure postgres in the '$namespace' namespace with the user '$DB_USER' and database name '$DB_NAME' amd suffix '$SUFFIX'"
   exit 1
 else
-  echo -e "\n$tick INFO: Successfuly configured postgres in the '$namespace' namespace with the user '$DB_USER' and database name '$DB_NAME' and suffix '$SUFFIX'"
+  echo -e "\n$tick INFO: Successfully configured postgres in the '$namespace' namespace with the user '$DB_USER' and database name '$DB_NAME' and suffix '$SUFFIX'"
 fi #${CURRENT_DIR}/../products/bash/create-postgres-db.sh -n ${POSTGRES_NAMESPACE} -u $DB_USER -d $DB_NAME -p $DB_PASS
 
 echo -e "\nINFO: Creating the table 'QUOTES' and in the database '$DB_NAME' with the username '$DB_USER' in the '$namespace' namespace"
@@ -124,7 +124,7 @@ if ! ${CURRENT_DIR}/../products/bash/create-ace-config.sh -n ${namespace} -u $DB
   echo -e "\n$cross ERROR: Failed to configure ace in the '$namespace' namespace with the user '$DB_USER' and database name '$DB_NAME' and suffix '$SUFFIX'"
   exit 1
 else
-  echo -e "\n$tick INFO: Successfuly configured ace in the '$namespace' namespace with the user '$DB_USER' and database name '$DB_NAME' and suffix '$SUFFIX'"
+  echo -e "\n$tick INFO: Successfully configured ace in the '$namespace' namespace with the user '$DB_USER' and database name '$DB_NAME' and suffix '$SUFFIX'"
 fi #${CURRENT_DIR}/../products/bash/create-ace-config.sh -n ${namespace} -u $DB_USER -d $DB_NAME -p $DB_PASS -a $ACE_CONFIGURATION_NAME
 
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"

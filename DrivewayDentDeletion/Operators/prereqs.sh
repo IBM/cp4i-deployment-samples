@@ -59,7 +59,7 @@ if ! ${CURRENT_DIR}/../../products/bash/install-ocp-pipeline.sh; then
   echo -e "$cross ERROR: Failed to install OCP pipelines\n"
   exit 1
 else
-  echo -e "$tick INFO: Successfuly installed OCP pipelines"
+  echo -e "$tick INFO: Successfully installed OCP pipelines"
 fi  #${CURRENT_DIR}/../../products/bash/install-ocp-pipeline
 
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
@@ -69,7 +69,7 @@ if ! ${CURRENT_DIR}/../../products/bash/configure-ocp-pipeline.sh -n ${namespace
   echo -e "$cross ERROR: Failed to create secrets and permissions related to ocp pipelines in the '$namespace' namespace for the ddd demo\n"
   exit 1
 else
-  echo -e "$tick INFO: Successfuly configured secrets and permissions related to ocp pipelines in the '$namespace' namespace for the ddd demo"
+  echo -e "$tick INFO: Successfully configured secrets and permissions related to ocp pipelines in the '$namespace' namespace for the ddd demo"
 fi  #${CURRENT_DIR}/../../products/bash/configure-ocp-pipeline.sh -n ${namespace}
 
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
@@ -127,7 +127,7 @@ EOF
     echo -e "\n$cross ERROR: Failed to configure postgres in the '$POSTGRES_NAMESPACE' namespace with the user '$DB_USER' and database name '$DB_NAME'\n"
     exit 1
   else
-    echo -e "\n$tick INFO: Successfuly configured postgres in the '$POSTGRES_NAMESPACE' namespace with the user '$DB_USER' and database name '$DB_NAME'\n"
+    echo -e "\n$tick INFO: Successfully configured postgres in the '$POSTGRES_NAMESPACE' namespace with the user '$DB_USER' and database name '$DB_NAME'\n"
   fi  #${CURRENT_DIR}/../../products/bash/create-postgres-db.sh -n ${image_project} -u $DB_USER -d $DB_NAME -p $DB_PASS
 
   echo "INFO: Creating the table 'QUOTES' in the database '$DB_NAME' with the username '$DB_USER' in the '$image_project' namespace"
@@ -159,7 +159,7 @@ EOF
     echo -e "\n$cross ERROR: Failed to configure ace in the '$image_project' namespace with the user '$DB_USER' and database name '$DB_NAME' and suffix '$SUFFIX'"
     exit 1
   else
-    echo -e "\n$tick INFO: Successfuly configured ace in the '$image_project' namespace with the user '$DB_USER' and database name '$DB_NAME' and suffix '$SUFFIX'"
+    echo -e "\n$tick INFO: Successfully configured ace in the '$image_project' namespace with the user '$DB_USER' and database name '$DB_NAME' and suffix '$SUFFIX'"
   fi  #${CURRENT_DIR}/../../products/bash/create-ace-config.sh -n ${image_project} -g $POSTGRES_NAMESPACE -u $DB_USER -d $DB_NAME -p $DB_PASS -a $ACE_CONFIGURATION_NAME
 
   echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
