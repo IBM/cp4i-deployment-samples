@@ -54,8 +54,7 @@ echo -e "\n---------------------------------------------------------------------
 
 echo "INFO: Installing OCP pipelines..."
 if ! ${CURRENT_DIR}/../products/bash/install-ocp-pipeline.sh; then
-  printf "$cross "
-  echo -e "ERROR: Failed to install OCP pipelines\n"
+  echo -e "$cross ERROR: Failed to install OCP pipelines\n"
   exit 1
 else
   echo -e "$tick INFO: Successfuly installed OCP pipelines"
@@ -65,7 +64,6 @@ echo -e "\n---------------------------------------------------------------------
 
 echo "INFO: Configuring secrets and permissions related to ocp pipelines in the '$namespace' namespace for the eei demo..."
 if ! ${CURRENT_DIR}/../products/bash/configure-ocp-pipeline.sh -n ${namespace}; then
-  printf "$cross "
   echo -e "$cross ERROR: Failed to create secrets and permissions related to ocp pipelines in the '$namespace' namespace for the eei demo\n"
   exit 1
 else
