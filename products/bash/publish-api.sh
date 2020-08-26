@@ -58,19 +58,8 @@ while getopts "e:n:r:" opt; do
   esac
 done
 
-# gather info from cluster resources
-PLATFORM_API_EP=$(oc get route -n $NAMESPACE ${RELEASE}-mgmt-platform-api -o jsonpath="{.spec.host}")
-API_MANAGER_EP=$(oc get route -n $NAMESPACE ${RELEASE}-mgmt-api-manager -o jsonpath="{.spec.host}")
-APIC_CREDENTIALS=$(kubectl get secret $APIC_SECRET -n $NAMESPACE -o json | jq .data)
-API_MANAGER_USER=$(echo $APIC_CREDENTIALS | jq -r .username | base64 --decode)
-API_MANAGER_PASS=$(echo $APIC_CREDENTIALS | jq -r .password | base64 --decode)
-ACE_CREDENTIALS=$(kubectl get secret $ACE_SECRET -n $NAMESPACE -o json | jq .data)
-ACE_CLIENT_ID=$(echo $ACE_CREDENTIALS | jq -r .client_id | base64 --decode)
-ACE_CLIENT_SECRET=$(echo $ACE_CREDENTIALS | jq -r .client_secret | base64 --decode)
-
-# ----------------------------------------------- INSTALL JQ --------------------------------------------------------- #
-
-echo "INFO: Checking if jq is pre-installed..."
+# install jq
+echo -e "[DEBUG] Checking if jq is present..."
 jqInstalled=false
 jqVersionCheck=$(jq --version)
 
@@ -80,17 +69,47 @@ else
   jqInstalled=true
 fi
 
+JQ=jq
 if [[ "$jqInstalled" == "false" ]]; then
-  echo "INFO: JQ is not installed, installing jq..."
-  wget -O jq https://github.com/stedolan/jq/releases/download/jq-1.6/jq-linux64
-  chmod +x ./jq
+  echo "[DEBUG] jq not found, installing jq..."
+  if [[ "$OSTYPE" == "linux-gnu"* ]]; then
+    echo "[DEBUG] Installing on linux"
+    wget -O jq https://github.com/stedolan/jq/releases/download/jq-1.6/jq-linux64
+    chmod +x ./jq
+    JQ=./jq
+  elif [[ "$OSTYPE" == "darwin"* ]]; then
+    echo "[DEBUG] Installing on macOS"
+    /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)"
+    brew install jq
+  fi
 fi
 
-echo -e "\nINFO: Installed JQ version is $(./jq --version)"
+echo -e "[INFO] jq version: $($JQ --version)"
+
+# gather info from cluster resources
+echo "[INFO] Gathering cluster info..."
+PLATFORM_API_EP=$(oc get route -n $NAMESPACE ${RELEASE}-mgmt-platform-api -o jsonpath="{.spec.host}")
+echo "[DEBUG] PLATFORM_API_EP=${PLATFORM_API_EP}"
+API_MANAGER_EP=$(oc get route -n $NAMESPACE ${RELEASE}-mgmt-api-manager -o jsonpath="{.spec.host}")
+echo "[DEBUG] API_MANAGER_EP=${API_MANAGER_EP}"
+APIC_CREDENTIALS=$(kubectl get secret $APIC_SECRET -n $NAMESPACE -o json | $JQ .data)
+echo "[DEBUG] APIC_CREDENTIALS=${APIC_CREDENTIALS}"
+API_MANAGER_USER=$(echo $APIC_CREDENTIALS | $JQ -r .username | base64 --decode)
+echo "[DEBUG] API_MANAGER_USER=${API_MANAGER_USER}"
+API_MANAGER_PASS=$(echo $APIC_CREDENTIALS | $JQ -r .password | base64 --decode)
+echo "[DEBUG] API_MANAGER_PASS=${API_MANAGER_PASS}"
+ACE_CREDENTIALS=$(kubectl get secret $ACE_SECRET -n $NAMESPACE -o json | $JQ .data)
+echo "[DEBUG] ACE_CREDENTIALS=${ACE_CREDENTIALS}"
+ACE_CLIENT_ID=$(echo $ACE_CREDENTIALS | $JQ -r .client_id | base64 --decode)
+echo "[DEBUG] ACE_CLIENT_ID=${ACE_CLIENT_ID}"
+ACE_CLIENT_SECRET=$(echo $ACE_CREDENTIALS | $JQ -r .client_secret | base64 --decode)
+echo "[DEBUG] ACE_CLIENT_SECRET=${ACE_CLIENT_SECRET}"
 
 function handle_res {
   local body=$1
-  local status=$(echo ${body} | jq -r .status)
+  local status=$(echo ${body} | $JQ -r ".status")
+  echo "[DEBUG] ${body}"
+  echo "[DEBUG] ${status}"
   if [[ $status == "null" ]]; then
     echo "${body}"
   else
@@ -99,8 +118,8 @@ function handle_res {
 }
 
 # grab bearer token
-RES=$(curl -kLsS -w "%{http_code}\n" -X POST \
-  https://$PLATFORM_API_EP/api/token \
+echo "[INFO] Getting bearer token..."
+RES=$(curl -kLsS -X POST https://$PLATFORM_API_EP/api/token \
   -H "accept: application/json" \
   -H "content-type: application/json" \
   -d "{
@@ -111,21 +130,23 @@ RES=$(curl -kLsS -w "%{http_code}\n" -X POST \
   \"client_secret\": \"${ACE_CLIENT_SECRET}\",
   \"grant_type\": \"password\"
 }")
-TOKEN=$(handle_res "${RES}")
+TOKEN=$(handle_res "${RES}" | $JQ -r ".access_token")
+echo "[DEBUG] Bearer token: ${TOKEN}"
 
 declare -a ORGS=("${DEV_ORG}" "${TEST_ORG}")
 
 for ORG in "${ORGS[@]}"; do
   # get org id
-  RES=$(curl -kLsS -w "%{http_code}\n" \
-    https://$API_MANAGER_EP/api/orgs/$ORG \
+  echo "[INFO] Getting id for org '${ORG}'..."
+  RES=$(curl -kLsS https://$API_MANAGER_EP/api/orgs/$ORG \
     -H "accept: application/yaml" \
-    -H "authorization: Bearer ${TOKEN}" | ./jq -r .id)
+    -H "authorization: Bearer ${TOKEN}" | $JQ -r ".id")
   ORG_ID=$(handle_res "${RES}")
+  echo "[DEBUG] Org id: ${ORG_ID}"
 
   # create draft product
-  RES=$(curl -kLsS -w "%{http_code}\n" -X POST
-    https://$API_MANAGER_EP/api/orgs/$ORG_ID/drafts/draft-products \
+  echo "[DEBUG] Creating draft product in org '${ORG}'..."
+  RES=$(curl -kLsS https://$API_MANAGER_EP/api/orgs/$ORG_ID/drafts/draft-products \
     -H "accept: application/json" \
     -H "authorization: Bearer ${TOKEN}" \
     -H "content-type: multipart/form-data" \
@@ -135,18 +156,20 @@ for ORG in "${ORGS[@]}"; do
 done
 
 # get catalog id
-RES=$(curl -kLsS -w "%{http_code}\n" \
-  https://$API_MANAGER_EP/api/catalogs/$ORG_ID/$CATALOG \
+echo "[DEBUG] Getting catalog id..."
+RES=$(curl -kLsS https://$API_MANAGER_EP/api/catalogs/$ORG_ID/$CATALOG \
   -H "accept: application/json" \
-  -H "authorization: ${TOKEN}" | ./jq -r .id)
+  -H "authorization: ${TOKEN}" | $JQ -r ".id")
 CATALOG_ID=$(handle_res "${RES}")
+echo "[DEBUG] Catalog id: ${CATALOG_ID}"
 
 # publish product
-RES=$(curl -kLsS -w "%{http_code}\n" -X POST \
-  https://$API_MANAGER_EP/api/catalogs/$ORG_ID/$CATALOG_ID/publish \
+echo "[DEBUG] Publishing product..."
+RES=$(curl -kLsS https://$API_MANAGER_EP/api/catalogs/$ORG_ID/$CATALOG_ID/publish \
   -H "accept: application/json" \
   -H "authorization: bearer ${TOKEN}" \
   -H "content-type: multipart/form-data" \
   -F "product=@${CURRENT_DIR}/../DrivewayDentDeletion/Operators/test-product-ddd.yaml;type=application/yaml" \
   -F "openapi=@${CURRENT_DIR}/../DrivewayDentDeletion/Operators/test-api-ddd.yaml;type=application/yaml")
 handle_res "${RES}"
+echo "[DEBUG] Product published"
