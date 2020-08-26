@@ -74,7 +74,7 @@ x-ibm-configuration:
   properties:
     target-url:
       value: >-
-        http://ace-api-int-srv-http-cp4i.agdemo13-252622168ef3ca91d0666944581f016f-0000.eu-gb.containers.appdomain.cloud:80
+        http://{{ACE_API_INT_SRV_ROUTE}}:80
       description: The URL of the target service
       encoded: false
   assembly:
