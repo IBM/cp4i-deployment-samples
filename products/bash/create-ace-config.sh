@@ -161,8 +161,8 @@ fi
 
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
-# setting up policyporject for namespace
-echo "INFO: Setting up policyporject in the '$NAMESPACE' namespace"
+# setting up policyproject for namespace
+echo "INFO: Setting up policyproject in the '$NAMESPACE' namespace"
 CONFIG="\
 apiVersion: appconnect.ibm.com/v1beta1
 kind: Configuration
