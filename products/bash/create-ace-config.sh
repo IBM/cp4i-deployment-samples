@@ -14,15 +14,17 @@
 #   -u : <DB_USER> (string), Defaults to 'cp4i'
 #   -d : <DB_NAME> (string), Defaults to 'db_cp4i'
 #   -p : <DB_PASS> (string), Defaults to ''
+#   -a : <ACE_CONFIGURATION_NAME> (string), Defaults to 'ace-policyproject'
 #
 #   With defaults values
 #     ./create-ace-config.sh
 #
 #   With overridden values
-#     ./create-ace-config.sh -n <NAMESPACE> -g <POSTGRES_NAMESPACE> -u <DB_USER> -d <DB_NAME> -p <DB_PASS>
+#     ./create-ace-config.sh -n <NAMESPACE> -g <POSTGRES_NAMESPACE> -u <DB_USER> -d <DB_NAME> -p <DB_PASS> -a <ACE_CONFIGURATION_NAME>
 
 function usage {
-  echo "Usage: $0 -n <NAMESPACE> -g <POSTGRES_NAMESPACE> -u <DB_USER> -d <DB_NAME> -p <DB_PASS>"
+  echo "Usage: $0 -n <NAMESPACE> -g <POSTGRES_NAMESPACE> -u <DB_USER> -d <DB_NAME> -p <DB_PASS> -a <ACE_CONFIGURATION_NAME>"
+  exit 1
 }
 
 NAMESPACE="cp4i"
@@ -32,8 +34,9 @@ DB_NAME="db_cp4i"
 DB_PASS=""
 tick="\xE2\x9C\x85"
 cross="\xE2\x9D\x8C"
+ACE_CONFIGURATION_NAME="ace-policyproject"
 
-while getopts "n:g:u:d:p:" opt; do
+while getopts "n:g:u:d:p:a:" opt; do
   case ${opt} in
     n ) NAMESPACE="$OPTARG"
       ;;
@@ -45,12 +48,14 @@ while getopts "n:g:u:d:p:" opt; do
       ;;
     p ) DB_PASS="$OPTARG"
       ;;
+    a ) ACE_CONFIGURATION_NAME="$OPTARG"
+      ;;
     \? ) usage; exit
       ;;
   esac
 done
 
-if [[ -z "${DB_PASS// }" || -z "${NAMESPACE// }" || -z "${DB_USER// }" || -z "${DB_NAME// }" || -z "${POSTGRES_NAMESPACE// }" ]]; then
+if [[ -z "${DB_PASS// }" || -z "${NAMESPACE// }" || -z "${DB_USER// }" || -z "${DB_NAME// }" || -z "${POSTGRES_NAMESPACE// }" || -z "${ACE_CONFIGURATION_NAME// }" ]]; then
   echo -e "$cross ERROR: Some mandatory parameters are empty"
   usage
 fi
@@ -167,7 +172,7 @@ CONFIG="\
 apiVersion: appconnect.ibm.com/v1beta1
 kind: Configuration
 metadata:
-  name: ace-policyproject
+  name: $ACE_CONFIGURATION_NAME
   namespace: $NAMESPACE
 spec:
   contents: "$ENCODED"
