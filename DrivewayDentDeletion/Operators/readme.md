@@ -55,5 +55,8 @@ These steps will need to be documented in the demo docs:
 - Clone git repo: Clones this git repo into a workspace PVC that is then used by the rest of the tasks in the pipeline.
 - Build images tasks: Each of these tasks builds an image and pushes it to the cluster's local OpenShift Image Registry. The latest dockerfile and related files (bar files) are pulled from the forked git repo.
 - Deploy to dev/test and wait for rollout tasks: Each of these tasks applies a CR to deploy/update an MQ/ACE microservice and waits for the deploy/update to rollout so the microservice is running the newly built image once the task has completed.
-- Test ACE API task: Runs a test of the POST/GET endpoints to verify that the dev environment is working. This acts as a gate for rolling out the change to the test environment.
+- Test APIC API in Dev environment: Runs a test of the POST/GET endpoints to verify that the dev environment is working. This acts as a gate for rolling out the change to the test environment.
 - Copy images to test tasks: Copies the images from the dev project to the test project.
+- Setup APIC resources taks: Creates APIC Product for Dev and Test environment and then creates the API that gets published to APIC catalog in dev environment in the next step of this task.
+- Publish APIC API to Test Catalog task: After successful run of `Test APIC API in Dev environment` this task will publish the tested API to APIC Catalog in Test enivronment
+-Test APIC API in Test environment task: This task will run a final test of the POST/GET endpoints to verify the API published in the APIC catalog in test environment.
