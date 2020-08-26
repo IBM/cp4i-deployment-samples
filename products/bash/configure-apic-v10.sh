@@ -241,7 +241,7 @@ data:
               identity_provider: common-services
               url: https://${API_EP}/api/user-registries/admin/common-services/users/admin
             role_urls:
-              - https://${API_EP}/api/orgs/demoorg/roles/administrator
+              - https://${API_EP}/api/orgs/${ORG_NAME}/roles/administrator
         catalogs:
           - catalog:
               name: ${CATALOG_NAME}
@@ -262,7 +262,7 @@ data:
               identity_provider: common-services
               url: https://${API_EP}/api/user-registries/admin/common-services/users/admin
             role_urls:
-              - https://${API_EP}/api/orgs/demoorg/roles/administrator
+              - https://${API_EP}/api/orgs/${ORG_NAME_DDD}/roles/administrator
         catalogs:
           - catalog:
               name: ${CATALOG_NAME_DDD}
