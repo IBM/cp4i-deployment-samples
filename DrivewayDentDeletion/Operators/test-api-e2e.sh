@@ -172,9 +172,9 @@ if [ "$post_response_code" == "200" ]; then
     | grep '0 rows'
 
   if [ $? -eq 0 ]; then
-    echo -e "\n$cross ERROR: Deletion of the row with quote id '$quote_id' failed"
-  else
     echo -e "\n$tick INFO: Successfully confirmed deletion of row with quote id '$quote_id'"
+  else
+    echo -e "\n$cross ERROR: Deletion of the row with quote id '$quote_id' failed"
   fi
 
 else
