@@ -89,10 +89,9 @@ fi
 echo -e "\nINFO: Installed JQ version is $(./jq --version)"
 
 function handle_res {
-  response=$1
-  status=$(tail -n1 <<< "$response")
-  body=$(sed '$ d' <<< "$response")
-  if [[ $status =~ ^2\d\d$ ]]; then
+  local body=$1
+  local status=$(echo ${body} | jq -r .status)
+  if [[ $status == "null" ]]; then
     echo "${body}"
   else
     exit 1
@@ -100,7 +99,8 @@ function handle_res {
 }
 
 # grab bearer token
-TOKEN=$(curl -kLsS -X POST https://$PLATFORM_API_EP/api/token \
+RES=$(curl -kLsS -w "%{http_code}\n" -X POST \
+  https://$PLATFORM_API_EP/api/token \
   -H "accept: application/json" \
   -H "content-type: application/json" \
   -d "{
@@ -111,34 +111,42 @@ TOKEN=$(curl -kLsS -X POST https://$PLATFORM_API_EP/api/token \
   \"client_secret\": \"${ACE_CLIENT_SECRET}\",
   \"grant_type\": \"password\"
 }")
+TOKEN=$(handle_res "${RES}")
 
 declare -a ORGS=("${DEV_ORG}" "${TEST_ORG}")
 
-for ORG in "${ORGS[@]}"
-do
+for ORG in "${ORGS[@]}"; do
   # get org id
-  ORG_ID=$(curl -kLsS https://$API_MANAGER_EP/api/orgs/$ORG \
+  RES=$(curl -kLsS -w "%{http_code}\n" \
+    https://$API_MANAGER_EP/api/orgs/$ORG \
     -H "accept: application/yaml" \
     -H "authorization: Bearer ${TOKEN}" | ./jq -r .id)
+  ORG_ID=$(handle_res "${RES}")
 
   # create draft product
-  curl -kLsS -X POST https://$API_MANAGER_EP/api/orgs/$ORG_ID/drafts/draft-products \
+  RES=$(curl -kLsS -w "%{http_code}\n" -X POST
+    https://$API_MANAGER_EP/api/orgs/$ORG_ID/drafts/draft-products \
     -H "accept: application/json" \
     -H "authorization: Bearer ${TOKEN}" \
     -H "content-type: multipart/form-data" \
     -F "product=@${CURRENT_DIR}/../DrivewayDentDeletion/Operators/test-product-ddd.yaml;type=application/yaml" \
-    -F "product=@${CURRENT_DIR}/../DrivewayDentDeletion/Operators/test-api-ddd.yaml;type=application/yaml"
+    -F "product=@${CURRENT_DIR}/../DrivewayDentDeletion/Operators/test-api-ddd.yaml;type=application/yaml")
+  handle_res "${RES}"
 done
 
 # get catalog id
-CATALOG_ID=$(curl -kLsS https://$API_MANAGER_EP/api/catalogs/$ORG_ID/$CATALOG \
+RES=$(curl -kLsS -w "%{http_code}\n" \
+  https://$API_MANAGER_EP/api/catalogs/$ORG_ID/$CATALOG \
   -H "accept: application/json" \
   -H "authorization: ${TOKEN}" | ./jq -r .id)
+CATALOG_ID=$(handle_res "${RES}")
 
 # publish product
-curl -kLsS -X POST https://$API_MANAGER_EP/api/catalogs/$ORG_ID/$CATALOG_ID/publish \
+RES=$(curl -kLsS -w "%{http_code}\n" -X POST \
+  https://$API_MANAGER_EP/api/catalogs/$ORG_ID/$CATALOG_ID/publish \
   -H "accept: application/json" \
   -H "authorization: bearer ${TOKEN}" \
   -H "content-type: multipart/form-data" \
   -F "product=@${CURRENT_DIR}/../DrivewayDentDeletion/Operators/test-product-ddd.yaml;type=application/yaml" \
-  -F "openapi=@${CURRENT_DIR}/../DrivewayDentDeletion/Operators/test-api-ddd.yaml;type=application/yaml"
+  -F "openapi=@${CURRENT_DIR}/../DrivewayDentDeletion/Operators/test-api-ddd.yaml;type=application/yaml")
+handle_res "${RES}"
