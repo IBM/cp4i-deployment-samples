@@ -1,7 +1,7 @@
 info:
   version: 1.0.0
-  title: {{NAMESPACE}}-product-ddd
-  name: {{NAMESPACE}}-product-ddd
+  title: cp4i-product-ddd
+  name: cp4i-product-ddd
 gateways:
   - datapower-api-gateway
 plans:

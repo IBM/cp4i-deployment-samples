@@ -74,7 +74,7 @@ x-ibm-configuration:
   properties:
     target-url:
       value: >-
-        http://{{ACE_API_INT_SRV_ROUTE}}:80
+        http://:80
       description: The URL of the target service
       encoded: false
   assembly:
@@ -102,4 +102,5 @@ securityDefinitions:
     type: apiKey
     in: header
     name: X-IBM-Client-Id
-security: null
+security:
+  - clientID: []
