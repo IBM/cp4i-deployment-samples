@@ -65,9 +65,8 @@ ACE_SECRET="ace-v11-service-creds"
 APIC_SECRET="cp4i-admin-creds"
 
 # install jq
-$DEBUG && echo -e "[DEBUG] Checking if jq is present..."
+$DEBUG && echo "[DEBUG] Checking if jq is present..."
 jqInstalled=false
-jqVersionCheck=$(jq --version)
 
 if [ $? -ne 0 ]; then
   jqInstalled=false
@@ -79,23 +78,25 @@ JQ=jq
 if [[ "$jqInstalled" == "false" ]]; then
   $DEBUG && echo "[DEBUG] jq not found, installing jq..."
   if [[ "$OSTYPE" == "linux-gnu"* ]]; then
-    echo "[DEBUG] Installing on linux"
+    $DEBUG && printf "on linux..."
     wget -O jq https://github.com/stedolan/jq/releases/download/jq-1.6/jq-linux64
     chmod +x ./jq
     JQ=./jq
+    $DEBUG && printf "done\n"
   elif [[ "$OSTYPE" == "darwin"* ]]; then
-    $DEBUG && echo "[DEBUG] Installing on macOS"
+    $DEBUG && printf "on macOS..."
     /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)"
     brew install jq
+    $DEBUG && printf "done\n"
   fi
 fi
 
-echo -e "[INFO] jq version: $($JQ --version)"
+echo "[INFO] jq version: $($JQ --version)"
 
 # gather info from cluster resources
 printf "[INFO] Gathering cluster info..."
 PLATFORM_API_EP=$(oc get route -n $NAMESPACE ${RELEASE}-mgmt-platform-api -o jsonpath="{.spec.host}")
-$DEBUG && echo "[DEBUG] PLATFORM_API_EP=${PLATFORM_API_EP}"
+$DEBUG && echo -e "\n[DEBUG] PLATFORM_API_EP=${PLATFORM_API_EP}"
 API_MANAGER_EP=$(oc get route -n $NAMESPACE ${RELEASE}-mgmt-api-manager -o jsonpath="{.spec.host}")
 $DEBUG && echo "[DEBUG] API_MANAGER_EP=${API_MANAGER_EP}"
 ACE_API_ROUTE=$(oc get routes | grep -i ace-api-int-srv-http-$NAMESPACE | awk '{print $2}')
@@ -112,7 +113,7 @@ ACE_CLIENT_ID=$(echo $ACE_CREDENTIALS | $JQ -r .client_id | base64 --decode)
 $DEBUG && echo "[DEBUG] ACE_CLIENT_ID=${ACE_CLIENT_ID}"
 ACE_CLIENT_SECRET=$(echo $ACE_CREDENTIALS | $JQ -r .client_secret | base64 --decode)
 $DEBUG && echo "[DEBUG] ACE_CLIENT_SECRET=${ACE_CLIENT_SECRET}"
-printf "done\n"
+$DEBUG && echo "[INFO] Gathering cluster info...done" || printf "done\n"
 
 OUTPUT=""
 function handle_res {
@@ -145,21 +146,21 @@ RES=$(curl -kLsS -X POST https://$PLATFORM_API_EP/api/token \
 }")
 handle_res "${RES}"
 TOKEN=$(echo "${OUTPUT}" | $JQ -r ".access_token")
-$DEBUG && echo "[DEBUG] Bearer token: ${TOKEN}"
-printf "done\n"
+$DEBUG && echo -e "\n[DEBUG] Bearer token: ${TOKEN}"
+$DEBUG && echo "[INFO] Getting bearer token...done" || printf "done\n"
 
 # template api and product yamls
 printf "[INFO] Templating api yaml..."
 cat ${CURRENT_DIR}/../../DrivewayDentDeletion/Operators/apic-resources/apic-api-ddd.yaml |
   sed "s#{{ACE_API_INT_SRV_ROUTE}}#${ACE_API_ROUTE}#g;" > ${CURRENT_DIR}/api.yaml
-$DEBUG && echo -e "[DEBUG] api yaml:\n$(cat ${CURRENT_DIR}/api.yaml)"
-printf "done\n"
+$DEBUG && echo -e "\n[DEBUG] api yaml:\n$(cat ${CURRENT_DIR}/api.yaml)"
+$DEBUG && echo "[INFO] Templating api yaml...done" || printf "done\n"
 
 printf "[INFO] Templating product yaml..."
 cat ${CURRENT_DIR}/../../DrivewayDentDeletion/Operators/apic-resources/apic-product-ddd.yaml |
   sed "s#{{NAMESPACE}}#$NAMESPACE#g;" > ${CURRENT_DIR}/product.yaml
-$DEBUG && echo -e "[DEBUG] product yaml:\n$(cat ${CURRENT_DIR}/product.yaml)"
-printf "done\n"
+$DEBUG && echo -e "\n[DEBUG] product yaml:\n$(cat ${CURRENT_DIR}/product.yaml)"
+$DEBUG && echo "[INFO] Templating product yaml...done" || printf "done\n"
 
 # get org id
 printf "[INFO] Getting id for org '${ORG}'..."
@@ -169,7 +170,7 @@ RES=$(curl -kLsS https://$API_MANAGER_EP/api/orgs/$ORG \
 handle_res "${RES}"
 ORG_ID=$(echo "${OUTPUT}" | $JQ -r ".id")
 $DEBUG && echo "[DEBUG] Org id: ${ORG_ID}"
-printf "done\n"
+$DEBUG && echo "[INFO] Getting id for org '${ORG}'...done" || printf "done\n"
 
 # create draft product
 printf "[INFO] Creating draft product in org '${ORG}'..."
@@ -180,7 +181,7 @@ RES=$(curl -kLsS -X POST https://$API_MANAGER_EP/api/orgs/$ORG_ID/drafts/draft-p
   -F "openapi=@${CURRENT_DIR}/api.yaml;type=application/yaml" \
   -F "product=@${CURRENT_DIR}/product.yaml;type=application/yaml")
 handle_res "${RES}"
-printf "done\n"
+$DEBUG && echo "[INFO] Creating draft product in org '${ORG}'...done" || printf "done\n"
 
 if [[ $DEBUG == true ]]; then
   # get draft products
@@ -191,7 +192,7 @@ if [[ $DEBUG == true ]]; then
   handle_res "${RES}"
   DRAFT_PRODUCTS=$(echo "${OUTPUT}")
   $DEBUG && echo "[DEBUG] Draft products: ${DRAFT_PRODUCTS}"
-  printf "done\n"
+  $DEBUG && echo "[INFO] Getting draft products...done" || printf "done\n"
 fi
 
 # get catalog id
@@ -202,7 +203,7 @@ RES=$(curl -kLsS https://$API_MANAGER_EP/api/catalogs/$ORG_ID/$CATALOG \
 handle_res "${RES}"
 CATALOG_ID=$(echo "${OUTPUT}" | $JQ -r ".id")
 $DEBUG && echo "[DEBUG] Catalog id: ${CATALOG_ID}"
-printf "done\n"
+$DEBUG && echo "[INFO] Getting id for catalog ${CATALOG}...done" || printf "done\n"
 
 # publish product
 printf "[INFO] Publishing product..."
@@ -213,4 +214,4 @@ RES=$(curl -kLsS -X POST https://$API_MANAGER_EP/api/catalogs/$ORG_ID/$CATALOG_I
   -F "openapi=@${CURRENT_DIR}/api.yaml;type=application/yaml" \
   -F "product=@${CURRENT_DIR}/product.yaml;type=application/yaml")
 handle_res "${RES}"
-printf "done\n"
+$DEBUG && echo "[INFO] Publishing product...done" || printf "done\n"
