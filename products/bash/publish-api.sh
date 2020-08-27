@@ -25,9 +25,12 @@
 #     ./publish-api.sh -e test -n namespace -r release -d
 #******************************************************************************
 
-# error handling with status codes
-# we need to have the yamls in the repo so we should be calling it from the repo,
-# therefore we might need sed to do replacements in the yaml as the yamls need to be configurable
+# Flow:
+# ↡ obtain bearer token
+# ↡ obtain org id
+# ↡ create draft product with api and plan
+# ↡ obtain catalog id
+# ↡ publish product to catalog
 
 function usage {
   echo "Usage: $0 -e <environment> -n <namespace> -r <release> -d"
