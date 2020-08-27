@@ -62,9 +62,8 @@ while getopts "e:n:r:" opt; do
 done
 
 # install jq
-echo -e "[DEBUG] Checking if jq is present..."
+$DEBUG && echo "[DEBUG] Checking if jq is present..."
 jqInstalled=false
-jqVersionCheck=$(jq --version)
 
 if [ $? -ne 0 ]; then
   jqInstalled=false
@@ -76,23 +75,25 @@ JQ=jq
 if [[ "$jqInstalled" == "false" ]]; then
   echo "[DEBUG] jq not found, installing jq..."
   if [[ "$OSTYPE" == "linux-gnu"* ]]; then
-    echo "[DEBUG] Installing on linux"
+    $DEBUG && printf "on linux..."
     wget -O jq https://github.com/stedolan/jq/releases/download/jq-1.6/jq-linux64
     chmod +x ./jq
     JQ=./jq
+    $DEBUG && printf "done\n"
   elif [[ "$OSTYPE" == "darwin"* ]]; then
-    echo "[DEBUG] Installing on macOS"
+    $DEBUG && printf "on macOS..."
     /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)"
     brew install jq
+    $DEBUG && printf "done\n"
   fi
 fi
 
-echo -e "[INFO] jq version: $($JQ --version)"
+echo "[INFO] jq version: $($JQ --version)"
 
 # gather info from cluster resources
 echo "[INFO] Gathering cluster info..."
 PLATFORM_API_EP=$(oc get route -n $NAMESPACE ${RELEASE}-mgmt-platform-api -o jsonpath="{.spec.host}")
-echo "[DEBUG] PLATFORM_API_EP=${PLATFORM_API_EP}"
+$DEBUG && echo -e "\n[DEBUG] PLATFORM_API_EP=${PLATFORM_API_EP}"
 API_MANAGER_EP=$(oc get route -n $NAMESPACE ${RELEASE}-mgmt-api-manager -o jsonpath="{.spec.host}")
 echo "[DEBUG] API_MANAGER_EP=${API_MANAGER_EP}"
 APIC_CREDENTIALS=$(kubectl get secret $APIC_SECRET -n $NAMESPACE -o json | $JQ .data)
@@ -106,7 +107,8 @@ echo "[DEBUG] ACE_CREDENTIALS=${ACE_CREDENTIALS}"
 ACE_CLIENT_ID=$(echo $ACE_CREDENTIALS | $JQ -r .client_id | base64 --decode)
 echo "[DEBUG] ACE_CLIENT_ID=${ACE_CLIENT_ID}"
 ACE_CLIENT_SECRET=$(echo $ACE_CREDENTIALS | $JQ -r .client_secret | base64 --decode)
-echo "[DEBUG] ACE_CLIENT_SECRET=${ACE_CLIENT_SECRET}"
+$DEBUG && echo "[DEBUG] ACE_CLIENT_SECRET=${ACE_CLIENT_SECRET}"
+$DEBUG && echo "[INFO] Gathering cluster info...done" || printf "done\n"
 
 function handle_res {
   local body=$1
@@ -133,38 +135,69 @@ RES=$(curl -kLsS -X POST https://$PLATFORM_API_EP/api/token \
   \"client_secret\": \"${ACE_CLIENT_SECRET}\",
   \"grant_type\": \"password\"
 }")
-TOKEN=$(handle_res "${RES}" | $JQ -r ".access_token")
-echo "[DEBUG] Bearer token: ${TOKEN}"
+handle_res "${RES}"
+TOKEN=$(echo "${OUTPUT}" | $JQ -r ".access_token")
+$DEBUG && echo -e "\n[DEBUG] Bearer token: ${TOKEN}"
+$DEBUG && echo "[INFO] Getting bearer token...done" || printf "done\n"
 
-declare -a ORGS=("${DEV_ORG}" "${TEST_ORG}")
+# template api and product yamls
+printf "[INFO] Templating api yaml..."
+cat ${CURRENT_DIR}/../../DrivewayDentDeletion/Operators/apic-resources/apic-api-ddd.yaml |
+  sed "s#{{ACE_API_INT_SRV_ROUTE}}#${ACE_API_ROUTE}#g;" > ${CURRENT_DIR}/api.yaml
+$DEBUG && echo -e "\n[DEBUG] api yaml:\n$(cat ${CURRENT_DIR}/api.yaml)"
+$DEBUG && echo "[INFO] Templating api yaml...done" || printf "done\n"
 
-for ORG in "${ORGS[@]}"; do
-  # get org id
-  echo "[INFO] Getting id for org '${ORG}'..."
-  RES=$(curl -kLsS https://$API_MANAGER_EP/api/orgs/$ORG \
-    -H "accept: application/yaml" \
-    -H "authorization: Bearer ${TOKEN}" | $JQ -r ".id")
-  ORG_ID=$(handle_res "${RES}")
-  echo "[DEBUG] Org id: ${ORG_ID}"
+printf "[INFO] Templating product yaml..."
+cat ${CURRENT_DIR}/../../DrivewayDentDeletion/Operators/apic-resources/apic-product-ddd.yaml |
+  sed "s#{{NAMESPACE}}#$NAMESPACE#g;" > ${CURRENT_DIR}/product.yaml
+$DEBUG && echo -e "\n[DEBUG] product yaml:\n$(cat ${CURRENT_DIR}/product.yaml)"
+$DEBUG && echo "[INFO] Templating product yaml...done" || printf "done\n"
 
-  # create draft product
-  echo "[DEBUG] Creating draft product in org '${ORG}'..."
-  RES=$(curl -kLsS https://$API_MANAGER_EP/api/orgs/$ORG_ID/drafts/draft-products \
+# get org id
+printf "[INFO] Getting id for org '${ORG}'..."
+RES=$(curl -kLsS https://$API_MANAGER_EP/api/orgs/$ORG \
+  -H "accept: application/json" \
+  -H "authorization: Bearer ${TOKEN}")
+handle_res "${RES}"
+ORG_ID=$(echo "${OUTPUT}" | $JQ -r ".id")
+$DEBUG && echo "[DEBUG] Org id: ${ORG_ID}"
+$DEBUG && echo "[INFO] Getting id for org '${ORG}'...done" || printf "done\n"
+
+# create draft product
+printf "[INFO] Creating draft product in org '${ORG}'..."
+RES=$(curl -kLsS -X POST https://$API_MANAGER_EP/api/orgs/$ORG_ID/drafts/draft-products \
+  -H "accept: application/json" \
+  -H "authorization: Bearer ${TOKEN}" \
+  -H "content-type: multipart/form-data" \
+  -F "openapi=@${CURRENT_DIR}/api.yaml;type=application/yaml" \
+  -F "product=@${CURRENT_DIR}/product.yaml;type=application/yaml")
+handle_res "${RES}"
+$DEBUG && echo "[INFO] Creating draft product in org '${ORG}'...done" || printf "done\n"
+
+if [[ $DEBUG == true ]]; then
+  # get draft products
+  printf "[INFO] Getting draft products..."
+  RES=$(curl -kLsS https://$API_MANAGER_EP/api/orgs/${ORG_ID}/drafts/draft-products \
     -H "accept: application/json" \
     -H "authorization: Bearer ${TOKEN}" \
     -H "content-type: multipart/form-data" \
     -F "product=@${CURRENT_DIR}/../DrivewayDentDeletion/Operators/test-product-ddd.yaml;type=application/yaml" \
     -F "product=@${CURRENT_DIR}/../DrivewayDentDeletion/Operators/test-api-ddd.yaml;type=application/yaml")
   handle_res "${RES}"
-done
+  DRAFT_PRODUCTS=$(echo "${OUTPUT}")
+  $DEBUG && echo "[DEBUG] Draft products: ${DRAFT_PRODUCTS}"
+  $DEBUG && echo "[INFO] Getting draft products...done" || printf "done\n"
+fi
 
 # get catalog id
 echo "[DEBUG] Getting catalog id..."
 RES=$(curl -kLsS https://$API_MANAGER_EP/api/catalogs/$ORG_ID/$CATALOG \
   -H "accept: application/json" \
-  -H "authorization: ${TOKEN}" | $JQ -r ".id")
-CATALOG_ID=$(handle_res "${RES}")
-echo "[DEBUG] Catalog id: ${CATALOG_ID}"
+  -H "authorization: Bearer ${TOKEN}")
+handle_res "${RES}"
+CATALOG_ID=$(echo "${OUTPUT}" | $JQ -r ".id")
+$DEBUG && echo "[DEBUG] Catalog id: ${CATALOG_ID}"
+$DEBUG && echo "[INFO] Getting id for catalog ${CATALOG}...done" || printf "done\n"
 
 # publish product
 echo "[DEBUG] Publishing product..."
@@ -175,4 +208,4 @@ RES=$(curl -kLsS https://$API_MANAGER_EP/api/catalogs/$ORG_ID/$CATALOG_ID/publis
   -F "product=@${CURRENT_DIR}/../DrivewayDentDeletion/Operators/test-product-ddd.yaml;type=application/yaml" \
   -F "openapi=@${CURRENT_DIR}/../DrivewayDentDeletion/Operators/test-api-ddd.yaml;type=application/yaml")
 handle_res "${RES}"
-echo "[DEBUG] Product published"
+$DEBUG && echo "[INFO] Publishing product...done" || printf "done\n"
