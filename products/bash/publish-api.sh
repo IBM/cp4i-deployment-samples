@@ -60,11 +60,12 @@ while getopts "e:n:r:d" opt; do
 done
 
 ORG=$([[ $ENVIRONMENT == "dev" ]] && echo "main-demo" || echo "ddd-demo-test")
-CATALOG="${ORG}-catalog"
+PRODUCT=${NAMESPACE}-product-ddd
+CATALOG="$ORG-catalog"
 ACE_SECRET="ace-v11-service-creds"
 APIC_SECRET="cp4i-admin-creds"
 
-# install jq
+# Install jq
 $DEBUG && echo "[DEBUG] Checking if jq is present..."
 jqInstalled=false
 
@@ -91,10 +92,10 @@ if [[ "$jqInstalled" == "false" ]]; then
   fi
 fi
 
-echo "[INFO] jq version: $($JQ --version)"
+echo "[INFO]  jq version: $($JQ --version)"
 
-# gather info from cluster resources
-printf "[INFO] Gathering cluster info..."
+# Gather info from cluster resources
+echo "[INFO]  Gathering cluster info..."
 PLATFORM_API_EP=$(oc get route -n $NAMESPACE ${RELEASE}-mgmt-platform-api -o jsonpath="{.spec.host}")
 $DEBUG && echo "[DEBUG] PLATFORM_API_EP=${PLATFORM_API_EP}"
 API_MANAGER_EP=$(oc get route -n $NAMESPACE ${RELEASE}-mgmt-api-manager -o jsonpath="{.spec.host}")
@@ -113,7 +114,7 @@ ACE_CLIENT_ID=$(echo $ACE_CREDENTIALS | $JQ -r .client_id | base64 --decode)
 $DEBUG && echo "[DEBUG] ACE_CLIENT_ID=${ACE_CLIENT_ID}"
 ACE_CLIENT_SECRET=$(echo $ACE_CREDENTIALS | $JQ -r .client_secret | base64 --decode)
 $DEBUG && echo "[DEBUG] ACE_CLIENT_SECRET=${ACE_CLIENT_SECRET}"
-echo "[INFO] ${TICK} Cluster info gathered"
+echo -e "[INFO]  ${TICK} Cluster info gathered"
 
 OUTPUT=""
 function handle_res {
@@ -125,14 +126,15 @@ function handle_res {
     OUTPUT="${body}"
   elif [[ $status == "409" ]]; then
     OUTPUT="${body}"
-    echo "[INFO] Resource already exists, continuing..."
+    echo "[INFO]  Resource already exists, continuing..."
   else
+    echo -e "[ERROR] ${CROSS} Computer says no..."
     exit 1
   fi
 }
 
-# grab bearer token
-echo "[INFO] Getting bearer token..."
+# Grab bearer token
+echo "[INFO]  Getting bearer token..."
 RES=$(curl -kLsS -X POST https://$PLATFORM_API_EP/api/token \
   -H "accept: application/json" \
   -H "content-type: application/json" \
@@ -147,33 +149,33 @@ RES=$(curl -kLsS -X POST https://$PLATFORM_API_EP/api/token \
 handle_res "${RES}"
 TOKEN=$(echo "${OUTPUT}" | $JQ -r ".access_token")
 $DEBUG && echo "[DEBUG] Bearer token: ${TOKEN}"
-echo "[INFO] ${TICK} Got bearer token"
+echo -e "[INFO]  ${TICK} Got bearer token"
 
-# template api and product yamls
-echo "[INFO] Templating api yaml..."
+# Template api and product yamls
+echo "[INFO]  Templating api yaml..."
 cat ${CURRENT_DIR}/../../DrivewayDentDeletion/Operators/apic-resources/apic-api-ddd.yaml |
   sed "s#{{ACE_API_INT_SRV_ROUTE}}#${ACE_API_ROUTE}#g;" > ${CURRENT_DIR}/api.yaml
 $DEBUG && echo -e "[DEBUG] api yaml:\n$(cat ${CURRENT_DIR}/api.yaml)"
-echo "[INFO] ${TICK} Templated api yaml"
+echo -e "[INFO]  ${TICK} Templated api yaml"
 
-echo "[INFO] Templating product yaml..."
+echo "[INFO]  Templating product yaml..."
 cat ${CURRENT_DIR}/../../DrivewayDentDeletion/Operators/apic-resources/apic-product-ddd.yaml |
   sed "s#{{NAMESPACE}}#$NAMESPACE#g;" > ${CURRENT_DIR}/product.yaml
 $DEBUG && echo -e "[DEBUG] product yaml:\n$(cat ${CURRENT_DIR}/product.yaml)"
-echo "[INFO] ${TICK} Templated product yaml"
+echo -e "[INFO]  ${TICK} Templated product yaml"
 
-# get org id
-echo "[INFO] Getting id for org '${ORG}'..."
+# Get org id
+echo "[INFO]  Getting id for org '$ORG'..."
 RES=$(curl -kLsS https://$API_MANAGER_EP/api/orgs/$ORG \
   -H "accept: application/json" \
   -H "authorization: Bearer ${TOKEN}")
 handle_res "${RES}"
 ORG_ID=$(echo "${OUTPUT}" | $JQ -r ".id")
-$DEBUG && echo "[DEBUG] Org id: ${ORG_ID}"
-echo "[INFO] ${TICK} Got id for org '${ORG}'"
+$DEBUG && echo "[DEBUG] Org id: $ORG_ID"
+echo -e "[INFO]  ${TICK} Got id for org '$ORG'"
 
-# create draft product
-echo "[INFO] Creating draft product in org '${ORG}'..."
+# Create draft product
+echo "[INFO]  Creating draft product in org '$ORG'..."
 RES=$(curl -kLsS -X POST https://$API_MANAGER_EP/api/orgs/$ORG_ID/drafts/draft-products \
   -H "accept: application/json" \
   -H "authorization: Bearer ${TOKEN}" \
@@ -181,35 +183,77 @@ RES=$(curl -kLsS -X POST https://$API_MANAGER_EP/api/orgs/$ORG_ID/drafts/draft-p
   -F "openapi=@${CURRENT_DIR}/api.yaml;type=application/yaml" \
   -F "product=@${CURRENT_DIR}/product.yaml;type=application/yaml")
 handle_res "${RES}"
-echo "[INFO] ${TICK} Draft product created in org '${ORG}'"
+echo -e "[INFO]  ${TICK} Draft product created in org '$ORG'"
 
-if [[ $DEBUG == true ]]; then
-  # get draft products
-  echo "[DEBUG] Getting draft products..."
-  RES=$(curl -kLsS https://$API_MANAGER_EP/api/orgs/${ORG_ID}/drafts/draft-products \
-    -H "accept: application/json" \
-    -H "authorization: Bearer ${TOKEN}")
-  handle_res "${RES}"
-  echo -e "[DEBUG] ${TICK} Draft products:\n${OUTPUT}"
+# Get product url
+echo "[DEBUG] Getting product url..."
+RES=$(curl -kLsS https://$API_MANAGER_EP/api/orgs/$ORG_ID/drafts/draft-products \
+  -H "accept: application/json" \
+  -H "authorization: Bearer ${TOKEN}")
+handle_res "${RES}"
+PRODUCT_URL=$(echo ${OUTPUT} | jq -r '.results[] | select(.name == "'$PRODUCT'").url')
+if [[ $PRODUCT_URL == "null" ]]; then
+  echo -e "[ERROR] ${CROSS} Couldn't get product url"
+  exit 1
 fi
+$DEBUG && echo "[DEBUG] Product url: ${PRODUCT_URL}"
+echo -e "[INFO]  ${TICK} Got product url"
 
-# get catalog id
-echo "[INFO] Getting id for catalog ${CATALOG}..."
+# Get catalog id
+echo "[INFO]  Getting id for catalog ${CATALOG}..."
 RES=$(curl -kLsS https://$API_MANAGER_EP/api/catalogs/$ORG_ID/$CATALOG \
   -H "accept: application/json" \
   -H "authorization: Bearer ${TOKEN}")
 handle_res "${RES}"
 CATALOG_ID=$(echo "${OUTPUT}" | $JQ -r ".id")
 $DEBUG && echo "[DEBUG] Catalog id: ${CATALOG_ID}"
-echo "[INFO] ${TICK} Got id for catalog ${CATALOG}"
+echo -e "[INFO]  ${TICK} Got id for catalog ${CATALOG}"
 
-# publish product
-echo "[INFO] Publishing product..."
-RES=$(curl -kLsS -X POST https://$API_MANAGER_EP/api/catalogs/$ORG_ID/$CATALOG_ID/publish \
+# Get gateway service url
+echo "[INFO]  Getting gateway service url..."
+RES=$(curl -kLsS https://$API_MANAGER_EP/api/orgs/$ORG_ID/gateway-services \
+  -H "accept: application/json" \
+  -H "authorization: Bearer ${TOKEN}")
+handle_res "${RES}"
+GW_URL=$(echo "${OUTPUT}" | $JQ -r ".results[0].integration_url")
+$DEBUG && echo "[DEBUG] Gateway service url: ${GW_URL}"
+echo -e "[INFO]  ${TICK} Got gateway service url"
+
+# Stage product
+echo "[INFO]  Staging draft product..."
+RES=$(curl -kLsS -X POST https://$API_MANAGER_EP/api/catalogs/$ORG_ID/$CATALOG_ID/stage-draft-product \
   -H "accept: application/json" \
   -H "authorization: Bearer ${TOKEN}" \
-  -H "content-type: multipart/form-data" \
-  -F "openapi=@${CURRENT_DIR}/api.yaml;type=application/yaml" \
-  -F "product=@${CURRENT_DIR}/product.yaml;type=application/yaml")
+  -H "content-type: application/json" \
+  -d "{
+  \"gateway_service_urls\": [\"${GW_URL}\"],
+  \"draft_product_url\": \"${PRODUCT_URL}\"
+}")
 handle_res "${RES}"
-echo "[INFO] ${TICK} Product published"
+echo -e "[INFO]  ${TICK} Draft product staged"
+
+# Creating configmap for org-info
+echo "[INFO] Creating configmap $ORG-info"
+oc create configmap ${ORG}-info \
+--from-literal=ORG=$ORG \
+--from-literal=ORG_ID=$ORG_ID \
+--from-literal=CATALOG=${ORG}-catalog \
+--from-literal=CATALOG_ID=$CATALOG_ID \
+--from-literal=PRODUCT=${PRODUCT} \
+--from-literal=PRODUCT_URL=${PRODUCT_URL} \
+--from-literal=GW_URL=${GW_URL}
+
+# Run some tests
+
+# Publish product
+echo "[INFO]  Publishing product..."
+RES=$(curl -kLsS -X POST https://$API_MANAGER_EP/api/catalogs/$ORG_ID/$CATALOG_ID/publish-draft-product \
+  -H "accept: application/json" \
+  -H "authorization: Bearer ${TOKEN}" \
+  -H "content-type: application/json" \
+  -d "{
+  \"gateway_service_urls\": [\"${GW_URL}\"],
+  \"draft_product_url\": \"${PRODUCT_URL}\"
+}")
+handle_res "${RES}"
+echo -e "[INFO]  ${TICK} Product published"
