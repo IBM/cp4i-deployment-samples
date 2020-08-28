@@ -102,13 +102,13 @@ API_MANAGER_EP=$(oc get route -n $NAMESPACE ${RELEASE}-mgmt-api-manager -o jsonp
 $DEBUG && echo "[DEBUG] API_MANAGER_EP=${API_MANAGER_EP}"
 ACE_API_ROUTE=$(oc get routes | grep -i ace-api-int-srv-http-$NAMESPACE | awk '{print $2}')
 $DEBUG && echo "[DEBUG] ACE_API_ROUTE=${ACE_API_ROUTE}"
-APIC_CREDENTIALS=$(kubectl get secret $APIC_SECRET -n $NAMESPACE -o json | $JQ .data)
+APIC_CREDENTIALS=$(oc get secret $APIC_SECRET -n $NAMESPACE -o json | $JQ .data)
 $DEBUG && echo "[DEBUG] APIC_CREDENTIALS=${APIC_CREDENTIALS}"
 API_MANAGER_USER=$(echo $APIC_CREDENTIALS | $JQ -r .username | base64 --decode)
 $DEBUG && echo "[DEBUG] API_MANAGER_USER=${API_MANAGER_USER}"
 API_MANAGER_PASS=$(echo $APIC_CREDENTIALS | $JQ -r .password | base64 --decode)
 $DEBUG && echo "[DEBUG] API_MANAGER_PASS=${API_MANAGER_PASS}"
-ACE_CREDENTIALS=$(kubectl get secret $ACE_SECRET -n $NAMESPACE -o json | $JQ .data)
+ACE_CREDENTIALS=$(oc get secret $ACE_SECRET -n $NAMESPACE -o json | $JQ .data)
 $DEBUG && echo "[DEBUG] ACE_CREDENTIALS=${ACE_CREDENTIALS}"
 ACE_CLIENT_ID=$(echo $ACE_CREDENTIALS | $JQ -r .client_id | base64 --decode)
 $DEBUG && echo "[DEBUG] ACE_CLIENT_ID=${ACE_CLIENT_ID}"
@@ -191,7 +191,7 @@ RES=$(curl -kLsS https://$API_MANAGER_EP/api/orgs/$ORG_ID/drafts/draft-products 
   -H "accept: application/json" \
   -H "authorization: Bearer ${TOKEN}")
 handle_res "${RES}"
-PRODUCT_URL=$(echo ${OUTPUT} | jq -r '.results[] | select(.name == "'$PRODUCT'").url')
+PRODUCT_URL=$(echo ${OUTPUT} | $JQ -r '.results[] | select(.name == "'$PRODUCT'").url')
 if [[ $PRODUCT_URL == "null" ]]; then
   echo -e "[ERROR] ${CROSS} Couldn't get product url"
   exit 1
