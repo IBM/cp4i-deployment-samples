@@ -235,13 +235,13 @@ echo -e "[INFO]  ${TICK} Draft product staged"
 # Creating configmap for org-info
 echo "[INFO] Creating configmap $ORG-info"
 oc create configmap ${ORG}-info \
---from-literal=ORG=$ORG \
---from-literal=ORG_ID=$ORG_ID \
---from-literal=CATALOG=${ORG}-catalog \
---from-literal=CATALOG_ID=$CATALOG_ID \
---from-literal=PRODUCT=${PRODUCT} \
---from-literal=PRODUCT_URL=${PRODUCT_URL} \
---from-literal=GW_URL=${GW_URL}
+  --from-literal=ORG=$ORG \
+  --from-literal=ORG_ID=$ORG_ID \
+  --from-literal=CATALOG=${ORG}-catalog \
+  --from-literal=CATALOG_ID=$CATALOG_ID \
+  --from-literal=PRODUCT=${PRODUCT} \
+  --from-literal=PRODUCT_URL=${PRODUCT_URL} \
+  --from-literal=GW_URL=${GW_URL}
 
 # Run some tests
 
