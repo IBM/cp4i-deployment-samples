@@ -228,6 +228,7 @@ spec:
     # test end-to-end API in dev namespace
     - name: test-e2e-api-in-dev-namespace
       runAfter:
+        - apic-resource-config-dev
         - deploy-wait-ace-chris
         - deploy-wait-mq
         - deploy-wait-ace-api
@@ -454,6 +455,7 @@ spec:
     # test end-to-end API in test namespace
     - name: test-e2e-api-in-test-namespace
       runAfter:
+        - apic-resource-config-test
         - deploy-wait-ace-chris-test
         - deploy-wait-mq-test
         - deploy-wait-ace-api-test
