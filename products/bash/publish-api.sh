@@ -27,9 +27,10 @@
 
 # Flow:
 # ↡ obtain bearer token
+# ↡ generate api and product yamls from template
 # ↡ obtain org id
-# ↡ create draft product with api and plan
 # ↡ obtain catalog id
+# ↡ store values in configmap
 # ↡ publish product to catalog
 
 function usage {
@@ -174,31 +175,6 @@ ORG_ID=$(echo "${OUTPUT}" | $JQ -r ".id")
 $DEBUG && echo "[DEBUG] Org id: $ORG_ID"
 echo -e "[INFO]  ${TICK} Got id for org '$ORG'"
 
-# Create draft product
-echo "[INFO]  Creating draft product in org '$ORG'..."
-RES=$(curl -kLsS -X POST https://$API_MANAGER_EP/api/orgs/$ORG_ID/drafts/draft-products \
-  -H "accept: application/json" \
-  -H "authorization: Bearer ${TOKEN}" \
-  -H "content-type: multipart/form-data" \
-  -F "openapi=@${CURRENT_DIR}/api.yaml;type=application/yaml" \
-  -F "product=@${CURRENT_DIR}/product.yaml;type=application/yaml")
-handle_res "${RES}"
-echo -e "[INFO]  ${TICK} Draft product created in org '$ORG'"
-
-# Get product url
-echo "[DEBUG] Getting product url..."
-RES=$(curl -kLsS https://$API_MANAGER_EP/api/orgs/$ORG_ID/drafts/draft-products \
-  -H "accept: application/json" \
-  -H "authorization: Bearer ${TOKEN}")
-handle_res "${RES}"
-PRODUCT_URL=$(echo ${OUTPUT} | $JQ -r '.results[] | select(.name == "'$PRODUCT'").url')
-if [[ $PRODUCT_URL == "null" ]]; then
-  echo -e "[ERROR] ${CROSS} Couldn't get product url"
-  exit 1
-fi
-$DEBUG && echo "[DEBUG] Product url: ${PRODUCT_URL}"
-echo -e "[INFO]  ${TICK} Got product url"
-
 # Get catalog id
 echo "[INFO]  Getting id for catalog ${CATALOG}..."
 RES=$(curl -kLsS https://$API_MANAGER_EP/api/catalogs/$ORG_ID/$CATALOG \
@@ -209,29 +185,6 @@ CATALOG_ID=$(echo "${OUTPUT}" | $JQ -r ".id")
 $DEBUG && echo "[DEBUG] Catalog id: ${CATALOG_ID}"
 echo -e "[INFO]  ${TICK} Got id for catalog ${CATALOG}"
 
-# Get gateway service url
-echo "[INFO]  Getting gateway service url..."
-RES=$(curl -kLsS https://$API_MANAGER_EP/api/orgs/$ORG_ID/gateway-services \
-  -H "accept: application/json" \
-  -H "authorization: Bearer ${TOKEN}")
-handle_res "${RES}"
-GW_URL=$(echo "${OUTPUT}" | $JQ -r ".results[0].integration_url")
-$DEBUG && echo "[DEBUG] Gateway service url: ${GW_URL}"
-echo -e "[INFO]  ${TICK} Got gateway service url"
-
-# Stage product
-echo "[INFO]  Staging draft product..."
-RES=$(curl -kLsS -X POST https://$API_MANAGER_EP/api/catalogs/$ORG_ID/$CATALOG_ID/stage-draft-product \
-  -H "accept: application/json" \
-  -H "authorization: Bearer ${TOKEN}" \
-  -H "content-type: application/json" \
-  -d "{
-  \"gateway_service_urls\": [\"${GW_URL}\"],
-  \"draft_product_url\": \"${PRODUCT_URL}\"
-}")
-handle_res "${RES}"
-echo -e "[INFO]  ${TICK} Draft product staged"
-
 # Creating configmap for org-info
 echo "[INFO] Creating configmap $ORG-info"
 oc create configmap ${ORG}-info \
@@ -239,21 +192,17 @@ oc create configmap ${ORG}-info \
   --from-literal=ORG_ID=$ORG_ID \
   --from-literal=CATALOG=${ORG}-catalog \
   --from-literal=CATALOG_ID=$CATALOG_ID \
-  --from-literal=PRODUCT=${PRODUCT} \
-  --from-literal=PRODUCT_URL=${PRODUCT_URL} \
-  --from-literal=GW_URL=${GW_URL}
+  --from-literal=PRODUCT=${PRODUCT}
 
 # Run some tests
 
 # Publish product
 echo "[INFO]  Publishing product..."
-RES=$(curl -kLsS -X POST https://$API_MANAGER_EP/api/catalogs/$ORG_ID/$CATALOG_ID/publish-draft-product \
+RES=$(curl -kLsS -X POST https://$API_MANAGER_EP/api/catalogs/$ORG_ID/$CATALOG_ID/publish \
   -H "accept: application/json" \
   -H "authorization: Bearer ${TOKEN}" \
-  -H "content-type: application/json" \
-  -d "{
-  \"gateway_service_urls\": [\"${GW_URL}\"],
-  \"draft_product_url\": \"${PRODUCT_URL}\"
-}")
+  -H "content-type: multipart/form-data" \
+  -F "openapi=@${CURRENT_DIR}/api.yaml;type=application/yaml" \
+  -F "product=@${CURRENT_DIR}/product.yaml;type=application/yaml")
 handle_res "${RES}"
 echo -e "[INFO]  ${TICK} Product published"
