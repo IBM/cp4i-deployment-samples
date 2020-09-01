@@ -81,6 +81,7 @@ DB_PASS=$(
   LC_ALL=C tr -dc 'A-Za-z0-9' </dev/urandom | head -c 32
   echo
 )
+echo "Postgres Password: $DB_PASS"
 PASSWORD_ENCODED=$(echo -n ${DB_PASS} | base64)
 
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"

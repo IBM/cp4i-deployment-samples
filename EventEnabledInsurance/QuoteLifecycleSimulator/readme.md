@@ -29,11 +29,9 @@ Loop around. For each ‘Tick’:
 ## Postgres setup
 Ensure the database has the following type and table created:
 ```
-CREATE TYPE SOURCE AS ENUM ('Mobile', 'Web', 'Email', 'Letter', 'Call Center', 'Police');
-
 CREATE TABLE IF NOT EXISTS QUOTES (
   QuoteID SERIAL PRIMARY KEY NOT NULL,
-  Source SOURCE,
+  Source VARCHAR(20),
   Name VARCHAR(100),
   EMail VARCHAR(100),
   Age INTEGER,
