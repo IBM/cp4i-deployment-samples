@@ -1,22 +1,7 @@
 FROM golang:alpine AS builder
 
-# build time args
-ARG ARG_PG_HOST
-ARG ARG_PG_USER
-ARG ARG_PG_PASSWORD
-ARG ARG_PG_DATABASE
-
-# set runtime build args as env vars
-ENV PG_HOST=$ARG_PG_HOST
-ENV PG_USER=$ARG_PG_USER
-ENV PG_PASSWORD=$ARG_PG_PASSWORD
-ENV PG_DATABASE=$ARG_PG_DATABASE
-
-# static env variables
+# static env variable to enable the use of go modules
 ENV GO111MODULE=on
-ENV PG_PORT=5432
-ENV TICK_MILLIS=1000
-ENV MOBILE_TEST_ROWS=10
 
 # check go version
 RUN go version
@@ -42,7 +27,7 @@ RUN CGO_ENABLED=0 GOOS=linux go build -a -v -x -installsuffix eei -o /main main.
 # using the built image
 FROM scratch
 COPY --from=builder /main /main
-EXPOSE 5432
-ENTRYPOINT ["/main", "--port", "5432", "--host", "127.0.0.1"]
+ENTRYPOINT ["/main"]
 
-# docker build . -f Simulator.Dockerfile -t simulator-eei --build-arg ARG_PG_USER=cp4i1_sor_eei --build-arg ARG_PG_PASSWORD=password --build-arg ARG_PG_DATABASE=db_cp4i1_sor_eei --build-arg ARG_PG_HOST=localhost
+# docker build . -f Simulator.Dockerfile -t simulator-eei
+# docker run -it --env PG_HOST --env PG_USER --env PG_PASSWORD --env PG_DATABASE --env PG_HOST --env PG_PORT --env TICK_MILLIS --env MOBILE_TEST_ROWS simulator-eei
