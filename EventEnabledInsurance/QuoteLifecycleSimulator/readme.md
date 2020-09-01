@@ -43,6 +43,13 @@ CREATE TABLE IF NOT EXISTS QUOTES (
   ClaimCost INTEGER
 );
 ```
+
+## Download the required packages
+Get to use the network to update the required named packages and their dependencies (run this command from within the directory containing `Simulator.Dockerfile`):
+```
+go mod download
+```
+
 ## Give access to postgres
 Setup port forwarding from a local port to the postgres service on the cluster:
 ```
