@@ -111,7 +111,7 @@ spec:
     spec:
       containers:
         - name: simulator-eei
-          image: image-registry.openshift-image-registry.svc:5000/cp4i1/simulator-eei
+          image: image-registry.openshift-image-registry.svc:5000/$namesapce/simulator-eei
           env:
           - name: PG_HOST
             value: "$PG_HOST"
