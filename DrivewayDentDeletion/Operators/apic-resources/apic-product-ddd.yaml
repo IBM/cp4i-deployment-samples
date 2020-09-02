@@ -12,6 +12,13 @@ plans:
     title: Default Plan
     description: Default Plan
     approval: false
+  gold-plan:
+    rate-limits:
+      default:
+        value: 10/1second
+    title: Gold Plan
+    description: Gold Plan for Valued Customers
+    approval: false
 visibility:
   view:
     type: public
