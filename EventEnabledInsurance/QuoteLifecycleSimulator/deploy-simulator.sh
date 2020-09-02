@@ -126,5 +126,8 @@ spec:
           - name: MOBILE_TEST_ROWS
             value: "$MOBILE_TEST_ROWS"
           - name: PG_PASSWORD
-            value: "$PG_PASSWORD"
+            valueFrom:
+              secretKeyRef:
+                key: password
+                name: postgres-credential-eei
 EOF
