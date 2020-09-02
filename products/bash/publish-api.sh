@@ -65,8 +65,6 @@ done
 ORG=$([[ $ENVIRONMENT == "dev" ]] && echo "main-demo" || echo "ddd-demo-test")
 PRODUCT=${NAMESPACE}-product-ddd
 CATALOG="$ORG-catalog"
-ACE_SECRET="ace-v11-service-creds"
-APIC_SECRET="cp4i-admin-creds"
 
 # Install jq
 $DEBUG && echo "[DEBUG] Checking if jq is present..."
@@ -105,18 +103,6 @@ API_MANAGER_EP=$(oc get route -n $NAMESPACE ${RELEASE}-mgmt-api-manager -o jsonp
 $DEBUG && echo "[DEBUG] API_MANAGER_EP=${API_MANAGER_EP}"
 ACE_API_ROUTE=$(oc get routes | grep -i ace-api-int-srv-http-$NAMESPACE | awk '{print $2}')
 $DEBUG && echo "[DEBUG] ACE_API_ROUTE=${ACE_API_ROUTE}"
-APIC_CREDENTIALS=$(oc get secret $APIC_SECRET -n $NAMESPACE -o json | $JQ .data)
-$DEBUG && echo "[DEBUG] APIC_CREDENTIALS=${APIC_CREDENTIALS}"
-API_MANAGER_USER=$(echo $APIC_CREDENTIALS | $JQ -r .username | base64 --decode)
-echo "[DEBUG] API_MANAGER_USER=${API_MANAGER_USER}"
-API_MANAGER_PASS=$(echo $APIC_CREDENTIALS | $JQ -r .password | base64 --decode)
-$DEBUG && echo "[DEBUG] API_MANAGER_PASS=${API_MANAGER_PASS}"
-ACE_CREDENTIALS=$(oc get secret $ACE_SECRET -n $NAMESPACE -o json | $JQ .data)
-$DEBUG && echo "[DEBUG] ACE_CREDENTIALS=${ACE_CREDENTIALS}"
-ACE_CLIENT_ID=$(echo $ACE_CREDENTIALS | $JQ -r .client_id | base64 --decode)
-echo "[DEBUG] ACE_CLIENT_ID=${ACE_CLIENT_ID}"
-ACE_CLIENT_SECRET=$(echo $ACE_CREDENTIALS | $JQ -r .client_secret | base64 --decode)
-$DEBUG && echo "[DEBUG] ACE_CLIENT_SECRET=${ACE_CLIENT_SECRET}"
 echo -e "[INFO]  ${TICK} Cluster info gathered"
 
 function handle_res {
@@ -137,19 +123,7 @@ function handle_res {
 
 # Grab bearer token
 echo "[INFO]  Getting bearer token..."
-RES=$(curl -kLsS -X POST https://$PLATFORM_API_EP/api/token \
-  -H "accept: application/json" \
-  -H "content-type: application/json" \
-  -d "{
-  \"username\": \"${API_MANAGER_USER}\",
-  \"password\": \"${API_MANAGER_PASS}\",
-  \"realm\": \"provider/default-idp-2\",
-  \"client_id\": \"${ACE_CLIENT_ID}\",
-  \"client_secret\": \"${ACE_CLIENT_SECRET}\",
-  \"grant_type\": \"password\"
-}")
-handle_res "${RES}"
-TOKEN=$(echo "${OUTPUT}" | $JQ -r ".access_token")
+TOKEN=$(${CURRENT_DIR}/get-apic-token.sh -n $NAMESPACE -r $RELEASE)
 $DEBUG && echo "[DEBUG] Bearer token: ${TOKEN}"
 echo -e "[INFO]  ${TICK} Got bearer token"
 
@@ -168,32 +142,15 @@ echo -e "[INFO]  ${TICK} Templated product yaml"
 
 # Get org id
 echo "[INFO]  Getting id for org '$ORG'..."
-RES=$(curl -kLsS https://$API_MANAGER_EP/api/orgs/$ORG \
-  -H "accept: application/json" \
-  -H "authorization: Bearer ${TOKEN}")
-handle_res "${RES}"
-ORG_ID=$(echo "${OUTPUT}" | $JQ -r ".id")
+ORG_ID=$(oc get -n $NAMESPACE configmap ${ORG}-info -o jsonpath="{.data.ORG_ID}")
 $DEBUG && echo "[DEBUG] Org id: $ORG_ID"
 echo -e "[INFO]  ${TICK} Got id for org '$ORG'"
 
 # Get catalog id
 echo "[INFO]  Getting id for catalog ${CATALOG}..."
-RES=$(curl -kLsS https://$API_MANAGER_EP/api/catalogs/$ORG_ID/$CATALOG \
-  -H "accept: application/json" \
-  -H "authorization: Bearer ${TOKEN}")
-handle_res "${RES}"
-CATALOG_ID=$(echo "${OUTPUT}" | $JQ -r ".id")
+CATALOG_ID=$(oc get -n $NAMESPACE configmap ${ORG}-info -o jsonpath="{.data.CATALOG_ID}")
 $DEBUG && echo "[DEBUG] Catalog id: ${CATALOG_ID}"
 echo -e "[INFO]  ${TICK} Got id for catalog ${CATALOG}"
-
-# Creating configmap for org-info
-echo "[INFO] Creating configmap $ORG-info"
-oc create configmap ${ORG}-info \
-  --from-literal=ORG=$ORG \
-  --from-literal=ORG_ID=$ORG_ID \
-  --from-literal=CATALOG=${ORG}-catalog \
-  --from-literal=CATALOG_ID=$CATALOG_ID \
-  --from-literal=PRODUCT=${PRODUCT}
 
 # Run some tests
 

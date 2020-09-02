@@ -23,10 +23,6 @@
 #   Overriding the NAMESPACE and release-name
 #     ./configure-apic-v10 -n cp4i-prod -r prod
 
-function usage {
-  echo "Usage: $0 -n <NAMESPACE> -r <RELEASE_NAME>"
-}
-
 CURRENT_DIR=$(dirname $0)
 
 NAMESPACE="cp4i"
@@ -35,6 +31,27 @@ ORG_NAME="main-demo"
 ORG_NAME_DDD="ddd-demo-test"
 tick="\xE2\x9C\x85"
 cross="\xE2\x9D\x8C"
+
+function usage {
+  echo "Usage: $0 -n <NAMESPACE> -r <RELEASE_NAME>"
+}
+
+OUTPUT=""
+function handle_res {
+  local body=$1
+  local status=$(echo ${body} | jq -r ".status")
+  $DEBUG && echo "[DEBUG] res body: ${body}"
+  $DEBUG && echo "[DEBUG] res status: ${status}"
+  if [[ $status == "null" ]]; then
+    OUTPUT="${body}"
+  elif [[ $status == "409" ]]; then
+    OUTPUT="${body}"
+    echo "[INFO]  Resource already exists, continuing..."
+  else
+    echo -e "[ERROR] ${CROSS} Computer says no..."
+    exit 1
+  fi
+}
 
 while getopts "n:r:" opt; do
   case ${opt} in
@@ -364,3 +381,84 @@ ace_registration:
   client_id: ${ACE_CLIENT_ID}
   client_secret: ${ACE_CLIENT_SECRET}
 "
+
+# Grab bearer token
+echo "[INFO]  Getting bearer token..."
+TOKEN=$(${CURRENT_DIR}/get-apic-token.sh -n $NAMESPACE -r $RELEASE_NAME)
+$DEBUG && echo "[DEBUG] Bearer token: ${TOKEN}"
+echo -e "[INFO] Got bearer token"
+
+# Create consumer orgs
+declare -a ORGS=("${ORG_NAME}" "${ORG_NAME_DDD}")
+for ORG in "${ORGS[@]}"; do
+  # Get org id
+  echo "[INFO]  Getting id for org '$ORG'..."
+  RES=$(curl -kLsS https://$APIM_UI_EP/api/orgs/$ORG \
+    -H "accept: application/json" \
+    -H "authorization: Bearer ${TOKEN}")
+  handle_res "${RES}"
+  ORG_ID=$(echo "${OUTPUT}" | jq -r ".id")
+  $DEBUG && echo "[DEBUG] Org id: $ORG_ID"
+  echo -e "[INFO]  ${TICK} Got id for org '$ORG'"
+
+  # Get catalog id
+  echo "[INFO]  Getting id for catalog ${ORG}-catalog..."
+  RES=$(curl -kLsS https://$APIM_UI_EP/api/catalogs/$ORG_ID/${ORG}-catalog} \
+    -H "accept: application/json" \
+    -H "authorization: Bearer ${TOKEN}")
+  handle_res "${RES}"
+  CATALOG_ID=$(echo "${OUTPUT}" | jq -r ".id")
+  $DEBUG && echo "[DEBUG] Catalog id: ${CATALOG_ID}"
+  echo -e "[INFO]  ${TICK} Got id for catalog ${ORG}-catalog"
+
+  # Create configmap for org info
+  echo "[INFO] Creating configmap ${ORG}-info"
+  oc create configmap ${ORG}-info \
+    --from-literal=ORG=$ORG \
+    --from-literal=ORG_ID=$ORG_ID \
+    --from-literal=CATALOG=${ORG}-catalog \
+    --from-literal=CATALOG_ID=$CATALOG_ID \
+
+  # Get user registry url
+  echo "[INFO] Getting configured catalog user registry url for ${ORG}-catalog..."
+  RES=$(curl -kLsS https://$APIM_UI_EP/api/catalogs/$ORG_ID/$CATALOG_ID/configured-catalog-user-registries \
+    -H "accept: application/json" \
+    -H "authorization: Bearer ${TOKEN}")
+  handle_res "${RES}"
+  USER_REGISTRY_URL=$(echo "${OUTPUT}" | jq -r ".results[0].user_registry_url")
+  $DEBUG && echo "[DEBUG] User registry url: ${USER_REGISTRY_URL}"
+  echo -e "[INFO] ${tick} Got configured catalog user registry url for ${ORG}-catalog"
+
+  # Create consumer org owner
+  echo "[INFO] Creating consumer org owner..."
+  RES=$(curl -kLsS -X POST $USER_REGISTRY_URL/users \
+    -H "accept: application/json" \
+    -H "authorization: Bearer ${TOKEN}" \
+    -H "content-type: application/json" \
+    -d "{
+      \"username\": \"${ORG}-corg-admin\",
+      \"email\": \"nigel@acme.org\",
+      \"first_name\": \"Nigel\",
+      \"last_name\": \"McNigelface\",
+      \"password\": \"!n0r1t5@C\"
+  }")
+  handle_res "${RES}"
+  OWNER_URL=$(echo "${OUTPUT}" | jq -r ".url")
+  $DEBUG && echo "[DEBUG] Owner url: ${OWNER_URL}"
+  echo -e "[INFO] ${tick} Created consumer org owner"
+
+  # Create consumer org
+  echo "[INFO] Creating consumer org..."
+  RES=$(curl -kLsS -X POST https://$APIM_UI_EP/api/catalogs/$ORG_ID/$CATALOG_ID/consumer-orgs \
+    -H "accept: application/json" \
+    -H "authorization: Bearer " \
+    -H "content-type: application/json" \
+    -d "{
+      \"title\": \"${ORG}-corp\",
+      \"name\": \"${ORG}-corp\",
+      \"owner_url\": \"${OWNER_URL}\"
+  }")
+  handle_res "${RES}"
+  echo -e "[INFO] ${tick} Created consumer org"
+
+done

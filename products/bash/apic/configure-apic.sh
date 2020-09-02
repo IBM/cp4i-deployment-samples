@@ -96,8 +96,6 @@ for i in `seq 1 60`; do
   fi
 done
 
-
-
 echo "
 ********** Configuration **********
 api_manager_ui: https://$APIM_UI_EP/manager
