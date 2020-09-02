@@ -103,7 +103,7 @@ spec:
   selector:
     matchLabels:
       app: simulator-$SUFFIX
-  replicas: 1
+  replicas: 0
   template:
     metadata:
       labels:
@@ -111,7 +111,7 @@ spec:
     spec:
       containers:
         - name: simulator-eei
-          image: image-registry.openshift-image-registry.svc:5000/$namesapce/simulator-eei
+          image: image-registry.openshift-image-registry.svc:5000/$namespace/simulator-eei
           env:
           - name: PG_HOST
             value: "$PG_HOST"
