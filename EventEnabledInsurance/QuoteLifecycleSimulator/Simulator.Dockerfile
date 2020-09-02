@@ -28,6 +28,3 @@ RUN CGO_ENABLED=0 GOOS=linux go build -a -v -x -installsuffix eei -o /main main.
 FROM scratch
 COPY --from=builder /main /main
 ENTRYPOINT ["/main"]
-
-# docker build . -f Simulator.Dockerfile -t simulator-eei
-# docker run -it --env PG_HOST --env PG_USER --env PG_PASSWORD --env PG_DATABASE --env PG_HOST --env PG_PORT --env TICK_MILLIS --env MOBILE_TEST_ROWS simulator-eei
