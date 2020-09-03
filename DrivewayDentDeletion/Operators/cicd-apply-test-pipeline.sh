@@ -139,7 +139,7 @@ fi
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
 # create tekton tasks
-echo "INFO: Create tekton tasks"
+echo "INFO: Create common tekton tasks"
 if cat $CURRENT_DIR/../../CommonPipelineResources/cicd-tasks.yaml |
   sed "s#{{NAMESPACE}}#$namespace#g;" |
   oc apply -f -; then
@@ -148,6 +148,21 @@ if cat $CURRENT_DIR/../../CommonPipelineResources/cicd-tasks.yaml |
 else
   printf "$cross "
   echo "Failed to apply tekton tasks in the '$namespace' namespace"
+  sum=$((sum + 1))
+fi
+
+echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
+
+# create tekton tasks for test
+echo "INFO: Create tekton tasks for test"
+if cat $CURRENT_DIR/cicd-test/cicd--tasks.yaml |
+  sed "s#{{NAMESPACE}}#$namespace#g;" |
+  oc apply -f -; then
+    printf "$tick "
+    echo "Successfully applied ttekton tasks for test in the '$namespace' namespace"
+else
+  printf "$cross "
+  echo "Failed to apply tekton tasks for test in the '$namespace' namespace"
   sum=$((sum + 1))
 fi
 
