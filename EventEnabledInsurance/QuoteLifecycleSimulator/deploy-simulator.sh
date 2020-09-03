@@ -13,7 +13,6 @@
 #
 # PARAMETERS:
 #   -n : <namespace> (string), Defaults to 'cp4i'
-#   -p : <PG_PORT> (string), Defaults to '5432'
 #   -t : <TICK_MILLIS> (string), Defaults to '1000'
 #   -m : <MOBILE_TEST_ROWS> (string), Defaults to '10'
 #
@@ -21,10 +20,10 @@
 #     ./prereqs.sh
 #
 #   With overridden values
-#     ./prereqs.sh -n <namespace> -p <PG_PORT> -t <TICK_MILLIS> -m <MOBILE_TEST_ROWS>
+#     ./prereqs.sh -n <namespace> -t <TICK_MILLIS> -m <MOBILE_TEST_ROWS>
 
 function usage() {
-  echo "Usage: $0 -n <namespace> -p <PG_PORT> -t <TICK_MILLIS> -m <MOBILE_TEST_ROWS>"
+  echo "Usage: $0 -n <namespace> -t <TICK_MILLIS> -m <MOBILE_TEST_ROWS>"
   exit 1
 }
 
@@ -39,13 +38,10 @@ PG_PORT=5432
 TICK_MILLIS=1000
 MOBILE_TEST_ROWS=10
 
-while getopts "n:p:t:m:" opt; do
+while getopts "n:t:m:" opt; do
   case ${opt} in
   n)
     namespace="$OPTARG"
-    ;;
-  p)
-    PG_PORT="$OPTARG"
     ;;
   t)
     TICK_MILLIS="$OPTARG"
@@ -65,9 +61,7 @@ echo "INFO: Current directory: '$CURRENT_DIR'"
 echo "INFO: Namespace: '$namespace'"
 echo "INFO: Suffix for the postgres is: '$SUFFIX'"
 
-PG_PASSWORD=$(echo $(oc get secret -n $namespace postgres-credential-eei -o json | jq -r '.data.password') | base64 --decode)
-
-if [[ -z "${namespace// }" || -z "${PG_PORT// }" || -z "${TICK_MILLIS// }" || -z "${MOBILE_TEST_ROWS// }" || -z "${PG_PASSWORD// }" ]]; then
+if [[ -z "${namespace// }" || -z "${TICK_MILLIS// }" || -z "${MOBILE_TEST_ROWS// }" ]]; then
   echo -e "$cross ERROR: Some or all mandatory parameters are empty"
   usage
 fi
@@ -80,7 +74,7 @@ echo -e "\n---------------------------------------------------------------------
 
 echo -e "INFO: Getting postgres pod name and service name for the simulator app host"
 DB_POD=$(oc get pod -n $POSTGRES_NAMESPACE -l name=postgresql -o jsonpath='{.items[].metadata.name}')
-DB_SVC="$(oc get cm -n $POSTGRES_NAMESPACE postgres-config -o json | jq '.data["postgres.env"] | split("\n  ")' | grep DATABASE_SERVICE_NAME | cut -d "=" -f 2- | tr -dc '[a-z0-9-]\n').postgres.svc.cluster.local"
+DB_SVC="postgresql.$POSTGRES_NAMESPACE.svc.cluster.local"
 PG_HOST=$DB_SVC
 echo "INFO: Postgres pod name in the '$POSTGRES_NAMESPACE' namespace: '$DB_POD'"
 echo "INFO: Postgres service name for the simulator application: '$PG_HOST'"
