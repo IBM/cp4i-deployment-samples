@@ -20,7 +20,7 @@ spec:
         - name: revision
           value: "{{BRANCH}}"
       workspaces:
-        - name: output
+        - name: git-source
           workspace: git-source
 
     # Build the quote lifecycle simulator app image
@@ -29,7 +29,7 @@ spec:
         - clone-git-source
       taskSpec:
         workspaces:
-          - name: output
+          - name: git-source
         steps:
           - name: build
             image: quay.io/buildah/stable:latest
@@ -43,6 +43,9 @@ spec:
               buildah --storage-driver vfs push \
                 --tls-verify=false \
                 image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}/quote-simulator-eei:latest
+      workspaces:
+      - name: git-source
+        workspace: git-source
 
     # Deploy the quote lifecycle simulator app image
     - name: deploy-simulator-app
@@ -55,3 +58,6 @@ spec:
           - name: oc
             image: quay.io/openshift/origin-cli:latest
             script: "/workspace/git-source/EventEnabledInsurance/QuoteLifecycleSimulator/deploy-simulator.sh -n {{NAMESPACE}} -t 1000 -m 10"
+      workspaces:
+      - name: git-source
+        workspace: git-source
