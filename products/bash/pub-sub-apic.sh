@@ -163,7 +163,7 @@ oc create configmap ${ORG}-info \
 
 # Get user registry url
 echo "[INFO] Getting configured catalog user registry url for ${ORG}-catalog..."
-RES=$(curl -kLsS https://$APIM_UI_EP/api/catalogs/$ORG/$CATALOG/configured-catalog-user-registries \
+RES=$(curl -kLsS https://$API_MANAGER_EP/api/catalogs/$ORG/$CATALOG/configured-catalog-user-registries \
   -H "accept: application/json" \
   -H "authorization: Bearer ${TOKEN}")
 handle_res "${RES}"
@@ -191,7 +191,7 @@ echo -e "[INFO] ${tick} Consumer org owner created"
 
 # Create consumer org
 echo "[INFO] Creating consumer org..."
-RES=$(curl -kLsS -X POST https://$APIM_UI_EP/api/catalogs/$ORG/$CATALOG/consumer-orgs \
+RES=$(curl -kLsS -X POST https://$API_MANAGER_EP/api/catalogs/$ORG/$CATALOG/consumer-orgs \
   -H "accept: application/json" \
   -H "authorization: Bearer ${TOKEN}" \
   -H "content-type: application/json" \
@@ -205,7 +205,7 @@ echo -e "[INFO] ${tick} Consumer org created"
 
 # Create an app
 echo "[INFO] Creating application..."
-RES=$(curl -kLsS -X POST https://$APIM_UI_EP/api/consumer-orgs/$ORG/$CATALOG/$C_ORG/apps \
+RES=$(curl -kLsS -X POST https://$API_MANAGER_EP/api/consumer-orgs/$ORG/$CATALOG/$C_ORG/apps \
   -H "accept: application/json" \
   -H "authorization: Bearer ${TOKEN}" \
   -H "content-type: application/json" \
@@ -218,7 +218,7 @@ echo -e "[INFO] ${tick} Application created"
 
 # Get product url
 echo "[INFO] Getting url for product $PRODUCT..."
-RES=$(curl -kLsS https://$APIM_UI_EP/api/catalogs/$ORG/$CATALOG/products/$PRODUCT \
+RES=$(curl -kLsS https://$API_MANAGER_EP/api/catalogs/$ORG/$CATALOG/products/$PRODUCT \
   -H "accept: application/json" \
   -H "authorization: Bearer ${TOKEN}")
 handle_res "${RES}"
@@ -228,7 +228,7 @@ echo -e "[INFO] ${tick} Got product url"
 
 # Create an subscription
 echo "[INFO] Creating subscription..."
-RES=$(curl -kLsS -X POST https://$APIM_UI_EP/api/apps/$ORG/$CATALOG/$C_ORG/$APP/subscriptions \
+RES=$(curl -kLsS -X POST https://$API_MANAGER_EP/api/apps/$ORG/$CATALOG/$C_ORG/$APP/subscriptions \
   -H "accept: application/json" \
   -H "authorization: Bearer ${TOKEN}" \
   -H "content-type: application/json" \
