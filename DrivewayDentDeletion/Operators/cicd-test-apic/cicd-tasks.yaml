@@ -167,9 +167,12 @@ spec:
     - name: releaseScript
       type: string
       description: release name of script
+    - name: namespace
+      type: string
+      description: namespace
   workspaces:
     - name: git-source
   steps:
     - name: oc
       image: quay.io/openshift/origin-cli:latest
-      script: "/workspace/git-source/products/bash/$(params.releaseScript) -n {{NAMESPACE}} -r $(params.releaseName) -e $(params.environment) -d"
+      script: "/workspace/git-source/products/bash/$(params.releaseScript) -n $(params.namespace) -r $(params.releaseName) -e $(params.environment) -d"

@@ -424,6 +424,11 @@ spec:
     - name: apic-resource-config-dev
       runAfter:
         - clone-git-source
+        - deploy-wait-ace-chris
+        - deploy-wait-mq
+        - deploy-wait-ace-api
+        - deploy-wait-ace-acme
+        - deploy-wait-ace-bernie
       taskRef:
         name: apic-resource-config
       params:
@@ -433,12 +438,19 @@ spec:
           value: "ademo"
         - name: releaseScript
           value: pub-sub-apic.sh
+        - name: namespace
+          value: "{{NAMESPACE}}"
       workspaces:
         - name: git-source
           workspace: git-source
     - name: apic-resource-config-test
       runAfter:
         - test-e2e-api-in-dev-namespace
+        - deploy-wait-ace-chris-test
+        - deploy-wait-mq-test
+        - deploy-wait-ace-api-test
+        - deploy-wait-ace-acme-test
+        - deploy-wait-ace-bernie-test
       taskRef:
         name: apic-resource-config
       params:
@@ -448,6 +460,8 @@ spec:
           value: "ademo"
         - name: releaseScript
           value: pub-sub-apic.sh
+        - name: namespace
+          value: "{{NAMESPACE}}-ddd-test"
       workspaces:
         - name: git-source
           workspace: git-source
