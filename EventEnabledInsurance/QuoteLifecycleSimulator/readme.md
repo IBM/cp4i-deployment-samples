@@ -29,11 +29,9 @@ Loop around. For each ‘Tick’:
 ## Postgres setup
 Ensure the database has the following type and table created:
 ```
-CREATE TYPE SOURCE AS ENUM ('Mobile', 'Web', 'Email', 'Letter', 'Call Center', 'Police');
-
 CREATE TABLE IF NOT EXISTS QUOTES (
   QuoteID SERIAL PRIMARY KEY NOT NULL,
-  Source SOURCE,
+  Source VARCHAR(20),
   Name VARCHAR(100),
   EMail VARCHAR(100),
   Age INTEGER,
@@ -45,6 +43,13 @@ CREATE TABLE IF NOT EXISTS QUOTES (
   ClaimCost INTEGER
 );
 ```
+
+## Download the required packages
+Get to use the network to update the required named packages and their dependencies (run this command from within the directory containing `Simulator.Dockerfile`):
+```
+go mod download
+```
+
 ## Give access to postgres
 Setup port forwarding from a local port to the postgres service on the cluster:
 ```
