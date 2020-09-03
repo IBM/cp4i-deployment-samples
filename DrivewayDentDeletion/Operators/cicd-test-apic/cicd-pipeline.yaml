@@ -432,7 +432,7 @@ spec:
         - name: releaseName
           value: "ademo"
         - name: releaseScript
-          value: publish-api.sh
+          value: pub-sub-apic.sh
       workspaces:
         - name: git-source
           workspace: git-source
@@ -447,7 +447,7 @@ spec:
         - name: releaseName
           value: "ademo"
         - name: releaseScript
-          value: publish-api.sh
+          value: pub-sub-apic.sh
       workspaces:
         - name: git-source
           workspace: git-source

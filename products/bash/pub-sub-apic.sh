@@ -19,9 +19,9 @@
 #
 # USAGE:
 #   With default values
-#     ./publish-api.sh
-#   Overriding environment, namespace, and release name
-#     ./publish-api.sh -e test -n namespace -r release
+#     ./pub-sub-apic.sh
+#   Overriding environment, namespace, and release name, and enabling debug output
+#     ./pub-sub-apic.sh -e test -n namespace -r release -d
 #******************************************************************************
 
 # Flow:
@@ -64,7 +64,9 @@ done
 
 ORG=$([[ $ENVIRONMENT == "dev" ]] && echo "main-demo" || echo "ddd-demo-test")
 PRODUCT=${NAMESPACE}-product-ddd
-CATALOG="$ORG-catalog"
+CATALOG=${ORG}-catalog
+C_ORG=${ORG}-corp
+APP=ddd-app
 
 # Install jq
 $DEBUG && echo "[DEBUG] Checking if jq is present..."
@@ -152,3 +154,87 @@ RES=$(curl -kLsS -X POST https://$API_MANAGER_EP/api/catalogs/$ORG/$CATALOG/publ
   -F "product=@${CURRENT_DIR}/product.yaml;type=application/yaml")
 handle_res "${RES}"
 echo -e "[INFO]  ${TICK} Product published"
+
+# Create configmap for org info
+echo "[INFO] Creating configmap ${ORG}-info"
+oc create configmap ${ORG}-info \
+  --from-literal=ORG=$ORG \
+  --from-literal=CATALOG=$CATALOG \
+
+# Get user registry url
+echo "[INFO] Getting configured catalog user registry url for ${ORG}-catalog..."
+RES=$(curl -kLsS https://$APIM_UI_EP/api/catalogs/$ORG/$CATALOG/configured-catalog-user-registries \
+  -H "accept: application/json" \
+  -H "authorization: Bearer ${TOKEN}")
+handle_res "${RES}"
+USER_REGISTRY_URL=$(echo "${OUTPUT}" | jq -r ".results[0].user_registry_url")
+$DEBUG && echo "[DEBUG] User registry url: ${USER_REGISTRY_URL}"
+echo -e "[INFO] ${tick} Got configured catalog user registry url for ${ORG}-catalog"
+
+# Create consumer org owner
+echo "[INFO] Creating consumer org owner..."
+RES=$(curl -kLsS -X POST $USER_REGISTRY_URL/users \
+  -H "accept: application/json" \
+  -H "authorization: Bearer ${TOKEN}" \
+  -H "content-type: application/json" \
+  -d "{
+    \"username\": \"${ORG}-corg-admin\",
+    \"email\": \"nigel@acme.org\",
+    \"first_name\": \"Nigel\",
+    \"last_name\": \"McNigelface\",
+    \"password\": \"!n0r1t5@C\"
+}")
+handle_res "${RES}"
+OWNER_URL=$(echo "${OUTPUT}" | jq -r ".url")
+$DEBUG && echo "[DEBUG] Owner url: ${OWNER_URL}"
+echo -e "[INFO] ${tick} Consumer org owner created"
+
+# Create consumer org
+echo "[INFO] Creating consumer org..."
+RES=$(curl -kLsS -X POST https://$APIM_UI_EP/api/catalogs/$ORG/$CATALOG/consumer-orgs \
+  -H "accept: application/json" \
+  -H "authorization: Bearer ${TOKEN}" \
+  -H "content-type: application/json" \
+  -d "{
+    \"title\": \"${C_ORG}\",
+    \"name\": \"${C_ORG}\",
+    \"owner_url\": \"${OWNER_URL}\"
+}")
+handle_res "${RES}"
+echo -e "[INFO] ${tick} Consumer org created"
+
+# Create an app
+echo "[INFO] Creating application..."
+RES=$(curl -kLsS -X POST https://$APIM_UI_EP/api/consumer-orgs/$ORG/$CATALOG/$C_ORG/apps \
+  -H "accept: application/json" \
+  -H "authorization: Bearer ${TOKEN}" \
+  -H "content-type: application/json" \
+  -d "{
+    \"title\": \"ddd app\",
+    \"name\": \"${APP}\"
+}")
+handle_res "${RES}"
+echo -e "[INFO] ${tick} Application created"
+
+# Get product url
+echo "[INFO] Getting url for product $PRODUCT..."
+RES=$(curl -kLsS https://$APIM_UI_EP/api/catalogs/$ORG/$CATALOG/products/$PRODUCT \
+  -H "accept: application/json" \
+  -H "authorization: Bearer ${TOKEN}")
+handle_res "${RES}"
+PRODUCT_URL=$(echo "${OUTPUT}" | jq -r ".results[0].url")
+$DEBUG && echo "[DEBUG] Product url: ${PRODUCT_URL}"
+echo -e "[INFO] ${tick} Got product url"
+
+# Create an subscription
+echo "[INFO] Creating subscription..."
+RES=$(curl -kLsS -X POST https://$APIM_UI_EP/api/apps/$ORG/$CATALOG/$C_ORG/$APP/subscriptions \
+  -H "accept: application/json" \
+  -H "authorization: Bearer ${TOKEN}" \
+  -H "content-type: application/json" \
+  -d "{
+    \"product_url\": \"${PRODUCT_URL}\",
+    \"plan\": \"default-plan\"
+}")
+handle_res "${RES}"
+echo -e "[INFO] ${tick} Subscription created"
