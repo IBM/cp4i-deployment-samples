@@ -396,37 +396,15 @@ for ORG in "${ORGS[@]}"; do
   C_ORG=${ORG}-corp
   APP=ddd-app
 
-  # Get org id
-  echo "[INFO]  Getting id for org '$ORG'..."
-  RES=$(curl -kLsS https://$APIM_UI_EP/api/orgs/$ORG \
-    -H "accept: application/json" \
-    -H "authorization: Bearer ${TOKEN}")
-  handle_res "${RES}"
-  ORG_ID=$(echo "${OUTPUT}" | jq -r ".id")
-  $DEBUG && echo "[DEBUG] Org id: $ORG_ID"
-  echo -e "[INFO]  ${TICK} Got id for org '$ORG'"
-
-  # Get catalog id
-  echo "[INFO]  Getting id for catalog ${ORG}-catalog..."
-  RES=$(curl -kLsS https://$APIM_UI_EP/api/catalogs/$ORG_ID/${ORG}-catalog} \
-    -H "accept: application/json" \
-    -H "authorization: Bearer ${TOKEN}")
-  handle_res "${RES}"
-  CATALOG_ID=$(echo "${OUTPUT}" | jq -r ".id")
-  $DEBUG && echo "[DEBUG] Catalog id: ${CATALOG_ID}"
-  echo -e "[INFO]  ${TICK} Got id for catalog ${ORG}-catalog"
-
   # Create configmap for org info
   echo "[INFO] Creating configmap ${ORG}-info"
   oc create configmap ${ORG}-info \
     --from-literal=ORG=$ORG \
-    --from-literal=ORG_ID=$ORG_ID \
-    --from-literal=CATALOG=${ORG}-catalog \
-    --from-literal=CATALOG_ID=$CATALOG_ID \
+    --from-literal=CATALOG=$CATALOG \
 
   # Get user registry url
   echo "[INFO] Getting configured catalog user registry url for ${ORG}-catalog..."
-  RES=$(curl -kLsS https://$APIM_UI_EP/api/catalogs/$ORG_ID/$CATALOG_ID/configured-catalog-user-registries \
+  RES=$(curl -kLsS https://$APIM_UI_EP/api/catalogs/$ORG/$CATALOG/configured-catalog-user-registries \
     -H "accept: application/json" \
     -H "authorization: Bearer ${TOKEN}")
   handle_res "${RES}"
@@ -454,7 +432,7 @@ for ORG in "${ORGS[@]}"; do
 
   # Create consumer org
   echo "[INFO] Creating consumer org..."
-  RES=$(curl -kLsS -X POST https://$APIM_UI_EP/api/catalogs/$ORG_ID/$CATALOG_ID/consumer-orgs \
+  RES=$(curl -kLsS -X POST https://$APIM_UI_EP/api/catalogs/$ORG/$CATALOG/consumer-orgs \
     -H "accept: application/json" \
     -H "authorization: Bearer ${TOKEN}" \
     -H "content-type: application/json" \

@@ -140,23 +140,11 @@ cat ${CURRENT_DIR}/../../DrivewayDentDeletion/Operators/apic-resources/apic-prod
 $DEBUG && echo -e "[DEBUG] product yaml:\n$(cat ${CURRENT_DIR}/product.yaml)"
 echo -e "[INFO]  ${TICK} Templated product yaml"
 
-# Get org id
-echo "[INFO]  Getting id for org '$ORG'..."
-ORG_ID=$(oc get -n $NAMESPACE configmap ${ORG}-info -o jsonpath="{.data.ORG_ID}")
-$DEBUG && echo "[DEBUG] Org id: $ORG_ID"
-echo -e "[INFO]  ${TICK} Got id for org '$ORG'"
-
-# Get catalog id
-echo "[INFO]  Getting id for catalog ${CATALOG}..."
-CATALOG_ID=$(oc get -n $NAMESPACE configmap ${ORG}-info -o jsonpath="{.data.CATALOG_ID}")
-$DEBUG && echo "[DEBUG] Catalog id: ${CATALOG_ID}"
-echo -e "[INFO]  ${TICK} Got id for catalog ${CATALOG}"
-
 # Run some tests
 
 # Publish product
 echo "[INFO]  Publishing product..."
-RES=$(curl -kLsS -X POST https://$API_MANAGER_EP/api/catalogs/$ORG_ID/$CATALOG_ID/publish \
+RES=$(curl -kLsS -X POST https://$API_MANAGER_EP/api/catalogs/$ORG/$CATALOG/publish \
   -H "accept: application/json" \
   -H "authorization: Bearer ${TOKEN}" \
   -H "content-type: multipart/form-data" \
