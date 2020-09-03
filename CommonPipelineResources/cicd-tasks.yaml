@@ -73,7 +73,7 @@ spec:
       description: release name of script
     - name: namespace
       type: string
-      description: release name of script
+      description: release namespace
   workspaces:
     - name: git-source
   steps:

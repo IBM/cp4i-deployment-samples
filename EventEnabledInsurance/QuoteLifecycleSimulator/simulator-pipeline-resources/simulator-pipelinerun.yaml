@@ -1,0 +1,14 @@
+apiVersion: tekton.dev/v1beta1
+kind: PipelineRun
+metadata:
+  name: eei-simulator-pipelinerun
+spec:
+  pipelineRef:
+    name: eei-simulator-pipeline
+  serviceAccountNames:
+    - taskName: clone-git-source
+      serviceAccountName: pipeline
+  workspaces:
+    - name: git-source
+      persistentvolumeclaim:
+        claimName: git-source-workspace

@@ -13,15 +13,17 @@
 #
 # PARAMETERS:
 #   -n : <namespace> (string), Defaults to 'cp4i'
+#   -r : <REPO> (string), Defaults to 'https://github.com/IBM/cp4i-deployment-samples.git'
+#   -b : <BRANCH> (string), Defaults to 'main'
 #
 #   With defaults values
 #     ./prereqs.sh
 #
 #   With overridden values
-#     ./prereqs.sh -n <namespace>
+#     ./prereqs.sh -n <namespace> -r <REPO> -b <BRANCH>
 
 function usage() {
-  echo "Usage: $0 -n <namespace>"
+  echo "Usage: $0 -n <namespace> -r <REPO> -b <BRANCH>"
   exit 1
 }
 
@@ -32,12 +34,21 @@ all_done="\xF0\x9F\x92\xAF"
 SUFFIX="eei"
 POSTGRES_NAMESPACE="postgres"
 ACE_CONFIGURATION_NAME="ace-policyproject-$SUFFIX"
+REPO="https://github.com/IBM/cp4i-deployment-samples.git"
+BRANCH="main"
 
-while getopts "n:" opt; do
+while getopts "n:r:b:" opt; do
   case ${opt} in
   n)
     namespace="$OPTARG"
     ;;
+  r)
+    REPO="$OPTARG"
+    ;;
+  b)
+    BRANCH="$OPTARG"
+    ;;
+
   \?)
     usage
     exit
@@ -49,6 +60,8 @@ CURRENT_DIR=$(dirname $0)
 echo "INFO: Current directory: '$CURRENT_DIR'"
 echo "INFO: Namespace: '$namespace'"
 echo "INFO: Suffix for the postgres is: '$SUFFIX'"
+echo "INFO: Repo: '$REPO'"
+echo "INFO: Branch: '$BRANCH'"
 
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
@@ -58,7 +71,7 @@ if ! ${CURRENT_DIR}/../products/bash/install-ocp-pipeline.sh; then
   exit 1
 else
   echo -e "$tick INFO: Successfully installed OCP pipelines"
-fi #${CURRENT_DIR}/../products/bash/install-ocp-pipeline
+fi #install-ocp-pipeline.sh
 
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
@@ -68,7 +81,7 @@ if ! ${CURRENT_DIR}/../products/bash/configure-ocp-pipeline.sh -n ${namespace}; 
   exit 1
 else
   echo -e "$tick INFO: Successfully configured secrets and permissions related to ocp pipelines in the '$namespace' namespace for the eei demo"
-fi #${CURRENT_DIR}/../products/bash/configure-ocp-pipeline.sh -n ${namespace}
+fi #configure-ocp-pipeline.sh
 
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
@@ -104,7 +117,7 @@ if ! ${CURRENT_DIR}/../products/bash/create-postgres-db.sh -n ${POSTGRES_NAMESPA
   exit 1
 else
   echo -e "\n$tick INFO: Successfully configured postgres in the '$namespace' namespace with the user '$DB_USER' and database name '$DB_NAME' and suffix '$SUFFIX'"
-fi #${CURRENT_DIR}/../products/bash/create-postgres-db.sh -n ${POSTGRES_NAMESPACE} -u $DB_USER -d $DB_NAME -p $DB_PASS
+fi #create-postgres-db.sh
 
 echo -e "\nINFO: Creating the table 'QUOTES' and in the database '$DB_NAME' with the username '$DB_USER' in the '$namespace' namespace"
 if ! oc exec -n $POSTGRES_NAMESPACE -it $DB_POD \
@@ -138,8 +151,32 @@ if ! ${CURRENT_DIR}/../products/bash/create-ace-config.sh -n ${namespace} -u $DB
   exit 1
 else
   echo -e "\n$tick INFO: Successfully configured ace in the '$namespace' namespace with the user '$DB_USER' and database name '$DB_NAME' and suffix '$SUFFIX'"
-fi #${CURRENT_DIR}/../products/bash/create-ace-config.sh -n ${namespace} -u $DB_USER -d $DB_NAME -p $DB_PASS -a $ACE_CONFIGURATION_NAME
+fi #create-ace-config.sh
 
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 echo -e "$tick $all_done INFO: All prerequisites for the event enabled insurance demo have been applied successfully $all_done $tick"
+echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
+
+echo "INFO: Creating the pipeline to build and deploy the simulator app in '$namespace' namespace"
+if cat $CURRENT_DIR/QuoteLifecycleSimulator/simulator-pipeline-resources/simulator-pipeline.yaml |
+  sed "s#{{NAMESPACE}}#$namespace#g;" |
+  sed "s#{{FORKED_REPO}}#$REPO#g;" |
+  sed "s#{{BRANCH}}#$BRANCH#g;" |
+  oc apply -f -; then
+    echo -e "$tick INFO: Successfully applied the pipeline to build and deploy the simulator app in in '$namespace' namespace"
+else
+  echo -e "$cross ERROR: Failed to apply the pipeline to build and deploy the simulator app in in '$namespace' namespace"
+  exit 1
+fi #simulator-pipeline.yaml 
+
+echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
+
+echo "INFO: Creating the pipelinerun for simulator app in the '$namespace' namespace"
+if oc apply -f $CURRENT_DIR/QuoteLifecycleSimulator/simulator-pipeline-resources/simulator-pipelinerun.yaml; then
+  echo -e "$tick INFO: Successfully applied the pipelinerun for simulator app in the '$namespace' namespace"
+else
+  echo -e "$cross ERROR: Failed to apply the pipelinerun for simulator app in the '$namespace' namespace"
+  exit 1
+fi #simulator-pipelinerun.yaml
+
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"

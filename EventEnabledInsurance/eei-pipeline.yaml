@@ -1,0 +1,48 @@
+apiVersion: tekton.dev/v1beta1
+kind: Pipeline
+metadata:
+  name: dev-pipeline
+spec:
+  params:
+    - name: imageTag
+      type: string
+      description: The image tag
+  workspaces:
+    - name: git-source
+  tasks:
+    - name: clone-git-source
+      taskRef:
+        name: git-clone
+        kind: ClusterTask
+      params:
+        - name: url
+          value: "{{FORKED_REPO}}"
+        - name: subdirectory
+          value: ""
+        - name: deleteExisting
+          value: "true"
+        - name: revision
+          value: "{{BRANCH}}"
+      workspaces:
+        - name: output
+          workspace: git-source
+
+    - name: build-task
+      taskSpec:
+        workspaces:
+          - name: git-source
+        steps:
+          - name: build
+            image: quay.io/buildah/stable:latest
+            securityContext:
+              privileged: true
+            script: |
+              buildah --storage-driver vfs bud \
+                -f /workspace/git-source/EventEnabledInsurance/QuoteLifecycleSimulator/Dockerfiles/$(params.dockerfile) \
+                -t image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}/$(params.imageName):$(params.imageTag) \
+                /workspace/git-source/EventEnabledInsurance/$(params.contextPath)
+              buildah --storage-driver vfs push \
+                --tls-verify=false \
+                image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}/$(params.imageName):$(params.imageTag)
+
+    
