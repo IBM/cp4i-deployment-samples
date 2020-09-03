@@ -140,7 +140,7 @@ echo -e "\n---------------------------------------------------------------------
 
 # create tekton tasks
 echo "INFO: Create tekton tasks"
-if cat $CURRENT_DIR/cicd-dev/cicd-tasks.yaml |
+if cat $CURRENT_DIR/../../CommonPipelineResources/cicd-tasks.yaml |
   sed "s#{{NAMESPACE}}#$namespace#g;" |
   oc apply -f -; then
     printf "$tick "
