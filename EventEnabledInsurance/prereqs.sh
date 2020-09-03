@@ -83,6 +83,19 @@ DB_PASS=$(
 )
 PASSWORD_ENCODED=$(echo -n ${DB_PASS} | base64)
 
+  echo "INFO: Creating a secret for the lifecycle simulator app to conenct to postgres"
+  # everything inside 'data' must be in the base64 encoded form
+  cat << EOF | oc apply -f -
+apiVersion: v1
+kind: Secret
+metadata:
+  namespace: $namespace
+  name: postgres-credential-$SUFFIX
+type: Opaque
+data:
+  password: ${PASSWORD_ENCODED}
+EOF
+
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
 echo -e "INFO: Configuring postgres in the '$namespace' namespace with the user '$DB_USER' and database name '$DB_NAME' and suffix '$SUFFIX'\n"
