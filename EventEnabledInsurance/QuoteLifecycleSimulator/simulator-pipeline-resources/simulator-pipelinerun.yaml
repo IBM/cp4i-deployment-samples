@@ -1,7 +1,7 @@
 apiVersion: tekton.dev/v1beta1
 kind: PipelineRun
 metadata:
-  name: eei-simulator-pipelinerun
+  name: eei-simulator-pipelinerun-{{UID}}
 spec:
   pipelineRef:
     name: eei-simulator-pipeline

@@ -3,10 +3,6 @@ kind: Pipeline
 metadata:
   name: eei-simulator-pipeline
 spec:
-  params:
-    - name: imageTag
-      type: string
-      description: The image tag
   workspaces:
     - name: git-source
   tasks:

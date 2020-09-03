@@ -55,6 +55,11 @@ while getopts "n:r:b:" opt; do
   esac
 done
 
+if [[ -z "${namespace// }" || -z "${REPO// }" || -z "${BRANCH// }" ]]; then
+  echo -e "$cross ERROR: Some or all mandatory parameters are empty"
+  usage
+fi
+
 CURRENT_DIR=$(dirname $0)
 echo "INFO: Current directory: '$CURRENT_DIR'"
 echo "INFO: Namespace: '$namespace'"
@@ -170,8 +175,15 @@ fi #simulator-pipeline.yaml
 
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
+PIPELINERUN_UID=$(
+  LC_ALL=C tr -dc 'a-z0-9' </dev/urandom | head -c 5
+  echo
+)
+
 echo "INFO: Creating the pipelinerun for simulator app in the '$namespace' namespace"
-if oc apply -f $CURRENT_DIR/QuoteLifecycleSimulator/simulator-pipeline-resources/simulator-pipelinerun.yaml; then
+if cat $CURRENT_DIR/QuoteLifecycleSimulator/simulator-pipeline-resources/simulator-pipelinerun.yaml |
+  sed "s#{{UID}}#$PIPELINERUN_UID#g;" |
+  oc apply -f -; then
   echo -e "$tick INFO: Successfully applied the pipelinerun for simulator app in the '$namespace' namespace"
 else
   echo -e "$cross ERROR: Failed to apply the pipelinerun for simulator app in the '$namespace' namespace"
