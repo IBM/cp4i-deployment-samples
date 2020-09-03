@@ -156,6 +156,7 @@ metadata:
 type: Opaque
 stringData:
   connector.properties: |-
+    dbName: ${DB_NAME}
     dbUsername: ${REPLICATION_USER}
     dbPassword: ${REPLICATION_PASSWORD}
 EOF

@@ -150,7 +150,7 @@ spec:
   config:
     database.hostname: "postgresql.postgres.svc.cluster.local"                                                       # Change 2
     database.port: "5432"                                                                                            # Change 2
-    database.dbname : "db_cp4i_sor_eei"                                                                              # Change 2
+    database.dbname : "${file:/opt/kafka/external-configuration/connector-config/connector.properties:dbName}"       # Change 3
     database.user: "${file:/opt/kafka/external-configuration/connector-config/connector.properties:dbUsername}"      # Change 3
     database.password: "${file:/opt/kafka/external-configuration/connector-config/connector.properties:dbPassword}"  # Change 3
     database.server.name: "sor"                                                                                      # Change 4
