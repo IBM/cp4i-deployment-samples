@@ -14,25 +14,21 @@
 #
 # PARAMETERS:
 #   -n : <POSTGRES_NAMESPACE> (string), Defaults to 'postgres'
-#   -r : <REPLICATION_PASSWORD> (string), Enables a replication user named "replication" with the specified password
 #
 # USAGE:
 #   ./release-psql.sh
 #******************************************************************************
 
 function usage {
-  echo "Usage: $0 -n <POSTGRES_NAMESPACE> -r <REPLICATION_PASSWORD>"
+  echo "Usage: $0 -n <POSTGRES_NAMESPACE>"
   exit 1
 }
 
 POSTGRES_NAMESPACE="postgres"
-REPLICATION_PASSWORD=""
 
-while getopts "n:u:d:p:r:" opt; do
+while getopts "n:u:d:p:" opt; do
   case ${opt} in
     n ) POSTGRES_NAMESPACE="$OPTARG"
-      ;;
-    r ) REPLICATION_PASSWORD="$OPTARG"
       ;;
     \? ) usage; exit
       ;;
@@ -75,11 +71,3 @@ oc wait -n ${POSTGRES_NAMESPACE} --for=condition=available --timeout=20m deploym
 
 DB_POD=$(oc get pod -n ${POSTGRES_NAMESPACE} -l name=postgresql -o jsonpath='{.items[].metadata.name}')
 echo "INFO: Found new DB pod as: ${DB_POD}"
-
-if [[ ! -z "${REPLICATION_PASSWORD// }" ]]; then
-  echo "INFO: Creating replication user"
-  oc exec -n ${POSTGRES_NAMESPACE} -i $DB_POD \
-    -- psql << EOF
-CREATE ROLE replication REPLICATION LOGIN PASSWORD `echo "'${REPLICATION_PASSWORD}'"`;
-EOF
-fi
