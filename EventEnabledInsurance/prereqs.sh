@@ -132,6 +132,32 @@ fi
 
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
+REPLICATION_USER=$(echo ${namespace}_sor_replication_${SUFFIX} | sed 's/-/_/g')
+REPLICATION_PASSWORD=$(LC_ALL=C tr -dc 'A-Za-z0-9' </dev/urandom | head -c 32 ; echo)
+REPLICATION_PASSWORD_ENCODED=$(echo -n ${REPLICATION_PASSWORD} | base64)
+
+echo "INFO: Creating replication user"
+oc exec -n ${POSTGRES_NAMESPACE} -i $DB_POD -- psql -d $DB_NAME << EOF
+CREATE ROLE $REPLICATION_USER REPLICATION LOGIN PASSWORD `echo "'${REPLICATION_PASSWORD}'"`;
+GRANT ALL PRIVILEGES ON TABLE quotes TO $REPLICATION_USER;
+CREATE PUBLICATION db_eei_quotes FOR TABLE quotes;
+EOF
+
+echo "INFO: Creating secret for replication user"
+cat << EOF | oc apply -f -
+apiVersion: v1
+kind: Secret
+metadata:
+  namespace: $namespace
+  name: eei-postgres-replication-credential
+type: Opaque
+stringData:
+  connector.properties: |-
+    dbName: ${DB_NAME}
+    dbUsername: ${REPLICATION_USER}
+    dbPassword: ${REPLICATION_PASSWORD}
+EOF
+
 echo -e "INFO: Creating ace postgres configuration and policy in the namespace '$namespace' with the user '$DB_USER' and database name '$DB_NAME' and suffix '$SUFFIX'"
 if ! ${CURRENT_DIR}/../products/bash/create-ace-config.sh -n ${namespace} -u $DB_USER -d $DB_NAME -p $DB_PASS -a $ACE_CONFIGURATION_NAME; then
   echo -e "\n$cross ERROR: Failed to configure ace in the '$namespace' namespace with the user '$DB_USER' and database name '$DB_NAME' and suffix '$SUFFIX'"

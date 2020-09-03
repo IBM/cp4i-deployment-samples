@@ -66,7 +66,7 @@ echo "Current directory: $CURRENT_DIR"
 echo "INFO: Creating policyproject for ace in the '$NAMESPACE' namespace"
 
 DB_POD=$(oc get pod -n $POSTGRES_NAMESPACE -l name=postgresql -o jsonpath='{.items[].metadata.name}')
-DB_SVC="$(oc get cm -n $POSTGRES_NAMESPACE postgres-config -o json | jq '.data["postgres.env"] | split("\n  ")' | grep DATABASE_SERVICE_NAME | cut -d "=" -f 2- | tr -dc '[a-z0-9-]\n').postgres.svc.cluster.local"
+DB_SVC="postgresql.$POSTGRES_NAMESPACE.svc.cluster.local"
 
 echo "INFO: Database user: '$DB_USER'"
 echo "INFO: Database name: '$DB_NAME'"

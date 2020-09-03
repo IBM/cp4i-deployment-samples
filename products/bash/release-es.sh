@@ -63,7 +63,7 @@ spec:
     internalTls: NONE
   strimziOverrides:
     kafka:
-      replicas: 1
+      replicas: 3
       config:
         inter.broker.protocol.version: '2.5'
         interceptor.class.names: com.ibm.eventstreams.interceptors.metrics.ProducerMetricsInterceptor
