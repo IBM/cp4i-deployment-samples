@@ -93,24 +93,39 @@ fi
 
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
-# create service accounts
-echo "INFO: Create service accounts"
-if cat $CURRENT_DIR/cicd-test/cicd-service-accounts.yaml |
+# create common service accounts
+echo "INFO: Create common service accounts"
+if cat $CURRENT_DIR/../../CommonPipelineResources/cicd-service-accounts.yaml |
   sed "s#{{NAMESPACE}}#$namespace#g;" |
   oc apply -f -; then
     printf "$tick "
-    echo "Successfully applied service accounts in the '$namespace' namespace"
+    echo "Successfully applied common service accounts in the '$namespace' namespace"
 else
   printf "$cross "
-  echo "Failed to apply service accounts in the '$namespace' namespace"
+  echo "Failed to apply common service accounts in the '$namespace' namespace"
   sum=$((sum + 1))
 fi
 
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
-# create roles for tasks
-echo "INFO: Create roles for tasks"
-if cat $CURRENT_DIR/cicd-test/cicd-roles.yaml |
+# create ddd specific service accounts
+echo "INFO: Create ddd specific service accounts"
+if cat $CURRENT_DIR/cicd-test/cicd-service-accounts.yaml |
+  sed "s#{{NAMESPACE}}#$namespace#g;" |
+  oc apply -f -; then
+    printf "$tick "
+    echo "Successfully applied ddd service accounts in the '$namespace' namespace"
+else
+  printf "$cross "
+  echo "Failed to apply ddd service accounts in the '$namespace' namespace"
+  sum=$((sum + 1))
+fi
+
+echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
+
+# create common roles for tasks
+echo "INFO: Create common roles for tasks"
+if cat $CURRENT_DIR/../../CommonPipelineResources/cicd-roles.yaml |
   sed "s#{{NAMESPACE}}#$namespace#g;" |
   oc apply -f -; then
     printf "$tick "
@@ -123,16 +138,48 @@ fi
 
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
-# create role bindings for roles
-echo "INFO: Create role bindings for roles"
+
+# create ddd roles for tasks
+echo "INFO: Create ddd roles for tasks"
+if cat $CURRENT_DIR/cicd-test/cicd-roles.yaml |
+  sed "s#{{NAMESPACE}}#$namespace#g;" |
+  oc apply -f -; then
+    printf "$tick "
+    echo "Successfully created ddd roles for tasks in the '$namespace' namespace"
+else
+  printf "$cross "
+  echo "Failed to create ddd roles for tasks in the '$namespace' namespace"
+  sum=$((sum + 1))
+fi
+
+echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
+
+# create common role bindings for roles
+echo "INFO: Create common role bindings for roles"
+if cat $CURRENT_DIR/../../CommonPipelineResources/cicd-rolebindings.yaml |
+  sed "s#{{NAMESPACE}}#$namespace#g;" |
+  oc apply -f -; then
+    printf "$tick "
+    echo "Successfully applied common role bindings for roles in the '$namespace' namespace"
+else
+  printf "$cross "
+  echo "Failed to apply common role bindings for roles in the '$namespace' namespace"
+  sum=$((sum + 1))
+fi
+
+echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
+
+
+# create ddd specific role bindings for roles
+echo "INFO: Create ddd specific role bindings for roles"
 if cat $CURRENT_DIR/cicd-test/cicd-rolebindings.yaml |
   sed "s#{{NAMESPACE}}#$namespace#g;" |
   oc apply -f -; then
     printf "$tick "
-    echo "Successfully applied role bindings for roles in the '$namespace' namespace"
+    echo "Successfully applied ddd role bindings for roles in the '$namespace' namespace"
 else
   printf "$cross "
-  echo "Failed to apply role bindings for roles in the '$namespace' namespace"
+  echo "Failed to apply ddd role bindings for roles in the '$namespace' namespace"
   sum=$((sum + 1))
 fi
 

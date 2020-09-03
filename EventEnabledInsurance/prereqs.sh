@@ -161,6 +161,51 @@ echo -e "\n---------------------------------------------------------------------
 echo -e "$tick $all_done INFO: All prerequisites for the event enabled insurance demo have been applied successfully $all_done $tick"
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
+# create common service accounts
+echo "INFO: Create common service accounts"
+if cat $CURRENT_DIR/../CommonPipelineResources/cicd-service-accounts.yaml |
+  sed "s#{{NAMESPACE}}#$namespace#g;" |
+  oc apply -f -; then
+    printf "$tick "
+    echo "Successfully applied common service accounts in the '$namespace' namespace"
+else
+  printf "$cross "
+  echo "Failed to apply common service accounts in the '$namespace' namespace"
+  sum=$((sum + 1))
+fi
+
+echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
+
+# create common roles for tasks
+echo "INFO: Create common roles for tasks"
+if cat $CURRENT_DIR/../CommonPipelineResources/cicd-roles.yaml |
+  sed "s#{{NAMESPACE}}#$namespace#g;" |
+  oc apply -f -; then
+    printf "$tick "
+    echo "Successfully created roles for tasks in the '$namespace' namespace"
+else
+  printf "$cross "
+  echo "Failed to create roles for tasks in the '$namespace' namespace"
+  sum=$((sum + 1))
+fi
+
+echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
+
+# create common role bindings for roles
+echo "INFO: Create role bindings for roles"
+if cat $CURRENT_DIR/../CommonPipelineResources/cicd-rolebindings.yaml |
+  sed "s#{{NAMESPACE}}#$namespace#g;" |
+  oc apply -f -; then
+    printf "$tick "
+    echo "Successfully applied role bindings for roles in the '$namespace' namespace"
+else
+  printf "$cross "
+  echo "Failed to apply role bindings for roles in the '$namespace' namespace"
+  sum=$((sum + 1))
+fi
+
+echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
+
 echo "INFO: Creating the pipeline to build and deploy the simulator app in '$namespace' namespace"
 if cat $CURRENT_DIR/QuoteLifecycleSimulator/simulator-pipeline-resources/simulator-pipeline.yaml |
   sed "s#{{NAMESPACE}}#$namespace#g;" |
