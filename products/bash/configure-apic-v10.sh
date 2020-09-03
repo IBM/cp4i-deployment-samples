@@ -391,6 +391,11 @@ echo -e "[INFO] Got bearer token"
 # Create consumer orgs
 declare -a ORGS=("${ORG_NAME}" "${ORG_NAME_DDD}")
 for ORG in "${ORGS[@]}"; do
+  CATALOG=${ORG}-catalog
+  PRODUCT=${NAMESPACE}-product-ddd
+  C_ORG=${ORG}-corp
+  APP=ddd-app
+
   # Get org id
   echo "[INFO]  Getting id for org '$ORG'..."
   RES=$(curl -kLsS https://$APIM_UI_EP/api/orgs/$ORG \
@@ -445,20 +450,56 @@ for ORG in "${ORGS[@]}"; do
   handle_res "${RES}"
   OWNER_URL=$(echo "${OUTPUT}" | jq -r ".url")
   $DEBUG && echo "[DEBUG] Owner url: ${OWNER_URL}"
-  echo -e "[INFO] ${tick} Created consumer org owner"
+  echo -e "[INFO] ${tick} Consumer org owner created"
 
   # Create consumer org
   echo "[INFO] Creating consumer org..."
   RES=$(curl -kLsS -X POST https://$APIM_UI_EP/api/catalogs/$ORG_ID/$CATALOG_ID/consumer-orgs \
     -H "accept: application/json" \
-    -H "authorization: Bearer " \
+    -H "authorization: Bearer ${TOKEN}" \
     -H "content-type: application/json" \
     -d "{
-      \"title\": \"${ORG}-corp\",
-      \"name\": \"${ORG}-corp\",
+      \"title\": \"${C_ORG}\",
+      \"name\": \"${C_ORG}\",
       \"owner_url\": \"${OWNER_URL}\"
   }")
   handle_res "${RES}"
-  echo -e "[INFO] ${tick} Created consumer org"
+  echo -e "[INFO] ${tick} Consumer org created"
+
+  # Create an app
+  echo "[INFO] Creating application..."
+  RES=$(curl -kLsS -X POST https://$APIM_UI_EP/api/consumer-orgs/$ORG/$CATALOG/$C_ORG/apps \
+    -H "accept: application/json" \
+    -H "authorization: Bearer ${TOKEN}" \
+    -H "content-type: application/json" \
+    -d "{
+      \"title\": \"ddd app\",
+      \"name\": \"${APP}\"
+  }")
+  handle_res "${RES}"
+  echo -e "[INFO] ${tick} Application created"
+
+  # Get product url
+  echo "[INFO] Getting url for product $PRODUCT..."
+  RES=$(curl -kLsS https://$APIM_UI_EP/api/catalogs/$ORG/$CATALOG/products/$PRODUCT \
+    -H "accept: application/json" \
+    -H "authorization: Bearer ${TOKEN}")
+  handle_res "${RES}"
+  PRODUCT_URL=$(echo "${OUTPUT}" | jq -r ".results[0].url")
+  $DEBUG && echo "[DEBUG] Product url: ${PRODUCT_URL}"
+  echo -e "[INFO] ${tick} Got product url"
+
+  # Create an subscription
+  echo "[INFO] Creating subscription..."
+  RES=$(curl -kLsS -X POST https://$APIM_UI_EP/api/apps/$ORG/$CATALOG/$C_ORG/$APP/subscriptions \
+    -H "accept: application/json" \
+    -H "authorization: Bearer ${TOKEN}" \
+    -H "content-type: application/json" \
+    -d "{
+      \"product_url\": \"${PRODUCT_URL}\",
+      \"plan\": \"default-plan\"
+  }")
+  handle_res "${RES}"
+  echo -e "[INFO] ${tick} Subscription created"
 
 done
