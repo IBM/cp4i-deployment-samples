@@ -9,5 +9,3 @@ rules:
 - apiGroups: [""]
   resources: ["pods", "pods/exec", "configmaps"]
   verbs: ["list", "get", "create"]
-
----

@@ -8,6 +8,8 @@ spec:
   serviceAccountNames:
     - taskName: clone-git-source
       serviceAccountName: pipeline
+    - taskName: deploy-simulator-app
+      serviceAccountName: cicd-test
   workspaces:
     - name: git-source
       persistentvolumeclaim:
