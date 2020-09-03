@@ -20,7 +20,7 @@ spec:
         - name: revision
           value: "{{BRANCH}}"
       workspaces:
-        - name: git-source
+        - name: output
           workspace: git-source
 
     # Build the quote lifecycle simulator app image
