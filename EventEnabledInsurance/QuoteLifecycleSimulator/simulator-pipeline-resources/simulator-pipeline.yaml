@@ -29,6 +29,8 @@ spec:
 
     # Build the quote lifecycle simulator app image
     - name: build-simulator-image
+      runAfter:
+        - clone-git-source
       taskSpec:
         workspaces:
           - name: git-source
@@ -48,6 +50,8 @@ spec:
 
     # Deploy the quote lifecycle simulator app image
     - name: deploy-simulator-app
+      runAfter:
+        - build-simulator-image
       taskSpec:
         workspaces:
           - name: git-source

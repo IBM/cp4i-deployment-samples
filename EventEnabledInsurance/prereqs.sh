@@ -48,7 +48,6 @@ while getopts "n:r:b:" opt; do
   b)
     BRANCH="$OPTARG"
     ;;
-
   \?)
     usage
     exit
