@@ -29,7 +29,7 @@ spec:
         - clone-git-source
       taskSpec:
         workspaces:
-          - name: git-source
+          - name: output
         steps:
           - name: build
             image: quay.io/buildah/stable:latest
