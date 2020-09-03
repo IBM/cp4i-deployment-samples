@@ -177,3 +177,7 @@ rules:
 - apiGroups: [""]
   resources: ["secrets"]
   verbs: ["get"]
+# Permission to create configmaps for test script in dev namespace
+- apiGroups: [""]
+  resources: ["configmaps"]
+  verbs: ["get", "create"]
