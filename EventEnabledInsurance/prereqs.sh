@@ -71,10 +71,10 @@ echo -e "\n---------------------------------------------------------------------
 
 echo "INFO: Installing OCP pipelines..."
 if ! ${CURRENT_DIR}/../products/bash/install-ocp-pipeline.sh; then
-  echo -e "\n$cross ERROR: Failed to install OCP pipelines\n"
+  echo -e "$cross ERROR: Failed to install OCP pipelines\n"
   exit 1
 else
-  echo -e "\n$tick INFO: Successfully installed OCP pipelines"
+  echo -e "$tick INFO: Successfully installed OCP pipelines"
 fi #install-ocp-pipeline.sh
 
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
@@ -117,10 +117,10 @@ echo -e "\n---------------------------------------------------------------------
 
 echo -e "INFO: Configuring postgres in the '$namespace' namespace with the user '$DB_USER' and database name '$DB_NAME' and suffix '$SUFFIX'\n"
 if ! ${CURRENT_DIR}/../products/bash/create-postgres-db.sh -n ${POSTGRES_NAMESPACE} -u $DB_USER -d $DB_NAME -p $DB_PASS; then
-  echo -e "\n\n$cross ERROR: Failed to configure postgres in the '$namespace' namespace with the user '$DB_USER' and database name '$DB_NAME' amd suffix '$SUFFIX'"
+  echo -e "$cross ERROR: Failed to configure postgres in the '$namespace' namespace with the user '$DB_USER' and database name '$DB_NAME' amd suffix '$SUFFIX'"
   exit 1
 else
-  echo -e "\n\n$tick INFO: Successfully configured postgres in the '$namespace' namespace with the user '$DB_USER' and database name '$DB_NAME' and suffix '$SUFFIX'"
+  echo -e "$tick INFO: Successfully configured postgres in the '$namespace' namespace with the user '$DB_USER' and database name '$DB_NAME' and suffix '$SUFFIX'"
 fi #create-postgres-db.sh
 
 echo -e "\nINFO: Creating the table 'QUOTES' and in the database '$DB_NAME' with the username '$DB_USER' in the '$namespace' namespace"
@@ -141,10 +141,10 @@ if ! oc exec -n $POSTGRES_NAMESPACE -it $DB_POD \
     ClaimCost INTEGER
   );
   "; then
-  echo -e "\n\n$cross ERROR: Failed to create the table 'QUOTES' in the database '$DB_NAME' with the username '$DB_USER' in the namespace '$namespace'"
+  echo -e "\n$cross ERROR: Failed to create the table 'QUOTES' in the database '$DB_NAME' with the username '$DB_USER' in the namespace '$namespace'"
   exit 1
 else
-  echo -e "\n\n$tick INFO: Created the table 'QUOTES' in the database '$DB_NAME' with the username '$DB_USER' in the namespace '$namespace'"
+  echo -e "\n$tick INFO: Created the table 'QUOTES' in the database '$DB_NAME' with the username '$DB_USER' in the namespace '$namespace'"
 fi
 
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
@@ -160,7 +160,7 @@ GRANT ALL PRIVILEGES ON TABLE quotes TO $REPLICATION_USER;
 CREATE PUBLICATION db_eei_quotes FOR TABLE quotes;
 EOF
 
-echo "INFO: Creating secret for replication user"
+echo -e "\nINFO: Creating secret for replication user"
 cat << EOF | oc apply -f -
 apiVersion: v1
 kind: Secret
@@ -175,16 +175,16 @@ stringData:
     dbPassword: ${REPLICATION_PASSWORD}
 EOF
 
-echo -e "INFO: Creating ace postgres configuration and policy in the namespace '$namespace' with the user '$DB_USER' and database name '$DB_NAME' and suffix '$SUFFIX'"
+echo -e "\nINFO: Creating ace postgres configuration and policy in the namespace '$namespace' with the user '$DB_USER' and database name '$DB_NAME' and suffix '$SUFFIX'"
 if ! ${CURRENT_DIR}/../products/bash/create-ace-config.sh -n ${namespace} -u $DB_USER -d $DB_NAME -p $DB_PASS -a $ACE_CONFIGURATION_NAME; then
-  echo -e "\n\n$cross ERROR: Failed to configure ace in the '$namespace' namespace with the user '$DB_USER' and database name '$DB_NAME' and suffix '$SUFFIX'"
+  echo -e "\n$cross ERROR: Failed to configure ace in the '$namespace' namespace with the user '$DB_USER' and database name '$DB_NAME' and suffix '$SUFFIX'"
   exit 1
 else
-  echo -e "\n\n$tick INFO: Successfully configured ace in the '$namespace' namespace with the user '$DB_USER' and database name '$DB_NAME' and suffix '$SUFFIX'"
+  echo -e "\n$tick INFO: Successfully configured ace in the '$namespace' namespace with the user '$DB_USER' and database name '$DB_NAME' and suffix '$SUFFIX'"
 fi #create-ace-config.sh
 
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
-echo -e "$tick $all_done INFO: All prerequisites for the event enabled insurance demo have been applied successfully $all_done $tick"
+echo -e "\n$tick $all_done INFO: All prerequisites for the event enabled insurance demo have been applied successfully $all_done $tick"
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
 echo "INFO: Creating pvc for eei quote lifecycle simulator app in the '$namespace' namespace"
@@ -294,41 +294,41 @@ echo -e "\n---------------------------------------------------------------------
 time=0
 while [ "$(oc get pipelinerun -n $namespace $(oc get pipelinerun -n $namespace | grep $PIPELINERUN_UID | awk '{print $1}') -o json | jq -r '.status.conditions[0].status')" != "True" ]; do
   if [ $time -gt 5 ]; then
-    echo -e "\n$cross ERROR: Timed out waiting for the pipelinerun for the quote lifecycle simulator app to succeed"
+    echo -e "$cross ERROR: Timed out waiting for the pipelinerun for the quote lifecycle simulator app to succeed"
     exit 1
   fi
 
   if [ "$(oc get pipelinerun -n $namespace $(oc get pipelinerun -n $namespace | grep $PIPELINERUN_UID | awk '{print $1}') -o json | jq -r '.status.conditions[0].status')" == "False" ]; then
-    echo -e "\n$cross ERROR: The pipelinerun for the quote lifecycle simulator app has failed\n"
+    echo -e "$cross ERROR: The pipelinerun for the quote lifecycle simulator app has failed\n"
     oc get pipelinerun $(oc get pipelinerun -n $namespace | grep $PIPELINERUN_UID | awk '{print $1}')
     exit 1
   fi
 
-  echo "INFO: Waiting up to 5 minutes for the pipelinerun for the quote lifecycle simulator app to finish. Waited ${time} minute(s)."
+  echo -e "\nINFO: Waiting up to 5 minutes for the pipelinerun for the quote lifecycle simulator app to finish. Waited ${time} minute(s)."
   time=$((time + 1))
   sleep 60
 done
 
-echo -e "$tick INFO: The pipelinerun for the quote lifecycle simulator app has completed successfully, going ahead to delete the pipelinerun for it to delete the pods and the pvc\n"
+echo -e "\n$tick INFO: The pipelinerun for the quote lifecycle simulator app has completed successfully, going ahead to delete the pipelinerun for it to delete the pods and the pvc\n"
 oc get pipelinerun -n $namespace $(oc get pipelinerun -n $namespace | grep $PIPELINERUN_UID | awk '{print $1}')
 
-echo -e "\n$tick INFO: The quote lifecycle simulator application has been deployed, but with zero replicas. To scale up the pods, run the command 'kubectl scale --replicas=<expected_replica_num> deployment simulator-eei'"
+echo -e "\n$tick INFO: The quote lifecycle simulator application has been deployed, but with zero replicas. To scale up the pods, run the command 'kubectl scale --replicas=<expected_replica_num> deployment simulator-eei'\n"
 oc get deployment -n $namespace $(oc get deployments -n $namespace | grep simulator | awk '{print $1}')
 
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
 if oc delete pipelinerun -n $namespace $(oc get pipelinerun -n $namespace | grep $PIPELINERUN_UID | awk '{print $1}'); then
-  echo -e "\n$tick INFO: Deleted the pipelinerun with the uid '$PIPELINERUN_UID'"
+  echo -e "$tick INFO: Deleted the pipelinerun with the uid '$PIPELINERUN_UID'"
 else
-  echo -e "\n$cross ERROR: Failed to delete the pipelinerun with the uid '$PIPELINERUN_UID'"
+  echo -e "$cross ERROR: Failed to delete the pipelinerun with the uid '$PIPELINERUN_UID'"
 fi
 
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
 if oc delete pvc git-workspace-eei -n $namespace; then
-  echo -e "\n$tick INFO: Deleted the pvc 'git-workspace-eei'"
+  echo -e "$tick INFO: Deleted the pvc 'git-workspace-eei'"
 else
-  echo -e "\n$cross ERROR: Failed to delete the pvc 'git-workspace-eei'"
+  echo -e "$cross ERROR: Failed to delete the pvc 'git-workspace-eei'"
 fi
 
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
