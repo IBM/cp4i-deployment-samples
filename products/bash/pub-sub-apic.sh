@@ -159,24 +159,90 @@ cat ${CURRENT_DIR}/../../DrivewayDentDeletion/Operators/apic-resources/apic-prod
 $DEBUG && echo -e "[DEBUG] product yaml:\n$(cat ${CURRENT_DIR}/product.yaml)"
 echo -e "[INFO]  ${TICK} Templated product yaml"
 
-# Run some tests
+# Draft product first for dev, straight to publish for test
+if [[ $ENVIRONMENT == "dev" ]]; then
+  # Create draft product
+  echo "[INFO]  Creating draft product in org '$ORG'..."
+  RES=$(curl -kLsS -X POST https://$PLATFORM_API_EP/api/orgs/$ORG/drafts/draft-products \
+    -H "accept: application/json" \
+    -H "authorization: Bearer ${TOKEN}" \
+    -H "content-type: multipart/form-data" \
+    -F "openapi=@${CURRENT_DIR}/api.yaml;type=application/yaml" \
+    -F "product=@${CURRENT_DIR}/product.yaml;type=application/yaml")
+  handle_res "${RES}"
+  echo -e "[INFO]  ${TICK} Draft product created in org '$ORG'"
 
-# Publish product
-echo "[INFO]  Publishing product..."
-RES=$(curl -kLsS -X POST https://$PLATFORM_API_EP/api/catalogs/$ORG/$CATALOG/publish \
-  -H "accept: application/json" \
-  -H "authorization: Bearer ${TOKEN}" \
-  -H "content-type: multipart/form-data" \
-  -F "openapi=@${CURRENT_DIR}/api.yaml;type=application/yaml" \
-  -F "product=@${CURRENT_DIR}/product.yaml;type=application/yaml")
-handle_res "${RES}"
-echo -e "[INFO]  ${TICK} Product published"
+  # Get product url
+  echo "[DEBUG] Getting product url..."
+  RES=$(curl -kLsS https://$PLATFORM_API_EP/api/orgs/$ORG/drafts/draft-products \
+    -H "accept: application/json" \
+    -H "authorization: Bearer ${TOKEN}")
+  handle_res "${RES}"
+  DRAFT_PRODUCT_URL=$(echo ${OUTPUT} | $JQ -r '.results[] | select(.name == "'$PRODUCT'").url')
+  if [[ $DRAFT_PRODUCT_URL == "null" ]]; then
+    echo -e "[ERROR] ${CROSS} Couldn't get product url"
+    exit 1
+  fi
+  $DEBUG && echo "[DEBUG] Product url: ${DRAFT_PRODUCT_URL}"
+  echo -e "[INFO]  ${TICK} Got product url"
+
+  # Get gateway service url
+  echo "[INFO]  Getting gateway service url..."
+  RES=$(curl -kLsS https://$PLATFORM_API_EP/api/orgs/$ORG/gateway-services \
+    -H "accept: application/json" \
+    -H "authorization: Bearer ${TOKEN}")
+  handle_res "${RES}"
+  GW_URL=$(echo "${OUTPUT}" | $JQ -r ".results[0].integration_url")
+  $DEBUG && echo "[DEBUG] Gateway service url: ${GW_URL}"
+  echo -e "[INFO]  ${TICK} Got gateway service url"
+
+  # Stage draft product
+  echo "[INFO]  Staging draft product..."
+  RES=$(curl -kLsS -X POST https://$PLATFORM_API_EP/api/catalogs/$ORG/$CATALOG/stage-draft-product \
+    -H "accept: application/json" \
+    -H "authorization: Bearer ${TOKEN}" \
+    -H "content-type: application/json" \
+    -d "{
+    \"gateway_service_urls\": [\"${GW_URL}\"],
+    \"draft_product_url\": \"${DRAFT_PRODUCT_URL}\"
+  }")
+  handle_res "${RES}"
+  echo -e "[INFO]  ${TICK} Draft product staged"
+
+  # Publish draft product
+  echo "[INFO]  Publishing draft product..."
+  RES=$(curl -kLsS -X POST https://$PLATFORM_API_EP/api/catalogs/$ORG/$CATALOG/publish-draft-product \
+    -H "accept: application/json" \
+    -H "authorization: Bearer ${TOKEN}" \
+    -H "content-type: application/json" \
+    -d "{
+    \"gateway_service_urls\": [\"${GW_URL}\"],
+    \"draft_product_url\": \"${DRAFT_PRODUCT_URL}\"
+  }")
+  handle_res "${RES}"
+  echo -e "[INFO]  ${TICK} Draft product published"
+else
+  # Publish product
+  echo "[INFO]  Publishing product..."
+  RES=$(curl -kLsS -X POST https://$PLATFORM_API_EP/api/catalogs/$ORG/$CATALOG/publish \
+    -H "accept: application/json" \
+    -H "authorization: Bearer ${TOKEN}" \
+    -H "content-type: multipart/form-data" \
+    -F "openapi=@${CURRENT_DIR}/api.yaml;type=application/yaml" \
+    -F "product=@${CURRENT_DIR}/product.yaml;type=application/yaml")
+  handle_res "${RES}"
+  echo -e "[INFO]  ${TICK} Product published"
+fi
 
 # Create configmap for org info
 echo "[INFO] Creating configmap ${ORG}-info"
 oc create configmap ${ORG}-info \
   --from-literal=ORG=$ORG \
   --from-literal=CATALOG=$CATALOG \
+
+#*******************************************************************************
+# Subscription stuff
+#*******************************************************************************
 
 # Get user registry url
 echo "[INFO] Getting configured catalog user registry url for ${ORG}-catalog..."
