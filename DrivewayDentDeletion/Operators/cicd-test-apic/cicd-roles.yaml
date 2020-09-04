@@ -162,12 +162,35 @@ rules:
   verbs: ["get"]
 
 ---
+
 # Role for the test task to get routes in dev namespace
 kind: Role
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
   name: role-configure-apic-in-dev-namespace
   namespace: "{{NAMESPACE}}"
+rules:
+# Permissions for test task to list routes in dev namespace
+- apiGroups: ["route.openshift.io"]
+  resources: ["routes"]
+  verbs: ["get", "list"]
+# Permission to get secrets for test script in test namespace
+- apiGroups: [""]
+  resources: ["secrets"]
+  verbs: ["get"]
+# Permission to create configmaps for test script in dev namespace
+- apiGroups: [""]
+  resources: ["configmaps"]
+  verbs: ["get", "create"]
+
+---
+
+# Role for the test task to get routes in dev namespace
+kind: Role
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: role-configure-apic-in-test-namespace
+  namespace: "{{NAMESPACE}}-ddd-test"
 rules:
 # Permissions for test task to list routes in dev namespace
 - apiGroups: ["route.openshift.io"]

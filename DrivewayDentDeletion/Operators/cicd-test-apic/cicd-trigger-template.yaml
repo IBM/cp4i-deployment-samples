@@ -63,7 +63,7 @@ spec:
         - taskName: apic-resource-config-dev
           serviceAccountName: cicd-configure-apic-resource-in-dev-sa
         - taskName: apic-resource-config-test
-          serviceAccountName: cicd-configure-apic-resource-in-dev-sa
+          serviceAccountName: cicd-configure-apic-resource-in-test-sa
       workspaces:
         - name: git-source
           persistentvolumeclaim:
