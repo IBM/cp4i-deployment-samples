@@ -70,3 +70,19 @@ Run the application:
 ```
 go run main.go
 ```
+
+# To build and deploy simulator pipelines
+- Go into the `EventEnabledInsurance` directory
+- Export the namespace by running the following command:
+```
+export namespace=<yourNamespace>
+```
+- Now run the prereqs script from the `EventEnabledInsurance` directory with the following command:
+```
+./prereqs.sh -n $namespace
+```
+- The prereqs will set up the dependencies, secrets, the database and configures the pipeline to deploy the simulator app with 0 replicas.
+- To scale up/down the replicas for the deployment:
+```
+kubectl scale --replicas=<expected_replica_num> deployment simulator-eei
+```
