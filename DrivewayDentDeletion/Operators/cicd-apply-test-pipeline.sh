@@ -202,11 +202,11 @@ echo -e "\n---------------------------------------------------------------------
 
 # create tekton tasks for test
 echo "INFO: Create tekton tasks for test"
-if cat $CURRENT_DIR/cicd-test/cicd--tasks.yaml |
+if cat $CURRENT_DIR/cicd-test/cicd-tasks.yaml |
   sed "s#{{NAMESPACE}}#$namespace#g;" |
   oc apply -f -; then
     printf "$tick "
-    echo "Successfully applied ttekton tasks for test in the '$namespace' namespace"
+    echo "Successfully applied tekton tasks for test in the '$namespace' namespace"
 else
   printf "$cross "
   echo "Failed to apply tekton tasks for test in the '$namespace' namespace"
