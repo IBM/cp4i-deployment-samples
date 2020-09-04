@@ -12,32 +12,46 @@
 #   - Logged into cluster on the OC CLI (https://docs.openshift.com/container-platform/4.4/cli_reference/openshift_cli/getting-started-cli.html)
 #
 # PARAMETERS:
-#   -n  : <NAMESPACE> (string), Defaults to "cp4i"
-#   -p : <NAMESPACE_SUFFIX> (string), Defaults to ''
-#   -s  : <USER_DB_SUFFIX> (string), defaults to ''
+#   -n : <NAMESPACE> (string), defaults to "cp4i"
+#   -n : <RELEASE> (string), defaults to "ademo"
+#   -p : <NAMESPACE_SUFFIX> (string), defaults to ""
+#   -s : <USER_DB_SUFFIX> (string), defaults to ""
+#   -a : <APIC_ENABLED>
 #
-#   With defaults values
-#     ./test-api-e2e.sh -n <NAMESPACE>
+#   With default values
+#     ./test-api-e2e.sh
 
 function usage {
-    echo "Usage: $0 -n <NAMESPACE> -s <USER_DB_SUFFIX> -p <NAMESPACE_SUFFIX>"
+    echo "Usage: $0 -n <NAMESPACE> -r <RELEASE> -p <NAMESPACE_SUFFIX> -s <USER_DB_SUFFIX> -a"
     exit 1
 }
 
+CURRENT_DIR=$(dirname $0)
+TICK="\xE2\x9C\x85"
+CROSS="\xE2\x9D\x8C"
 NAMESPACE="cp4i"
+RELEASE="ademo"
+APIC=false
+APP="ddd-app"
 os_sed_flag=""
 
 if [[ $(uname) == Darwin ]]; then
   os_sed_flag="-e"
 fi
 
-while getopts "n:s:p:" opt; do
+while getopts "e:n:r:p:s:a" opt; do
   case ${opt} in
+    e ) ENVIRONMENT="$OPTARG"
+      ;;
     n ) NAMESPACE="$OPTARG"
+      ;;
+    r ) RELEASE="$OPTARG"
       ;;
     p ) NAMESPACE_SUFFIX="$OPTARG"
       ;;
     s ) USER_DB_SUFFIX="$OPTARG"
+      ;;
+    a ) APIC=true
       ;;
     \? ) usage; exit
       ;;
@@ -94,7 +108,61 @@ echo -e "\n---------------------------------------------------------------------
 
 # -------------------------------------- TEST E2E API ------------------------------------------
 
-export HOST=http://$(oc get routes -n ${NAMESPACE} | grep ace-api-int-srv-http | grep -v ace-api-int-srv-https | awk '{print $2}')/drivewayrepair
+HOST=http://$(oc get routes -n ${NAMESPACE} | grep ace-api-int-srv-http | grep -v ace-api-int-srv-https | awk '{print $2}')/drivewayrepair
+if [[ $APIC == true ]]; then
+  OUTPUT=""
+  function handle_res {
+    local body=$1
+    local status=$(echo ${body} | $JQ -r ".status")
+    $DEBUG && echo "[DEBUG] res body: ${body}"
+    $DEBUG && echo "[DEBUG] res status: ${status}"
+    if [[ $status == "null" ]]; then
+      OUTPUT="${body}"
+    elif [[ $status == "400" ]]; then
+      if [[ $body == *"already exists"* ]]; then
+        OUTPUT="${body}"
+        echo "[INFO]  Resource already exists, continuing..."
+      else
+        echo -e "[ERROR] ${CROSS} Got 400 bad request"
+        exit 1
+      fi
+    elif [[ $status == "409" ]]; then
+      OUTPUT="${body}"
+      echo "[INFO]  Resource already exists, continuing..."
+    else
+      echo -e "[ERROR] ${CROSS} Computer says no..."
+      exit 1
+    fi
+  }
+
+  # Grab bearer token
+  echo "[INFO]  Getting bearer token..."
+  TOKEN=$(${CURRENT_DIR}../../products/bash/get-apic-token.sh -n $NAMESPACE -r $RELEASE)
+  $DEBUG && echo "[DEBUG] Bearer token: ${TOKEN}"
+  echo -e "[INFO]  ${TICK} Got bearer token"
+
+  # Get api endpoint
+  echo "[INFO]  Getting api endpoint..."
+  RES=$(curl -kLsS https://$PLATFORM_API_EP/api/catalogs/$ORG/$CATALOG/apis/drivewaydentdeletion \
+    -H "accept: application/json" \
+    -H "authorization: Bearer ${TOKEN}")
+  handle_res "${RES}"
+  HOST=$(echo "${OUTPUT}" | $JQ -r ".results[0].gateway_service_urls[0]")
+  $DEBUG && echo "[DEBUG] API endpoint: ${HOST}"
+  [[ $HOST == "null" ]] && echo -e "[ERROR] ${CROSS} Couldn't get api endpoint" && exit 1
+  echo -e "[INFO]  ${TICK} Got api endpoint"
+
+  # Get client id
+  echo "[INFO]  Getting client id..."
+  RES=$(curl -kLsS https://$PLATFORM_API_EP/api/catalogs/$ORG/$CATALOG/credentials \
+    -H "accept: application/json" \
+    -H "authorization: Bearer ${TOKEN}")
+  handle_res "${RES}"
+  CLIENT_ID=$(echo "${OUTPUT}" | $JQ -r '.results[] | select(.name | contains("'${APP}'")).client_id')
+  $DEBUG && echo "[DEBUG] Client id: ${CLIENT_ID}"
+  [[ $CLIENT_ID == "null" ]] && echo -e "[ERROR] ${CROSS} Couldn't get client id" && exit 1
+  echo -e "[INFO]  ${TICK} Got client id"
+fi
 echo "INFO: Host: ${HOST}"
 
 DB_USER=$(echo ${NAMESPACE}_${USER_DB_SUFFIX} | sed 's/-/_/g')
@@ -109,7 +177,26 @@ echo -e "\n---------------------------------------------------------------------
 echo -e "\nINFO: Testing E2E API now..."
 
 # ------- Post to the database -------
-post_response=$(curl -s -w " %{http_code}" -X POST ${HOST}/quote -d "{\"Name\": \"Mickey Mouse\",\"EMail\": \"MickeyMouse@us.ibm.com\",\"Address\": \"30DisneyLand\",\"USState\": \"FL\",\"LicensePlate\": \"MMM123\",\"DentLocations\": [{\"PanelType\": \"Door\",\"NumberOfDents\": 2},{\"PanelType\": \"Fender\",\"NumberOfDents\": 1}]}")
+post_response=$(curl -s -w " %{http_code}" -X POST ${HOST}/quote \
+  -H "X-IBM-Client-Id": "${CLIENT_ID}" \
+  -d "{
+    \"Name\": \"Mickey Mouse\",
+    \"EMail\": \"MickeyMouse@us.ibm.com\",
+    \"Address\": \"30DisneyLand\",
+    \"USState\": \"FL\",
+    \"LicensePlate\": \"MMM123\",
+    \"DentLocations\": [
+      {
+        \"PanelType\": \"Door\",
+        \"NumberOfDents\": 2
+      },
+      {
+        \"PanelType\": \"Fender\",
+        \"NumberOfDents\": 1
+      }
+    ]
+  }
+")
 post_response_code=$(echo "${post_response##* }")
 
 if [ "$post_response_code" == "200" ]; then
@@ -124,7 +211,7 @@ if [ "$post_response_code" == "200" ]; then
 
   # ------- Get from the database -------
   echo -e "\nINFO: GET request..."
-  get_response=$(curl -s -w " %{http_code}" -X GET ${HOST}/quote?QuoteID=${quote_id})
+  get_response=$(curl -s -w " %{http_code}" -X GET ${HOST}/quote?QuoteID=${quote_id} -H "X-IBM-Client-Id": "${CLIENT_ID}")
   get_response_code=$(echo "${get_response##* }")
 
   if [ "$get_response_code" == "200" ]; then
