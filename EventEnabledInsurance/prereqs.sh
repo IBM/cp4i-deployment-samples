@@ -84,7 +84,7 @@ if ! ${CURRENT_DIR}/../products/bash/configure-ocp-pipeline.sh -n ${namespace}; 
   echo -e "\n$cross ERROR: Failed to create secrets and permissions related to ocp pipelines in the '$namespace' namespace for the eei demo\n"
   exit 1
 else
-  echo -e "\n$tick INFO: Successfully configured secrets and permissions related to ocp pipelines in the '$namespace' namespace for the eei demo"
+  echo -e "$tick INFO: Successfully configured secrets and permissions related to ocp pipelines in the '$namespace' namespace for the eei demo"
 fi #configure-ocp-pipeline.sh
 
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
@@ -184,7 +184,7 @@ else
 fi #create-ace-config.sh
 
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
-echo -e "\n$tick $all_done INFO: All prerequisites for the event enabled insurance demo have been applied successfully $all_done $tick"
+echo -e "$tick $all_done INFO: All prerequisites for the event enabled insurance demo have been applied successfully $all_done $tick"
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
 echo "INFO: Creating pvc for eei quote lifecycle simulator app in the '$namespace' namespace"
