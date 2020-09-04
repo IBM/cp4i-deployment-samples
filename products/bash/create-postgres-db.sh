@@ -13,8 +13,8 @@
 #
 # PARAMETERS:
 #   -n : <POSTGRES_NAMESPACE> (string), Defaults to 'postgres'
-#   -u : <DB_USER> (string), Defaults to 'cp4i'
 #   -d : <DB_NAME> (string), Defaults to 'db_cp4i'
+#   -u : <DB_USER> (string), Defaults to 'cp4i'
 #   -p : <DB_PASS> (string), Defaults to ''
 #
 #   With defaults values
@@ -61,7 +61,7 @@ oc wait -n $POSTGRES_NAMESPACE --for=condition=available deploymentconfig --time
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
 DB_POD=$(oc get pod -n $POSTGRES_NAMESPACE -l name=postgresql -o jsonpath='{.items[].metadata.name}')
-DB_SVC="$(oc get cm -n $POSTGRES_NAMESPACE postgres-config -o json | jq '.data["postgres.env"] | split("\n  ")' | grep DATABASE_SERVICE_NAME | cut -d "=" -f 2- | tr -dc '[a-z0-9-]\n').postgres.svc.cluster.local"
+DB_SVC="postgresql.${POSTGRES_NAMESPACE}.svc.cluster.local"
 
 echo "INFO: Postgres namespace passed: $POSTGRES_NAMESPACE"
 echo "INFO: Database user name: '$DB_USER'"
@@ -72,10 +72,10 @@ echo "INFO: Postgres svc name: '$DB_SVC'"
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
 # Check if the database exists
-if ! oc exec -n postgres -it $DB_POD \
-  -- psql -d $DB_NAME -c '\l' ; then
+if ! oc exec -n ${POSTGRES_NAMESPACE} -i $DB_POD \
+  -- psql -d $DB_NAME -c '\l' > /dev/null 2>&1 ; then
   echo "INFO: Creating Database '$DB_NAME' and User '$DB_USER'"
-  oc exec -n postgres -it $DB_POD \
+  oc exec -n ${POSTGRES_NAMESPACE} -i $DB_POD \
     -- psql << EOF
 CREATE DATABASE $DB_NAME;
 CREATE USER $DB_USER WITH PASSWORD `echo "'${DB_PASS}'"`;
@@ -87,7 +87,7 @@ EOF
   fi
 else
   echo "INFO: Database and user already exist, updating user password only"
-  oc exec -n postgres -it $DB_POD \
+  oc exec -n ${POSTGRES_NAMESPACE} -i $DB_POD \
     -- psql << EOF
 ALTER USER $DB_USER WITH PASSWORD `echo "'${DB_PASS}'"`;
 EOF
