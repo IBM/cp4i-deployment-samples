@@ -6,7 +6,7 @@ spec:
   workspaces:
     - name: git-source
   tasks:
-    - name: clone-git-source
+    - name: git-clone-eei
       taskRef:
         name: git-clone
         kind: ClusterTask
@@ -26,7 +26,7 @@ spec:
     # Build the quote lifecycle simulator app image
     - name: build-simulator-image
       runAfter:
-        - clone-git-source
+        - git-clone-eei
       taskSpec:
         workspaces:
           - name: git-source
@@ -57,7 +57,7 @@ spec:
         steps:
           - name: oc
             image: quay.io/openshift/origin-cli:latest
-            script: "/workspace/git-source/EventEnabledInsurance/QuoteLifecycleSimulator/deploy-simulator.sh -n {{NAMESPACE}} -t 1000 -m 10"
+            script: "/workspace/git-source/EventEnabledInsurance/QuoteLifecycleSimulator/deploy-simulator.sh -n {{NAMESPACE}}"
       workspaces:
       - name: git-source
         workspace: git-source

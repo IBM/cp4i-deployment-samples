@@ -20,10 +20,10 @@
 #     ./prereqs.sh
 #
 #   With overridden values
-#     ./prereqs.sh -n <namespace> -t <TICK_MILLIS> -m <MOBILE_TEST_ROWS>
+#     ./prereqs.sh -n <namespace>
 
 function usage() {
-  echo "Usage: $0 -n <namespace> -t <TICK_MILLIS> -m <MOBILE_TEST_ROWS>"
+  echo "Usage: $0 -n <namespace>"
   exit 1
 }
 
@@ -38,16 +38,10 @@ PG_PORT=5432
 TICK_MILLIS=1000
 MOBILE_TEST_ROWS=10
 
-while getopts "n:t:m:" opt; do
+while getopts "n:" opt; do
   case ${opt} in
   n)
     namespace="$OPTARG"
-    ;;
-  t)
-    TICK_MILLIS="$OPTARG"
-    ;;
-  m)
-    MOBILE_TEST_ROWS="$OPTARG"
     ;;
   \?)
     usage
@@ -61,18 +55,13 @@ echo "INFO: Current directory: '$CURRENT_DIR'"
 echo "INFO: Namespace: '$namespace'"
 echo "INFO: Suffix for the postgres is: '$SUFFIX'"
 
-if [[ -z "${namespace// }" || -z "${TICK_MILLIS// }" || -z "${MOBILE_TEST_ROWS// }" ]]; then
-  echo -e "$cross ERROR: Some or all mandatory parameters are empty"
+if [[ -z "${namespace// }" ]]; then
+  echo -e "$cross ERROR: A mandatory parameter 'namespace' is empty"
   usage
 fi
 
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
-oc project $namespace
-
-echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
-
-echo -e "INFO: Getting postgres pod name and service name for the simulator app host"
 DB_POD=$(oc get pod -n $POSTGRES_NAMESPACE -l name=postgresql -o jsonpath='{.items[].metadata.name}')
 DB_SVC="postgresql.$POSTGRES_NAMESPACE.svc.cluster.local"
 PG_HOST=$DB_SVC

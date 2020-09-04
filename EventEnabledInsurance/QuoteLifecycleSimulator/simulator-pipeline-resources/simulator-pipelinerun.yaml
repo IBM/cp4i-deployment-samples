@@ -6,11 +6,11 @@ spec:
   pipelineRef:
     name: eei-simulator-pipeline
   serviceAccountNames:
-    - taskName: clone-git-source
+    - taskName: git-clone-eei
       serviceAccountName: pipeline
     - taskName: deploy-simulator-app
       serviceAccountName: cicd-test
   workspaces:
     - name: git-source
       persistentvolumeclaim:
-        claimName: git-source-workspace
+        claimName: git-workspace-eei

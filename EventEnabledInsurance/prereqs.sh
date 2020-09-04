@@ -71,20 +71,20 @@ echo -e "\n---------------------------------------------------------------------
 
 echo "INFO: Installing OCP pipelines..."
 if ! ${CURRENT_DIR}/../products/bash/install-ocp-pipeline.sh; then
-  echo -e "$cross ERROR: Failed to install OCP pipelines\n"
+  echo -e "\n$cross ERROR: Failed to install OCP pipelines\n"
   exit 1
 else
-  echo -e "$tick INFO: Successfully installed OCP pipelines"
+  echo -e "\n$tick INFO: Successfully installed OCP pipelines"
 fi #install-ocp-pipeline.sh
 
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
 echo "INFO: Configuring secrets and permissions related to ocp pipelines in the '$namespace' namespace for the eei demo..."
 if ! ${CURRENT_DIR}/../products/bash/configure-ocp-pipeline.sh -n ${namespace}; then
-  echo -e "$cross ERROR: Failed to create secrets and permissions related to ocp pipelines in the '$namespace' namespace for the eei demo\n"
+  echo -e "\n$cross ERROR: Failed to create secrets and permissions related to ocp pipelines in the '$namespace' namespace for the eei demo\n"
   exit 1
 else
-  echo -e "$tick INFO: Successfully configured secrets and permissions related to ocp pipelines in the '$namespace' namespace for the eei demo"
+  echo -e "\n$tick INFO: Successfully configured secrets and permissions related to ocp pipelines in the '$namespace' namespace for the eei demo"
 fi #configure-ocp-pipeline.sh
 
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
@@ -117,10 +117,10 @@ echo -e "\n---------------------------------------------------------------------
 
 echo -e "INFO: Configuring postgres in the '$namespace' namespace with the user '$DB_USER' and database name '$DB_NAME' and suffix '$SUFFIX'\n"
 if ! ${CURRENT_DIR}/../products/bash/create-postgres-db.sh -n ${POSTGRES_NAMESPACE} -u $DB_USER -d $DB_NAME -p $DB_PASS; then
-  echo -e "\n$cross ERROR: Failed to configure postgres in the '$namespace' namespace with the user '$DB_USER' and database name '$DB_NAME' amd suffix '$SUFFIX'"
+  echo -e "\n\n$cross ERROR: Failed to configure postgres in the '$namespace' namespace with the user '$DB_USER' and database name '$DB_NAME' amd suffix '$SUFFIX'"
   exit 1
 else
-  echo -e "\n$tick INFO: Successfully configured postgres in the '$namespace' namespace with the user '$DB_USER' and database name '$DB_NAME' and suffix '$SUFFIX'"
+  echo -e "\n\n$tick INFO: Successfully configured postgres in the '$namespace' namespace with the user '$DB_USER' and database name '$DB_NAME' and suffix '$SUFFIX'"
 fi #create-postgres-db.sh
 
 echo -e "\nINFO: Creating the table 'QUOTES' and in the database '$DB_NAME' with the username '$DB_USER' in the '$namespace' namespace"
@@ -141,24 +141,33 @@ if ! oc exec -n $POSTGRES_NAMESPACE -it $DB_POD \
     ClaimCost INTEGER
   );
   "; then
-  echo -e "\n$cross ERROR: Failed to create the table 'QUOTES' in the database '$DB_NAME' with the username '$DB_USER' in the namespace '$namespace'"
+  echo -e "\n\n$cross ERROR: Failed to create the table 'QUOTES' in the database '$DB_NAME' with the username '$DB_USER' in the namespace '$namespace'"
   exit 1
 else
-  echo -e "\n$tick INFO: Created the table 'QUOTES' in the database '$DB_NAME' with the username '$DB_USER' in the namespace '$namespace'"
+  echo -e "\n\n$tick INFO: Created the table 'QUOTES' in the database '$DB_NAME' with the username '$DB_USER' in the namespace '$namespace'"
 fi
 
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
 echo -e "INFO: Creating ace postgres configuration and policy in the namespace '$namespace' with the user '$DB_USER' and database name '$DB_NAME' and suffix '$SUFFIX'"
 if ! ${CURRENT_DIR}/../products/bash/create-ace-config.sh -n ${namespace} -u $DB_USER -d $DB_NAME -p $DB_PASS -a $ACE_CONFIGURATION_NAME; then
-  echo -e "\n$cross ERROR: Failed to configure ace in the '$namespace' namespace with the user '$DB_USER' and database name '$DB_NAME' and suffix '$SUFFIX'"
+  echo -e "\n\n$cross ERROR: Failed to configure ace in the '$namespace' namespace with the user '$DB_USER' and database name '$DB_NAME' and suffix '$SUFFIX'"
   exit 1
 else
-  echo -e "\n$tick INFO: Successfully configured ace in the '$namespace' namespace with the user '$DB_USER' and database name '$DB_NAME' and suffix '$SUFFIX'"
+  echo -e "\n\n$tick INFO: Successfully configured ace in the '$namespace' namespace with the user '$DB_USER' and database name '$DB_NAME' and suffix '$SUFFIX'"
 fi #create-ace-config.sh
 
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 echo -e "$tick $all_done INFO: All prerequisites for the event enabled insurance demo have been applied successfully $all_done $tick"
+echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
+
+echo "INFO: Creating pvc for eei quote lifecycle simulator app in the '$namespace' namespace"
+if oc apply -f $CURRENT_DIR/QuoteLifecycleSimulator/simulator-pipeline-resources/simulator-pvc.yaml; then
+  echo -e "\n$tick INFO: Successfully created the pvc for eei quote lifecycle simulator app in the '$namespace' namespace"
+else
+  echo -e "\n$cross ERROR: Failed to create the pvc for eei quote lifecycle simulator app in the '$namespace' namespace"
+fi
+
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
 # create common service accounts
@@ -166,12 +175,9 @@ echo "INFO: Create common service accounts"
 if cat $CURRENT_DIR/../CommonPipelineResources/cicd-service-accounts.yaml |
   sed "s#{{NAMESPACE}}#$namespace#g;" |
   oc apply -f -; then
-    printf "$tick "
-    echo "Successfully applied common service accounts in the '$namespace' namespace"
+    echo -e "\n$tick INFO: Successfully applied common service accounts in the '$namespace' namespace"
 else
-  printf "$cross "
-  echo "Failed to apply common service accounts in the '$namespace' namespace"
-  sum=$((sum + 1))
+  echo -e "\n$cross ERROR: Failed to apply common service accounts in the '$namespace' namespace"
 fi
 
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
@@ -181,12 +187,9 @@ echo "INFO: Create common roles for tasks"
 if cat $CURRENT_DIR/../CommonPipelineResources/cicd-roles.yaml |
   sed "s#{{NAMESPACE}}#$namespace#g;" |
   oc apply -f -; then
-    printf "$tick "
-    echo "Successfully created roles for tasks in the '$namespace' namespace"
+   echo -e "\n$tick INFO: Successfully created roles for tasks in the '$namespace' namespace"
 else
-  printf "$cross "
-  echo "Failed to create roles for tasks in the '$namespace' namespace"
-  sum=$((sum + 1))
+  echo -e "\n$cross ERROR: Failed to create roles for tasks in the '$namespace' namespace"
 fi
 
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
@@ -196,13 +199,10 @@ echo "INFO: Create role bindings for roles"
 if cat $CURRENT_DIR/../CommonPipelineResources/cicd-rolebindings.yaml |
   sed "s#{{NAMESPACE}}#$namespace#g;" |
   oc apply -f -; then
-    printf "$tick "
-    echo "Successfully applied role bindings for roles in the '$namespace' namespace"
+    echo -e "\n$tick INFO: Successfully applied role bindings for roles in the '$namespace' namespace"
 else
-  printf "$cross "
-  echo "Failed to apply role bindings for roles in the '$namespace' namespace"
-  sum=$((sum + 1))
-fi
+  echo -e "\n$cross ERROR: Failed to apply role bindings for roles in the '$namespace' namespace"
+fi #cicd-rolebindings.yaml
 
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
@@ -212,11 +212,33 @@ if cat $CURRENT_DIR/QuoteLifecycleSimulator/simulator-pipeline-resources/simulat
   sed "s#{{FORKED_REPO}}#$REPO#g;" |
   sed "s#{{BRANCH}}#$BRANCH#g;" |
   oc apply -f -; then
-    echo -e "$tick INFO: Successfully applied the pipeline to build and deploy the simulator app in in '$namespace' namespace"
+    echo -e "\n$tick INFO: Successfully applied the pipeline to build and deploy the simulator app in in '$namespace' namespace"
 else
-  echo -e "$cross ERROR: Failed to apply the pipeline to build and deploy the simulator app in in '$namespace' namespace"
+  echo -e "\n$cross ERROR: Failed to apply the pipeline to build and deploy the simulator app in in '$namespace' namespace"
   exit 1
 fi #simulator-pipeline.yaml 
+
+echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
+
+echo "INFO: Creating roles for creating deployment in the '$namespace' namespace for simulator app"
+if oc apply -f $CURRENT_DIR/QuoteLifecycleSimulator/simulator-pipeline-resources/simulator-roles.yaml; then
+    echo -e "\n$tick INFO: Successfully created roles for creaating deployment in the '$namespace' namespace for simulator app"
+else
+  echo -e "\n$cross ERROR: Failed to create roles for creaating deployment in the '$namespace' namespace for simulator app"
+  exit 1
+fi #simulator-roles.yaml
+
+echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
+
+echo "INFO: Creating rolebinding for creating deployment in the '$namespace' namespace for creating simulator app"
+if cat $CURRENT_DIR/QuoteLifecycleSimulator/simulator-pipeline-resources/simulator-rolebindings.yaml |
+  sed "s#{{NAMESPACE}}#$namespace#g;" |
+  oc apply -f -; then
+    echo -e "\n$tick INFO: Successfully created rolebinding for creating deployment in the '$namespace' namespace for simulator app"
+else
+  echo -e "\n$cross ERROR: Failed to create rolebinding for creating deployment in the '$namespace' namespace for simulator app"
+  exit 1
+fi #simulator-rolebindings.yaml
 
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
@@ -229,10 +251,53 @@ echo "INFO: Creating the pipelinerun for simulator app in the '$namespace' names
 if cat $CURRENT_DIR/QuoteLifecycleSimulator/simulator-pipeline-resources/simulator-pipelinerun.yaml |
   sed "s#{{UID}}#$PIPELINERUN_UID#g;" |
   oc apply -f -; then
-  echo -e "$tick INFO: Successfully applied the pipelinerun for simulator app in the '$namespace' namespace"
+  echo -e "\n$tick INFO: Successfully applied the pipelinerun for simulator app in the '$namespace' namespace"
 else
-  echo -e "$cross ERROR: Failed to apply the pipelinerun for simulator app in the '$namespace' namespace"
+  echo -e "\n$cross ERROR: Failed to apply the pipelinerun for simulator app in the '$namespace' namespace"
   exit 1
 fi #simulator-pipelinerun.yaml
+
+echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
+
+echo -e "INFO: Displaying the pipelinerun logs: \n"
+tkn pipelinerun logs -L -f
+
+# Wait for upto 5 minutes for the pipelinerun for the simluator app to complete
+time=0
+while [ "$(oc get pipelinerun $(oc get pipelinerun -n $namespace | grep $PIPELINERUN_UID | awk '{print $1}') -o json | jq -r '.status.conditions[0].status')" != "True" ]; do
+  if [ $time -gt 5 ]; then
+    echo -e "\n$cross ERROR: Timed out waiting for the pipelinerun for the quote lifecycle simulator app to succeed"
+    exit 1
+  fi
+
+  if [ "$(oc get pipelinerun $(oc get pipelinerun -n $namespace | grep $PIPELINERUN_UID | awk '{print $1}') -o json | jq -r '.status.conditions[0].status')" == "False" ]; then
+    echo -e "\n$cross ERROR: The pipelinerun for the quote lifecycle simulator app has failed\n"
+    oc get pipelinerun $(oc get pipelinerun -n $namespace | grep $PIPELINERUN_UID | awk '{print $1}')
+    exit 1
+  fi
+
+  echo "INFO: Waiting up to 5 minutes for the pipelinerun for the quote lifecycle simulator app to finish. Waited ${time} minute(s)."
+  time=$((time + 1))
+  sleep 60
+done
+
+echo -e "$tick INFO: The pipelinerun for the quote lifecycle simulator app has completed successfully, going ahead to delete the pipelinerun for it to delete the pods and the pvc\n"
+oc get pipelinerun $(oc get pipelinerun -n $namespace | grep $PIPELINERUN_UID | awk '{print $1}')
+
+echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
+
+if oc delete pipelinerun -n $namespace $(oc get pipelinerun -n $namespace | grep $PIPELINERUN_UID | awk '{print $1}'); then
+  echo -e "\n$tick INFO: Deleted the pipelinerun with the uid '$PIPELINERUN_UID'"
+else
+  echo -e "\n$cross ERROR: Failed to delete the pipelinerun with the uid '$PIPELINERUN_UID'"
+fi
+
+echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
+
+if oc delete pvc git-workspace-eei -n $namespace; then
+  echo -e "\n$tick INFO: Deleted the pvc 'git-workspace-eei'"
+else
+  echo -e "\n$cross ERROR: Failed to delete the pvc 'git-workspace-eei'"
+fi
 
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
