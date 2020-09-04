@@ -262,15 +262,17 @@ echo -e "\n---------------------------------------------------------------------
 echo -e "INFO: Displaying the pipelinerun logs: \n"
 tkn pipelinerun logs -L -f
 
+echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
+
 # Wait for upto 5 minutes for the pipelinerun for the simluator app to complete
 time=0
-while [ "$(oc get pipelinerun $(oc get pipelinerun -n $namespace | grep $PIPELINERUN_UID | awk '{print $1}') -o json | jq -r '.status.conditions[0].status')" != "True" ]; do
+while [ "$(oc get pipelinerun -n $namespace $(oc get pipelinerun -n $namespace | grep $PIPELINERUN_UID | awk '{print $1}') -o json | jq -r '.status.conditions[0].status')" != "True" ]; do
   if [ $time -gt 5 ]; then
     echo -e "\n$cross ERROR: Timed out waiting for the pipelinerun for the quote lifecycle simulator app to succeed"
     exit 1
   fi
 
-  if [ "$(oc get pipelinerun $(oc get pipelinerun -n $namespace | grep $PIPELINERUN_UID | awk '{print $1}') -o json | jq -r '.status.conditions[0].status')" == "False" ]; then
+  if [ "$(oc get pipelinerun -n $namespace $(oc get pipelinerun -n $namespace | grep $PIPELINERUN_UID | awk '{print $1}') -o json | jq -r '.status.conditions[0].status')" == "False" ]; then
     echo -e "\n$cross ERROR: The pipelinerun for the quote lifecycle simulator app has failed\n"
     oc get pipelinerun $(oc get pipelinerun -n $namespace | grep $PIPELINERUN_UID | awk '{print $1}')
     exit 1
@@ -282,10 +284,10 @@ while [ "$(oc get pipelinerun $(oc get pipelinerun -n $namespace | grep $PIPELIN
 done
 
 echo -e "$tick INFO: The pipelinerun for the quote lifecycle simulator app has completed successfully, going ahead to delete the pipelinerun for it to delete the pods and the pvc\n"
-oc get pipelinerun $(oc get pipelinerun -n $namespace | grep $PIPELINERUN_UID | awk '{print $1}')
+oc get pipelinerun -n $namespace $(oc get pipelinerun -n $namespace | grep $PIPELINERUN_UID | awk '{print $1}')
 
 echo -e "\n$tick INFO: The quote lifecycle simulator application has been deployed, but with zero replicas. To scale up the pods, run the command `kubectl scale --replicas=<expected_replica_num> deployment simulator-eei`"
-oc get deployment $(oc get deployments | grep simulator | awk '{print $1}')
+oc get deployment -n $namespace $(oc get deployments -n $namespace | grep simulator | awk '{print $1}')
 
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
