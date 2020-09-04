@@ -180,7 +180,7 @@ spec:
         - name: releaseName
           value: "ace-bernie-int-srv"
         - name: releaseScript
-          value: "../../EventEnabledInsurance/QuoteLifecycleSimulator/deploy-simulator.sh"
+          value: release-ace-integration-server.sh
         - name: namespace
           value: "{{NAMESPACE}}"
       workspaces:
