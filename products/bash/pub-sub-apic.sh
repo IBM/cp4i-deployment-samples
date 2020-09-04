@@ -102,18 +102,34 @@ echo "[INFO]  Gathering cluster info..."
 PLATFORM_API_EP=$(oc get route -n $NAMESPACE ${RELEASE}-mgmt-platform-api -o jsonpath="{.spec.host}")
 [[ -z $PLATFORM_API_EP ]] && echo -e "[ERROR] ${CROSS} APIC platform api route doesn't exit" && exit 1
 $DEBUG && echo "[DEBUG] PLATFORM_API_EP=${PLATFORM_API_EP}"
+# for i in `seq 1 5`; do
+#   ACE_API_ROUTE=$(oc get routes | grep -i ace-api-int-srv-http-$NAMESPACE | awk '{print $2}')
+#   if [[ -z $ACE_API_ROUTE ]]; then
+#     echo "Waiting for ace api route (Attempt $i of 5)."
+#     echo "Checking again in one minute..."
+#     sleep 60
+#   else
+#     $DEBUG && echo "[DEBUG] ACE_API_ROUTE=${ACE_API_ROUTE}"
+#     break
+#   fi
+# done
+# [[ -z $ACE_API_ROUTE ]] && echo -e "[ERROR] ${CROSS} ace api route doesn't exit" && exit 1
+# echo -e "[INFO]  ${TICK} Cluster info gathered"
+
 for i in `seq 1 5`; do
-  ACE_API_ROUTE=$(oc get routes | grep -i ace-api-int-srv-http-$NAMESPACE | awk '{print $2}')
-  if [[ -z $ACE_API_ROUTE ]]; then
+  ACE_API=$(oc get svc ace-api-int-srv-is -n ${NAMESPACE} -o jsonpath="{.metadata.name}")
+  if [[ -z $ACE_API ]]; then
     echo "Waiting for ace api route (Attempt $i of 5)."
     echo "Checking again in one minute..."
     sleep 60
   else
-    $DEBUG && echo "[DEBUG] ACE_API_ROUTE=${ACE_API_ROUTE}"
+    $DEBUG && echo "[DEBUG] ACE_API=${ACE_API}"
     break
   fi
 done
-[[ -z $ACE_API_ROUTE ]] && echo -e "[ERROR] ${CROSS} ace api route doesn't exit" && exit 1
+[[ -z $ACE_API ]] && echo -e "[ERROR] ${CROSS} ace api integration server service doesn't exit" && exit 1
+ACE_API_INT_SRV=${ACE_API}.${NAMESPACE}.svc.cluster.local
+echo "ACE_API_INT_SRV= ${ACE_API_INT_SRV}"
 echo -e "[INFO]  ${TICK} Cluster info gathered"
 
 function handle_res {
@@ -149,7 +165,7 @@ echo -e "[INFO]  ${TICK} Got bearer token"
 # Template api and product yamls
 echo "[INFO]  Templating api yaml..."
 cat ${CURRENT_DIR}/../../DrivewayDentDeletion/Operators/apic-resources/apic-api-ddd.yaml |
-  sed "s#{{ACE_API_INT_SRV_ROUTE}}#${ACE_API_ROUTE}#g;" > ${CURRENT_DIR}/api.yaml
+  sed "s#{{ACE_API_INT_SRV_ROUTE}}#${ACE_API_INT_SRV}#g;" > ${CURRENT_DIR}/api.yaml
 $DEBUG && echo -e "[DEBUG] api yaml:\n$(cat ${CURRENT_DIR}/api.yaml)"
 echo -e "[INFO]  ${TICK} Templated api yaml"
 
