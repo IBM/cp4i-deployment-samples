@@ -87,7 +87,7 @@ export namespace=<yourNamespace>
 ```
 - Now run the prereqs script from the `EventEnabledInsurance` directory with the following command:
 ```
-./prereqs.sh -n $namespace
+./prereqs.sh -n $namespace -b $BRANCH -r $FORKED_REPO
 ```
 - The prereqs will set up the dependencies, secrets, the database and configures the pipeline to deploy the simulator app with 0 replicas.
 - To scale up/down the replicas for the deployment:
