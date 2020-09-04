@@ -274,7 +274,6 @@ if [[ $OWNER_URL == "null" ]]; then
   # Get existing owner
   echo "[INFO] Getting existing consumer org owner..."
   # user registry naming convention: {catalog-name}-catalog
-  echo "URL: https://$PLATFORM_API_EP/api/user-registries/$ORG/${CATALOG}-catalog/users"
   RES=$(curl -kLsS https://$PLATFORM_API_EP/api/user-registries/$ORG/${CATALOG}-catalog/users \
     -H "accept: application/json" \
     -H "authorization: Bearer ${TOKEN}")
