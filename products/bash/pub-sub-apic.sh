@@ -100,11 +100,20 @@ echo "[INFO]  jq version: $($JQ --version)"
 # Gather info from cluster resources
 echo "[INFO]  Gathering cluster info..."
 PLATFORM_API_EP=$(oc get route -n $NAMESPACE ${RELEASE}-mgmt-platform-api -o jsonpath="{.spec.host}")
+[[ -z $PLATFORM_API_EP ]] && echo -e "[ERROR] ${CROSS} APIC platform api route doesn't exit" && exit 1
 $DEBUG && echo "[DEBUG] PLATFORM_API_EP=${PLATFORM_API_EP}"
-API_MANAGER_EP=$(oc get route -n $NAMESPACE ${RELEASE}-mgmt-api-manager -o jsonpath="{.spec.host}")
-$DEBUG && echo "[DEBUG] API_MANAGER_EP=${API_MANAGER_EP}"
-ACE_API_ROUTE=$(oc get routes | grep -i ace-api-int-srv-http-$NAMESPACE | awk '{print $2}')
-$DEBUG && echo "[DEBUG] ACE_API_ROUTE=${ACE_API_ROUTE}"
+for i in `seq 1 5`; do
+  ACE_API_ROUTE=$(oc get routes | grep -i ace-api-int-srv-http-$NAMESPACE | awk '{print $2}')
+  if [[ -z $ACE_API_ROUTE ]]; then
+    echo "Waiting for ace api route (Attempt $i of 5)."
+    echo "Checking again in one minute..."
+    sleep 60
+  else
+    $DEBUG && echo "[DEBUG] ACE_API_ROUTE=${ACE_API_ROUTE}"
+    break
+  fi
+done
+[[ -z $ACE_API_ROUTE ]] && echo -e "[ERROR] ${CROSS} ace api route doesn't exit" && exit 1
 echo -e "[INFO]  ${TICK} Cluster info gathered"
 
 function handle_res {
@@ -114,6 +123,14 @@ function handle_res {
   echo "[DEBUG] ${status}"
   if [[ $status == "null" ]]; then
     OUTPUT="${body}"
+  elif [[ $status == "400" ]]; then
+    if [[ $body =~ ".*already exists.*" ]]; then
+      OUTPUT="${body}"
+      echo "[INFO]  Resource already exists, continuing..."
+    else
+      echo -e "[ERROR] ${CROSS} Got 400 bad request"
+      exit 1
+    fi
   elif [[ $status == "409" ]]; then
     OUTPUT="${body}"
     echo "[INFO]  Resource already exists, continuing..."
@@ -146,7 +163,7 @@ echo -e "[INFO]  ${TICK} Templated product yaml"
 
 # Publish product
 echo "[INFO]  Publishing product..."
-RES=$(curl -kLsS -X POST https://$API_MANAGER_EP/api/catalogs/$ORG/$CATALOG/publish \
+RES=$(curl -kLsS -X POST https://$PLATFORM_API_EP/api/catalogs/$ORG/$CATALOG/publish \
   -H "accept: application/json" \
   -H "authorization: Bearer ${TOKEN}" \
   -H "content-type: multipart/form-data" \
@@ -163,7 +180,7 @@ oc create configmap ${ORG}-info \
 
 # Get user registry url
 echo "[INFO] Getting configured catalog user registry url for ${ORG}-catalog..."
-RES=$(curl -kLsS https://$API_MANAGER_EP/api/catalogs/$ORG/$CATALOG/configured-catalog-user-registries \
+RES=$(curl -kLsS https://$PLATFORM_API_EP/api/catalogs/$ORG/$CATALOG/configured-catalog-user-registries \
   -H "accept: application/json" \
   -H "authorization: Bearer ${TOKEN}")
 handle_res "${RES}"
@@ -191,7 +208,7 @@ echo -e "[INFO] ${tick} Consumer org owner created"
 
 # Create consumer org
 echo "[INFO] Creating consumer org..."
-RES=$(curl -kLsS -X POST https://$API_MANAGER_EP/api/catalogs/$ORG/$CATALOG/consumer-orgs \
+RES=$(curl -kLsS -X POST https://$PLATFORM_API_EP/api/catalogs/$ORG/$CATALOG/consumer-orgs \
   -H "accept: application/json" \
   -H "authorization: Bearer ${TOKEN}" \
   -H "content-type: application/json" \
@@ -205,7 +222,7 @@ echo -e "[INFO] ${tick} Consumer org created"
 
 # Create an app
 echo "[INFO] Creating application..."
-RES=$(curl -kLsS -X POST https://$API_MANAGER_EP/api/consumer-orgs/$ORG/$CATALOG/$C_ORG/apps \
+RES=$(curl -kLsS -X POST https://$PLATFORM_API_EP/api/consumer-orgs/$ORG/$CATALOG/$C_ORG/apps \
   -H "accept: application/json" \
   -H "authorization: Bearer ${TOKEN}" \
   -H "content-type: application/json" \
@@ -218,7 +235,7 @@ echo -e "[INFO] ${tick} Application created"
 
 # Get product url
 echo "[INFO] Getting url for product $PRODUCT..."
-RES=$(curl -kLsS https://$API_MANAGER_EP/api/catalogs/$ORG/$CATALOG/products/$PRODUCT \
+RES=$(curl -kLsS https://$PLATFORM_API_EP/api/catalogs/$ORG/$CATALOG/products/$PRODUCT \
   -H "accept: application/json" \
   -H "authorization: Bearer ${TOKEN}")
 handle_res "${RES}"
@@ -228,7 +245,7 @@ echo -e "[INFO] ${tick} Got product url"
 
 # Create an subscription
 echo "[INFO] Creating subscription..."
-RES=$(curl -kLsS -X POST https://$API_MANAGER_EP/api/apps/$ORG/$CATALOG/$C_ORG/$APP/subscriptions \
+RES=$(curl -kLsS -X POST https://$PLATFORM_API_EP/api/apps/$ORG/$CATALOG/$C_ORG/$APP/subscriptions \
   -H "accept: application/json" \
   -H "authorization: Bearer ${TOKEN}" \
   -H "content-type: application/json" \
