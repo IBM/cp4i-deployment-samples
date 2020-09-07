@@ -69,6 +69,10 @@ echo "INFO: Branch: '$BRANCH'"
 
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
+oc project $namespace
+
+echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
+
 echo "INFO: Installing OCP pipelines..."
 if ! ${CURRENT_DIR}/../products/bash/install-ocp-pipeline.sh; then
   echo -e "$cross ERROR: Failed to install OCP pipelines\n"
@@ -79,21 +83,21 @@ fi #install-ocp-pipeline.sh
 
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
-TKN=tkn
-echo "INFO: Installing tekton cli..."
-if [[ $(uname) == Darwin ]]; then
-  echo "INFO: Installing on MAC"
-  /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)"
-  brew tap tektoncd/tools
-  brew install tektoncd/tools/tektoncd-cli
-else
-  # Get the tar.xz
-  curl -LO https://github.com/tektoncd/cli/releases/download/v0.12.0/tkn_0.12.0_Linux_x86_64.tar.gz
-  # Extract tkn to current
-  tar xvzf tkn_0.12.0_Linux_x86_64.tar.gz -C . tkn
-  chmod +x ./tkn
-  TKN=./tkn
-fi
+# TKN=tkn
+# echo "INFO: Installing tekton cli..."
+# if [[ $(uname) == Darwin ]]; then
+#   echo "INFO: Installing on MAC"
+#   /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)"
+#   brew tap tektoncd/tools
+#   brew install tektoncd/tools/tektoncd-cli
+# else
+#   # Get the tar.xz
+#   curl -LO https://github.com/tektoncd/cli/releases/download/v0.12.0/tkn_0.12.0_Linux_x86_64.tar.gz
+#   # Extract tkn to current
+#   tar xvzf tkn_0.12.0_Linux_x86_64.tar.gz -C . tkn
+#   chmod +x ./tkn
+#   TKN=./tkn
+# fi
 
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
@@ -218,7 +222,7 @@ echo -e "\n---------------------------------------------------------------------
 echo "INFO: Create common service accounts"
 if cat $CURRENT_DIR/../CommonPipelineResources/cicd-service-accounts.yaml |
   sed "s#{{NAMESPACE}}#$namespace#g;" |
-  oc apply -n $namespace -f -; then
+  oc apply -f -; then
     echo -e "\n$tick INFO: Successfully applied common service accounts in the '$namespace' namespace"
 else
   echo -e "\n$cross ERROR: Failed to apply common service accounts in the '$namespace' namespace"
@@ -230,7 +234,7 @@ echo -e "\n---------------------------------------------------------------------
 echo "INFO: Create common roles for tasks"
 if cat $CURRENT_DIR/../CommonPipelineResources/cicd-roles.yaml |
   sed "s#{{NAMESPACE}}#$namespace#g;" |
-  oc apply -n $namespace -f -; then
+  oc apply -f -; then
    echo -e "\n$tick INFO: Successfully created roles for tasks in the '$namespace' namespace"
 else
   echo -e "\n$cross ERROR: Failed to create roles for tasks in the '$namespace' namespace"
@@ -242,7 +246,7 @@ echo -e "\n---------------------------------------------------------------------
 echo "INFO: Create role bindings for roles"
 if cat $CURRENT_DIR/../CommonPipelineResources/cicd-rolebindings.yaml |
   sed "s#{{NAMESPACE}}#$namespace#g;" |
-  oc apply -n $namespace -f -; then
+  oc apply -f -; then
     echo -e "\n$tick INFO: Successfully applied role bindings for roles in the '$namespace' namespace"
 else
   echo -e "\n$cross ERROR: Failed to apply role bindings for roles in the '$namespace' namespace"
@@ -255,7 +259,7 @@ if cat $CURRENT_DIR/QuoteLifecycleSimulator/simulator-pipeline-resources/simulat
   sed "s#{{NAMESPACE}}#$namespace#g;" |
   sed "s#{{FORKED_REPO}}#$REPO#g;" |
   sed "s#{{BRANCH}}#$BRANCH#g;" |
-  oc apply -n $namespace -f -; then
+  oc apply -f -; then
     echo -e "\n$tick INFO: Successfully applied the pipeline to build and deploy the simulator app in in '$namespace' namespace"
 else
   echo -e "\n$cross ERROR: Failed to apply the pipeline to build and deploy the simulator app in in '$namespace' namespace"
@@ -265,7 +269,7 @@ fi #simulator-pipeline.yaml
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
 echo "INFO: Creating roles for creating deployment in the '$namespace' namespace for simulator app"
-if oc apply -n $namespace -f $CURRENT_DIR/QuoteLifecycleSimulator/simulator-pipeline-resources/simulator-roles.yaml; then
+if oc apply -f $CURRENT_DIR/QuoteLifecycleSimulator/simulator-pipeline-resources/simulator-roles.yaml; then
     echo -e "\n$tick INFO: Successfully created roles for creaating deployment in the '$namespace' namespace for simulator app"
 else
   echo -e "\n$cross ERROR: Failed to create roles for creaating deployment in the '$namespace' namespace for simulator app"
@@ -277,7 +281,7 @@ echo -e "\n---------------------------------------------------------------------
 echo "INFO: Creating rolebinding for creating deployment in the '$namespace' namespace for creating simulator app"
 if cat $CURRENT_DIR/QuoteLifecycleSimulator/simulator-pipeline-resources/simulator-rolebindings.yaml |
   sed "s#{{NAMESPACE}}#$namespace#g;" |
-  oc apply -n $namespace -f -; then
+  oc apply -f -; then
     echo -e "\n$tick INFO: Successfully created rolebinding for creating deployment in the '$namespace' namespace for simulator app"
 else
   echo -e "\n$cross ERROR: Failed to create rolebinding for creating deployment in the '$namespace' namespace for simulator app"
@@ -294,7 +298,7 @@ PIPELINERUN_UID=$(
 echo "INFO: Creating the pipelinerun for simulator app in the '$namespace' namespace"
 if cat $CURRENT_DIR/QuoteLifecycleSimulator/simulator-pipeline-resources/simulator-pipelinerun.yaml |
   sed "s#{{UID}}#$PIPELINERUN_UID#g;" |
-  oc apply -n $namespace -f -; then
+  oc apply -f -; then
   echo -e "\n$tick INFO: Successfully applied the pipelinerun for simulator app in the '$namespace' namespace"
 else
   echo -e "\n$cross ERROR: Failed to apply the pipelinerun for simulator app in the '$namespace' namespace"
@@ -304,7 +308,10 @@ fi #simulator-pipelinerun.yaml
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
 echo -e "INFO: Displaying the pipelinerun logs: \n"
-$TKN pipelinerun logs -n $namespace -L -f
+if ! $TKN pipelinerun logs -L -f; then
+  echo -e "\n$cross ERROR: Failed to get the pipelinerun logs successfully"
+  exit 1
+fi
 
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
