@@ -197,6 +197,7 @@ post_response=$(curl -s -w " %{http_code}" -X POST ${HOST}/quote \
     ]
   }
 ")
+echo "[DEBUG] post response: ${post_response}"
 post_response_code=$(echo "${post_response##* }")
 
 if [ "$post_response_code" == "200" ]; then
