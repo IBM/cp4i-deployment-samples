@@ -83,21 +83,21 @@ fi #install-ocp-pipeline.sh
 
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
-# TKN=tkn
-# echo "INFO: Installing tekton cli..."
-# if [[ $(uname) == Darwin ]]; then
-#   echo "INFO: Installing on MAC"
-#   /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)"
-#   brew tap tektoncd/tools
-#   brew install tektoncd/tools/tektoncd-cli
-# else
-#   # Get the tar.xz
-#   curl -LO https://github.com/tektoncd/cli/releases/download/v0.12.0/tkn_0.12.0_Linux_x86_64.tar.gz
-#   # Extract tkn to current
-#   tar xvzf tkn_0.12.0_Linux_x86_64.tar.gz -C . tkn
-#   chmod +x ./tkn
-#   TKN=./tkn
-# fi
+TKN=tkn
+echo "INFO: Installing tekton cli..."
+if [[ $(uname) == Darwin ]]; then
+  echo "INFO: Installing on MAC"
+  /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)"
+  brew tap tektoncd/tools
+  brew install tektoncd/tools/tektoncd-cli
+else
+  # Get the tar.xz
+  curl -LO https://github.com/tektoncd/cli/releases/download/v0.12.0/tkn_0.12.0_Linux_x86_64.tar.gz
+  # Extract tkn to current
+  tar xvzf tkn_0.12.0_Linux_x86_64.tar.gz -C . tkn
+  chmod +x ./tkn
+  TKN=./tkn
+fi
 
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
