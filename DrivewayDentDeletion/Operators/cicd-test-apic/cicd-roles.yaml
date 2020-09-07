@@ -175,7 +175,7 @@ rules:
   resources: ["routes"]
   verbs: ["get", "list"]
 # Permissions for test task to list services in dev namespace
-- apiGroups: ["route.openshift.io"]
+- apiGroups: [""]
   resources: ["services"]
   verbs: ["get", "list"]
 # Permission to get secrets for test script in test namespace
@@ -201,7 +201,7 @@ rules:
   resources: ["routes"]
   verbs: ["get", "list"]
 # Permissions for test task to list services in test namespace
-- apiGroups: ["route.openshift.io"]
+- apiGroups: [""]
   resources: ["services"]
   verbs: ["get", "list"]
 # Permission to get secrets for test script in test namespace
