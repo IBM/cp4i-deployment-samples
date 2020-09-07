@@ -279,20 +279,6 @@ fi #cicd-rolebindings.yaml
 
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
-echo "INFO: Creating the pipeline to build and deploy the simulator app in '$namespace' namespace"
-if cat $CURRENT_DIR/QuoteLifecycleSimulator/simulator-pipeline-resources/simulator-pipeline.yaml |
-  sed "s#{{NAMESPACE}}#$namespace#g;" |
-  sed "s#{{FORKED_REPO}}#$REPO#g;" |
-  sed "s#{{BRANCH}}#$BRANCH#g;" |
-  oc apply -f -; then
-    echo -e "\n$tick INFO: Successfully applied the pipeline to build and deploy the simulator app in in '$namespace' namespace"
-else
-  echo -e "\n$cross ERROR: Failed to apply the pipeline to build and deploy the simulator app in in '$namespace' namespace"
-  exit 1
-fi #simulator-pipeline.yaml 
-
-echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
-
 echo "INFO: Creating roles for creating deployment in the '$namespace' namespace for simulator app"
 if oc apply -f $CURRENT_DIR/QuoteLifecycleSimulator/simulator-pipeline-resources/simulator-roles.yaml; then
     echo -e "\n$tick INFO: Successfully created roles for creaating deployment in the '$namespace' namespace for simulator app"
@@ -312,6 +298,25 @@ else
   echo -e "\n$cross ERROR: Failed to create rolebinding for creating deployment in the '$namespace' namespace for simulator app"
   exit 1
 fi #simulator-rolebindings.yaml
+
+echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
+
+echo "INFO: Waiting 2 minutes for all cluster tasks to be available before creating the pipeline and the pipelinerun..."
+sleep 120
+
+echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
+
+echo "INFO: Creating the pipeline to build and deploy the simulator app in '$namespace' namespace"
+if cat $CURRENT_DIR/QuoteLifecycleSimulator/simulator-pipeline-resources/simulator-pipeline.yaml |
+  sed "s#{{NAMESPACE}}#$namespace#g;" |
+  sed "s#{{FORKED_REPO}}#$REPO#g;" |
+  sed "s#{{BRANCH}}#$BRANCH#g;" |
+  oc apply -f -; then
+    echo -e "\n$tick INFO: Successfully applied the pipeline to build and deploy the simulator app in in '$namespace' namespace"
+else
+  echo -e "\n$cross ERROR: Failed to apply the pipeline to build and deploy the simulator app in in '$namespace' namespace"
+  exit 1
+fi #simulator-pipeline.yaml 
 
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
