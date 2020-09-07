@@ -73,7 +73,7 @@ oc project $namespace
 
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
-echo -e "\nINFO: Checking if tekton-cli is is pre-installed..."
+echo -e "\nINFO: Checking if tekton-cli is pre-installed..."
 tknInstalled=false
 TKN=tkn
 $TKN version
