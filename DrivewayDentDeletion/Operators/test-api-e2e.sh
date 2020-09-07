@@ -13,7 +13,7 @@
 #
 # PARAMETERS:
 #   -n : <NAMESPACE> (string), defaults to "cp4i"
-#   -n : <RELEASE> (string), defaults to "ademo"
+#   -r : <RELEASE> (string), defaults to "ademo"
 #   -p : <NAMESPACE_SUFFIX> (string), defaults to ""
 #   -s : <USER_DB_SUFFIX> (string), defaults to ""
 #   -a : <APIC_ENABLED>
@@ -34,6 +34,9 @@ RELEASE="ademo"
 APIC=false
 APP="ddd-app"
 os_sed_flag=""
+PLATFORM_API_EP=$(oc get route -n $NAMESPACE ${RELEASE}-mgmt-platform-api -o jsonpath="{.spec.host}")
+ORG="main-demo"
+CATALOG=${ORG}-catalog
 
 if [[ $(uname) == Darwin ]]; then
   os_sed_flag="-e"
@@ -107,8 +110,9 @@ echo -e "\nINFO: Installed JQ version is $($JQ --version)"
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
 # -------------------------------------- TEST E2E API ------------------------------------------
-
-HOST=http://$(oc get routes -n ${NAMESPACE} | grep ace-api-int-srv-http | grep -v ace-api-int-srv-https | awk '{print $2}')/drivewayrepair
+# BASE_PATH=/basepath, all ready contains /
+BASE_PATH=$(grep 'basePath:' ${CURRENT_DIR}/../../products/bash/api.yaml | head -1 | awk '{print $2}')
+HOST=http://$(oc get routes -n ${NAMESPACE} | grep ace-api-int-srv-http | grep -v ace-api-int-srv-https | awk '{print $2}')$BASE_PATH
 if [[ $APIC == true ]]; then
   OUTPUT=""
   function handle_res {
@@ -137,20 +141,21 @@ if [[ $APIC == true ]]; then
 
   # Grab bearer token
   echo "[INFO]  Getting bearer token..."
-  TOKEN=$(${CURRENT_DIR}../../products/bash/get-apic-token.sh -n $NAMESPACE -r $RELEASE)
+  TOKEN=$(${CURRENT_DIR}/../../products/bash/get-apic-token.sh -n $NAMESPACE -r $RELEASE)
   $DEBUG && echo "[DEBUG] Bearer token: ${TOKEN}"
   echo -e "[INFO]  ${TICK} Got bearer token"
 
   # Get api endpoint
-  echo "[INFO]  Getting api endpoint..."
-  RES=$(curl -kLsS https://$PLATFORM_API_EP/api/catalogs/$ORG/$CATALOG/apis/drivewaydentdeletion \
-    -H "accept: application/json" \
-    -H "authorization: Bearer ${TOKEN}")
-  handle_res "${RES}"
-  HOST=$(echo "${OUTPUT}" | $JQ -r ".results[0].gateway_service_urls[0]")
-  $DEBUG && echo "[DEBUG] API endpoint: ${HOST}"
-  [[ $HOST == "null" ]] && echo -e "[ERROR] ${CROSS} Couldn't get api endpoint" && exit 1
-  echo -e "[INFO]  ${TICK} Got api endpoint"
+  # echo "[INFO]  Getting api endpoint..."
+  # RES=$(curl -kLsS https://$PLATFORM_API_EP/api/catalogs/$ORG/$CATALOG/apis/drivewaydentdeletion \
+  #   -H "accept: application/json" \
+  #   -H "authorization: Bearer ${TOKEN}")
+  # handle_res "${RES}"
+  # HOST=$(echo "${OUTPUT}" | $JQ -r ".results[0].gateway_service_urls[0]")
+  # $DEBUG && echo "[DEBUG] API endpoint: ${HOST}"
+  # [[ $HOST == "null" ]] && echo -e "[ERROR] ${CROSS} Couldn't get api endpoint" && exit 1
+  # echo -e "[INFO]  ${TICK} Got api endpoint"
+  HOST="https://$(oc get route -n cp4i ${RELEASE}-gw-gateway -o jsonpath='{.spec.host}')/$ORG/$CATALOG$BASE_PATH"
 
   # Get client id
   echo "[INFO]  Getting client id..."
@@ -177,8 +182,10 @@ echo -e "\n---------------------------------------------------------------------
 echo -e "\nINFO: Testing E2E API now..."
 
 # ------- Post to the database -------
-post_response=$(curl -s -w " %{http_code}" -X POST ${HOST}/quote \
-  -H "X-IBM-Client-Id": "${CLIENT_ID}" \
+echo "request url: $HOST/quote"
+post_response=$(curl -ksw " %{http_code}" -X POST $HOST/quote \
+  -H "X-IBM-Client-Id: ${CLIENT_ID}" \
+  -H "content-type: application/json" \
   -d "{
     \"Name\": \"Mickey Mouse\",
     \"EMail\": \"MickeyMouse@us.ibm.com\",
@@ -212,7 +219,7 @@ if [ "$post_response_code" == "200" ]; then
 
   # ------- Get from the database -------
   echo -e "\nINFO: GET request..."
-  get_response=$(curl -s -w " %{http_code}" -X GET ${HOST}/quote?QuoteID=${quote_id} -H "X-IBM-Client-Id": "${CLIENT_ID}")
+  get_response=$(curl -ksw " %{http_code}" ${HOST}/quote?QuoteID=${quote_id} -H "X-IBM-Client-Id: ${CLIENT_ID}")
   get_response_code=$(echo "${get_response##* }")
 
   if [ "$get_response_code" == "200" ]; then
