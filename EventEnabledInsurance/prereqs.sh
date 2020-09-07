@@ -73,6 +73,49 @@ oc project $namespace
 
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
+echo -e "\nINFO: Checking if tekton-cli is is pre-installed..."
+tknInstalled=false
+TKN=tkn
+$TKN version
+
+if [ $? -ne 0 ]; then
+  tknInstalled=false
+else
+  tknInstalled=true
+fi
+
+if [[ "$tknInstalled" == "false" ]]; then
+  echo "INFO: Installing tekton cli..."
+  if [[ $(uname) == Darwin ]]; then
+    echo "INFO: Installing on MAC"
+    /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)"
+    brew tap tektoncd/tools
+    brew install tektoncd/tools/tektoncd-cli
+  else
+    echo "INFO: Installing on Linux"
+    # Get the tar
+    curl -LO https://github.com/tektoncd/cli/releases/download/v0.12.0/tkn_0.12.0_Linux_x86_64.tar.gz
+    # Extract tkn to current directory
+    tar xvzf tkn_0.12.0_Linux_x86_64.tar.gz -C . tkn
+    untarStatus=$(echo $?)
+    if [[ "$untarStatus" -ne 0 ]]; then
+      echo -e "\n$cross ERROR: Could not extract the tar for tkn"
+      exit 1
+    fi
+
+    chmod +x ./tkn
+    chmodStatus=$(echo $?)
+    if [[ "$chmodStatus" -ne 0 ]]; then
+      echo -e "\n$cross ERROR: Could not make the 'tkn' executable"
+      exit 1
+    fi
+
+    TKN=./tkn
+  fi
+fi
+
+echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
+
 echo "INFO: Installing OCP pipelines..."
 if ! ${CURRENT_DIR}/../products/bash/install-ocp-pipeline.sh; then
   echo -e "$cross ERROR: Failed to install OCP pipelines\n"
@@ -80,24 +123,6 @@ if ! ${CURRENT_DIR}/../products/bash/install-ocp-pipeline.sh; then
 else
   echo -e "$tick INFO: Successfully installed OCP pipelines"
 fi #install-ocp-pipeline.sh
-
-echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
-
-TKN=tkn
-echo "INFO: Installing tekton cli..."
-if [[ $(uname) == Darwin ]]; then
-  echo "INFO: Installing on MAC"
-  /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)"
-  brew tap tektoncd/tools
-  brew install tektoncd/tools/tektoncd-cli
-else
-  # Get the tar.xz
-  curl -LO https://github.com/tektoncd/cli/releases/download/v0.12.0/tkn_0.12.0_Linux_x86_64.tar.gz
-  # Extract tkn to current
-  tar xvzf tkn_0.12.0_Linux_x86_64.tar.gz -C . tkn
-  chmod +x ./tkn
-  TKN=./tkn
-fi
 
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
