@@ -47,7 +47,7 @@ These steps will need to be documented in the demo docs:
 ![Overview of dev pipeline](../media/dev-pipeline.svg)
 ## Pipeline with added support for dev/test environments
 ![Overview of dev/test pipeline](../media/dev-test-pipeline.svg)
-## Pipeline with added support for IBM App Connect Integration
+## Pipeline with added support for IBM API Connect
 ![Overview of dev/test pipeline](../media/dev-test-apic-pipeline.svg)
 ## Description of pipeline
 - Trigger: Whenever a commit is made to the forked repo it triggers the
