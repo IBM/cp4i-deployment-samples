@@ -79,6 +79,21 @@ fi #install-ocp-pipeline.sh
 
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
+echo "INFO: Installing tekton cli..."
+if [[ $(uname) == Darwin ]]; then
+  echo "INFO: Installing on MAC"
+  /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)"
+  brew tap tektoncd/tools
+  brew install tektoncd/tools/tektoncd-cli
+else
+  # Get the tar.xz
+  curl -LO https://github.com/tektoncd/cli/releases/download/v0.12.0/tkn_0.12.0_Linux_x86_64.tar.gz
+  # Extract tkn to your PATH (e.g. /usr/local/bin)
+  sudo tar xvzf tkn_0.12.0_Linux_x86_64.tar.gz -C /usr/local/bin/ tkn
+fi
+
+echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
+
 echo "INFO: Configuring secrets and permissions related to ocp pipelines in the '$namespace' namespace for the eei demo..."
 if ! ${CURRENT_DIR}/../products/bash/configure-ocp-pipeline.sh -n ${namespace}; then
   echo -e "\n$cross ERROR: Failed to create secrets and permissions related to ocp pipelines in the '$namespace' namespace for the eei demo\n"
