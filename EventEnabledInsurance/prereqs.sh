@@ -89,7 +89,7 @@ else
   # Get the tar.xz
   curl -LO https://github.com/tektoncd/cli/releases/download/v0.12.0/tkn_0.12.0_Linux_x86_64.tar.gz
   # Extract tkn to your PATH (e.g. /usr/local/bin)
-  sudo tar xvzf tkn_0.12.0_Linux_x86_64.tar.gz -C /usr/local/bin/ tkn
+  tar xvzf tkn_0.12.0_Linux_x86_64.tar.gz -C /usr/local/bin/ tkn
 fi
 
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
