@@ -44,7 +44,6 @@ public class SystemOfRecordMonitor {
      * @param scramUsername The "Credential Name" specified above.
      * @param scramPassword Get from the generated secret using:
      *   $ SCRAM_USERNAME=<Credential Name>
-     *   $ SCRAM_PASSWORD=$(oc get secret $SCRAM_USERNAME -o json | jq -r '.data.password' | base64 --decode)"
      *   $ SCRAM_PASSWORD=$(oc get secret $SCRAM_USERNAME -o json | jq -r '.data.password' | base64 --decode)
      *   $ echo "SCRAM_PASSWORD=$SCRAM_PASSWORD"
      */
