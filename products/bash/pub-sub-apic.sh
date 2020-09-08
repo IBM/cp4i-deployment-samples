@@ -15,6 +15,7 @@
 # PARAMETERS:
 #   -e : <environment> (string), can be either "dev" or "test", defaults to "dev"
 #   -n : <namespace> (string), defaults to "cp4i"
+#   -a : <apic_namespace> (string), defaults to same value as $NAMESPACE
 #   -r : <release> (string), defaults to "ademo"
 #
 # USAGE:
@@ -33,7 +34,7 @@
 # ↡ publish product to catalog
 
 function usage {
-  echo "Usage: $0 -e <environment> -n <namespace> -r <release>"
+  echo "Usage: $0 -e <environment> -n <namespace> -a <apic_namespace> -r <release> -d"
 }
 
 CURRENT_DIR=$(dirname $0)
@@ -42,6 +43,7 @@ TICK="\xE2\x9C\x85"
 CROSS="\xE2\x9D\x8C"
 ENVIRONMENT="dev"
 NAMESPACE="cp4i"
+APIC_NAMESPACE=$NAMESPACE
 RELEASE="ademo"
 DEV_ORG="main-demo"
 TEST_ORG="ddd-demo-test"
@@ -49,11 +51,13 @@ CATALOG="$([[ $ENVIRONMENT == dev ]] && echo $DEV_ORG || echo $TEST_ORG)-catalog
 ACE_SECRET="ace-v11-service-creds"
 APIC_SECRET="cp4i-admin-creds"
 
-while getopts "e:n:r:" opt; do
+while getopts "e:n:a:r:d" opt; do
   case ${opt} in
     e ) ENVIRONMENT="$OPTARG"
       ;;
     n ) NAMESPACE="$OPTARG"
+      ;;
+    a ) APIC_NAMESPACE="$OPTARG"
       ;;
     r ) RELEASE="$OPTARG"
       ;;
@@ -99,7 +103,7 @@ echo "[INFO]  jq version: $($JQ --version)"
 
 # Gather info from cluster resources
 echo "[INFO]  Gathering cluster info..."
-PLATFORM_API_EP=$(oc get route -n $NAMESPACE ${RELEASE}-mgmt-platform-api -o jsonpath="{.spec.host}")
+PLATFORM_API_EP=$(oc get route -n $APIC_NAMESPACE ${RELEASE}-mgmt-platform-api -o jsonpath="{.spec.host}")
 [[ -z $PLATFORM_API_EP ]] && echo -e "[ERROR] ${CROSS} APIC platform api route doesn't exit" && exit 1
 $DEBUG && echo "[DEBUG] PLATFORM_API_EP=${PLATFORM_API_EP}"
 # for i in `seq 1 5`; do
@@ -175,18 +179,42 @@ cat ${CURRENT_DIR}/../../DrivewayDentDeletion/Operators/apic-resources/apic-prod
 $DEBUG && echo -e "[DEBUG] product yaml:\n$(cat ${CURRENT_DIR}/product.yaml)"
 echo -e "[INFO]  ${TICK} Templated product yaml"
 
+# Get product and api versions
+API_VER=$(grep 'version:' ${CURRENT_DIR}/api.yaml | head -1 | awk '{print $2}')
+PRODUCT_VER=$(grep 'version:' ${CURRENT_DIR}/product.yaml | head -1 | awk '{print $2}')
+
 # Draft product first for dev, straight to publish for test
 if [[ $ENVIRONMENT == "dev" ]]; then
-  # Create draft product
-  echo "[INFO]  Creating draft product in org '$ORG'..."
-  RES=$(curl -kLsS -X POST https://$PLATFORM_API_EP/api/orgs/$ORG/drafts/draft-products \
+  # Does product already exist
+  RES=$(curl -kLsS https://$PLATFORM_API_EP/api/orgs/$ORG/drafts/draft-products \
     -H "accept: application/json" \
-    -H "authorization: Bearer ${TOKEN}" \
-    -H "content-type: multipart/form-data" \
-    -F "openapi=@${CURRENT_DIR}/api.yaml;type=application/yaml" \
-    -F "product=@${CURRENT_DIR}/product.yaml;type=application/yaml")
-  handle_res "${RES}"
-  echo -e "[INFO]  ${TICK} Draft product created in org '$ORG'"
+    -H "authorization: Bearer ${TOKEN}")
+  MATCHING_PRODUCT=$(echo ${OUTPUT} | $JQ -r '.results[] | select(.name == "'$PRODUCT'" and .version == "'$PRODUCT_VER'")')
+
+  echo "[INFO] Checking for existing product..."
+  if [[ $MATCHING_PRODUCT == "null" ]]; then
+    # Create draft product
+    echo "[INFO]  Creating draft product in org '$ORG'..."
+    RES=$(curl -kLsS -X POST https://$PLATFORM_API_EP/api/orgs/$ORG/drafts/draft-products \
+      -H "accept: application/json" \
+      -H "authorization: Bearer ${TOKEN}" \
+      -H "content-type: multipart/form-data" \
+      -F "openapi=@${CURRENT_DIR}/api.yaml;type=application/yaml" \
+      -F "product=@${CURRENT_DIR}/product.yaml;type=application/yaml")
+    handle_res "${RES}"
+    echo -e "[INFO]  ${TICK} Draft product created in org '$ORG'"
+  else
+    # Replace draft product
+    echo "[INFO]  Matching product found, replacing draft product in org '$ORG'..."
+    RES=$(curl -kLsS -X PATCH https://$PLATFORM_API_EP/api/orgs/$ORG/drafts/draft-products/$PRODUCT/$PRODUCT_VER \
+      -H "accept: application/json" \
+      -H "authorization: Bearer ${TOKEN}" \
+      -H "content-type: multipart/form-data" \
+      -F "openapi=@${CURRENT_DIR}/api.yaml;type=application/yaml" \
+      -F "product=@${CURRENT_DIR}/product.yaml;type=application/yaml")
+    handle_res "${RES}"
+    echo -e "[INFO]  ${TICK} Draft product replaced in org '$ORG'"
+  fi
 
   # Get product url
   echo "[DEBUG] Getting product url..."
@@ -194,7 +222,7 @@ if [[ $ENVIRONMENT == "dev" ]]; then
     -H "accept: application/json" \
     -H "authorization: Bearer ${TOKEN}")
   handle_res "${RES}"
-  DRAFT_PRODUCT_URL=$(echo ${OUTPUT} | $JQ -r '.results[] | select(.name == "'$PRODUCT'").url')
+  DRAFT_PRODUCT_URL=$(echo ${OUTPUT} | $JQ -r '.results[] | select(.name == "'$PRODUCT'" and .version == "'$PRODUCT_VER'").url')
   if [[ $DRAFT_PRODUCT_URL == "null" ]]; then
     echo -e "[ERROR] ${CROSS} Couldn't get product url"
     exit 1
@@ -254,7 +282,7 @@ fi
 echo "[INFO] Creating configmap ${ORG}-info"
 oc create configmap ${ORG}-info \
   --from-literal=ORG=$ORG \
-  --from-literal=CATALOG=$CATALOG \
+  --from-literal=CATALOG=$CATALOG
 
 #*******************************************************************************
 # Subscription stuff
