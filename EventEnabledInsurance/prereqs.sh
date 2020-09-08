@@ -147,9 +147,9 @@ DB_PASS=$(
 )
 PASSWORD_ENCODED=$(echo -n ${DB_PASS} | base64)
 
-  echo "INFO: Creating a secret for the lifecycle simulator app to conenct to postgres"
-  # everything inside 'data' must be in the base64 encoded form
-  cat << EOF | oc apply -f -
+echo "INFO: Creating a secret for the lifecycle simulator app to conenct to postgres"
+# everything inside 'data' must be in the base64 encoded form
+cat << EOF | oc apply -f -
 apiVersion: v1
 kind: Secret
 metadata:
