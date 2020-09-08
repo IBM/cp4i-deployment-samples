@@ -70,3 +70,27 @@ Run the application:
 ```
 go run main.go
 ```
+
+# User steps to build and deploy simulator pipelines
+These steps will need to be documented in the demo docs:
+- Fork/clone the repo
+- Set `FORKED_REPO` to the URL for your repo and change the `<NAMESPACE>` to the namespace of 1-click install in which you want to deploy the simulator.
+- Go into the `EventEnabledInsurance` directory
+  ```
+  oc project $NAMESPACE
+  export BRANCH=main
+  export FORKED_REPO=https://github.com/IBM/cp4i-deployment-samples.git
+
+- Export the namespace by running the following command:
+```
+export namespace=<yourNamespace>
+```
+- Now run the prereqs script from the `EventEnabledInsurance` directory with the following command:
+```
+./prereqs.sh -n $namespace -b $BRANCH -r $FORKED_REPO
+```
+- The prereqs will set up the dependencies, secrets, the database and configures the pipeline to deploy the simulator app with 0 replicas.
+- To scale up/down the replicas for the deployment:
+```
+oc scale deployment/quote-simulator-eei --replicas=<0/1>
+```

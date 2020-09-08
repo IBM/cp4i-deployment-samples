@@ -14,7 +14,7 @@
 # PARAMETERS:
 #   -n : <namespace> (string), Defaults to 'cp4i'
 #   -r : <repo> (string), Defaults to 'https://github.com/IBM/cp4i-deployment-samples.git'
-#   -b : <branch> (string), Defaults to 'master'
+#   -b : <branch> (string), Defaults to 'main'
 #
 #   With defaults values
 #     ./cicd-apply-test-pipeline.sh
@@ -29,7 +29,7 @@ function usage() {
 
 # default vars
 namespace="cp4i"
-branch="master"
+branch="main"
 repo="https://github.com/IBM/cp4i-deployment-samples.git"
 tick="\xE2\x9C\x85"
 cross="\xE2\x9D\x8C"
@@ -140,7 +140,7 @@ echo -e "\n---------------------------------------------------------------------
 
 # create tekton tasks
 echo "INFO: Create tekton tasks"
-if cat $CURRENT_DIR/cicd-dev/cicd-tasks.yaml |
+if cat $CURRENT_DIR/../../CommonPipelineResources/cicd-tasks.yaml |
   sed "s#{{NAMESPACE}}#$namespace#g;" |
   oc apply -f -; then
     printf "$tick "
