@@ -56,7 +56,7 @@ while getopts "n:r:b:" opt; do
 done
 
 if [[ -z "${namespace// }" || -z "${REPO// }" || -z "${BRANCH// }" ]]; then
-  echo -e "$cross ERROR: Some or all mandatory parameters are empty"
+  echo -e "$cross ERROR: Mandatory parameters are empty"
   usage
 fi
 
