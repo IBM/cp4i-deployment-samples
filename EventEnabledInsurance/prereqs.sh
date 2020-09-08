@@ -300,9 +300,12 @@ fi #simulator-rolebindings.yaml
 
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
+
 time=0
 echo "INFO: Waiting for upto 10 minutes for git-clone cluster task to be available before creating the pipeline and the pipelinerun..."
-while [ "$($TKN clustertask ls | grep git-clone | awk '{print $1}')" != "git-clone" ]; do
+GIT_CLONE_CLUSTER_TASK=$(oc get clustertask git-clone)
+RESULT_GIT_CLONE_CLUSTER_TASK=$(echo $?)
+while [ "$RESULT_GIT_CLONE_CLUSTER_TASK" -ne "0" ]; do
   if [ $time -gt 10 ]; then
     echo "ERROR: Timed-out waiting for 'git-clone' cluster task to be available"
     echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
@@ -310,10 +313,11 @@ while [ "$($TKN clustertask ls | grep git-clone | awk '{print $1}')" != "git-clo
   fi
 
   $TKN clustertask ls | grep git-clone
-
-  echo -e "\nINFO: The cluster task ''git-clone' is not yet available, waiting for upto 10 minutes. Waited ${time} minute(s)."
-  sleep 60
+  echo -e "\nINFO: The cluster task 'git-clone' is not yet available, waiting for upto 10 minutes. Waited ${time} minute(s)."
   time=$((time + 1))
+  sleep 60
+  GIT_CLONE_CLUSTER_TASK=$(oc get clustertask git-clone)
+  RESULT_GIT_CLONE_CLUSTER_TASK=$(echo $?)
 done
 
 echo -e "\nINFO: Cluster task 'git-clone' is now available\n"
