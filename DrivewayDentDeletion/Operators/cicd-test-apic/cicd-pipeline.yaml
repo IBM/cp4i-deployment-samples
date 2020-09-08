@@ -316,8 +316,7 @@ spec:
     - name: deploy-wait-mq-test
       runAfter:
         - image-push-to-test-mq
-      taskRef:
-        # name: deploy-test-task
+      taskRef: 
         name: deploy-task
       params:
         - name: imageTag
@@ -339,7 +338,6 @@ spec:
       runAfter:
         - image-push-to-test-ace-api
       taskRef:
-        # name: deploy-test-task
         name: deploy-task
       params:
         - name: imageTag
@@ -360,8 +358,7 @@ spec:
     - name: deploy-wait-ace-bernie-test
       runAfter:
         - image-push-to-test-ace-bernie
-      taskRef:
-        # name: deploy-test-task
+      taskRef: 
         name: deploy-task
       params:
         - name: imageTag
@@ -382,8 +379,7 @@ spec:
     - name: deploy-wait-ace-acme-test
       runAfter:
         - image-push-to-test-ace-acme
-      taskRef:
-        # name: deploy-test-task
+      taskRef:        
         name: deploy-task
       params:
         - name: imageTag
@@ -404,8 +400,7 @@ spec:
     - name: deploy-wait-ace-chris-test
       runAfter:
         - image-push-to-test-ace-chris
-      taskRef:
-        # name: deploy-test-task
+      taskRef:        
         name: deploy-task
       params:
         - name: imageTag

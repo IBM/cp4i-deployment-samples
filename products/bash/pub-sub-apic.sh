@@ -148,7 +148,7 @@ function handle_res {
 
 # Grab bearer token
 echo "[INFO]  Getting bearer token..."
-TOKEN=$(${CURRENT_DIR}/get-apic-token.sh -n $NAMESPACE -r $RELEASE)
+TOKEN=$(${CURRENT_DIR}/get-apic-token.sh -n $MAIN_NAMESPACE -r $RELEASE)
 $DEBUG && echo "[DEBUG] Bearer token: ${TOKEN}"
 echo -e "[INFO]  ${TICK} Got bearer token"
 
