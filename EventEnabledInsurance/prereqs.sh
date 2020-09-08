@@ -13,15 +13,17 @@
 #
 # PARAMETERS:
 #   -n : <namespace> (string), Defaults to 'cp4i'
+#   -r : <REPO> (string), Defaults to 'https://github.com/IBM/cp4i-deployment-samples.git'
+#   -b : <BRANCH> (string), Defaults to 'main'
 #
 #   With defaults values
 #     ./prereqs.sh
 #
 #   With overridden values
-#     ./prereqs.sh -n <namespace>
+#     ./prereqs.sh -n <namespace> -r <REPO> -b <BRANCH>
 
 function usage() {
-  echo "Usage: $0 -n <namespace>"
+  echo "Usage: $0 -n <namespace> -r <REPO> -b <BRANCH>"
   exit 1
 }
 
@@ -32,22 +34,36 @@ all_done="\xF0\x9F\x92\xAF"
 SUFFIX="eei"
 POSTGRES_NAMESPACE="postgres"
 ACE_CONFIGURATION_NAME="ace-policyproject-$SUFFIX"
+REPO="https://github.com/IBM/cp4i-deployment-samples.git"
+BRANCH="main"
 
-while getopts "n:" opt; do
+while getopts "n:r:b:" opt; do
   case ${opt} in
   n)
     namespace="$OPTARG"
     ;;
+  r)
+    REPO="$OPTARG"
+    ;;
+  b)
+    BRANCH="$OPTARG"
+    ;;
   \?)
     usage
-    exit
     ;;
   esac
 done
+
+if [[ -z "${namespace// }" || -z "${REPO// }" || -z "${BRANCH// }" ]]; then
+  echo -e "$cross ERROR: Mandatory parameters are empty"
+  usage
+fi
 
 CURRENT_DIR=$(dirname $0)
 echo "INFO: Current directory: '$CURRENT_DIR'"
 echo "INFO: Namespace: '$namespace'"
 echo "INFO: Suffix for the postgres is: '$SUFFIX'"
+echo "INFO: Repo: '$REPO'"
+echo "INFO: Branch: '$BRANCH'"
 
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
