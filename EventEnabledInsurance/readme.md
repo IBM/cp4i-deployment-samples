@@ -201,17 +201,32 @@ And now the connector is monitoring the quotes table and creating events in the 
 
 
 ## Verify that events are created
-Once we're further with the demo we'll use the Quote Lifecycle Simulator to do this. For now run psql in the postgres pod:
+Start up the Simulator by scaling up the deployment using:
 ```
-DB_POD=$(oc get pod -n postgres -l name=postgresql -o jsonpath='{.items[].metadata.name}')
-echo "DB_POD=${DB_POD}"
-oc exec -n postgres -it $DB_POD -- psql -d db_cp4i_sor_eei
+oc scale deployment/quote-simulator-eei --replicas=1
 ```
-Then do some INSERTs to create rows in the QUOTES table and verify that the `sor.public.quotes` topic is created and events appear in it.
-An example INSERT:
+Watch that the Simulator is inserting/updating rows using:
 ```
-INSERT INTO quotes (Source, Name, EMail, Age, Address, USState, LicensePlate, DescriptionOfDamage, ClaimStatus, ClaimCost)
-VALUES ('Mobile', 'Name', 'EMail', 30, 'Address', 'USState', 'LicensePlate', 'DescriptionOfDamage', 0, null);
+SIMULATOR_POD=$(oc get pod -l app=quote-simulator-eei --output=jsonpath={.items..metadata.name})
+echo "SIMULATOR_POD=${SIMULATOR_POD}"
+oc logs -f $SIMULATOR_POD
 ```
-Here is an example after inserting 6 rows:
-![Example events](./media/example-events.png)
+You should see output every second with logs something like:
+```
+2020/09/08 13:31:24 Found mobile claim with quoteID of 9 and claimStatus of 2
+2020/09/08 13:31:24 For claim with quoteID of 9, updating claimStatus to 3
+2020/09/08 13:31:24 Found non-mobile claim with quoteID of 15 and claimStatus of 1
+2020/09/08 13:31:24 For claim with quoteID of 15, updating claimStatus to 2
+2020/09/08 13:31:24 Created new claim with id of 16
+2020/09/08 13:31:25 Found mobile claim with quoteID of 2 and claimStatus of 1
+2020/09/08 13:31:25 For claim with quoteID of 2, updating claimStatus to 2
+2020/09/08 13:31:25 Found non-mobile claim with quoteID of 11 and claimStatus of 6
+2020/09/08 13:31:25 For claim with quoteID of 11, updating claimStatus to 7
+```
+View the `sor.public.quotes` topic in Event Streams, new events should appear for every update to the database.
+
+Stop the Simulator using:
+```
+oc scale deployment/quote-simulator-eei --replicas=0
+```
+Events should stop appearing in the `sor.public.quotes` topic.
