@@ -194,7 +194,7 @@ metadata:
 subjects:
 - kind: ServiceAccount
   name: cicd-configure-apic-resource-in-test-sa
-  namespace: "{{NAMESPACE}}-ddd-test"
+  namespace: "{{NAMESPACE}}"
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: Role
