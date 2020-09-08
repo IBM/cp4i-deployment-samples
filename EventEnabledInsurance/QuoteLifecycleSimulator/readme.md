@@ -92,5 +92,5 @@ export namespace=<yourNamespace>
 - The prereqs will set up the dependencies, secrets, the database and configures the pipeline to deploy the simulator app with 0 replicas.
 - To scale up/down the replicas for the deployment:
 ```
-kubectl scale --replicas=<expected_replica_num> deployment simulator-eei
+oc scale deployment/quote-simulator-eei --replicas=<0/1>
 ```

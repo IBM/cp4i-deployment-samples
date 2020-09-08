@@ -17,10 +17,10 @@
 #   -m : <MOBILE_TEST_ROWS> (string), Defaults to '10'
 #
 #   With defaults values
-#     ./prereqs.sh
+#     ./deploy-simulator.sh
 #
 #   With overridden values
-#     ./prereqs.sh -n <namespace>
+#     ./deploy-simulator.sh -n <namespace>
 
 function usage() {
   echo "Usage: $0 -n <namespace>"
@@ -45,7 +45,6 @@ while getopts "n:" opt; do
     ;;
   \?)
     usage
-    # exit
     ;;
   esac
 done
