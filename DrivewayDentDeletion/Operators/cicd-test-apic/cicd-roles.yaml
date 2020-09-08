@@ -196,6 +196,10 @@ metadata:
   name: role-configure-apic-in-test-namespace
   namespace: "{{NAMESPACE}}-ddd-test"
 rules:
+# Permissions for test task to list routes in dev namespace
+- apiGroups: ["route.openshift.io"]
+  resources: ["routes"]
+  verbs: ["get", "list"]
 # Permissions for test task to list services in test namespace
 - apiGroups: [""]
   resources: ["services"]

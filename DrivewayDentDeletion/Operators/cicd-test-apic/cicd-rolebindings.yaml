@@ -207,7 +207,7 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
   name: configure-apic-resource-test-dev-namespace-rolebinding
-  namespace: "{{NAMESPACE}}-ddd-test"
+  namespace: "{{NAMESPACE}}"
 subjects:
 - kind: ServiceAccount
   name: cicd-configure-apic-resource-in-test-sa
