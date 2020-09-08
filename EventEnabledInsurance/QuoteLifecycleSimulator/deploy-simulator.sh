@@ -80,21 +80,21 @@ cat << EOF | oc apply -f -
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: simulator-$SUFFIX
+  name: quote-simulator-$SUFFIX
   namespace: $namespace
 spec:
   selector:
     matchLabels:
-      app: simulator-$SUFFIX
+      app: quote-simulator-$SUFFIX
   replicas: 0
   template:
     metadata:
       labels:
-        app: simulator-$SUFFIX
+        app: quote-simulator-$SUFFIX
     spec:
       containers:
-        - name: simulator-eei
-          image: image-registry.openshift-image-registry.svc:5000/$namespace/simulator-eei
+        - name: quote-simulator-$SUFFIX
+          image: image-registry.openshift-image-registry.svc:5000/$namespace/quote-simulator-$SUFFIX
           env:
           - name: PG_HOST
             value: "$PG_HOST"
