@@ -438,8 +438,6 @@ spec:
           value: "ademo"
         - name: releaseScript
           value: pub-sub-apic.sh
-        - name: namespace
-          value: "{{NAMESPACE}}"
       workspaces:
         - name: git-source
           workspace: git-source
@@ -460,8 +458,6 @@ spec:
           value: "ademo"
         - name: releaseScript
           value: pub-sub-apic.sh
-        - name: namespace
-          value: "{{NAMESPACE}}-ddd-test"
       workspaces:
         - name: git-source
           workspace: git-source
