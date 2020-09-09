@@ -14,7 +14,6 @@ task fatJar(type: Jar) {
                 'Implementation-Version': archiveVersion,
                 'Main-Class': 'com.ibm.cp4i.demos.eei.projectionclaims.Main'
     }
-//    baseName = project.name + '-all'
     from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
     with jar
 }
