@@ -118,7 +118,8 @@ for i in `seq 1 5`; do
   fi
 done
 [[ -z $ACE_API ]] && echo -e "[ERROR] ${CROSS} ace api integration server service doesn't exit" && exit 1
-ACE_API_INT_SRV=${ACE_API}.${NAMESPACE}.svc.cluster.local
+ACE_API_INT_SRV_PORT=$(oc get svc -n $NAMESPACE $ACE_API -ojson | jq -r '.spec.ports[] | select(.name == "http").port')
+ACE_API_INT_SRV=${ACE_API}.${NAMESPACE}.svc.cluster.local:$ACE_API_INT_SRV_PORT
 echo "ACE_API_INT_SRV= ${ACE_API_INT_SRV}"
 echo -e "[INFO]  ${TICK} Cluster info gathered"
 
@@ -364,3 +365,8 @@ RES=$(curl -kLsS -X POST https://$PLATFORM_API_EP/api/apps/$ORG/$CATALOG/$C_ORG/
 }")
 handle_res "${RES}"
 echo -e "[INFO] ${TICK} Subscription created"
+
+# Get api endpoint
+
+
+# Get client id
