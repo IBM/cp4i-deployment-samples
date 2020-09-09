@@ -42,6 +42,16 @@ These steps will need to be documented in the demo docs:
   ```
 - The above script `cicd-apply-test-pipeline.sh` will create a dev and test pipeline in the `<NAMESPACE>` namepsace and will print the route to add to the webhook in the forked github repo. (This will be the same route as above, but updated to point to a service for the test pipeline in the dev namespace).
 
+  ```
+  export NAMESPACE=<NAMESPACE>
+  oc project $NAMESPACE
+  export BRANCH=master
+  export FORKED_REPO=https://github.com/IBM/cp4i-deployment-samples.git
+  ./cicd-apply-test-apic-pipeline.sh -n $NAMESPACE -r $FORKED_REPO -b $BRANCH
+  ```
+- The above script `cicd-apply-test-apic-pipeline.sh` will create a dev and test pipeline with added feature of APIC in the `<NAMESPACE>` namepsace and will print the route to add to the webhook in the forked github repo.(This will be the same route as above, but updated to point to a service for the test pipeline in the dev namespace).The pipeline uses the APIC instance already installed on the cluster
+
+
 # Pipelines
 ## Initial pipeline for just the dev environment
 ![Overview of dev pipeline](../media/dev-pipeline.svg)
@@ -57,6 +67,5 @@ These steps will need to be documented in the demo docs:
 - Deploy to dev/test and wait for rollout tasks: Each of these tasks applies a CR to deploy/update an MQ/ACE microservice and waits for the deploy/update to rollout so the microservice is running the newly built image once the task has completed.
 - Test APIC API in Dev environment: Runs a test of the POST/GET endpoints to verify that the dev environment is working. This acts as a gate for rolling out the change to the test environment.
 - Copy images to test tasks: Copies the images from the dev project to the test project.
-- Setup APIC resources taks: Creates APIC Product for Dev and Test environment and then creates the API that gets published to APIC catalog in dev environment in the next step of this task.
-- Publish APIC API to Test Catalog task: After successful run of `Test APIC API in Dev environment` this task will publish the tested API to APIC Catalog in Test enivronment
+- Configure APIC resources taks: Creates APIC Product, users, subscription in Dev provider organisation at later stage in test organisation
 -Test APIC API in Test environment task: This task will run a final test of the POST/GET endpoints to verify the API published in the APIC catalog in test environment.
