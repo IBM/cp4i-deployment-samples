@@ -169,6 +169,18 @@ if [[ $APIC == true ]]; then
   CLIENT_ID=$(echo "${OUTPUT}" | $JQ -r '.results[] | select(.name | contains("'${APP}'")).client_id')
   $DEBUG && echo "[DEBUG] Client id: ${CLIENT_ID}"
   [[ $CLIENT_ID == "null" ]] && echo -e "[ERROR] ${CROSS} Couldn't get client id" && exit 1
+
+  # Store api endpoint & client id in secret
+  cat << EOF | oc apply -n ${NAMESPACE} -f -
+apiVersion: v1
+kind: Secret
+metadata:
+  name: ddd-api-endpoint-client-id
+type: Opaque
+stringData:
+  api: ${HOST}
+  cid: ${CLIENT_ID}
+EOF
   echo -e "[INFO]  ${TICK} Got client id"
 fi
 echo "INFO: Host: ${HOST}"
