@@ -114,7 +114,7 @@ fi
 while true; do
   # - POST ---
   echo -e "\nPOST request..."
-  post_response=$(curl -s -w " %{http_code}" -X POST ${API_BASE_URL}/quote \
+  post_response=$(curl -kLsS -w " %{http_code}" -X POST ${API_BASE_URL}/quote \
     -H "X-IBM-CLIENT-ID: ${API_CLIENT_ID}" \
     -d "{
       \"Name\": \"Mickey Mouse\",
@@ -133,6 +133,7 @@ while true; do
         }
       ]
     }")
+  $DEBUG && echo "[DEBUG] post response: ${post_response}"
   post_response_code=$(echo "${post_response##* }")
 
   if [ "$post_response_code" == "200" ]; then
