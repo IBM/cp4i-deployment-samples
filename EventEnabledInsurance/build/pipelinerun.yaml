@@ -1,15 +1,10 @@
 apiVersion: tekton.dev/v1beta1
 kind: PipelineRun
 metadata:
-  name: eei-simulator-pipelinerun-{{UID}}
+  name: eei-build-pipelinerun-{{UID}}
 spec:
   pipelineRef:
-    name: eei-simulator-pipeline
-  serviceAccountNames:
-    - taskName: git-clone-eei
-      serviceAccountName: pipeline
-    - taskName: deploy-simulator-app
-      serviceAccountName: cicd-test
+    name: eei-build-pipeline
   workspaces:
     - name: git-source
       persistentvolumeclaim:
