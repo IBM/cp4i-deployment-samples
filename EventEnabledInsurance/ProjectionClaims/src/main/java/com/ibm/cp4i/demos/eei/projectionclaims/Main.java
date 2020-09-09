@@ -16,7 +16,8 @@ import java.util.StringTokenizer;
 
 public class Main implements Runnable{
 
-    static final File WEB_ROOT = new File(".");
+    static final File TEST_ROOT = new File("test.html");
+    static final File WEB_ROOT = new File("./src/main/resources");
     static final String DEFAULT_FILE = "index.html";
     static final String FILE_NOT_FOUND = "404.html";
     static final String METHOD_NOT_SUPPORTED = "not_supported.html";
@@ -106,7 +107,7 @@ public class Main implements Runnable{
             } else {
                 // GET or HEAD method
                 if (fileRequested.endsWith("/")) {
-                    fileRequested += DEFAULT_FILE;
+                    fileRequested = DEFAULT_FILE;
                 }
 
                 File file = new File(WEB_ROOT, fileRequested);
