@@ -8,3 +8,9 @@ postgres.env
 postgres.yaml
 pgpass_gen.sh
 vendor
+gradle
+.idea
+build
+.gradle
+gradlew
+gradlew.bat
