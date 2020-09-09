@@ -16,7 +16,6 @@ import java.util.StringTokenizer;
 
 public class Main implements Runnable{
 
-    static final File TEST_ROOT = new File("test.html");
     static final File WEB_ROOT = new File("./src/main/resources");
     static final String DEFAULT_FILE = "index.html";
     static final String FILE_NOT_FOUND = "404.html";
