@@ -42,7 +42,7 @@ DEBUG=false
 CONDENSED_INFO=false
 SAVE_ROW_AFTER_RUN=false
 
-while getopts "n:u:t:acis" opt; do
+while getopts "n:u:t:acdis" opt; do
   case ${opt} in
     n )
       NAMESPACE="$OPTARG"
