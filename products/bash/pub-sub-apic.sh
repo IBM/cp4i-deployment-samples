@@ -130,7 +130,7 @@ function handle_res {
   if [[ $status == "null" ]]; then
     OUTPUT="${body}"
   elif [[ $status == "400" ]]; then
-    if [[ $body == *"already exists"* ]]; then
+    if [[ $body == *"already exists"* || $body == *"already subscribed"* ]]; then
       OUTPUT="${body}"
       echo "[INFO]  Resource already exists, continuing..."
     else
