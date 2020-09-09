@@ -176,6 +176,7 @@ if [[ $ENVIRONMENT == "dev" ]]; then
   RES=$(curl -kLsS https://$PLATFORM_API_EP/api/orgs/$ORG/drafts/draft-products \
     -H "accept: application/json" \
     -H "authorization: Bearer ${TOKEN}")
+  handle_res "${RES}"
   MATCHING_PRODUCT=$(echo ${OUTPUT} | $JQ -r '.results[] | select(.name == "'$PRODUCT'" and .version == "'$PRODUCT_VER'")')
 
   echo "[INFO] Checking for existing product..."
