@@ -146,7 +146,7 @@ DB_PASS=$(
 )
 PASSWORD_ENCODED=$(echo -n ${DB_PASS} | base64)
 
-echo "INFO: Creating a secret for the lifecycle simulator app to conenct to postgres"
+echo "INFO: Creating a secret for the lifecycle simulator app to connect to postgres"
 # everything inside 'data' must be in the base64 encoded form
 cat << EOF | oc apply -f -
 apiVersion: v1
@@ -233,74 +233,6 @@ echo -e "\n---------------------------------------------------------------------
 echo -e "$tick $all_done INFO: All prerequisites for the event enabled insurance demo have been applied successfully $all_done $tick"
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
-echo "INFO: Creating pvc for eei quote lifecycle simulator app in the '$namespace' namespace"
-if oc apply -n $namespace -f $CURRENT_DIR/QuoteLifecycleSimulator/simulator-pipeline-resources/simulator-pvc.yaml; then
-  echo -e "\n$tick INFO: Successfully created the pvc for eei quote lifecycle simulator app in the '$namespace' namespace"
-else
-  echo -e "\n$cross ERROR: Failed to create the pvc for eei quote lifecycle simulator app in the '$namespace' namespace"
-fi
-
-echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
-
-# create common service accounts
-echo "INFO: Create common service accounts"
-if cat $CURRENT_DIR/../CommonPipelineResources/cicd-service-accounts.yaml |
-  sed "s#{{NAMESPACE}}#$namespace#g;" |
-  oc apply -f -; then
-    echo -e "\n$tick INFO: Successfully applied common service accounts in the '$namespace' namespace"
-else
-  echo -e "\n$cross ERROR: Failed to apply common service accounts in the '$namespace' namespace"
-fi
-
-echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
-
-# create common roles for tasks
-echo "INFO: Create common roles for tasks"
-if cat $CURRENT_DIR/../CommonPipelineResources/cicd-roles.yaml |
-  sed "s#{{NAMESPACE}}#$namespace#g;" |
-  oc apply -f -; then
-   echo -e "\n$tick INFO: Successfully created roles for tasks in the '$namespace' namespace"
-else
-  echo -e "\n$cross ERROR: Failed to create roles for tasks in the '$namespace' namespace"
-fi
-
-echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
-
-# create common role bindings for roles
-echo "INFO: Create role bindings for roles"
-if cat $CURRENT_DIR/../CommonPipelineResources/cicd-rolebindings.yaml |
-  sed "s#{{NAMESPACE}}#$namespace#g;" |
-  oc apply -f -; then
-    echo -e "\n$tick INFO: Successfully applied role bindings for roles in the '$namespace' namespace"
-else
-  echo -e "\n$cross ERROR: Failed to apply role bindings for roles in the '$namespace' namespace"
-fi #cicd-rolebindings.yaml
-
-echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
-
-echo "INFO: Creating roles for creating deployment in the '$namespace' namespace for simulator app"
-if oc apply -f $CURRENT_DIR/QuoteLifecycleSimulator/simulator-pipeline-resources/simulator-roles.yaml; then
-    echo -e "\n$tick INFO: Successfully created roles for creaating deployment in the '$namespace' namespace for simulator app"
-else
-  echo -e "\n$cross ERROR: Failed to create roles for creaating deployment in the '$namespace' namespace for simulator app"
-  exit 1
-fi #simulator-roles.yaml
-
-echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
-
-echo "INFO: Creating rolebinding for creating deployment in the '$namespace' namespace for creating simulator app"
-if cat $CURRENT_DIR/QuoteLifecycleSimulator/simulator-pipeline-resources/simulator-rolebindings.yaml |
-  sed "s#{{NAMESPACE}}#$namespace#g;" |
-  oc apply -f -; then
-    echo -e "\n$tick INFO: Successfully created rolebinding for creating deployment in the '$namespace' namespace for simulator app"
-else
-  echo -e "\n$cross ERROR: Failed to create rolebinding for creating deployment in the '$namespace' namespace for simulator app"
-  exit 1
-fi #simulator-rolebindings.yaml
-
-echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
-
-
 time=0
 echo "INFO: Waiting for upto 10 minutes for git-clone cluster task to be available before creating the pipeline and the pipelinerun..."
 GIT_CLONE_CLUSTER_TASK=$(oc get clustertask git-clone)
@@ -325,84 +257,13 @@ $TKN clustertask ls | grep git-clone
 
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
-echo "INFO: Creating the pipeline to build and deploy the simulator app in '$namespace' namespace"
-if cat $CURRENT_DIR/QuoteLifecycleSimulator/simulator-pipeline-resources/simulator-pipeline.yaml |
-  sed "s#{{NAMESPACE}}#$namespace#g;" |
-  sed "s#{{FORKED_REPO}}#$REPO#g;" |
-  sed "s#{{BRANCH}}#$BRANCH#g;" |
-  oc apply -f -; then
-    echo -e "\n$tick INFO: Successfully applied the pipeline to build and deploy the simulator app in in '$namespace' namespace"
-else
-  echo -e "\n$cross ERROR: Failed to apply the pipeline to build and deploy the simulator app in in '$namespace' namespace"
+echo "INFO: Building and deploying the EEI apps ..."
+if ! ${CURRENT_DIR}/build/build.sh -n ${namespace} -r $REPO -b $BRANCH -t $TKN; then
+  echo -e "\n$cross ERROR: Failed to build/deploy the EEI apps in the '$namespace' namespace"
   exit 1
-fi #simulator-pipeline.yaml 
-
-echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
-
-PIPELINERUN_UID=$(
-  LC_ALL=C tr -dc 'a-z0-9' </dev/urandom | head -c 5
-  echo
-)
-
-echo "INFO: Creating the pipelinerun for simulator app in the '$namespace' namespace"
-if cat $CURRENT_DIR/QuoteLifecycleSimulator/simulator-pipeline-resources/simulator-pipelinerun.yaml |
-  sed "s#{{UID}}#$PIPELINERUN_UID#g;" |
-  oc apply -f -; then
-  echo -e "\n$tick INFO: Successfully applied the pipelinerun for simulator app in the '$namespace' namespace"
 else
-  echo -e "\n$cross ERROR: Failed to apply the pipelinerun for simulator app in the '$namespace' namespace"
-  exit 1
-fi #simulator-pipelinerun.yaml
+  echo -e "\n$tick INFO: Successfully built and deplopyed the EEI apps in the '$namespace' namespace"
+fi #create-ace-config.sh
 
-echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
-
-echo -e "INFO: Displaying the pipelinerun logs: \n"
-if ! $TKN pipelinerun logs -L -f; then
-  echo -e "\n$cross ERROR: Failed to get the pipelinerun logs successfully"
-  exit 1
-fi
-
-echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
-
-# Wait for upto 5 minutes for the pipelinerun for the simluator app to complete
-time=0
-while [ "$(oc get pipelinerun -n $namespace $(oc get pipelinerun -n $namespace | grep $PIPELINERUN_UID | awk '{print $1}') -o json | jq -r '.status.conditions[0].status')" != "True" ]; do
-  if [ $time -gt 5 ]; then
-    echo -e "$cross ERROR: Timed out waiting for the pipelinerun for the quote lifecycle simulator app to succeed"
-    exit 1
-  fi
-
-  if [ "$(oc get pipelinerun -n $namespace $(oc get pipelinerun -n $namespace | grep $PIPELINERUN_UID | awk '{print $1}') -o json | jq -r '.status.conditions[0].status')" == "False" ]; then
-    echo -e "$cross ERROR: The pipelinerun for the quote lifecycle simulator app has failed\n"
-    oc get pipelinerun $(oc get pipelinerun -n $namespace | grep $PIPELINERUN_UID | awk '{print $1}')
-    exit 1
-  fi
-
-  echo -e "\nINFO: Waiting up to 5 minutes for the pipelinerun for the quote lifecycle simulator app to finish. Waited ${time} minute(s)."
-  time=$((time + 1))
-  sleep 60
-done
-
-echo -e "\n$tick INFO: The pipelinerun for the quote lifecycle simulator app has completed successfully, going ahead to delete the pipelinerun for it to delete the pods and the pvc\n"
-oc get pipelinerun -n $namespace $(oc get pipelinerun -n $namespace | grep $PIPELINERUN_UID | awk '{print $1}')
-
-echo -e "\n$tick INFO: The quote lifecycle simulator application has been deployed, but with zero replicas. To start the simulator run the command 'oc scale deployment/quote-simulator-eei --replicas=1'\n"
-oc get deployment -n $namespace $(oc get deployments -n $namespace | grep simulator | awk '{print $1}')
-
-echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
-
-if oc delete pipelinerun -n $namespace $(oc get pipelinerun -n $namespace | grep $PIPELINERUN_UID | awk '{print $1}'); then
-  echo -e "$tick INFO: Deleted the pipelinerun with the uid '$PIPELINERUN_UID'"
-else
-  echo -e "$cross ERROR: Failed to delete the pipelinerun with the uid '$PIPELINERUN_UID'"
-fi
-
-echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
-
-if oc delete pvc git-workspace-eei -n $namespace; then
-  echo -e "$tick INFO: Deleted the pvc 'git-workspace-eei'"
-else
-  echo -e "$cross ERROR: Failed to delete the pvc 'git-workspace-eei'"
-fi
 
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
