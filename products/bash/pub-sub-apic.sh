@@ -185,7 +185,7 @@ if [[ $ENVIRONMENT == "dev" ]]; then
   echo "[DEBUG] matching product: ${MATCHING_PRODUCT}"
 
   echo "[INFO] Checking for existing product..."
-  if [[ $MATCHING_PRODUCT == "null" ]]; then
+  if [[ ! $MATCHING_PRODUCT || $MATCHING_PRODUCT == "null" ]]; then
     # Create draft product
     echo "[INFO]  Creating draft product in org '$ORG'..."
     RES=$(curl -kLsS -X POST https://$PLATFORM_API_EP/api/orgs/$ORG/drafts/draft-products \
