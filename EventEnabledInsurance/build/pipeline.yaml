@@ -2,6 +2,9 @@ apiVersion: tekton.dev/v1beta1
 kind: Pipeline
 metadata:
   name: eei-build-pipeline
+  labels:
+    app: pipeline-eei
+    demo: eei
 spec:
   workspaces:
     - name: git-source
@@ -23,7 +26,6 @@ spec:
         - name: output
           workspace: git-source
 
-    # Build the quote lifecycle simulator app image
     - name: build-simulator-image
       runAfter:
         - git-clone-eei
@@ -47,7 +49,6 @@ spec:
       - name: git-source
         workspace: git-source
 
-    # Deploy the quote lifecycle simulator app image
     - name: deploy-simulator-app
       runAfter:
         - build-simulator-image
@@ -62,7 +63,6 @@ spec:
       - name: git-source
         workspace: git-source
 
-    # Build the projection claims ktable app image
     - name: build-projection-claims-image
       runAfter:
         - git-clone-eei
@@ -86,7 +86,6 @@ spec:
       - name: git-source
         workspace: git-source
 
-    # Deploy the projection claims ktable app image
     - name: deploy-projection-claims-app
       runAfter:
         - build-projection-claims-image

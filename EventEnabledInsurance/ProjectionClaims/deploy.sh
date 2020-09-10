@@ -61,6 +61,7 @@ metadata:
   name: projection-claims-eei
   labels:
     app: projection-claims-eei
+    demo: eei
 spec:
   selector:
     matchLabels:
@@ -70,6 +71,7 @@ spec:
     metadata:
       labels:
         app: projection-claims-eei
+        demo: eei
     spec:
       containers:
         - name: projection-claims-eei
@@ -95,6 +97,7 @@ metadata:
   name: projection-claims-eei
   labels:
     app: projection-claims-eei
+    demo: eei
 spec:
   ports:
     - port: 8080
@@ -111,6 +114,7 @@ metadata:
   name: projection-claims-eei
   labels:
     app: projection-claims-eei
+    demo: eei
 spec:
   to:
     kind: Service

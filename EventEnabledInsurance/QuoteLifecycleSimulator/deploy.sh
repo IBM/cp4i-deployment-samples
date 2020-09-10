@@ -77,8 +77,12 @@ cat << EOF | oc apply -f -
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: quote-simulator-$SUFFIX
   namespace: $namespace
+  name: quote-simulator-$SUFFIX
+  metadata:
+    labels:
+      app: quote-simulator-$SUFFIX
+      demo: eei
 spec:
   selector:
     matchLabels:
@@ -88,6 +92,7 @@ spec:
     metadata:
       labels:
         app: quote-simulator-$SUFFIX
+        demo: eei
     spec:
       containers:
         - name: quote-simulator-$SUFFIX
