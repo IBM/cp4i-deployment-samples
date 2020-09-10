@@ -264,7 +264,7 @@ if ! ${CURRENT_DIR}/build/build.sh -n ${namespace} -r $REPO -b $BRANCH -t $TKN; 
   exit 1
 else
   echo -e "\n$tick INFO: Successfully built and deplopyed the EEI apps in the '$namespace' namespace"
-fi #create-ace-config.sh
+fi #build/build.sh
 
 
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"

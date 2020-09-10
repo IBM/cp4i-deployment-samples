@@ -78,7 +78,7 @@ echo "INFO: Creating pvc for EEI apps in the '$namespace' namespace"
 if oc apply -n $namespace -f $CURRENT_DIR/pvc.yaml; then
   echo -e "\n$tick INFO: Successfully created the pvc in the '$namespace' namespace"
 else
-  echo -e "\n$cross ERROR: Failed to create the pvcin the '$namespace' namespace"
+  echo -e "\n$cross ERROR: Failed to create the pvc in the '$namespace' namespace"
 fi
 
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
@@ -89,9 +89,9 @@ if cat $CURRENT_DIR/pipeline.yaml |
   sed "s#{{FORKED_REPO}}#$REPO#g;" |
   sed "s#{{BRANCH}}#$BRANCH#g;" |
   oc apply -n ${namespace} -f -; then
-    echo -e "\n$tick INFO: Successfully applied the pipeline to build and deploy the EEI apps in in '$namespace' namespace"
+    echo -e "\n$tick INFO: Successfully applied the pipeline to build and deploy the EEI apps in '$namespace' namespace"
 else
-  echo -e "\n$cross ERROR: Failed to apply the pipeline to build and deploy the EEI apps in in '$namespace' namespace"
+  echo -e "\n$cross ERROR: Failed to apply the pipeline to build and deploy the EEI apps in '$namespace' namespace"
   exit 1
 fi #pipeline.yaml
 
