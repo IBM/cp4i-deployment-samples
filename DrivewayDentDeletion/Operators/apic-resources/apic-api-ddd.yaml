@@ -102,4 +102,5 @@ securityDefinitions:
     type: apiKey
     in: header
     name: X-IBM-Client-Id
-security: null
+security:
+  - clientID: []

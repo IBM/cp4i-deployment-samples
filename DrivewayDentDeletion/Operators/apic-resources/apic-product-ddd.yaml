@@ -32,5 +32,5 @@ visibility:
     enabled: true
 product: 1.0.0
 apis:
-  drivewaydentdeletion:
-    $ref: DrivewayDentDeletion.yaml
+  drivewaydentdeletion1.0.0:
+    name: "drivewaydentdeletion:1.0.0"
