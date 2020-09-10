@@ -61,10 +61,8 @@ fi
 
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
-DB_POD=$(oc get pod -n $POSTGRES_NAMESPACE -l name=postgresql -o jsonpath='{.items[].metadata.name}')
 DB_SVC="postgresql.$POSTGRES_NAMESPACE.svc.cluster.local"
 PG_HOST=$DB_SVC
-echo "INFO: Postgres pod name in the '$POSTGRES_NAMESPACE' namespace: '$DB_POD'"
 echo "INFO: Postgres service name for the simulator application: '$PG_HOST'"
 
 PG_USER=$(echo ${namespace}_sor_${SUFFIX} | sed 's/-/_/g')
@@ -79,8 +77,11 @@ cat << EOF | oc apply -f -
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: quote-simulator-$SUFFIX
   namespace: $namespace
+  name: quote-simulator-$SUFFIX
+  labels:
+    app: quote-simulator-$SUFFIX
+    demo: eei
 spec:
   selector:
     matchLabels:
@@ -90,6 +91,7 @@ spec:
     metadata:
       labels:
         app: quote-simulator-$SUFFIX
+        demo: eei
     spec:
       containers:
         - name: quote-simulator-$SUFFIX
