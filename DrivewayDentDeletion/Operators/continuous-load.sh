@@ -74,7 +74,7 @@ while getopts "n:u:t:acdis" opt; do
   esac
 done
 
-DB_USER=$(echo $NAMESPACE | sed 's/-/_/g')
+DB_USER=$(echo $NAMESPACE | sed 's/-/_/g')_ddd
 DB_NAME=db_${DB_USER}
 DB_PASS=$(oc get secret -n $NAMESPACE postgres-credential --template={{.data.password}} | base64 --decode)
 DB_POD=$(oc get pod -n postgres -l name=postgresql -o jsonpath='{.items[].metadata.name}')
@@ -101,8 +101,8 @@ fi
 function cleanup_table() {
   table_name="quotes"
   echo -e "\Clearing '${table_name}' database of all rows..."
-  oc exec -n postgres -it ${DB_POD} \
-    -- psql -U ${DB_USER} -d ${DB_NAME} -h ${DB_SVC} -c \
+  oc exec -n postgres -it ${DB_POD} -- \
+    psql -U ${DB_USER} -d ${DB_NAME} -h ${DB_SVC} -c \
     "TRUNCATE ${table_name};"
 }
 
@@ -169,8 +169,8 @@ while true; do
     # - DELETE ---
     if [ "$SAVE_ROW_AFTER_RUN" = false ]; then
       echo -e "\nDeleting row from database..."
-      oc exec -n postgres -it ${DB_POD} \
-        -- psql -U ${DB_USER} -d ${DB_NAME} -h ${DB_SVC} -c \
+      oc exec -n postgres -it ${DB_POD} -- \
+        psql -U ${DB_USER} -d ${DB_NAME} -h ${DB_SVC} -c \
         "DELETE FROM quotes WHERE quotes.quoteid = ${quote_id};"
     fi
   else
