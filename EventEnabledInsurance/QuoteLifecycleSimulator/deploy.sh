@@ -79,10 +79,9 @@ kind: Deployment
 metadata:
   namespace: $namespace
   name: quote-simulator-$SUFFIX
-  metadata:
-    labels:
-      app: quote-simulator-$SUFFIX
-      demo: eei
+  labels:
+    app: quote-simulator-$SUFFIX
+    demo: eei
 spec:
   selector:
     matchLabels:
