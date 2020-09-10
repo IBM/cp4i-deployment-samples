@@ -9,6 +9,7 @@ import (
   "strconv"
   "time"
 
+  "github.com/google/uuid"
   _ "github.com/lib/pq"
 )
 
@@ -75,10 +76,10 @@ func main() {
 
 func processMobileClaim(db *sql.DB) () {
   quoteID, claimStatus := getRandomClaim(db, true)
-  if(quoteID<0) {
+  if(quoteID == "") {
     log.Printf("No outstanding mobile claims found")
   } else {
-    log.Printf("Found mobile claim with quoteID of %d and claimStatus of %d\n", quoteID, claimStatus)
+    log.Printf("Found mobile claim with quoteID of %s and claimStatus of %d\n", quoteID, claimStatus)
     claimStatus+=1
     updateQuoteStatus(db, quoteID, claimStatus)
   }
@@ -86,10 +87,10 @@ func processMobileClaim(db *sql.DB) () {
 
 func processNonMobileClaim(db *sql.DB) () {
   quoteID, claimStatus := getRandomClaim(db, false)
-  if(quoteID<0) {
+  if(quoteID == "") {
     log.Printf("No outstanding non-mobile claims found")
   } else {
-    log.Printf("Found non-mobile claim with quoteID of %d and claimStatus of %d\n", quoteID, claimStatus)
+    log.Printf("Found non-mobile claim with quoteID of %s and claimStatus of %d\n", quoteID, claimStatus)
     claimStatus+=1
     // For 2/3 of cases skip 3 and move straight to 4
     if(claimStatus==3 && rand.Intn(3)>0) {
@@ -107,6 +108,7 @@ func createNewClaim(db *sql.DB, mobile bool) {
   } else {
     source = pickRandomString(nonMobileSources)
   }
+  quoteID := uuid.New().String()
   customerInfo := pickRandomStringArray(customers)
   name := customerInfo[0]
   email := customerInfo[1]
@@ -118,18 +120,18 @@ func createNewClaim(db *sql.DB, mobile bool) {
 
   sqlStatement := `
     INSERT INTO quotes (
-      ClaimStatus, ClaimCost, Source, Name, EMail, Age, Address, USState, LicensePlate, DescriptionOfDamage)
-    VALUES (1, null, $1, $2, $3, $4, $5, $6, $7, $8)
+      QuoteID, ClaimStatus, ClaimCost, Source, Name, EMail, Age, Address, USState, LicensePlate, DescriptionOfDamage)
+    VALUES ($1, 1, null, $2, $3, $4, $5, $6, $7, $8, $9)
     RETURNING QuoteID AS id`
-  id := -1
-  err := db.QueryRow(sqlStatement, source, name, email, age, address, usState, licensePlate, descriptionOfDamage).Scan(&id)
+  id := ""
+  err := db.QueryRow(sqlStatement, quoteID, source, name, email, age, address, usState, licensePlate, descriptionOfDamage).Scan(&id)
   if err != nil {
     panic(err)
   }
-  log.Printf("Created new claim with id of %d", id)
+  log.Printf("Created new claim with id of %s", id)
 }
 
-func getRandomClaim(db *sql.DB, mobile bool) (int, int) {
+func getRandomClaim(db *sql.DB, mobile bool) (string, int) {
   sqlStatement := `SELECT QuoteID, ClaimStatus FROM quotes WHERE Source`
   if(mobile) {
     sqlStatement += `=`
@@ -137,7 +139,7 @@ func getRandomClaim(db *sql.DB, mobile bool) (int, int) {
     sqlStatement += `!=`
   }
   sqlStatement += `'Mobile' AND ClaimStatus<7 ORDER BY random() LIMIT 1`
-  var quoteID int = -1
+  var quoteID string = ""
   var claimStatus int = -1
   row := db.QueryRow(sqlStatement)
   switch err := row.Scan(&quoteID, &claimStatus); err {
@@ -150,16 +152,16 @@ func getRandomClaim(db *sql.DB, mobile bool) (int, int) {
   return quoteID, claimStatus
 }
 
-func updateQuoteStatus(db *sql.DB, quoteID int, claimStatus int) () {
+func updateQuoteStatus(db *sql.DB, quoteID string, claimStatus int) () {
   var result sql.Result
   var err error
   if(claimStatus==5) {
     claimCost := 100 * rand.Intn(10)
     result, err = db.Exec("UPDATE quotes SET ClaimStatus=$2, ClaimCost=$3 WHERE QuoteID=$1", quoteID, claimStatus, claimCost)
-    log.Printf("For claim with quoteID of %d, updating claimStatus to %d and claimCost to %d\n", quoteID, claimStatus, claimCost)
+    log.Printf("For claim with quoteID of %s, updating claimStatus to %d and claimCost to %d\n", quoteID, claimStatus, claimCost)
   } else {
     result, err = db.Exec("UPDATE quotes SET ClaimStatus = $2 WHERE QuoteID = $1", quoteID, claimStatus)
-    log.Printf("For claim with quoteID of %d, updating claimStatus to %d\n", quoteID, claimStatus)
+    log.Printf("For claim with quoteID of %s, updating claimStatus to %d\n", quoteID, claimStatus)
   }
 	if err != nil {
 		log.Fatal(err)
