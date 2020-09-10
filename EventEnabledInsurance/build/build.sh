@@ -166,5 +166,6 @@ echo -e "\n---------------------------------------------------------------------
 echo -e "\n$tick INFO: The applications have been deployed, but with zero replicas.\n"
 oc get deployment -n $namespace -l demo=eei
 
+echo ""
 echo "To start the quote simulator app run the command 'oc scale deployment/quote-simulator-eei --replicas=1'"
 echo "To start the projection claims app run the command 'oc scale deployment/projection-claims-eei --replicas=1'"
