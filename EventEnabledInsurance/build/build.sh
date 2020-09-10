@@ -115,35 +115,21 @@ fi #pipelinerun.yaml
 
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
+pipelinerunSuccess="false";
 echo -e "INFO: Displaying the pipelinerun logs: \n"
 if ! $TKN pipelinerun logs -f $PIPELINE_RUN_NAME; then
   echo -e "\n$cross ERROR: Failed to get the pipelinerun logs successfully"
-  exit 1
 fi
 
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
-# Wait for up to 5 minutes for the pipelinerun for the simluator app to complete
-time=0
-while [ "$(oc get pipelinerun -n $namespace ${PIPELINE_RUN_NAME} -o json | jq -r '.status.conditions[0].status')" != "True" ]; do
-  if [ $time -gt 5 ]; then
-    echo -e "$cross ERROR: Timed out waiting for the pipelinerun to succeed"
-    exit 1
-  fi
-
-  if [ "$(oc get pipelinerun -n $namespace ${PIPELINE_RUN_NAME} -o json | jq -r '.status.conditions[0].status')" == "False" ]; then
-    echo -e "$cross ERROR: The pipelinerun has failed\n"
-    oc get pipelinerun $PIPELINE_RUN_NAME
-    exit 1
-  fi
-
-  echo -e "\nINFO: Waiting up to 5 minutes for the pipelinerun to finish. Waited ${time} minute(s)."
-  time=$((time + 1))
-  sleep 60
-done
-
-echo -e "\n$tick INFO: The pipelinerun has completed successfully, going ahead to delete the pipelinerun for it to delete the pods and the pvc\n"
 oc get pipelinerun -n $namespace $PIPELINE_RUN_NAME
+
+if [[ "$(oc get pipelinerun -n $namespace $PIPELINE_RUN_NAME -o json | jq -r '.status.conditions[0].status')" == "True" ]];then
+  pipelinerunSuccess="true"
+fi
+
+echo -e "\nINFO: Going ahead to delete the pipelinerun instance to delete the related pods and the pvc"
 
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
@@ -163,9 +149,16 @@ fi
 
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
-echo -e "\n$tick INFO: The applications have been deployed, but with zero replicas.\n"
-oc get deployment -n $namespace -l demo=eei
+echo "Kinshuk: $pipelinerunSuccess"
+if [[ "$pipelinerunSuccess" == "false" ]];then
+  echo -e "\n$cross ERROR: The pipelinerun did not succeed\n"
+  exit 1
+else
+  echo -e "\n$tick INFO: The eei demo related applications have been deployed, but with zero replicas.\n"
+  oc get deployment -n $namespace -l demo=eei
 
-echo ""
-echo "To start the quote simulator app run the command 'oc scale deployment/quote-simulator-eei --replicas=1'"
-echo "To start the projection claims app run the command 'oc scale deployment/projection-claims-eei --replicas=1'"
+  echo -e "\nINFO: To start the quote simulator app run the command 'oc scale deployment/quote-simulator-eei --replicas=1'"
+  echo -e "\nINFO: To start the projection claims app run the command 'oc scale deployment/projection-claims-eei --replicas=1'"
+fi
+
+echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"

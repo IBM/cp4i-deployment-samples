@@ -72,7 +72,7 @@ oc project $namespace
 
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
-echo -e "\nINFO: Checking if tekton-cli is pre-installed..."
+echo -e "INFO: Checking if tekton-cli is pre-installed..."
 tknInstalled=false
 TKN=tkn
 $TKN version
@@ -265,6 +265,5 @@ if ! ${CURRENT_DIR}/build/build.sh -n ${namespace} -r $REPO -b $BRANCH -t $TKN; 
 else
   echo -e "\n$tick INFO: Successfully built and deplopyed the EEI apps in the '$namespace' namespace"
 fi #build/build.sh
-
 
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"

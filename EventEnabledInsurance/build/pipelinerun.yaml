@@ -1,7 +1,7 @@
 apiVersion: tekton.dev/v1beta1
 kind: PipelineRun
 metadata:
-  name: {{PIPELINE_RUN_NAME}}
+  name: "{{PIPELINE_RUN_NAME}}"
   labels:
     app: pipeline-eei
     demo: eei
