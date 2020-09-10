@@ -177,7 +177,9 @@ if [[ $ENVIRONMENT == "dev" ]]; then
     -H "accept: application/json" \
     -H "authorization: Bearer ${TOKEN}")
   handle_res "${RES}"
+  echo "[DEBUG] output: ${OUTPUT}"
   MATCHING_PRODUCT=$(echo ${OUTPUT} | $JQ -r '.results[] | select(.name == "'$PRODUCT'" and .version == "'$PRODUCT_VER'")')
+  echo "[DEBUG] matching product: ${MATCHING_PRODUCT}"
 
   echo "[INFO] Checking for existing product..."
   if [[ $MATCHING_PRODUCT == "null" ]]; then
