@@ -39,7 +39,7 @@ REPO="https://github.com/IBM/cp4i-deployment-samples.git"
 BRANCH="main"
 TKN=tkn
 
-while getopts "n:r:b:" opt; do
+while getopts "n:r:b:t:" opt; do
   case ${opt} in
   n)
     namespace="$OPTARG"
