@@ -33,10 +33,6 @@
 # ↡ store values in configmap
 # ↡ publish product to catalog
 
-function usage {
-  echo "Usage: $0 -e <environment> -n <namespace> -s <namespace_suffix> -r <release> -d"
-}
-
 CURRENT_DIR=$(dirname $0)
 
 TICK="\xE2\x9C\x85"
@@ -49,6 +45,35 @@ TEST_ORG="ddd-demo-test"
 CATALOG="$([[ $ENVIRONMENT == dev ]] && echo $DEV_ORG || echo $TEST_ORG)-catalog"
 ACE_SECRET="ace-v11-service-creds"
 APIC_SECRET="cp4i-admin-creds"
+
+function usage {
+  echo "Usage: $0 -e <environment> -n <namespace> -s <namespace_suffix> -r <release> -d"
+}
+
+OUTPUT=""
+function handle_res {
+  local body=$1
+  local status=$(echo ${body} | $JQ -r ".status")
+  $DEBUG && echo "[DEBUG] res body: ${body}"
+  $DEBUG && echo "[DEBUG] res status: ${status}"
+  if [[ $status == "null" ]]; then
+    OUTPUT="${body}"
+  elif [[ $status == "400" ]]; then
+    if [[ $body == *"already exists"* || $body == *"already subscribed"* ]]; then
+      OUTPUT="${body}"
+      echo "[INFO]  Resource already exists, continuing..."
+    else
+      echo -e "[ERROR] ${CROSS} Got 400 bad request"
+      exit 1
+    fi
+  elif [[ $status == "409" ]]; then
+    OUTPUT="${body}"
+    echo "[INFO]  Resource already exists, continuing..."
+  else
+    echo -e "[ERROR] ${CROSS} Computer says no..."
+    exit 1
+  fi
+}
 
 while getopts "e:n:r:d" opt; do
   case ${opt} in
@@ -120,35 +145,10 @@ for i in `seq 1 5`; do
   fi
 done
 [[ -z $ACE_API ]] && echo -e "[ERROR] ${CROSS} ace api integration server service doesn't exit" && exit 1
-echo "[DEBUG] ace port stuff: $(oc get svc -n $NAMESPACE $ACE_API -ojson)"
-ACE_API_INT_SRV_PORT=$(oc get svc -n $NAMESPACE $ACE_API -ojson | jq -r '.spec.ports[] | select(.name == "http").port')
+ACE_API_INT_SRV_PORT=$(oc get svc -n $NAMESPACE $ACE_API -ojson | $JQ -r '.spec.ports[] | select(.name == "http").port')
 ACE_API_INT_SRV=${ACE_API}.${NAMESPACE}.svc.cluster.local:$ACE_API_INT_SRV_PORT
 $DEBUG && echo "[DEBUG] ACE_API_INT_SRV=${ACE_API_INT_SRV}"
 echo -e "[INFO]  ${TICK} Cluster info gathered"
-
-function handle_res {
-  local body=$1
-  local status=$(echo ${body} | $JQ -r ".status")
-  echo "[DEBUG] ${body}"
-  echo "[DEBUG] ${status}"
-  if [[ $status == "null" ]]; then
-    OUTPUT="${body}"
-  elif [[ $status == "400" ]]; then
-    if [[ $body == *"already exists"* || $body == *"already subscribed"* ]]; then
-      OUTPUT="${body}"
-      echo "[INFO]  Resource already exists, continuing..."
-    else
-      echo -e "[ERROR] ${CROSS} Got 400 bad request"
-      exit 1
-    fi
-  elif [[ $status == "409" ]]; then
-    OUTPUT="${body}"
-    echo "[INFO]  Resource already exists, continuing..."
-  else
-    echo -e "[ERROR] ${CROSS} Computer says no..."
-    exit 1
-  fi
-}
 
 # Grab bearer token
 echo "[INFO]  Getting bearer token..."
@@ -168,6 +168,8 @@ cat ${CURRENT_DIR}/../../DrivewayDentDeletion/Operators/apic-resources/apic-prod
   sed "s#{{NAMESPACE}}#$NAMESPACE#g;" > ${CURRENT_DIR}/product.yaml
 $DEBUG && echo -e "[DEBUG] product yaml:\n$(cat ${CURRENT_DIR}/product.yaml)"
 echo -e "[INFO]  ${TICK} Templated product yaml"
+
+echo "[DEBUG] ace port stuff: $(oc get svc -n $NAMESPACE $ACE_API -ojson)"
 
 # Get product and api versions
 API_VER=$(grep 'version:' ${CURRENT_DIR}/api.yaml | head -1 | awk '{print $2}')
