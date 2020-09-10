@@ -84,7 +84,7 @@ if [[ "$jqInstalled" == "false" ]]; then
   echo "[DEBUG] jq not found, installing jq..."
   if [[ "$OSTYPE" == "linux-gnu"* ]]; then
     $DEBUG && printf "on linux..."
-    wget -O jq https://github.com/stedolan/jq/releases/download/jq-1.6/jq-linux64
+    wget --quiet -O jq https://github.com/stedolan/jq/releases/download/jq-1.6/jq-linux64
     chmod +x ./jq
     JQ=./jq
     $DEBUG && echo "[DEBUG] ${TICK} jq installed"
@@ -102,6 +102,8 @@ echo "[INFO]  jq version: $($JQ --version)"
 echo "[INFO]  Gathering cluster info..."
 APIC_NAMESPACE=${MAIN_NAMESPACE}
 NAMESPACE=$([[ $ENVIRONMENT == "dev" ]] && echo "${MAIN_NAMESPACE}" || echo "${MAIN_NAMESPACE}-ddd-test")
+$DEBUG && echo "[DEBUG] $APIC_NAMESPACE"
+$DEBUG && echo "[DEBUG] $NAMESPACE"
 PLATFORM_API_EP=$(oc get route -n $APIC_NAMESPACE ${RELEASE}-mgmt-platform-api -o jsonpath="{.spec.host}")
 [[ -z $PLATFORM_API_EP ]] && echo -e "[ERROR] ${CROSS} APIC platform api route doesn't exit" && exit 1
 $DEBUG && echo "[DEBUG] PLATFORM_API_EP=${PLATFORM_API_EP}"
@@ -121,7 +123,7 @@ done
 echo "[DEBUG] ace port stuff: $(oc get svc -n $NAMESPACE $ACE_API -ojson)"
 ACE_API_INT_SRV_PORT=$(oc get svc -n $NAMESPACE $ACE_API -ojson | jq -r '.spec.ports[] | select(.name == "http").port')
 ACE_API_INT_SRV=${ACE_API}.${NAMESPACE}.svc.cluster.local:$ACE_API_INT_SRV_PORT
-echo "ACE_API_INT_SRV= ${ACE_API_INT_SRV}"
+$DEBUG && echo "[DEBUG] ACE_API_INT_SRV=${ACE_API_INT_SRV}"
 echo -e "[INFO]  ${TICK} Cluster info gathered"
 
 function handle_res {
