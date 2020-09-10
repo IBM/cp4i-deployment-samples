@@ -70,7 +70,7 @@ function handle_res {
     OUTPUT="${body}"
     echo "[INFO]  Resource already exists, continuing..."
   else
-    echo -e "[ERROR] ${CROSS} Computer says no..."
+    echo -e "[ERROR] ${CROSS} Request failed: ${body}..."
     exit 1
   fi
 }
@@ -371,8 +371,3 @@ RES=$(curl -kLsS -X POST https://$PLATFORM_API_EP/api/apps/$ORG/$CATALOG/$C_ORG/
 }")
 handle_res "${RES}"
 echo -e "[INFO] ${TICK} Subscription created"
-
-# Get api endpoint
-
-
-# Get client id

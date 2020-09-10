@@ -45,7 +45,7 @@ function handle_res {
   if [[ $status == "null" ]]; then
     OUTPUT="${body}"
   else
-    $DEBUG && echo -e "[ERROR] ${CROSS} Computer says no..."
+    $DEBUG && echo -e "[ERROR] ${CROSS} Request failed: ${body}..."
     exit 1
   fi
 }

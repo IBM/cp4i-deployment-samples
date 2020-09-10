@@ -136,7 +136,7 @@ if [[ $APIC == true ]]; then
       OUTPUT="${body}"
       echo "[INFO]  Resource already exists, continuing..."
     else
-      echo -e "[ERROR] ${CROSS} Computer says no..."
+      echo -e "[ERROR] ${CROSS} Request failed: ${body}..."
       exit 1
     fi
   }
