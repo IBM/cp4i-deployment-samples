@@ -88,11 +88,21 @@ while getopts "e:n:r:d" opt; do
   esac
 done
 
+NAMESPACE=$([[ $ENVIRONMENT == "dev" ]] && echo "${MAIN_NAMESPACE}" || echo "${MAIN_NAMESPACE}-ddd-test")
 ORG=$([[ $ENVIRONMENT == "dev" ]] && echo "main-demo" || echo "ddd-demo-test")
-PRODUCT=${NAMESPACE}-product-ddd
 CATALOG=${ORG}-catalog
+PRODUCT=${NAMESPACE}-product-ddd
 C_ORG=${ORG}-corp
 APP=ddd-app
+
+# Gather info from cluster resources
+echo "[INFO]  Gathering cluster info..."
+APIC_NAMESPACE=${MAIN_NAMESPACE}
+$DEBUG && echo "[DEBUG] $APIC_NAMESPACE"
+$DEBUG && echo "[DEBUG] $NAMESPACE"
+PLATFORM_API_EP=$(oc get route -n $APIC_NAMESPACE ${RELEASE}-mgmt-platform-api -o jsonpath="{.spec.host}")
+[[ -z $PLATFORM_API_EP ]] && echo -e "[ERROR] ${CROSS} APIC platform api route doesn't exit" && exit 1
+$DEBUG && echo "[DEBUG] PLATFORM_API_EP=${PLATFORM_API_EP}"
 
 # Install jq
 $DEBUG && echo "[DEBUG] Checking if jq is present..."
@@ -122,16 +132,6 @@ if [[ "$jqInstalled" == "false" ]]; then
 fi
 
 echo "[INFO]  jq version: $($JQ --version)"
-
-# Gather info from cluster resources
-echo "[INFO]  Gathering cluster info..."
-APIC_NAMESPACE=${MAIN_NAMESPACE}
-NAMESPACE=$([[ $ENVIRONMENT == "dev" ]] && echo "${MAIN_NAMESPACE}" || echo "${MAIN_NAMESPACE}-ddd-test")
-$DEBUG && echo "[DEBUG] $APIC_NAMESPACE"
-$DEBUG && echo "[DEBUG] $NAMESPACE"
-PLATFORM_API_EP=$(oc get route -n $APIC_NAMESPACE ${RELEASE}-mgmt-platform-api -o jsonpath="{.spec.host}")
-[[ -z $PLATFORM_API_EP ]] && echo -e "[ERROR] ${CROSS} APIC platform api route doesn't exit" && exit 1
-$DEBUG && echo "[DEBUG] PLATFORM_API_EP=${PLATFORM_API_EP}"
 
 for i in `seq 1 5`; do
   ACE_API=$(oc get svc ace-api-int-srv-is -n ${NAMESPACE} -o jsonpath="{.metadata.name}")
@@ -168,8 +168,6 @@ cat ${CURRENT_DIR}/../../DrivewayDentDeletion/Operators/apic-resources/apic-prod
   sed "s#{{NAMESPACE}}#$NAMESPACE#g;" > ${CURRENT_DIR}/product.yaml
 $DEBUG && echo -e "[DEBUG] product yaml:\n$(cat ${CURRENT_DIR}/product.yaml)"
 echo -e "[INFO]  ${TICK} Templated product yaml"
-
-echo "[DEBUG] ace port stuff: $(oc get svc -n $NAMESPACE $ACE_API -ojson)"
 
 # Get product and api versions
 API_VER=$(grep 'version:' ${CURRENT_DIR}/api.yaml | head -1 | awk '{print $2}')
