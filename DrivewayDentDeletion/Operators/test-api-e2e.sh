@@ -35,16 +35,13 @@ APIC=false
 APP="ddd-app"
 os_sed_flag=""
 ORG="main-demo"
-CATALOG=${ORG}-catalog
 
 if [[ $(uname) == Darwin ]]; then
   os_sed_flag="-e"
 fi
 
-while getopts "e:n:r:p:s:a" opt; do
+while getopts "n:r:p:s:a" opt; do
   case ${opt} in
-    e ) ENVIRONMENT="$OPTARG"
-      ;;
     n ) NAMESPACE="$OPTARG"
       ;;
     r ) RELEASE="$OPTARG"
@@ -75,7 +72,9 @@ if [[ "$NAMESPACE_SUFFIX" == "dev" ]]; then
 else
   echo "Namespace suffix: $NAMESPACE_SUFFIX"
   NAMESPACE="${NAMESPACE}-${NAMESPACE_SUFFIX}"
+  ORG="ddd-demo-test"
 fi
+CATALOG=${ORG}-catalog
 
 echo "Namespace for postgres: $NAMESPACE"
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
