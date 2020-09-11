@@ -291,6 +291,8 @@ USER_REGISTRY_URL=$(echo "${OUTPUT}" | $JQ -r ".results[0].user_registry_url")
 $DEBUG && echo "[DEBUG] User registry url: ${USER_REGISTRY_URL}"
 echo -e "[INFO] ${TICK} Got configured catalog user registry url for ${ORG}-catalog"
 
+CORG_OWNER_USERNAME="${ORG}-corg-admin"
+CORG_OWNER_PASSWORD="!n0r1t5@C"
 # Create consumer org owner
 echo "[INFO] Creating consumer org owner..."
 RES=$(curl -kLsS -X POST $USER_REGISTRY_URL/users \
@@ -298,12 +300,13 @@ RES=$(curl -kLsS -X POST $USER_REGISTRY_URL/users \
   -H "authorization: Bearer ${TOKEN}" \
   -H "content-type: application/json" \
   -d "{
-    \"username\": \"${ORG}-corg-admin\",
+    \"username\": \"${CORG_OWNER_USERNAME}\",
     \"email\": \"nigel@acme.org\",
     \"first_name\": \"Nigel\",
     \"last_name\": \"McNigelface\",
-    \"password\": \"!n0r1t5@C\"
+    \"password\": \"${CORG_OWNER_PASSWORD}\"
 }")
+$DEBUG && echo "[DEBUG] response: ${RES}"
 handle_res "${RES}"
 OWNER_URL=$(echo "${OUTPUT}" | $JQ -r ".url")
 $DEBUG && echo "[DEBUG] Owner url: ${OWNER_URL}"
@@ -335,6 +338,18 @@ RES=$(curl -kLsS -X POST https://$PLATFORM_API_EP/api/catalogs/$ORG/$CATALOG/con
 }")
 handle_res "${RES}"
 echo -e "[INFO] ${TICK} Consumer org created"
+
+# Store consumer org owner creds
+cat << EOF | oc apply -n ${MAIN_NAMESPACE} -f -
+apiVersion: v1
+kind: Secret
+metadata:
+  name: corg-owner-creds
+type: Opaque
+stringData:
+  username: ${CORG_OWNER_USERNAME}
+  password: ${CORG_OWNER_PASSWORD}
+EOF
 
 # Create an app
 echo "[INFO] Creating application..."
