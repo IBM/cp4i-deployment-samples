@@ -63,9 +63,11 @@ echo "Namespace passed: $NAMESPACE"
 echo "User name suffix: $USER_DB_SUFFIX"
 
 MAIN_NAMESPACE=${NAMESPACE}
-PLATFORM_API_EP=$(oc get route -n $MAIN_NAMESPACE ${RELEASE}-mgmt-platform-api -o jsonpath="{.spec.host}")
-[[ -z $PLATFORM_API_EP ]] && echo -e "[ERROR] ${CROSS} APIC platform api route doesn't exit" && exit 1
-$DEBUG && echo "[DEBUG] PLATFORM_API_EP=${PLATFORM_API_EP}"
+if $APIC; then
+  PLATFORM_API_EP=$(oc get route -n $MAIN_NAMESPACE ${RELEASE}-mgmt-platform-api -o jsonpath="{.spec.host}")
+  [[ -z $PLATFORM_API_EP ]] && echo -e "[ERROR] ${CROSS} APIC platform api route doesn't exit" && exit 1
+  $DEBUG && echo "[DEBUG] PLATFORM_API_EP=${PLATFORM_API_EP}"
+fi
 # check if the namespace is dev or test
 if [[ "$NAMESPACE_SUFFIX" == "dev" ]]; then
   NAMESPACE="${NAMESPACE}"
