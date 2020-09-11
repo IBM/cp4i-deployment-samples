@@ -65,7 +65,7 @@ rules:
 # Permission to get secrets for test script in dev namespace
 - apiGroups: [""]
   resources: ["secrets"]
-  verbs: ["get", "list", "create"]
+  verbs: ["get", "list", "create", "patch"]
 
 ---
 
@@ -146,7 +146,7 @@ rules:
 # Permission to get secrets for test script in test namespace
 - apiGroups: [""]
   resources: ["secrets"]
-  verbs: ["get"]
+  verbs: ["get", "list", "create", "patch"]
 
 ---
 
