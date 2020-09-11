@@ -113,8 +113,7 @@ echo -e "\n---------------------------------------------------------------------
 
 # -------------------------------------- TEST E2E API ------------------------------------------
 # BASE_PATH=/basepath, all ready contains /
-BASE_PATH=$(grep 'basePath:' ${CURRENT_DIR}/../../products/bash/api.yaml | head -1 | awk '{print $2}')
-HOST=http://$(oc get routes -n ${NAMESPACE} | grep ace-api-int-srv-http | grep -v ace-api-int-srv-https | awk '{print $2}')$BASE_PATH
+HOST=http://$(oc get routes -n ${NAMESPACE} | grep ace-api-int-srv-http | grep -v ace-api-int-srv-https | awk '{print $2}')/drivewayrepair
 if [[ $APIC == true ]]; then
   OUTPUT=""
   function handle_res {
@@ -148,6 +147,7 @@ if [[ $APIC == true ]]; then
   echo -e "[INFO]  ${TICK} Got bearer token"
 
   # Get api endpoint
+  BASE_PATH=$(grep 'basePath:' ${CURRENT_DIR}/../../products/bash/api.yaml | head -1 | awk '{print $2}')
   HOST="https://$(oc get route -n cp4i ${RELEASE}-gw-gateway -o jsonpath='{.spec.host}')/$ORG/$CATALOG$BASE_PATH"
 
   # Get client id
