@@ -150,7 +150,7 @@ if [[ $APIC == true ]]; then
 
   # Get api endpoint
   BASE_PATH=$(grep 'basePath:' ${CURRENT_DIR}/../../products/bash/api.yaml | head -1 | awk '{print $2}')
-  HOST="https://$(oc get route -n cp4i ${RELEASE}-gw-gateway -o jsonpath='{.spec.host}')/$ORG/$CATALOG$BASE_PATH"
+  HOST="https://$(oc get route -n $MAIN_NAMESPACE ${RELEASE}-gw-gateway -o jsonpath='{.spec.host}')/$ORG/$CATALOG$BASE_PATH"
 
   # Get client id
   echo "[INFO]  Getting client id..."
