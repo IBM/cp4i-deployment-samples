@@ -21,5 +21,7 @@ public class Main {
         server.createContext("/getalldata", new  MyHttpHandler());
         server.start();
         System.out.println(" Server started on port " + PORT);
+
+        SystemOfRecordMonitor.main(args);
     }
 }

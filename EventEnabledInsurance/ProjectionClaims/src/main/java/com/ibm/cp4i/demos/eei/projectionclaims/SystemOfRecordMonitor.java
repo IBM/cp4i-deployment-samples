@@ -121,9 +121,12 @@ public class SystemOfRecordMonitor {
     public static void main(String[] args) {
         SystemOfRecordMonitor monitor;
         try {
-            monitor = new SystemOfRecordMonitor("minimal-prod-kafka-bootstrap-cp4i2.dan-debezium-e2e-ec111ed5d7db435e1c5eeeb4400d693f-0000.eu-gb.containers.appdomain.cloud:443");
-            monitor.addScramProperties("dan-test", "SCGg6kfxjJ1H");
-            monitor.addTLSProperties("/Users/daniel.pinkuk.ibm.com/Downloads/dan-test.p12", "VoA8LSmGY3rx");
+            monitor = new SystemOfRecordMonitor("es-demo-kafka-bootstrap.cp4i1.svc:9092");
+
+//            monitor = new SystemOfRecordMonitor("minimal-prod-kafka-bootstrap-cp4i2.dan-debezium-e2e-ec111ed5d7db435e1c5eeeb4400d693f-0000.eu-gb.containers.appdomain.cloud:443");
+//            monitor.addScramProperties("dan-test", "SCGg6kfxjJ1H");
+//            monitor.addTLSProperties("/Users/daniel.pinkuk.ibm.com/Downloads/dan-test.p12", "VoA8LSmGY3rx");
+
             monitor.start();
         } catch (Throwable exception) {
             exception.printStackTrace();
