@@ -148,15 +148,6 @@ if [[ $APIC == true ]]; then
   echo -e "[INFO]  ${TICK} Got bearer token"
 
   # Get api endpoint
-  # echo "[INFO]  Getting api endpoint..."
-  # RES=$(curl -kLsS https://$PLATFORM_API_EP/api/catalogs/$ORG/$CATALOG/apis/drivewaydentdeletion \
-  #   -H "accept: application/json" \
-  #   -H "authorization: Bearer ${TOKEN}")
-  # handle_res "${RES}"
-  # HOST=$(echo "${OUTPUT}" | $JQ -r ".results[0].gateway_service_urls[0]")
-  # $DEBUG && echo "[DEBUG] API endpoint: ${HOST}"
-  # [[ $HOST == "null" ]] && echo -e "[ERROR] ${CROSS} Couldn't get api endpoint" && exit 1
-  # echo -e "[INFO]  ${TICK} Got api endpoint"
   HOST="https://$(oc get route -n cp4i ${RELEASE}-gw-gateway -o jsonpath='{.spec.host}')/$ORG/$CATALOG$BASE_PATH"
 
   # Get client id
