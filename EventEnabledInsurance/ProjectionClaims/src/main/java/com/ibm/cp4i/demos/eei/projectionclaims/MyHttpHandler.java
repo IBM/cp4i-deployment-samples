@@ -15,46 +15,61 @@ public class MyHttpHandler implements HttpHandler {
         if ("GET".equals(httpExchange.getRequestMethod())) {
             requestParamValue = handleGetRequest(httpExchange);
         }
-        // TO-DO: handle all other types of requests?
         handleResponse(httpExchange, requestParamValue);
     }
 
     private String handleGetRequest(HttpExchange httpExchange) {
-        return httpExchange.
-                getRequestURI()
-                .toString()
-                .split("quoteid")[1]
-                .split("=")[1];
+        System.out.println(httpExchange.getRequestURI().toString());
+        String quoteId = "";
+        if (httpExchange.getRequestURI().toString().equalsIgnoreCase("/getalldata")) {
+            quoteId = "all";
+        }
+        else if (httpExchange.getRequestURI().toString().contains("/quoteid=")) {
+            quoteId = httpExchange.
+                    getRequestURI()
+                    .toString()
+                    .split("quoteid")[1]
+                    .split("=")[1];
+        } else {
+            quoteId="";
+        }
+        return quoteId;
     }
 
     private void handleResponse(HttpExchange httpExchange, String requestParamValue) throws IOException {
         OutputStream outputStream = httpExchange.getResponseBody();
         StringBuilder contentBuilder = new StringBuilder();
-        BufferedReader in = new BufferedReader(new FileReader("./src/main/resources/index.html"));
-        String str;
-        while ((str = in.readLine()) != null) {
-            if (str.equalsIgnoreCase("<h2>We're starting here!</h2>")) {
-                contentBuilder.append("<h2>Searching the quote id: " + requestParamValue + "</h2>");
-            } else {
+        String htmlResponse = "", str = "";
+        BufferedReader in;
+        if (requestParamValue.equalsIgnoreCase("all")) {
+            System.out.println("Requested for all data");
+            in = new BufferedReader(new FileReader("./src/main/resources/index.html"));
+            while ((str = in.readLine()) != null) {
                 contentBuilder.append(str);
+            }
+        } else if (!requestParamValue.isEmpty()) {
+            System.out.println("Requested for a particular quote id " + requestParamValue);
+            in = new BufferedReader(new FileReader("./src/main/resources/index.html"));
+            while ((str = in.readLine()) != null) {
+                if (str.equalsIgnoreCase("<h2>We're starting here!</h2>")) {
+                    contentBuilder.append("<h2>Searching the quote id: " + requestParamValue + "</h2>");
+                } else {
+                    contentBuilder.append(str);
+                }
+            }
+        } else {
+            System.out.println("Unsupported request");
+            in = new BufferedReader(new FileReader("./src/main/resources/404.html"));
+            while ((str = in.readLine()) != null) {
+                if (str.equalsIgnoreCase("<h2>We're starting here!</h2>")) {
+                    contentBuilder.append("<h2>Searching the quote id: " + requestParamValue + "</h2>");
+                } else {
+                    contentBuilder.append(str);
+                }
             }
         }
         in.close();
-        String htmlResponse = contentBuilder.toString();
-//        String htmlResponse = "<html>" +
-//                "<body>" +
-//                "<h1>" +
-//                "Hello " +
-//                requestParamValue +
-//                "</h1>" +
-//                "</body>" +
-//                "</html>"
-//                ;
-
-        // debug log for server
-        System.out.println("id searched is: " + requestParamValue);
-
-        // this line is a must
+        htmlResponse = contentBuilder.toString();
         httpExchange.sendResponseHeaders(200, htmlResponse.length());
         outputStream.write(htmlResponse.getBytes());
         outputStream.flush();
