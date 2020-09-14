@@ -149,7 +149,6 @@ fi
 
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
-echo "Kinshuk: $pipelinerunSuccess"
 if [[ "$pipelinerunSuccess" == "false" ]];then
   echo -e "\n$cross ERROR: The pipelinerun did not succeed\n"
   exit 1
