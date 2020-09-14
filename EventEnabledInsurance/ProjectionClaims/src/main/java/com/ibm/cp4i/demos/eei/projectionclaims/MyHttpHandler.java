@@ -10,14 +10,9 @@ import java.io.IOException;
 import java.io.OutputStream;
 
 public class MyHttpHandler implements HttpHandler {
-    SystemOfRecordMonitor monitor = new SystemOfRecordMonitor("es-demo-kafka-bootstrap.cp4i1.svc:9092");
-    public MyHttpHandler() {
-        try {
-            monitor.start();
-        } catch (Throwable exception) {
-            exception.printStackTrace();
-            throw exception;
-        }
+    SystemOfRecordMonitor monitor;
+    public MyHttpHandler(SystemOfRecordMonitor monitor) {
+        this.monitor = monitor;
     }
 
     @Override
@@ -57,7 +52,7 @@ public class MyHttpHandler implements HttpHandler {
         if (requestParamValue.equalsIgnoreCase("all")) {
             System.out.println("Requested for all data");
             try {
-                JsonNode table = monitor.getTable();
+                JsonNode table = this.monitor.getTable();
                 System.out.println("==============================");
                 System.out.println(table.toPrettyString());
             } catch (Throwable exception) {
@@ -75,7 +70,7 @@ public class MyHttpHandler implements HttpHandler {
             try {
                 System.out.println("----------------------------------");
                 int id = Integer.parseInt(requestParamValue);
-                JsonNode row = monitor.getRow(id);
+                JsonNode row = this.monitor.getRow(id);
                 System.out.println(row.toPrettyString());
             } catch (Throwable exception) {
                 exception.printStackTrace();
