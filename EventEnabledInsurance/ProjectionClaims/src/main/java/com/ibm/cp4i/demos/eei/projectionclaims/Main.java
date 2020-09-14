@@ -40,26 +40,18 @@ public class Main {
         }
 
         try {
-            JsonNode table = monitor.getTable();
-            System.out.println("==============================");
-            System.out.println(table.toPrettyString());
+            System.out.println("----------------------------------");
+            String id_str = "10";
+            Integer id = Integer.valueOf(id_str);
+            if(id != null) {
+                JsonNode row = monitor.getRow(id);
+                System.out.println(row.toPrettyString());
+            }
+        } catch (NumberFormatException nfe) {
+            nfe.printStackTrace();
         } catch (Throwable exception) {
             exception.printStackTrace();
         }
-
-//        try {
-//            System.out.println("----------------------------------");
-//            String id_str = "10";
-//            Integer id = Integer.valueOf(id_str);
-//            if(id != null) {
-//                JsonNode row = monitor.getRow(id);
-//                System.out.println(row.toPrettyString());
-//            }
-//        } catch (NumberFormatException nfe) {
-//            nfe.printStackTrace();
-//        } catch (Throwable exception) {
-//            exception.printStackTrace();
-//        }
         System.out.println("========================================== TABLE DATA ENDS HERE ========================================================");
     }
 }
