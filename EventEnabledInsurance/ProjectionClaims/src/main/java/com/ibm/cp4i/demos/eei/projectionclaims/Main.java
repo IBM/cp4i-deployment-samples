@@ -24,13 +24,14 @@ public class Main {
         http://localhost:8080/quoteid=1
         if 'quoteid' is changed, it will break (TO-DO: handle the break)
         */
-        server.createContext("/", new  MyHttpHandler());
+        server.createContext("/", new  MyHttpHandler(monitor));
         //this context route is to search for all table data
-        server.createContext("/getalldata", new  MyHttpHandler());
+        server.createContext("/getalldata", new  MyHttpHandler(monitor));
         server.start();
         System.out.println(" Server started on port " + PORT);
 
 //        SystemOfRecordMonitor.main(args);
+        System.out.println("----------------------------------");
         try {
             monitor.start();
         } catch (Throwable exception) {
@@ -39,28 +40,18 @@ public class Main {
         }
 
         try {
-            Integer id = 1;
-            JsonNode table = monitor.getTable();
-            System.out.println("==============================");
-            System.out.println(table.toPrettyString());
+            System.out.println("----------------------------------");
+            String id_str = "10";
+            Integer id = Integer.valueOf(id_str);
+            if(id != null) {
+                JsonNode row = monitor.getRow(id);
+                System.out.println(row.toPrettyString());
+            }
+        } catch (NumberFormatException nfe) {
+            nfe.printStackTrace();
         } catch (Throwable exception) {
             exception.printStackTrace();
         }
         System.out.println("========================================== TABLE DATA ENDS HERE ========================================================");
-//        if(id == null) {
-//            JsonNode firstRow = table.get(0);
-//            if(firstRow != null) {
-//                id = firstRow.get("quoteid").intValue();
-//            }
-//        }
-//        if(id != null) {
-//            System.out.println("---");
-//            JsonNode row = monitor.getRow(id);
-//            if(row==null) {
-//                System.out.println("<null>");
-//            } else {
-//                System.out.println(row.toPrettyString());
-//            }
-//        }
     }
 }

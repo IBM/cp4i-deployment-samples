@@ -1,5 +1,6 @@
 package com.ibm.cp4i.demos.eei.projectionclaims;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 
@@ -9,6 +10,17 @@ import java.io.IOException;
 import java.io.OutputStream;
 
 public class MyHttpHandler implements HttpHandler {
+    SystemOfRecordMonitor monitor;
+    public MyHttpHandler(SystemOfRecordMonitor monitor) {
+        this.monitor=monitor;
+        try {
+            this.monitor.start();
+        } catch (Throwable exception) {
+            exception.printStackTrace();
+            throw exception;
+        }
+    }
+
     @Override
     public void handle(HttpExchange httpExchange) throws IOException {
         String requestParamValue = null;
@@ -41,14 +53,39 @@ public class MyHttpHandler implements HttpHandler {
         StringBuilder contentBuilder = new StringBuilder();
         String htmlResponse = "", str = "";
         BufferedReader in;
+        // get all table data
         if (requestParamValue.equalsIgnoreCase("all")) {
             System.out.println("Requested for all data");
+            try {
+                JsonNode table = monitor.getTable();
+                System.out.println("==============================");
+                System.out.println(table.toPrettyString());
+            } catch (Throwable exception) {
+                exception.printStackTrace();
+            }
+            // TO DO: EDIT/REMOVE
             in = new BufferedReader(new FileReader("./src/main/resources/index.html"));
             while ((str = in.readLine()) != null) {
                 contentBuilder.append(str);
             }
-        } else if (!requestParamValue.isEmpty()) {
+        }
+        // get a particular quote id
+        else if (!requestParamValue.isEmpty()) {
             System.out.println("Requested for a particular quote id " + requestParamValue);
+            try {
+                System.out.println("----------------------------------");
+                Integer id = Integer.valueOf(requestParamValue);
+                if(id != null) {
+                    JsonNode row = monitor.getRow(id);
+                    System.out.println(row.toPrettyString());
+                }
+            } catch (NumberFormatException nfe) {
+                nfe.printStackTrace();
+            } catch (Throwable exception) {
+                exception.printStackTrace();
+            }
+
+            // TO DO: EDIT/REMOVE
             in = new BufferedReader(new FileReader("./src/main/resources/index.html"));
             while ((str = in.readLine()) != null) {
                 if (str.equalsIgnoreCase("<h2>We're starting here!</h2>")) {
