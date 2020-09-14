@@ -20,6 +20,7 @@ import org.apache.kafka.streams.state.ReadOnlyKeyValueStore;
 import java.nio.charset.StandardCharsets;
 import java.util.Properties;
 
+@SuppressWarnings({"unused", "RedundantSuppression"})
 public class SystemOfRecordMonitor {
     private final static String SOURCE_TOPIC = "sor.public.quotes";
     private final static String STORE = "sor.store";
@@ -66,6 +67,7 @@ public class SystemOfRecordMonitor {
         properties.put(SslConfigs.SSL_TRUSTSTORE_PASSWORD_CONFIG, password);
     }
 
+    @SuppressWarnings("deprecation")
     public void start() {
         StreamsBuilder builder = new StreamsBuilder();
         builder.globalTable(SOURCE_TOPIC, Materialized.<Bytes, Bytes, KeyValueStore<Bytes, byte[]>>as(STORE));
@@ -118,6 +120,7 @@ public class SystemOfRecordMonitor {
         return mapper.readTree(result.toString());
     }
 
+    @SuppressWarnings({"InfiniteLoopStatement", "BusyWait"})
     public static void main(String[] args) {
         SystemOfRecordMonitor monitor;
         try {

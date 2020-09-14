@@ -10,7 +10,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 
 public class MyHttpHandler implements HttpHandler {
-    SystemOfRecordMonitor monitor = new SystemOfRecordMonitor("es-demo-kafka-bootstrap.cp4i1.svc:9092"); ;
+    SystemOfRecordMonitor monitor = new SystemOfRecordMonitor("es-demo-kafka-bootstrap.cp4i1.svc:9092");
     public MyHttpHandler() {
         try {
             monitor.start();
@@ -26,12 +26,13 @@ public class MyHttpHandler implements HttpHandler {
         if ("GET".equals(httpExchange.getRequestMethod())) {
             requestParamValue = handleGetRequest(httpExchange);
         }
+        requestParamValue = (requestParamValue == null) ? "" : requestParamValue;
         handleResponse(httpExchange, requestParamValue);
     }
 
     private String handleGetRequest(HttpExchange httpExchange) {
         System.out.println(httpExchange.getRequestURI().toString());
-        String quoteId = "";
+        String quoteId;
         if (httpExchange.getRequestURI().toString().equalsIgnoreCase("/getalldata")) {
             quoteId = "all";
         }
@@ -50,7 +51,7 @@ public class MyHttpHandler implements HttpHandler {
     private void handleResponse(HttpExchange httpExchange, String requestParamValue) throws IOException {
         OutputStream outputStream = httpExchange.getResponseBody();
         StringBuilder contentBuilder = new StringBuilder();
-        String htmlResponse = "", str = "";
+        String htmlResponse, str;
         BufferedReader in;
         // get all table data
         if (requestParamValue.equalsIgnoreCase("all")) {
@@ -73,14 +74,9 @@ public class MyHttpHandler implements HttpHandler {
             System.out.println("Requested for a particular quote id " + requestParamValue);
             try {
                 System.out.println("----------------------------------");
-                String id_str = "10";
-                Integer id = Integer.valueOf(id_str);
-                if(id != null) {
-                    JsonNode row = monitor.getRow(id);
-                    System.out.println(row.toPrettyString());
-                }
-            } catch (NumberFormatException nfe) {
-                nfe.printStackTrace();
+                int id = Integer.parseInt(requestParamValue);
+                JsonNode row = monitor.getRow(id);
+                System.out.println(row.toPrettyString());
             } catch (Throwable exception) {
                 exception.printStackTrace();
             }
@@ -88,7 +84,7 @@ public class MyHttpHandler implements HttpHandler {
             in = new BufferedReader(new FileReader("./src/main/resources/index.html"));
             while ((str = in.readLine()) != null) {
                 if (str.equalsIgnoreCase("<h2>We're starting here!</h2>")) {
-                    contentBuilder.append("<h2>Searching the quote id: " + requestParamValue + "</h2>");
+                    contentBuilder.append("<h2>Searching the quote id: ").append(requestParamValue).append("</h2>");
                 } else {
                     contentBuilder.append(str);
                 }
@@ -98,7 +94,7 @@ public class MyHttpHandler implements HttpHandler {
             in = new BufferedReader(new FileReader("./src/main/resources/404.html"));
             while ((str = in.readLine()) != null) {
                 if (str.equalsIgnoreCase("<h2>We're starting here!</h2>")) {
-                    contentBuilder.append("<h2>Searching the quote id: " + requestParamValue + "</h2>");
+                    contentBuilder.append("<h2>Searching the quote id: ").append(requestParamValue).append("</h2>");
                 } else {
                     contentBuilder.append(str);
                 }
