@@ -292,7 +292,9 @@ $DEBUG && echo "[DEBUG] User registry url: ${USER_REGISTRY_URL}"
 echo -e "[INFO] ${TICK} Got configured catalog user registry url for ${ORG}-catalog"
 
 CORG_OWNER_USERNAME="${ORG}-corg-admin"
-CORG_OWNER_PASSWORD="!n0r1t5@C"
+CORG_OWNER_PASSWORD=$(LC_ALL=C tr -dc 'A-Za-z0-9' </dev/urandom | head -c 16 ; echo)
+$DEBUG && echo "[DEBUG] username: $CORG_OWNER_USERNAME"
+$DEBUG && echo "[DEBUG] password: ${CORG_OWNER_PASSWORD}"
 # Create consumer org owner
 echo "[INFO] Creating consumer org owner..."
 RES=$(curl -kLsS -X POST $USER_REGISTRY_URL/users \
