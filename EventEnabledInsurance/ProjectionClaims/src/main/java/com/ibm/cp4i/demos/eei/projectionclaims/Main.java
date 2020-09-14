@@ -1,4 +1,5 @@
 package com.ibm.cp4i.demos.eei.projectionclaims;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.sun.net.httpserver.HttpServer;
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -10,6 +11,12 @@ public class Main {
     static final String HOSTNAME = "localhost";
 
     public static void main(String[] args) throws IOException {
+        SystemOfRecordMonitor monitor = new SystemOfRecordMonitor("es-demo-kafka-bootstrap.cp4i1.svc:9092");
+
+//        monitor = new SystemOfRecordMonitor("minimal-prod-kafka-bootstrap-cp4i2.dan-debezium-e2e-ec111ed5d7db435e1c5eeeb4400d693f-0000.eu-gb.containers.appdomain.cloud:443");
+//        monitor.addScramProperties("dan-test", "SCGg6kfxjJ1H");
+//        monitor.addTLSProperties("/Users/daniel.pinkuk.ibm.com/Downloads/dan-test.p12", "VoA8LSmGY3rx");
+
         HttpServer server = HttpServer.create(new InetSocketAddress(HOSTNAME, PORT), 0);
         /*
         this context route is to search for a particular quote id
@@ -22,6 +29,27 @@ public class Main {
         server.start();
         System.out.println(" Server started on port " + PORT);
 
-        SystemOfRecordMonitor.main(args);
+//        SystemOfRecordMonitor.main(args);
+        monitor.start();
+        Integer id = 1;
+        JsonNode table = monitor.getTable();
+        System.out.println("===");
+        System.out.println(table.toPrettyString());
+        System.out.println("========================================== TABLE DATA ENDS HERE ========================================================");
+//        if(id == null) {
+//            JsonNode firstRow = table.get(0);
+//            if(firstRow != null) {
+//                id = firstRow.get("quoteid").intValue();
+//            }
+//        }
+//        if(id != null) {
+//            System.out.println("---");
+//            JsonNode row = monitor.getRow(id);
+//            if(row==null) {
+//                System.out.println("<null>");
+//            } else {
+//                System.out.println(row.toPrettyString());
+//            }
+//        }
     }
 }
