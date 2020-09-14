@@ -26,7 +26,7 @@ These steps will need to be documented in the demo docs:
   ```
   export NAMESPACE=<NAMESPACE>
   oc project $NAMESPACE
-  export BRANCH=master
+  export BRANCH=main
   export FORKED_REPO=https://github.com/IBM/cp4i-deployment-samples.git
   ./cicd-apply-dev-pipeline.sh -n $NAMESPACE -r $FORKED_REPO -b $BRANCH
   ```
@@ -36,7 +36,7 @@ These steps will need to be documented in the demo docs:
   ```
   export NAMESPACE=<NAMESPACE>
   oc project $NAMESPACE
-  export BRANCH=master
+  export BRANCH=main
   export FORKED_REPO=https://github.com/IBM/cp4i-deployment-samples.git
   ./cicd-apply-test-pipeline.sh -n $NAMESPACE -r $FORKED_REPO -b $BRANCH
   ```
@@ -45,7 +45,7 @@ These steps will need to be documented in the demo docs:
   ```
   export NAMESPACE=<NAMESPACE>
   oc project $NAMESPACE
-  export BRANCH=master
+  export BRANCH=main
   export FORKED_REPO=https://github.com/IBM/cp4i-deployment-samples.git
   ./cicd-apply-test-apic-pipeline.sh -n $NAMESPACE -r $FORKED_REPO -b $BRANCH
   ```
