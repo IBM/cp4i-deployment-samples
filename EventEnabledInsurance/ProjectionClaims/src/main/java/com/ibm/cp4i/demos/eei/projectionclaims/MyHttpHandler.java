@@ -10,11 +10,10 @@ import java.io.IOException;
 import java.io.OutputStream;
 
 public class MyHttpHandler implements HttpHandler {
-    SystemOfRecordMonitor monitor;
-    public MyHttpHandler(SystemOfRecordMonitor monitor) {
-        this.monitor=monitor;
+    SystemOfRecordMonitor monitor = new SystemOfRecordMonitor("es-demo-kafka-bootstrap.cp4i1.svc:9092"); ;
+    public MyHttpHandler() {
         try {
-            this.monitor.start();
+            monitor.start();
         } catch (Throwable exception) {
             exception.printStackTrace();
             throw exception;

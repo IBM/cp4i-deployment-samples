@@ -11,7 +11,7 @@ public class Main {
     static final int PORT = 8080;
     static final String HOSTNAME = "localhost";
 
-    public static void main(String[] args) throws IOException, JsonProcessingException {
+    public static void main(String[] args) throws IOException {
         SystemOfRecordMonitor monitor = new SystemOfRecordMonitor("es-demo-kafka-bootstrap.cp4i1.svc:9092");
 
 //        monitor = new SystemOfRecordMonitor("minimal-prod-kafka-bootstrap-cp4i2.dan-debezium-e2e-ec111ed5d7db435e1c5eeeb4400d693f-0000.eu-gb.containers.appdomain.cloud:443");
@@ -24,9 +24,9 @@ public class Main {
         http://localhost:8080/quoteid=1
         if 'quoteid' is changed, it will break (TO-DO: handle the break)
         */
-        server.createContext("/", new  MyHttpHandler(monitor));
+        server.createContext("/", new  MyHttpHandler());
         //this context route is to search for all table data
-        server.createContext("/getalldata", new  MyHttpHandler(monitor));
+        server.createContext("/getalldata", new  MyHttpHandler());
         server.start();
         System.out.println(" Server started on port " + PORT);
 
