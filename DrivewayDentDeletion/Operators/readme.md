@@ -26,32 +26,51 @@ These steps will need to be documented in the demo docs:
   ```
   export NAMESPACE=<NAMESPACE>
   oc project $NAMESPACE
-  export BRANCH=master
+  export BRANCH=main
   export FORKED_REPO=https://github.com/IBM/cp4i-deployment-samples.git
   ./cicd-apply-dev-pipeline.sh -n $NAMESPACE -r $FORKED_REPO -b $BRANCH
   ```
-- The above script `cicd-apply-dev-pipeline.sh` will create a dev pipeline in the `<NAMESPACE>` namepsace and will print the route to add to the webhook in the forked github repo.
+- The above script `cicd-apply-dev-pipeline.sh` will create a dev pipeline in the `<NAMESPACE>` namespace and will print the route to add to the webhook in the forked github repo.
 - Run the script to create the test pipeline, configured to use the forked repo. Set
 `FORKED_REPO` to the URL for your repo and change the `<NAMESPACE>` to the namespace of 1-click install in which you want the pipeline to run.
   ```
   export NAMESPACE=<NAMESPACE>
   oc project $NAMESPACE
-  export BRANCH=master
+  export BRANCH=main
   export FORKED_REPO=https://github.com/IBM/cp4i-deployment-samples.git
   ./cicd-apply-test-pipeline.sh -n $NAMESPACE -r $FORKED_REPO -b $BRANCH
   ```
-- The above script `cicd-apply-test-pipeline.sh` will create a dev and test pipeline in the `<NAMESPACE>` namepsace and will print the route to add to the webhook in the forked github repo. (This will be the same route as above, but updated to point to a service for the test pipeline in the dev namespace).
+- The above script `cicd-apply-test-pipeline.sh` will create a dev and test pipeline in the `<NAMESPACE>` namespace and will print the route to add to the webhook in the forked github repo. (This will be the same route as above, but updated to point to a service for the test pipeline in the dev namespace).
+
+  ```
+  export NAMESPACE=<NAMESPACE>
+  oc project $NAMESPACE
+  export BRANCH=main
+  export FORKED_REPO=https://github.com/IBM/cp4i-deployment-samples.git
+  ./cicd-apply-test-apic-pipeline.sh -n $NAMESPACE -r $FORKED_REPO -b $BRANCH
+  ```
+- The above script `cicd-apply-test-apic-pipeline.sh` will create a dev and test pipeline with added feature of APIC in the `<NAMESPACE>` namespace and will print the route to add to the webhook in the forked github repo.(This will be the same route as above, but updated to point to a service for the test pipeline in the dev namespace).The pipeline uses the APIC instance already installed on the cluster.
+
+  > :information_source:
+  >
+  > As part of this pipeline we create a sample consumer org whose owner's credential details can be found in the secret `corg-owner-creds`.
+  >
+  > Should the user wish to receive the portal admin login reset link they can run 1-click with a set of valid mailtrap credentials and obtain the link from mailtrap.
 
 # Pipelines
 ## Initial pipeline for just the dev environment
 ![Overview of dev pipeline](../media/dev-pipeline.svg)
 ## Pipeline with added support for dev/test environments
 ![Overview of dev/test pipeline](../media/dev-test-pipeline.svg)
+## Pipeline with added support for IBM API Connect
+![Overview of dev/test pipeline](../media/dev-test-apic-pipeline.svg)
 ## Description of pipeline
 - Trigger: Whenever a commit is made to the forked repo it triggers the
   pipeline.
 - Clone git repo: Clones this git repo into a workspace PVC that is then used by the rest of the tasks in the pipeline.
 - Build images tasks: Each of these tasks builds an image and pushes it to the cluster's local OpenShift Image Registry. The latest dockerfile and related files (bar files) are pulled from the forked git repo.
 - Deploy to dev/test and wait for rollout tasks: Each of these tasks applies a CR to deploy/update an MQ/ACE microservice and waits for the deploy/update to rollout so the microservice is running the newly built image once the task has completed.
-- Test ACE API task: Runs a test of the POST/GET endpoints to verify that the dev environment is working. This acts as a gate for rolling out the change to the test environment.
+- Test APIC API in Dev environment: Runs a test of the POST/GET endpoints to verify that the dev environment is working. This acts as a gate for rolling out the change to the test environment.
 - Copy images to test tasks: Copies the images from the dev project to the test project.
+- Configure APIC resources taks: Creates APIC Product, users, subscription in `Dev provider organisation` at later stage in `test provider organisation`
+- Test APIC API in Test environment task: This task will run a final test of the POST/GET endpoints to verify the API published in the APIC catalog in test environment i.e. `test provider org`.

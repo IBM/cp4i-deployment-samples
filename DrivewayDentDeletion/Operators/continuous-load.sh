@@ -11,15 +11,17 @@
 #   - Logged into cluster on the OC CLI (https://docs.openshift.com/container-platform/4.4/cli_reference/openshift_cli/getting-started-cli.html)
 #
 # PARAMETERS:
-#   -a : <api_base_url> (string), base url for the api endpoints - DEFAULT: the result of (oc get routes -n ace | grep ace-ddd-api-dev-http-ace | awk '{print $2}')/drivewayrepair")
-#   -t : <retry_interval>, (integer), time in seconds between each load of data - DEFAULT: 5 (seconds)
-#   -c : <should_cleanup_table> (true/false), whether to delete all rows from the test table - DEFAULT: false
-#   -i : <condensed_info> (true/false), whether to show the full post response or a condensed version - DEFAULT: false
-#   -s : <save_row_after_run> (true/false), whether to save each row in the database after a run or delete it DEFAULT: false
-#   -n : <namespace> (string), Defaults to "cp4i"
+#   -n : NAMESPACE (string), namespace - Default: cp4i
+#   -u : API_BASE_URL (string), base url for the api endpoints - DEFAULT: result of (oc get routes -n ace | grep ace-ddd-api-dev-http-ace | awk '{print $2}')/drivewayrepair")
+#   -t : RETRY_INTERVAL (integer), time in seconds between each load of data - DEFAULT: 5 (seconds)
+#   -a : APIC (true/false), whether apic integration is enabled - DEFAULT: false
+#   -c : TABLE_CLEANUP (true/false), whether to delete all rows from the test table - DEFAULT: false
+#   -d : DEBUG (true/false), whether to enable debug output - DEFAULT: false
+#   -i : CONDENSED_INFO (true/false), whether to show the full post response or a condensed version - DEFAULT: false
+#   -s : SAVE_ROW_AFTER_RUN (true/false), whether to save each row in the database after a run or delete it - DEFAULT: false
 #
 # USAGE:
-#   CAUTION - running without <should_cleanup_table> enabled can result in data leftover in the postgres table
+#   CAUTION - running without TABLE_CLEANUP enabled can result in data leftover in the postgres table
 #
 #   With defaults values
 #     ./continuous-load.sh
@@ -28,35 +30,43 @@
 #     ./continuous-load.sh -t 2 -c
 
 function usage() {
-  echo "Usage: $0 -n <namespace> -a <api_base_url> -t <retry_interval> -c -i -s"
+  echo "Usage: $0 [-n NAMESPACE] [-u API_BASE_URL] [-t RETRY_INTERVAL] [-acdis]"
   exit 1
 }
 
 NAMESPACE="cp4i"
-should_cleanup_table=false
-condensed_info=false
-save_row_after_run=false
-retry_interval=5
+RETRY_INTERVAL=5
+APIC=false
+TABLE_CLEANUP=false
+DEBUG=false
+CONDENSED_INFO=false
+SAVE_ROW_AFTER_RUN=false
 
-while getopts "n:a:t:cis" opt; do
+while getopts "n:u:t:acdis" opt; do
   case ${opt} in
     n )
       NAMESPACE="$OPTARG"
       ;;
-    a)
-      api_base_url="$OPTARG"
+    u)
+      API_BASE_URL="$OPTARG"
       ;;
     t)
-      retry_interval="$OPTARG"
+      RETRY_INTERVAL="$OPTARG"
+      ;;
+    a)
+      APIC=true
       ;;
     c)
-      should_cleanup_table=true
+      TABLE_CLEANUP=true
+      ;;
+    d)
+      DEBUG=true
       ;;
     i)
-      condensed_info=true
+      CONDENSED_INFO=true
       ;;
     s)
-      save_row_after_run=true
+      SAVE_ROW_AFTER_RUN=true
       ;;
     \?)
       usage
@@ -64,19 +74,24 @@ while getopts "n:a:t:cis" opt; do
   esac
 done
 
-DB_USER=$(echo ${NAMESPACE} | sed 's/-/_/g')
+DB_USER=$(echo $NAMESPACE | sed 's/-/_/g')_ddd
 DB_NAME=db_${DB_USER}
-DB_PASS=$(oc get secret -n ${NAMESPACE} postgres-credential --template={{.data.password}} | base64 --decode)
+DB_PASS=$(oc get secret -n $NAMESPACE postgres-credential --template={{.data.password}} | base64 --decode)
 DB_POD=$(oc get pod -n postgres -l name=postgresql -o jsonpath='{.items[].metadata.name}')
-DB_SVC="$(oc get cm postgres-config -o json | jq '.data["postgres.env"] | split("\n  ")' | grep DATABASE_SERVICE_NAME | cut -d "=" -f 2- | tr -dc '[a-z0-9-]\n').postgres.svc.cluster.local"
-echo "INFO: Username name is: '${DB_USER}'"
-echo "INFO: Database name is: '${DB_NAME}'"
+DB_SVC="$(oc get cm -n postgres postgres-config -o json | jq '.data["postgres.env"] | split("\n  ")' | grep DATABASE_SERVICE_NAME | cut -d "=" -f 2- | tr -dc '[a-z0-9-]\n').postgres.svc.cluster.local"
+echo "[INFO]  Username name is: '${DB_USER}'"
+echo "[INFO]  Database name is: '${DB_NAME}'"
 
-if [ -z "${api_base_url}" ]; then
-  api_base_url=$(echo "http://$(oc get routes -n ${NAMESPACE} | grep ace-api-int-srv-http | grep -v ace-api-int-srv-https | awk '{print $2}')/drivewayrepair")
+if [[ $APIC == true ]]; then
+  $DEBUG && echo "[DEBUG] apic integration enabled"
+  API_BASE_URL=$(oc get secret -n $NAMESPACE ddd-api-endpoint-client-id -o jsonpath='{.data.api}' | base64 -D)
+  API_CLIENT_ID=$(oc get secret -n $NAMESPACE ddd-api-endpoint-client-id -o jsonpath='{.data.cid}' | base64 -D)
+  echo -e "[INFO]  api base url: ${API_BASE_URL}\n[INFO]  client id: ${API_CLIENT_ID}"
 fi
-
-echo "API base URL: $api_base_url"
+if [ -z "${API_BASE_URL}" ]; then
+  API_BASE_URL=$(echo "http://$(oc get routes -n $NAMESPACE | grep ace-api-int-srv-http | grep -v ace-api-int-srv-https | awk '{print $2}')/drivewayrepair")
+  echo "[INFO]  api base URL: ${API_BASE_URL}"
+fi
 
 os_sed_flag=""
 if [[ $(uname) == Darwin ]]; then
@@ -86,20 +101,39 @@ fi
 function cleanup_table() {
   table_name="quotes"
   echo -e "\Clearing '${table_name}' database of all rows..."
-  oc exec -n postgres -it ${DB_POD} \
-    -- psql -U ${DB_USER} -d ${DB_NAME} -h ${DB_SVC} -c \
+  oc exec -n postgres -it ${DB_POD} -- \
+    psql -U ${DB_USER} -d ${DB_NAME} -h ${DB_SVC} -c \
     "TRUNCATE ${table_name};"
 }
 
 # Catches any exit signals for cleanup
-if [ "$should_cleanup_table" = true ]; then
+if [ "$TABLE_CLEANUP" = true ]; then
   trap "cleanup_table" EXIT
 fi
 
 while true; do
   # - POST ---
   echo -e "\nPOST request..."
-  post_response=$(curl -s -w " %{http_code}" -X POST ${api_base_url}/quote -d "{\"Name\": \"Mickey Mouse\",\"EMail\": \"MickeyMouse@us.ibm.com\",\"Address\": \"30DisneyLand\",\"USState\": \"FL\",\"LicensePlate\": \"MMM123\",\"DentLocations\": [{\"PanelType\": \"Door\",\"NumberOfDents\": 2},{\"PanelType\": \"Fender\",\"NumberOfDents\": 1}]}")
+  post_response=$(curl -kLsS -w " %{http_code}" -X POST ${API_BASE_URL}/quote \
+    -H "X-IBM-CLIENT-ID: ${API_CLIENT_ID}" \
+    -d "{
+      \"Name\": \"Mickey Mouse\",
+      \"EMail\": \"MickeyMouse@us.ibm.com\",
+      \"Address\": \"30DisneyLand\",
+      \"USState\": \"FL\",
+      \"LicensePlate\": \"MMM123\",
+      \"DentLocations\": [
+        {
+          \"PanelType\": \"Door\",
+          \"NumberOfDents\": 2
+        },
+        {
+          \"PanelType\": \"Fender\",
+          \"NumberOfDents\": 1
+        }
+      ]
+    }")
+  $DEBUG && echo "[DEBUG] post response: ${post_response}"
   post_response_code=$(echo "${post_response##* }")
 
   if [ "$post_response_code" == "200" ]; then
@@ -107,7 +141,7 @@ while true; do
     quote_id=$(echo "$post_response" | jq '.' | sed $os_sed_flag '$ d' | jq '.QuoteID')
 
     echo -e "SUCCESS - POSTed with response code: ${post_response_code}, QuoteID: ${quote_id}, and Response Body:\n"
-    if [ "$condensed_info" = true ]; then
+    if [ "$CONDENSED_INFO" = true ]; then
       # The usage of sed here is to prevent an error caused between the -w flag of curl and jq not interacting well
       echo ${post_response} | jq '.' | sed $os_sed_flag '$ d' | jq '{ QuoteID: .QuoteID, Versions: .Versions }'
     else
@@ -116,13 +150,13 @@ while true; do
 
     # - GET ---
     echo -e "\nGET request..."
-    get_response=$(curl -s -w " %{http_code}" -X GET ${api_base_url}/quote?QuoteID=${quote_id})
+    get_response=$(curl -s -w " %{http_code}" -X GET ${API_BASE_URL}/quote?QuoteID=${quote_id})
     get_response_code=$(echo "${get_response##* }")
 
     if [ "$get_response_code" == "200" ]; then
       echo -e "SUCCESS - GETed with response code: ${get_response_code}, and Response Body:\n"
 
-      if [ "$condensed_info" = true ]; then
+      if [ "$CONDENSED_INFO" = true ]; then
         # The usage of sed here is to prevent an error caused between the -w flag of curl and jq not interacting well
         echo ${get_response} | jq '.' | sed $os_sed_flag '$ d' | jq '.[0] | { QuoteID: .QuoteID, Email: .Email }'
       else
@@ -133,10 +167,10 @@ while true; do
     fi
 
     # - DELETE ---
-    if [ "$save_row_after_run" = false ]; then
+    if [ "$SAVE_ROW_AFTER_RUN" = false ]; then
       echo -e "\nDeleting row from database..."
-      oc exec -n postgres -it ${DB_POD} \
-        -- psql -U ${DB_USER} -d ${DB_NAME} -h ${DB_SVC} -c \
+      oc exec -n postgres -it ${DB_POD} -- \
+        psql -U ${DB_USER} -d ${DB_NAME} -h ${DB_SVC} -c \
         "DELETE FROM quotes WHERE quotes.quoteid = ${quote_id};"
     fi
   else
@@ -144,5 +178,5 @@ while true; do
   fi
 
   echo -e "\n--------------------------------------------------------------------\n"
-  sleep ${retry_interval}
+  sleep ${RETRY_INTERVAL}
 done

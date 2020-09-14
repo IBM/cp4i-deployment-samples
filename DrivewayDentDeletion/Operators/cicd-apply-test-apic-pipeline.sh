@@ -17,10 +17,10 @@
 #   -b : <branch> (string), Defaults to 'main'
 #
 #   With defaults values
-#     ./cicd-apply-test-pipeline.sh
+#     ./cicd-apply-test-apic-pipeline.sh
 #
 #   With overridden values
-#     ./cicd-apply-test-pipeline.sh -n <namespace> -r <repo> -b <branch>
+#     ./cicd-apply-test-apic-pipeline.sh -n <namespace> -r <repo> -b <branch>
 
 function usage() {
   echo "Usage: $0 -n <namespace> -r <repo> -b <branch>"
@@ -82,7 +82,7 @@ echo -e "\n---------------------------------------------------------------------
 
 # apply pvc for buildah tasks
 echo "INFO: Apply pvc for buildah tasks"
-if oc apply -f $CURRENT_DIR/cicd-test/cicd-pvc.yaml; then
+if oc apply -f $CURRENT_DIR/cicd-test-apic/cicd-pvc.yaml; then
   printf "$tick "
   echo "Successfully applied pvc in the '$namespace' namespace"
 else
@@ -95,7 +95,7 @@ echo -e "\n---------------------------------------------------------------------
 
 # create service accounts
 echo "INFO: Create service accounts"
-if cat $CURRENT_DIR/cicd-test/cicd-service-accounts.yaml |
+if cat $CURRENT_DIR/cicd-test-apic/cicd-service-accounts.yaml |
   sed "s#{{NAMESPACE}}#$namespace#g;" |
   oc apply -f -; then
     printf "$tick "
@@ -110,7 +110,7 @@ echo -e "\n---------------------------------------------------------------------
 
 # create roles for tasks
 echo "INFO: Create roles for tasks"
-if cat $CURRENT_DIR/cicd-test/cicd-roles.yaml |
+if cat $CURRENT_DIR/cicd-test-apic/cicd-roles.yaml |
   sed "s#{{NAMESPACE}}#$namespace#g;" |
   oc apply -f -; then
     printf "$tick "
@@ -125,7 +125,7 @@ echo -e "\n---------------------------------------------------------------------
 
 # create role bindings for roles
 echo "INFO: Create role bindings for roles"
-if cat $CURRENT_DIR/cicd-test/cicd-rolebindings.yaml |
+if cat $CURRENT_DIR/cicd-test-apic/cicd-rolebindings.yaml |
   sed "s#{{NAMESPACE}}#$namespace#g;" |
   oc apply -f -; then
     printf "$tick "
@@ -140,7 +140,7 @@ echo -e "\n---------------------------------------------------------------------
 
 # create tekton tasks
 echo "INFO: Create tekton tasks"
-if cat $CURRENT_DIR/cicd-test/cicd-tasks.yaml |
+if cat $CURRENT_DIR/cicd-test-apic/cicd-tasks.yaml |
   sed "s#{{NAMESPACE}}#$namespace#g;" |
   oc apply -f -; then
     printf "$tick "
@@ -155,7 +155,7 @@ echo -e "\n---------------------------------------------------------------------
 
 # create the pipeline to run tasks to build, deploy, test e2e and push to test namespace
 echo "INFO: Create the pipeline to run tasks to build, deploy, test e2e in '$namespace' and '$namespace-ddd-test' namespace"
-if cat $CURRENT_DIR/cicd-test/cicd-pipeline.yaml |
+if cat $CURRENT_DIR/cicd-test-apic/cicd-pipeline.yaml |
   sed "s#{{NAMESPACE}}#$namespace#g;" |
   sed "s#{{FORKED_REPO}}#$repo#g;" |
   sed "s#{{BRANCH}}#$branch#g;" |
@@ -172,7 +172,7 @@ echo -e "\n---------------------------------------------------------------------
 
 # create the trigger template containing the pipelinerun
 echo "INFO: Create the trigger template containing the pipelinerun in the '$namespace' namespace"
-if oc apply -f $CURRENT_DIR/cicd-test/cicd-trigger-template.yaml; then
+if oc apply -f $CURRENT_DIR/cicd-test-apic/cicd-trigger-template.yaml; then
   printf "$tick "
   echo "Successfully applied the trigger template containing the pipelinerun in the '$namespace' namespace"
 else
@@ -185,7 +185,7 @@ echo -e "\n---------------------------------------------------------------------
 
 # create the event listener and route for webhook
 echo "INFO : Create the event listener and route for webhook in the '$namespace' namespace"
-if oc apply -f $CURRENT_DIR/cicd-test/cicd-events-routes.yaml; then
+if oc apply -f $CURRENT_DIR/cicd-test-apic/cicd-events-routes.yaml; then
   printf "$tick "
   echo "Successfully created the event listener and route for webhook in the '$namespace' namespace"
 else
