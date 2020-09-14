@@ -10,15 +10,15 @@ import java.io.IOException;
 import java.io.OutputStream;
 
 public class MyHttpHandler implements HttpHandler {
-    SystemOfRecordMonitor monitor = new SystemOfRecordMonitor("es-demo-kafka-bootstrap.cp4i1.svc:9092"); ;
-    public MyHttpHandler() {
-        try {
-            monitor.start();
-        } catch (Throwable exception) {
-            exception.printStackTrace();
-            throw exception;
-        }
-    }
+//    SystemOfRecordMonitor monitor = new SystemOfRecordMonitor("es-demo-kafka-bootstrap.cp4i1.svc:9092"); ;
+//    public MyHttpHandler() {
+//        try {
+//            monitor.start();
+//        } catch (Throwable exception) {
+//            exception.printStackTrace();
+//            throw exception;
+//        }
+//    }
 
     @Override
     public void handle(HttpExchange httpExchange) throws IOException {
@@ -56,9 +56,9 @@ public class MyHttpHandler implements HttpHandler {
         if (requestParamValue.equalsIgnoreCase("all")) {
             System.out.println("Requested for all data");
             try {
-                JsonNode table = monitor.getTable();
+//                JsonNode table = monitor.getTable();
                 System.out.println("==============================");
-                System.out.println(table.toPrettyString());
+//                System.out.println(table.toPrettyString());
             } catch (Throwable exception) {
                 exception.printStackTrace();
             }
@@ -75,8 +75,8 @@ public class MyHttpHandler implements HttpHandler {
                 System.out.println("----------------------------------");
                 Integer id = Integer.valueOf(requestParamValue);
                 if(id != null) {
-                    JsonNode row = monitor.getRow(id);
-                    System.out.println(row.toPrettyString());
+//                    JsonNode row = monitor.getRow(id);
+//                    System.out.println(row.toPrettyString());
                 }
             } catch (NumberFormatException nfe) {
                 nfe.printStackTrace();
