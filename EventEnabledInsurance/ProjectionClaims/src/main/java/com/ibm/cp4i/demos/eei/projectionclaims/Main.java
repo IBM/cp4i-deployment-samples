@@ -1,4 +1,5 @@
 package com.ibm.cp4i.demos.eei.projectionclaims;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.sun.net.httpserver.HttpServer;
 import java.io.IOException;
@@ -10,7 +11,7 @@ public class Main {
     static final int PORT = 8080;
     static final String HOSTNAME = "localhost";
 
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] args) throws IOException, JsonProcessingException {
         SystemOfRecordMonitor monitor = new SystemOfRecordMonitor("es-demo-kafka-bootstrap.cp4i1.svc:9092");
 
 //        monitor = new SystemOfRecordMonitor("minimal-prod-kafka-bootstrap-cp4i2.dan-debezium-e2e-ec111ed5d7db435e1c5eeeb4400d693f-0000.eu-gb.containers.appdomain.cloud:443");
@@ -30,11 +31,21 @@ public class Main {
         System.out.println(" Server started on port " + PORT);
 
 //        SystemOfRecordMonitor.main(args);
-        monitor.start();
-        Integer id = 1;
-        JsonNode table = monitor.getTable();
-        System.out.println("===");
-        System.out.println(table.toPrettyString());
+        try {
+            monitor.start();
+        } catch (Throwable exception) {
+            exception.printStackTrace();
+            throw exception;
+        }
+
+        try {
+//            Integer id = 1;
+            JsonNode table = monitor.getTable();
+            System.out.println("==============================");
+            System.out.println(table.toPrettyString());
+        } catch (Throwable exception) {
+            exception.printStackTrace();
+        }
         System.out.println("========================================== TABLE DATA ENDS HERE ========================================================");
 //        if(id == null) {
 //            JsonNode firstRow = table.get(0);

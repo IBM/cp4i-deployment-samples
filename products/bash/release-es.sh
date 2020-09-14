@@ -72,12 +72,16 @@ spec:
         transaction.state.log.min.isr: 1
         transaction.state.log.replication.factor: 1
       listeners:
+        external:
+          authentication:
+            type: scram-sha-512
+          type: route
         plain: {}
       metrics: {}
       storage:
         type: ephemeral
     zookeeper:
-      replicas: 1
+      replicas: 3
       metrics: {}
       storage:
         type: ephemeral
