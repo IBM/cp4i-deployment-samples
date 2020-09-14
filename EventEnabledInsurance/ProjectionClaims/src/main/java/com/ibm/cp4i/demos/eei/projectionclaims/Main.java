@@ -24,6 +24,7 @@ public class Main {
         server.start();
         System.out.println(" Server started on port " + PORT);
 
+        //TO DO: EDIT/REMOVE - after get checks
 //        SystemOfRecordMonitor.main(args);
     }
 }
