@@ -17,7 +17,7 @@
 #   -r : <release_name> (string), Defaults to "mq-demo"
 #   -i : <image_name> (string)
 #   -q : <qm_name> (string), Defaults to "QUICKSTART"
-#   -t : optional flag to enable tracing
+#   -t : <tracing_namespace> (string), Defaults to "cp4i"
 #
 # USAGE:
 #   With defaults values

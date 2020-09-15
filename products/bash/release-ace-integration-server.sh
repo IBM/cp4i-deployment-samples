@@ -13,6 +13,7 @@
 #   -n : <namespace> (string), Defaults to "cp4i"
 #   -r : <is_release_name> (string), Defaults to "ace-is"
 #   -i : <is_image_name> (string), Defaults to "image-registry.openshift-image-registry.svc:5000/cp4i/ace-11.0.0.9-r2:new-1"
+#   -t : <tracing_namespace> (string), Defaults to "cp4i"
 #
 # USAGE:
 #   With defaults values
@@ -22,7 +23,7 @@
 #     ./release-ace-is -n cp4i -r cp4i-bernie-ace
 
 function usage {
-    echo "Usage: $0 -n <namespace> -r <is_release_name> -i <is_image_name>"
+    echo "Usage: $0 -n <namespace> -r <is_release_name> -i <is_image_name> -t <tracing_namespace>"
     exit 1
 }
 
