@@ -1,14 +1,12 @@
 package com.ibm.cp4i.demos.eei.projectionclaims;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.util.Iterator;
 
 public class MyHttpHandler implements HttpHandler {
     SystemOfRecordMonitor monitor;
@@ -44,6 +42,7 @@ public class MyHttpHandler implements HttpHandler {
         return quoteId;
     }
 
+    @SuppressWarnings("StringConcatenationInsideStringBufferAppend")
     public static void createTableForAllData(JsonNode table, StringBuilder contentBuilder){
         for (int counter = 0; counter < table.size(); counter++) {
             contentBuilder.append(
@@ -63,6 +62,7 @@ public class MyHttpHandler implements HttpHandler {
         }
     }
 
+    @SuppressWarnings("StringConcatenationInsideStringBufferAppend")
     private void handleResponse(HttpExchange httpExchange, String requestParamValue) throws IOException {
         OutputStream outputStream = httpExchange.getResponseBody();
         StringBuilder contentBuilder = new StringBuilder();
@@ -74,12 +74,11 @@ public class MyHttpHandler implements HttpHandler {
             in = new BufferedReader(new FileReader("./src/main/resources/index.html"));
             try {
                 JsonNode table = this.monitor.getTable();
-                System.out.println("==============================");
                 while ((str = in.readLine()) != null) {
                     if (str.equalsIgnoreCase("<h2>We're starting here!</h2>") && (table == null)) {
                         contentBuilder.append("<h2>Searched for the quote id: ").append(requestParamValue).append(", but no record found.").append("</h2>");
                     } else if (str.equalsIgnoreCase("<h2>We're starting here!</h2>") && (table != null)) {
-                        System.out.println("Total data found: " + table.size());
+                        System.out.println("Total records found: " + table.size());
                         contentBuilder.append("<h4>Searched for all table data and found ").append(table.size()).append(" records:").append("</h4>");
                         contentBuilder.append(
                             "<table style=\"width:100%\">" +
@@ -111,7 +110,6 @@ public class MyHttpHandler implements HttpHandler {
             System.out.println("Requested for a particular quote id " + requestParamValue);
             in = new BufferedReader(new FileReader("./src/main/resources/index.html"));
             try {
-                System.out.println("==============================");
                 int id = Integer.parseInt(requestParamValue);
                 JsonNode row = this.monitor.getRow(id);
                 while ((str = in.readLine()) != null) {
