@@ -76,20 +76,7 @@ spec:
       containers:
         - name: projection-claims-eei
           image: image-registry.openshift-image-registry.svc:5000/$namespace/projection-claims-eei
-          env:
-          readinessProbe:
-            httpGet:
-              path: /
-              port: 8080
-              scheme: HTTP
-            initialDelaySeconds: 15
-          livenessProbe:
-            httpGet:
-              path: /
-              port: 8080
-              scheme: HTTP
-            initialDelaySeconds: 15
-            periodSeconds: 10
+
 ---
 apiVersion: v1
 kind: Service
