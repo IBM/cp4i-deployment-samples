@@ -58,7 +58,7 @@ public class MyHttpHandler implements HttpHandler {
             } catch (Throwable exception) {
                 exception.printStackTrace();
             }
-            // TO DO: EDIT/REMOVE
+            // TODO: EDIT/REMOVE
             in = new BufferedReader(new FileReader("./src/main/resources/index.html"));
             while ((str = in.readLine()) != null) {
                 contentBuilder.append(str);
@@ -75,7 +75,7 @@ public class MyHttpHandler implements HttpHandler {
             } catch (Throwable exception) {
                 exception.printStackTrace();
             }
-            // TO DO: EDIT/REMOVE
+            // TODO: EDIT/REMOVE
             in = new BufferedReader(new FileReader("./src/main/resources/index.html"));
             while ((str = in.readLine()) != null) {
                 if (str.equalsIgnoreCase("<h2>We're starting here!</h2>")) {
