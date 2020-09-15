@@ -1,12 +1,14 @@
 package com.ibm.cp4i.demos.eei.projectionclaims;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.Iterator;
 
 public class MyHttpHandler implements HttpHandler {
     SystemOfRecordMonitor monitor;
@@ -42,6 +44,25 @@ public class MyHttpHandler implements HttpHandler {
         return quoteId;
     }
 
+    public static void createTableForAllData(JsonNode table, StringBuilder contentBuilder){
+        for (int counter = 0; counter < table.size(); counter++) {
+            contentBuilder.append(
+                "<tr>" +
+                    "<td>"+table.get(counter).get("quoteid").toString().replace("\"", "")+"</th>" +
+                    "<td>"+table.get(counter).get("source").toString().replace("\"", "")+"</th>" +
+                    "<td>"+table.get(counter).get("name").toString().replace("\"", "")+"</th>" +
+                    "<td>"+table.get(counter).get("email").toString().replace("\"", "")+"</th>" +
+                    "<td>"+table.get(counter).get("age").toString().replace("\"", "")+"</th>" +
+                    "<td>"+table.get(counter).get("address").toString().replace("\"", "")+"</th>" +
+                    "<td>"+table.get(counter).get("usstate").toString().replace("\"", "")+"</th>" +
+                    "<td>"+table.get(counter).get("licenseplate").toString().replace("\"", "")+"</th>" +
+                    "<td>"+table.get(counter).get("descriptionofdamage").toString().replace("\"", "")+"</th>" +
+                    "<td>"+table.get(counter).get("claimstatus").toString().replace("\"", "")+"</th>" +
+                    "<td>"+table.get(counter).get("claimcost").toString().replace("\"", "")+"</th>" +
+                "</tr>");
+        }
+    }
+
     private void handleResponse(HttpExchange httpExchange, String requestParamValue) throws IOException {
         OutputStream outputStream = httpExchange.getResponseBody();
         StringBuilder contentBuilder = new StringBuilder();
@@ -59,8 +80,24 @@ public class MyHttpHandler implements HttpHandler {
                         contentBuilder.append("<h2>Searched for the quote id: ").append(requestParamValue).append(", but no record found.").append("</h2>");
                     } else if (str.equalsIgnoreCase("<h2>We're starting here!</h2>") && (table != null)) {
                         System.out.println("Total data found: " + table.size());
-                        contentBuilder.append("<h2>Searched for all table data and found ").append(table.size()).append(" records:").append("</h2>");
-                        contentBuilder.append("<h3>").append(table.toPrettyString()).append("</h3>");
+                        contentBuilder.append("<h4>Searched for all table data and found ").append(table.size()).append(" records:").append("</h4>");
+                        contentBuilder.append(
+                            "<table style=\"width:100%\">" +
+                            "<caption><h4>All claims</h4></caption>" +
+                            "<tr>" +
+                                "<th>QuoteID</th>" +
+                                "<th>Source</th>" +
+                                "<th>Name</th>" +
+                                "<th>Email</th>" +
+                                "<th>Age</th>" +
+                                "<th>Address</th>" +
+                                "<th>US State</th>" +
+                                "<th>License Plate</th>" +
+                                "<th>Damage Description</th>" +
+                                "<th>Claim Status</th>" +
+                                "<th>Claim Cost</th>" +
+                            "</tr>");
+                        createTableForAllData(table,contentBuilder);
                     } else {
                         contentBuilder.append(str);
                     }
@@ -81,29 +118,27 @@ public class MyHttpHandler implements HttpHandler {
                     if (str.equalsIgnoreCase("<h2>We're starting here!</h2>") && (row == null)) {
                         contentBuilder.append("<h2>Searched for the quote id: ").append(requestParamValue).append(", but no record found.").append("</h2>");
                     } else if (str.equalsIgnoreCase("<h2>We're starting here!</h2>") && (row != null)) {
-                        System.out.println(row.toPrettyString());
-//                        contentBuilder.append("<h2>Searched for the quote id: ").append(requestParamValue).append(", found the following data.").append("</h2>");
                         contentBuilder.append(
-                                "<table style=\"width:100%\">" +
-                                "<caption><h4>Claim status for " + row.get("name").toString().replace("\"", "") + ":</h4></caption>" +
-                                "<tr>" +
-                                    "<th>QuoteID</th>" +
-                                    "<th>Name</th>" +
-                                    "<th>Email</th>" +
-                                    "<th>Address</th>" +
-                                    "<th>US State</th>" +
-                                    "<th>License Plate</th>" +
-                                    "<th>Claim Status</th>" +
-                                "</tr>" +
-                                "<tr>" +
-                                    "<td>"+row.get("quoteid").toString().replace("\"", "")+"</th>" +
-                                    "<td>"+row.get("name").toString().replace("\"", "")+"</th>" +
-                                    "<td>"+row.get("email").toString().replace("\"", "")+"</th>" +
-                                    "<td>"+row.get("address").toString().replace("\"", "")+"</th>" +
-                                    "<td>"+row.get("usstate").toString().replace("\"", "")+"</th>" +
-                                    "<td>"+row.get("licenseplate").toString().replace("\"", "")+"</th>" +
-                                    "<td>"+row.get("claimstatus").toString().replace("\"", "")+"</th>" +
-                                "</tr>");
+                            "<table style=\"width:100%\">" +
+                            "<caption><h4>Claim status for " + row.get("name").toString().replace("\"", "") + ":</h4></caption>" +
+                            "<tr>" +
+                                "<th>QuoteID</th>" +
+                                "<th>Name</th>" +
+                                "<th>Email</th>" +
+                                "<th>Address</th>" +
+                                "<th>US State</th>" +
+                                "<th>License Plate</th>" +
+                                "<th>Claim Status</th>" +
+                            "</tr>" +
+                            "<tr>" +
+                                "<td>"+row.get("quoteid").toString().replace("\"", "")+"</th>" +
+                                "<td>"+row.get("name").toString().replace("\"", "")+"</th>" +
+                                "<td>"+row.get("email").toString().replace("\"", "")+"</th>" +
+                                "<td>"+row.get("address").toString().replace("\"", "")+"</th>" +
+                                "<td>"+row.get("usstate").toString().replace("\"", "")+"</th>" +
+                                "<td>"+row.get("licenseplate").toString().replace("\"", "")+"</th>" +
+                                "<td>"+row.get("claimstatus").toString().replace("\"", "")+"</th>" +
+                            "</tr>");
                     } else {
                         contentBuilder.append(str);
                     }
