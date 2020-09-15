@@ -82,6 +82,7 @@ spec:
               path: /
               port: 8080
               scheme: HTTP
+            initialDelaySeconds: 15
           livenessProbe:
             httpGet:
               path: /
