@@ -58,8 +58,8 @@ echo "INFO: Changing DB parameters for Debezium support"
 oc exec -n ${POSTGRES_NAMESPACE} -i $DB_POD \
   -- psql << EOF
 ALTER SYSTEM SET wal_level = logical;
-ALTER SYSTEM SET max_wal_senders=1;
-ALTER SYSTEM SET max_replication_slots=1;
+ALTER SYSTEM SET max_wal_senders=10;
+ALTER SYSTEM SET max_replication_slots=10;
 EOF
 
 echo "INFO: Restarting postgres to pick up the parameter changes"
