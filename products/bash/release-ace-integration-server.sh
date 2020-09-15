@@ -17,10 +17,10 @@
 #
 # USAGE:
 #   With defaults values
-#     ./release-ace-is.sh
+#     ./release-ace-integration-server.sh
 #
 #   Overriding the namespace and release-name
-#     ./release-ace-is -n cp4i -r cp4i-bernie-ace
+#     ./release-ace-integration-server -n cp4i -r cp4i-bernie-ace
 
 function usage {
     echo "Usage: $0 -n <namespace> -r <is_release_name> -i <is_image_name> -t <tracing_namespace>"
