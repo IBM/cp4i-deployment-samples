@@ -277,7 +277,7 @@ Exit from the psql prompt:
 db_uuid_sor_eei=# \q
 ```
 
-# Reset the events for the System Of Record table
+# Reset the events for the sor.public.quotes topic
 To remove all of the old events the whole `sor.public.quotes` topic can be deleted.
 When further changes are made to the System Of Record table the Debezium connector
 will recreate the topic.
