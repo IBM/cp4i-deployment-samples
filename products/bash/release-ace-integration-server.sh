@@ -29,14 +29,17 @@ function usage {
 namespace="cp4i"
 is_release_name="ace-is"
 is_image_name="image-registry.openshift-image-registry.svc:5000/cp4i/ace-11.0.0.9-r2:new-1"
+tracing_namespace="cp4i"
 
-while getopts "n:r:i:" opt; do
+while getopts "n:r:i:t:" opt; do
   case ${opt} in
     n ) namespace="$OPTARG"
       ;;
     r ) is_release_name="$OPTARG"
       ;;
     i ) is_image_name="$OPTARG"
+      ;;
+    t ) tracing_namespace="$OPTARG"
       ;;
     \? ) usage; exit
       ;;
@@ -85,6 +88,9 @@ spec:
     endpointType: http
   useCommonServices: true
   version: 11.0.0
+  tracing:
+    enabled: true
+    namespace: ${tracing_namespace}
 EOF
 
 # -------------------------------------- INSTALL JQ ---------------------------------------------------------------------

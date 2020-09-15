@@ -27,16 +27,16 @@
 #     ./release-mq -n cp4i -r mq-demo -i image-registry.openshift-image-registry.svc:5000/cp4i/mq-ddd -q mq-qm
 
 function usage {
-    echo "Usage: $0 -n <namespace> -r <release_name> -i <image_name> -q <qm_name> [-t]"
+    echo "Usage: $0 -n <namespace> -r <release_name> -i <image_name> -q <qm_name> -t <tracing_namespace>"
     exit 1
 }
 
 namespace="cp4i"
 release_name="mq-demo"
 qm_name="QUICKSTART"
-tracing="false"
+tracing_namespace="cp4i"
 
-while getopts "n:r:i:q:t" opt; do
+while getopts "n:r:i:q:t:" opt; do
   case ${opt} in
     n ) namespace="$OPTARG"
       ;;
@@ -46,7 +46,7 @@ while getopts "n:r:i:q:t" opt; do
       ;;
     q ) qm_name="$OPTARG"
       ;;
-    t ) tracing=true
+    t ) tracing_namespace="$OPTARG"
       ;;
     \? ) usage; exit
       ;;
@@ -82,8 +82,8 @@ spec:
   web:
     enabled: true
   tracing:
-    enabled: ${tracing}
-    namespace: ${namespace}
+    enabled: true
+    namespace: ${tracing_namespace}
 EOF
 
 else
@@ -135,6 +135,9 @@ spec:
   version: 9.2.0.0-r1
   web:
     enabled: true
+  tracing:
+    enabled: true
+    namespace: ${tracing_namespace}
 EOF
 
   # -------------------------------------- INSTALL JQ ---------------------------------------------------------------------
