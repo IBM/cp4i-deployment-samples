@@ -1,5 +1,5 @@
 # Overview
-This dir is for a demo name "Event Enabled Insurance".
+This dir is for a demo named "Event Enabled Insurance".
 
 # Prerequisites
 A [script](prereqs.sh) is provided to setup the prerequisites for this demo
@@ -17,9 +17,6 @@ The script carries out the following:
   - Creates a PUBLICATION named `DB_EEI_QUOTES` for the `QUOTES` table. (The Debezium connector can do this, but would then require super user privileges)
   - Creates a replication user that has the replication role and access to the `QUOTES` table
   - Creates a secret with the replication username/password that can be used by the `KafkaConnector`
-
-# Information about `Quote Lifecycle Simulator`
-The Quote Lifecycle Simulator application simulates changes to quotes by adding and modifying rows in the quotes table. See [the Quote Lifecycle Simulator readme](QuoteLifecycleSimulator/readme.md) for more details about the Quote Lifecycle Simulator application.
 
 # Setting up the Postgres Debezium connector
 ## Set up a Kafka Connect environment
@@ -199,8 +196,11 @@ The following should appear in the logs:
 ```
 And now the connector is monitoring the quotes table and creating events in the `sor.public.quotes` topic.
 
+# The Quote Lifecycle Simulator
+## Overview
+The Quote Lifecycle Simulator application simulates changes to quotes by adding and modifying rows in the System Of Record database table, also known as the quotes table. See [the Quote Lifecycle Simulator readme](QuoteLifecycleSimulator/readme.md) for more details about the Quote Lifecycle Simulator application.
 
-## Verify that events are created
+## Start/stop the Quote Lifecycle Simulator
 Start up the Simulator by scaling up the deployment using:
 ```
 oc scale deployment/quote-simulator-eei --replicas=1
@@ -230,3 +230,60 @@ Stop the Simulator using:
 oc scale deployment/quote-simulator-eei --replicas=0
 ```
 Events should stop appearing in the `sor.public.quotes` topic.
+
+# Working directly with the System Of Record database
+Setup some env vars
+```
+POSTGRES_NAMESPACE=postgres
+DB_POD=$(oc get pod -n ${POSTGRES_NAMESPACE} -l name=postgresql -o jsonpath='{.items[].metadata.name}')
+DB_NAME=$(oc get secret eei-postgres-replication-credential -o json | \
+  jq -r '.data["connector.properties"]' | base64 --decode | grep dbName | awk '{print $2}')
+```
+Get a psql prompt for the database:
+```
+oc exec -n ${POSTGRES_NAMESPACE} -it $DB_POD -- psql -d ${DB_NAME}
+```
+Check the rows in the table:
+```
+db_uuid_sor_eei=# SELECT * FROM QUOTES;
+               quoteid                |   source    |     name     |        email        | age |             address             | usstate | licenseplate | descriptionofdamage | claimstatus | claimcost
+--------------------------------------+-------------+--------------+---------------------+-----+---------------------------------+---------+--------------+---------------------+-------------+-----------
+ f7d2b638-0446-4ea9-a7bd-697bc2c95d52 | Mobile      | Andy Rosales | AndyR@mail.com      |  77 | 9783 Oxford St., Duluth         | GA      | GWL3149      | Won't start         |           3 |          
+ 427f2916-a746-4548-b9c6-8f344232e636 | Mobile      | Andy Rosales | AndyR@mail.com      |  74 | 9783 Oxford St., Duluth         | GA      | GWL3149      | Cracked windscreen  |           4 |          
+ 32e3b886-289e-45f3-9d0b-2e461b7235e4 | Mobile      | Nella Beard  | NBeard@mail.com     |  45 | 8774 Inverness Dr., Janesville  | WI      | 787-YWR      | Wheel fell off      |           3 |          
+ c2d88eb4-fcb9-4ac9-a5bc-0d23e2bdacb2 | Email       | Andy Rosales | AndyR@mail.com      |  40 | 9783 Oxford St., Duluth         | GA      | GWL3149      | Dent in door        |           1 |          
+ dafcf44c-6948-4b20-a0e9-0d6a6a3f2de0 | Mobile      | Andy Rosales | AndyR@mail.com      |  21 | 9783 Oxford St., Duluth         | GA      | GWL3149      | Dent in door        |           3 |          
+ ce31003c-77cd-4589-998a-ed74636b7453 | Mobile      | Nella Beard  | NBeard@mail.com     |  50 | 8774 Inverness Dr., Janesville  | WI      | 787-YWR      | Dent in door        |           2 |          
+ 9ed6cb97-b7e7-42f7-bf7c-f4e073896444 | Web         | Ronny Doyle  | RonnyDoyle@mail.com |  43 | 790 Arrowhead Court, Portsmouth | VA      | WMC-9628     | Dent in door        |           7 |       300
+ af52be30-306f-44d9-81cf-81db89995efc | Mobile      | Nella Beard  | NBeard@mail.com     |  60 | 8774 Inverness Dr., Janesville  | WI      | 787-YWR      | Won't start         |           4 |          
+ 8675ec56-106b-45a1-bfd0-ed9a276e6a19 | Police      | Ronny Doyle  | RonnyDoyle@mail.com |  31 | 790 Arrowhead Court, Portsmouth | VA      | WMC-9628     | Wheel fell off      |           6 |       300
+ 1a629bd3-15c7-4f13-a702-871077f78281 | Mobile      | Nella Beard  | NBeard@mail.com     |  48 | 8774 Inverness Dr., Janesville  | WI      | 787-YWR      | Won't start         |           5 |       600
+ 82b475ab-d666-47f8-811a-a8106e664999 | Mobile      | Andy Rosales | AndyR@mail.com      |  59 | 9783 Oxford St., Duluth         | GA      | GWL3149      | Wheel fell off      |           4 |          
+ ebe55243-c199-4c00-810d-22336f2137a6 | Email       | Andy Rosales | AndyR@mail.com      |  69 | 9783 Oxford St., Duluth         | GA      | GWL3149      | Won't start         |           1 |          
+ 72665b87-6493-4a2f-9443-6150c889b43f | Web         | Andy Rosales | AndyR@mail.com      |  30 | 9783 Oxford St., Duluth         | GA      | GWL3149      | Wheel fell off      |           1 |          
+ d0bd9c77-573d-425d-91c1-973b500cebe0 | Mobile      | Ronny Doyle  | RonnyDoyle@mail.com |  28 | 790 Arrowhead Court, Portsmouth | VA      | WMC-9628     | Cracked windscreen  |           3 |          
+ 70374fc4-7910-496f-bbe3-a7b0819036cd | Call Center | Ronny Doyle  | RonnyDoyle@mail.com |  33 | 790 Arrowhead Court, Portsmouth | VA      | WMC-9628     | Cracked windscreen  |           7 |       800
+ 88953978-770c-4883-899b-fd5d4549d4d2 | Mobile      | Nella Beard  | NBeard@mail.com     |  39 | 8774 Inverness Dr., Janesville  | WI      | 787-YWR      | Dent in door        |           2 |          
+ d56e7c3d-a131-4995-bc7c-78a49e641f95 | Police      | Nella Beard  | NBeard@mail.com     |  71 | 8774 Inverness Dr., Janesville  | WI      | 787-YWR      | Cracked windscreen  |           6 |       300
+(17 rows)
+```
+Delete the existing quotes.
+```
+db_uuid_sor_eei=# DELETE FROM QUOTES;
+DELETE 17
+```
+Exit from the psql prompt:
+```
+db_uuid_sor_eei=# \q
+```
+
+# Reset the events for the System Of Record table
+To remove all of the old events the whole `sor.public.quotes` topic can be deleted.
+When further changes are made to the System Of Record table the Debezium connector
+will recreate the topic.
+
+To delete the topic.
+- Navigate to the `es-demo` Event Streams instance from Navigator
+- Click `Topics` on the left hand side
+- Click the `...` menu for the `sor.public.quotes` topic
+- Choose `Delete this topic`, then `Delete`
