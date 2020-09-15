@@ -1,5 +1,4 @@
 package com.ibm.cp4i.demos.eei.projectionclaims;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.sun.net.httpserver.HttpServer;
 import java.io.IOException;
 import java.net.InetSocketAddress;
