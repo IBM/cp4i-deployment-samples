@@ -83,7 +83,7 @@ public class SystemOfRecordMonitor {
                 try {
                     JsonNode json = mapper.readTree(new String(keyValue.value.get(), StandardCharsets.UTF_8));
                     JsonNode after = json.get("payload").get("after");
-                    if(after.get("quoteid").asText() == quoteID) {
+                    if(after.get("quoteid").asText().equals(quoteID)) {
                         result[0] = after;
                     }
                 } catch (JsonProcessingException exception) {
@@ -121,9 +121,9 @@ public class SystemOfRecordMonitor {
     public static void main(String[] args) {
         SystemOfRecordMonitor monitor;
         try {
-            monitor = new SystemOfRecordMonitor("es-demo-kafka-bootstrap-uuid.dan-pc-e2e-ec111ed5d7db435e1c5eeeb4400d693f-0000.eu-gb.containers.appdomain.cloud:443");
-            monitor.addScramProperties("es-demo-scram", "WkJilff5xZeo");
-            monitor.addTLSProperties("/Users/daniel.pinkuk.ibm.com/Downloads/dan-pc-e2e-uuid.p12", "mmdqFwRvjY5p");
+            monitor = new SystemOfRecordMonitor("es-demo-kafka-bootstrap-uuid.dan-uuid-ec111ed5d7db435e1c5eeeb4400d693f-0000.eu-gb.containers.appdomain.cloud:443");
+            monitor.addScramProperties("es-demo-scram", "UuEDBbVWemgT");
+            monitor.addTLSProperties("/Users/daniel.pinkuk.ibm.com/Downloads/es-cert-dan-uuid.p12", "kejd1aUKEVch");
             monitor.start();
         } catch (Throwable exception) {
             exception.printStackTrace();
