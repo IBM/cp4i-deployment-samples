@@ -2,6 +2,7 @@ FROM gradle:jdk8 AS build
 COPY --chown=gradle:gradle build.gradle /home/gradle/src/
 COPY --chown=gradle:gradle src /home/gradle/src/src
 WORKDIR /home/gradle/src
+RUN apk --no-cache add sudo curl wget ping
 RUN gradle fatJar --no-daemon
 
 FROM openjdk:8-jre-slim
