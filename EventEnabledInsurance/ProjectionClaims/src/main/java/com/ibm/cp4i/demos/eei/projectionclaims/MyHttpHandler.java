@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.sun.net.httpserver.HttpExchange;
 import org.json.JSONObject;
 import com.sun.net.httpserver.HttpHandler;
+
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
@@ -32,14 +33,17 @@ public class MyHttpHandler implements HttpHandler {
         String quoteId;
         if (httpExchange.getRequestURI().toString().equalsIgnoreCase("/getalldata")) {
             quoteId = "all";
+            System.out.println("Set the request param to 'all'");
         } else if (httpExchange.getRequestURI().toString().contains("/quoteid=")) {
             quoteId = httpExchange.
                     getRequestURI()
                     .toString()
                     .split("quoteid")[1]
                     .split("=")[1];
+            System.out.println("Set the request param to " + quoteId);
         } else {
             quoteId = "";
+            System.out.println("Set the request param to empty");
         }
         return quoteId;
     }
@@ -48,107 +52,112 @@ public class MyHttpHandler implements HttpHandler {
     public static void createTableForAllData(JsonNode table, StringBuilder contentBuilder) {
         for (int counter = 0; counter < table.size(); counter++) {
             contentBuilder.append
-            (
-            "<tr>" +
-                "<td>" + table.get(counter).get("quoteid").toString().replace("\"", "") + "</th>" +
-                "<td>" + table.get(counter).get("name").toString().replace("\"", "") + "</th>" +
-                "<td>" + table.get(counter).get("email").toString().replace("\"", "") + "</th>" +
-                "<td>" + table.get(counter).get("address").toString().replace("\"", "") + "</th>" +
-                "<td>" + table.get(counter).get("usstate").toString().replace("\"", "") + "</th>" +
-                "<td>" + table.get(counter).get("licenseplate").toString().replace("\"", "") + "</th>" +
-                "<td>" + table.get(counter).get("claimstatus").toString().replace("\"", "") + "</th>" +
-            "</tr>"
-            );
+                (
+                    "<tr>" +
+                        "<td>" + table.get(counter).get("quoteid").toString().replace("\"", "") + "</th>" +
+                        "<td>" + table.get(counter).get("name").toString().replace("\"", "") + "</th>" +
+                        "<td>" + table.get(counter).get("email").toString().replace("\"", "") + "</th>" +
+                        "<td>" + table.get(counter).get("address").toString().replace("\"", "") + "</th>" +
+                        "<td>" + table.get(counter).get("usstate").toString().replace("\"", "") + "</th>" +
+                        "<td>" + table.get(counter).get("licenseplate").toString().replace("\"", "") + "</th>" +
+                        "<td>" + table.get(counter).get("claimstatus").toString().replace("\"", "") + "</th>" +
+                    "</tr>"
+                );
         }
     }
 
     private void handleResponse(HttpExchange httpExchange, String requestParamValue) throws IOException {
-        OutputStream outputStream = httpExchange.getResponseBody();
-        StringBuilder contentBuilder = new StringBuilder();
-        String htmlResponse, str;
-        BufferedReader in = new BufferedReader(new FileReader("./src/main/resources/index.html"));
+        try {
+            OutputStream outputStream = httpExchange.getResponseBody();
+            StringBuilder contentBuilder = new StringBuilder();
+            String htmlResponse, str;
+            BufferedReader in = new BufferedReader(new FileReader("./src/main/resources/index.html"));
 
-        // get all table data
-        if (requestParamValue.equalsIgnoreCase("all")) {
-            System.out.println("Requested for all data");
-            try {
-                JsonNode table = this.monitor.getTable();
+            // get all table data
+            if (requestParamValue.equalsIgnoreCase("all")) {
+                System.out.println("Requested for all data");
+                try {
+                    JsonNode table = this.monitor.getTable();
+                    while ((str = in.readLine()) != null) {
+                        if (str.equalsIgnoreCase("<h2>We're starting here!</h2>") && (table == null)) {
+                            contentBuilder.append("<h2>Searched for the quote id: ").append(requestParamValue).append(", but no record found.").append("</h2>");
+                        } else if (str.equalsIgnoreCase("<h2>We're starting here!</h2>") && (table != null)) {
+                            System.out.println("Total records found: " + table.size());
+                            contentBuilder.append("<h4>Searched for all table data and found ").append(table.size()).append(" records:").append("</h4>");
+                            contentBuilder.append
+                                (
+                                    "<table style=\"width:100%\">" +
+                                        "<caption><h4>All claims</h4></caption>" +
+                                        "<tr>" +
+                                        "<th>QuoteID</th>" +
+                                        "<th>Name</th>" +
+                                        "<th>Email</th>" +
+                                        "<th>Address</th>" +
+                                        "<th>US State</th>" +
+                                        "<th>License Plate</th>" +
+                                        "<th>Claim Status</th>" +
+                                    "</tr>"
+                                );
+                            createTableForAllData(table, contentBuilder);
+                        } else {
+                            contentBuilder.append(str);
+                        }
+                    }
+                } catch (Throwable exception) {
+                    exception.printStackTrace();
+                }
+                in.close();
+                htmlResponse = contentBuilder.toString();
+                httpExchange.sendResponseHeaders(200, htmlResponse.length());
+                outputStream.write(htmlResponse.getBytes());
+            }
+            // get a particular record
+            else if (!requestParamValue.isEmpty()) {
+                System.out.println("Requested for a particular quote id: " + requestParamValue);
+                JSONObject trimmedRow = new JSONObject();
+                byte[] byteResponse;
+                try {
+                    JsonNode row = this.monitor.getRow(requestParamValue);
+                    if (row != null) {
+                        trimmedRow.put("quoteid", row.get("quoteid").toString().replace("\"", ""));
+                        trimmedRow.put("name", row.get("name").toString().replace("\"", ""));
+                        trimmedRow.put("email", row.get("email").toString().replace("\"", ""));
+                        trimmedRow.put("address", row.get("address").toString().replace("\"", ""));
+                        trimmedRow.put("usstate", row.get("usstate").toString().replace("\"", ""));
+                        trimmedRow.put("licenseplate", row.get("licenseplate").toString().replace("\"", ""));
+                        trimmedRow.put("claimstatus", row.get("claimstatus").toString().replace("\"", ""));
+                        byteResponse = trimmedRow.toString(4).getBytes(StandardCharsets.UTF_8);
+                        httpExchange.sendResponseHeaders(200, byteResponse.length);
+                    } else {
+                        System.out.println("No record found with id: " + requestParamValue);
+                        byteResponse = trimmedRow.toString(4).getBytes(StandardCharsets.UTF_8);
+                        httpExchange.sendResponseHeaders(404, byteResponse.length);
+                    }
+                    outputStream.write(byteResponse);
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                }
+                System.out.println(trimmedRow.toString(4));
+            } else {
+                System.out.println("Unsupported request");
+                in = new BufferedReader(new FileReader("./src/main/resources/404.html"));
                 while ((str = in.readLine()) != null) {
-                    if (str.equalsIgnoreCase("<h2>We're starting here!</h2>") && (table == null)) {
-                        contentBuilder.append("<h2>Searched for the quote id: ").append(requestParamValue).append(", but no record found.").append("</h2>");
-                    } else if (str.equalsIgnoreCase("<h2>We're starting here!</h2>") && (table != null)) {
-                        System.out.println("Total records found: " + table.size());
-                        contentBuilder.append("<h4>Searched for all table data and found ").append(table.size()).append(" records:").append("</h4>");
-                        contentBuilder.append
-                        (
-                            "<table style=\"width:100%\">" +
-                                "<caption><h4>All claims</h4></caption>" +
-                                "<tr>" +
-                                "<th>QuoteID</th>" +
-                                "<th>Name</th>" +
-                                "<th>Email</th>" +
-                                "<th>Address</th>" +
-                                "<th>US State</th>" +
-                                "<th>License Plate</th>" +
-                                "<th>Claim Status</th>" +
-                            "</tr>"
-                        );
-                        createTableForAllData(table, contentBuilder);
+                    if (str.equalsIgnoreCase("<h2>We're starting here!</h2>")) {
+                        contentBuilder.append("<h2>Searching the quote id: ").append(requestParamValue).append("</h2>");
                     } else {
                         contentBuilder.append(str);
                     }
                 }
-            } catch (Throwable exception) {
-                exception.printStackTrace();
+                in.close();
+                htmlResponse = contentBuilder.toString();
+                httpExchange.sendResponseHeaders(404, htmlResponse.length());
+                outputStream.write(htmlResponse.getBytes());
             }
-            in.close();
-            htmlResponse = contentBuilder.toString();
-            httpExchange.sendResponseHeaders(200, htmlResponse.length());
-            outputStream.write(htmlResponse.getBytes());
+            outputStream.flush();
+            outputStream.close();
+        } catch (Exception e) {
+            System.out.println("Error occurred");
+            e.printStackTrace();
         }
-        // get a particular record
-        else if (!requestParamValue.isEmpty()) {
-            System.out.println("Requested for a particular quote id: " + requestParamValue);
-            JSONObject trimmedRow = new JSONObject();
-            byte[] byteResponse;
-            try {
-                JsonNode row = this.monitor.getRow(requestParamValue);
-                if (row != null) {
-                    trimmedRow.put("quoteid", row.get("quoteid").toString().replace("\"", ""));
-                    trimmedRow.put("name", row.get("name").toString().replace("\"", ""));
-                    trimmedRow.put("email", row.get("email").toString().replace("\"", ""));
-                    trimmedRow.put("address", row.get("address").toString().replace("\"", ""));
-                    trimmedRow.put("usstate", row.get("usstate").toString().replace("\"", ""));
-                    trimmedRow.put("licenseplate",row.get("licenseplate").toString().replace("\"", ""));
-                    trimmedRow.put("claimstatus", row.get("claimstatus").toString().replace("\"", ""));
-                    byteResponse = trimmedRow.toString(4).getBytes(StandardCharsets.UTF_8);
-                    httpExchange.sendResponseHeaders(200, byteResponse.length);
-                } else {
-                    System.out.println("No record found with id: " + requestParamValue);
-                    byteResponse = trimmedRow.toString(4).getBytes(StandardCharsets.UTF_8);
-                    httpExchange.sendResponseHeaders(404, byteResponse.length);
-                }
-                outputStream.write(byteResponse);
-            } catch (Exception ex) {
-                ex.printStackTrace();
-            }
-            System.out.println(trimmedRow.toString(4));
-        } else {
-            System.out.println("Unsupported request");
-            in = new BufferedReader(new FileReader("./src/main/resources/404.html"));
-            while ((str = in.readLine()) != null) {
-                if (str.equalsIgnoreCase("<h2>We're starting here!</h2>")) {
-                    contentBuilder.append("<h2>Searching the quote id: ").append(requestParamValue).append("</h2>");
-                } else {
-                    contentBuilder.append(str);
-                }
-            }
-            in.close();
-            htmlResponse = contentBuilder.toString();
-            httpExchange.sendResponseHeaders(404, htmlResponse.length());
-            outputStream.write(htmlResponse.getBytes());
-        }
-        outputStream.flush();
-        outputStream.close();
     }
 }
