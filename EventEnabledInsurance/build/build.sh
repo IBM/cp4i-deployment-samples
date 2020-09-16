@@ -156,8 +156,9 @@ else
   echo -e "\n$tick INFO: The eei demo related applications have been deployed, but with zero replicas.\n"
   oc get deployment -n $namespace -l demo=eei
 
-  echo -e "\nINFO: To start the quote simulator app run the command 'oc scale deployment/quote-simulator-eei --replicas=1'"
-  echo -e "\nINFO: To start the projection claims app run the command 'oc scale deployment/projection-claims-eei --replicas=1'"
-fi
-
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
+
+echo "To start the quote simulator app run the command 'oc scale deployment/quote-simulator-eei --replicas=1'"
+echo "To start the projection claims app run the command 'oc scale deployment/projection-claims-eei --replicas=1'"
+PC_ROUTE=$(oc get route projection-claims-eei --template='https://{{.spec.host}}/getalldata')
+echo -e "To view the projection claims (once the app is running), navigate to:\n${PC_ROUTE}"
