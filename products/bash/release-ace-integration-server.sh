@@ -153,8 +153,14 @@ while [ $numberOfMatchesForImageTag -ne $numberOfReplicas ]; do
   fi
 
   numberOfMatchesForImageTag=0
+  if [ ${tracing_enabled} == "true" ]; then
+    allCorrespondingPods=$(oc get pods -n $namespace | grep $is_release_name | grep 3/3 | grep Running | awk '{print $1}')
+  else
+    allCorrespondingPods=$(oc get pods -n $namespace | grep $is_release_name | grep 1/1 | grep Running | awk '{print $1}')
+  fi
 
-  allCorrespondingPods=$(oc get pods -n $namespace | grep $is_release_name | grep 1/1 | grep Running | awk '{print $1}')
+  echo "[INFO] Checking $allCorrespondingPods for ACE Integration Server"
+
   echo -e "\nINFO: For ACE Integration server '$is_release_name':"
   for eachAcePod in $allCorrespondingPods
     do
