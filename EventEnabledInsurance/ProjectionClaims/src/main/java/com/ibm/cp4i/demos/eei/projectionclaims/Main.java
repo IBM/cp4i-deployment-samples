@@ -12,9 +12,6 @@ public class Main {
     public static void main(String[] args) throws IOException {
         HttpServer server = HttpServer.create(new InetSocketAddress(HOSTNAME, PORT), 0);
         SystemOfRecordMonitor monitor = new SystemOfRecordMonitor("es-demo-kafka-bootstrap:9092");
-//        SystemOfRecordMonitor monitor = new SystemOfRecordMonitor("es-demo-kafka-bootstrap-dans.dan-pc-e2e-ec111ed5d7db435e1c5eeeb4400d693f-0000.eu-gb.containers.appdomain.cloud:443");
-//        monitor.addScramProperties("es-demo-scram", "byX0BQ4gFMpm");
-//        monitor.addTLSProperties("/Users/kinshuk.bhardwajibm.com/Downloads/dan-pc-e2e.p12", "M62dqL41pZBd");
         try {
             monitor.start();
         } catch (Throwable exception) {
