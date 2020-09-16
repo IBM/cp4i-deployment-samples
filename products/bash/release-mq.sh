@@ -150,10 +150,14 @@ spec:
 EOF
 
   # -------------------------------------- Register Tracing ---------------------------------------------------------------------
-
-  if ! ${CURRENT_DIR}/register-tracing.sh -n ${namespace} ; then
-  echo "ERROR: Failed to register tracing in project '$namespace'"
-  exit 1
+  if ! oc get secrets icp4i-od-store-cred -n ${namespace} ; then
+  echo "[INFO] secret icp4i-od-store-cred does not exist in ${namespace}, running tracing registration"
+    if ! ${CURRENT_DIR}/register-tracing.sh -n ${namespace} ; then
+    echo "ERROR: Failed to register tracing in project '$namespace'"
+    exit 1
+    fi
+  else
+    echo "[INFO] secret icp4i-od-store-cred exist, no need to run tracing registration"
   fi
   # -------------------------------------- INSTALL JQ ---------------------------------------------------------------------
 
