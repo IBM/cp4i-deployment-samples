@@ -210,13 +210,13 @@ EOF
 
     numberOfMatchesForImageTag=0
 
-  if [ ${tracing_enabled} == "true" ]; then
+  if [ "${tracing_enabled}" == "true" ]; then
     allCorrespondingPods=$(oc get pods -n $namespace | grep $is_release_name | grep 3/3 | grep Running | awk '{print $1}')
   else
     allCorrespondingPods=$(oc get pods -n $namespace | grep $is_release_name | grep 1/1 | grep Running | awk '{print $1}')
   fi
 
-  echo "[INFO] Checking $allCorrespondingPods for mq"
+  echo "[INFO] Total pods for mq $allCorrespondingPods"
 
     for eachMQPod in $allCorrespondingPods
       do
