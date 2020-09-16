@@ -8,6 +8,7 @@ import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.nio.charset.StandardCharsets;
 
 public class MyHttpHandler implements HttpHandler {
     SystemOfRecordMonitor monitor;
@@ -61,7 +62,6 @@ public class MyHttpHandler implements HttpHandler {
         }
     }
 
-    @SuppressWarnings("StringConcatenationInsideStringBufferAppend")
     private void handleResponse(HttpExchange httpExchange, String requestParamValue) throws IOException {
         OutputStream outputStream = httpExchange.getResponseBody();
         StringBuilder contentBuilder = new StringBuilder();
@@ -121,7 +121,7 @@ public class MyHttpHandler implements HttpHandler {
                     trimmedRow.put("licenseplate",row.get("licenseplate").toString().replace("\"", ""));
                     trimmedRow.put("claimstatus", row.get("claimstatus").toString().replace("\"", ""));
                     System.out.println(trimmedRow.toString(4));
-                    byte[] byteResponse = trimmedRow.toString(4).getBytes("UTF-8");
+                    byte[] byteResponse = trimmedRow.toString(4).getBytes(StandardCharsets.UTF_8);
                     httpExchange.sendResponseHeaders(200, byteResponse.length);
                     outputStream.write(byteResponse);
                 } else {
