@@ -79,16 +79,17 @@ spec:
           env:
           readinessProbe:	
             httpGet:	
-              path: /	
+              path: /getalldata
               port: 8080	
               scheme: HTTP	
+              periodSeconds: 10
           livenessProbe:	
             httpGet:	
-              path: /	
+              path: /getalldata
               port: 8080	
               scheme: HTTP	
             initialDelaySeconds: 15	
-            periodSeconds: 10
+            periodSeconds: 30
 ---
 apiVersion: v1
 kind: Service
