@@ -48,7 +48,7 @@ rules:
 # Permission to get pods during deploy stage
 - apiGroups: [""]
   resources: ["pods"]
-  verbs: ["list", "get"]
+  verbs: ["list", "get", "pods/exec"]
 
 ---
 
