@@ -7,7 +7,7 @@ public class Main {
 
     // port to listen connection
     static final int PORT = 8080;
-    static final String HOSTNAME = "localhost";
+    static final String HOSTNAME = "0.0.0.0";
 
     public static void main(String[] args) throws IOException {
         HttpServer server = HttpServer.create(new InetSocketAddress(HOSTNAME, PORT), 0);
