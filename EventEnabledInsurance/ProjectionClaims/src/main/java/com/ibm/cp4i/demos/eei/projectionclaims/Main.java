@@ -24,7 +24,6 @@ public class Main {
         /*
         this context route is to search for a particular quote id
         http://localhost:8080/quoteid=1
-        if 'quoteid' is changed, it will break (TO-DO: handle the break)
         */
         server.createContext("/", new  MyHttpHandler(monitor));
         //this context route is to search for all table data
