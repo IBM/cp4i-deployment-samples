@@ -159,5 +159,6 @@ else
   echo "INFO: To start the projection claims app run the command 'oc scale deployment/projection-claims-eei --replicas=1'"
   PC_ROUTE=$(oc get route projection-claims-eei --template='https://{{.spec.host}}/getalldata')
   echo -e "INFO: To view the projection claims (once the app is running), navigate to:\n${PC_ROUTE}\n"
+fi
 
-echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
+echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------"
