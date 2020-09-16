@@ -110,8 +110,7 @@ public class MyHttpHandler implements HttpHandler {
         else if (!requestParamValue.isEmpty()) {
             System.out.println("Requested for a particular quote id: " + requestParamValue);
             try {
-                int id = Integer.parseInt(requestParamValue);
-                JsonNode row = this.monitor.getRow(id);
+                JsonNode row = this.monitor.getRow(requestParamValue);
                 if (row != null) {
                     JSONObject trimmedRow = new JSONObject();
                     trimmedRow.put("quoteid", row.get("quoteid").toString().replace("\"", ""));

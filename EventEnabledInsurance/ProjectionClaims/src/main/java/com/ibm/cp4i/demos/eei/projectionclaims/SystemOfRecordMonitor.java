@@ -76,7 +76,7 @@ public class SystemOfRecordMonitor {
         view = streams.store(STORE, QueryableStoreTypes.keyValueStore());
     }
 
-    public JsonNode getRow(int quoteID) {
+    public JsonNode getRow(String quoteID) {
         final JsonNode[] result = {null};
         KeyValueIterator<Bytes, Bytes> all = view.all();
         ObjectMapper mapper = new ObjectMapper();
@@ -85,7 +85,7 @@ public class SystemOfRecordMonitor {
                 try {
                     JsonNode json = mapper.readTree(new String(keyValue.value.get(), StandardCharsets.UTF_8));
                     JsonNode after = json.get("payload").get("after");
-                    if(after.get("quoteid").asInt() == quoteID) {
+                    if(after.get("quoteid").asText().equals(quoteID)) {
                         result[0] = after;
                     }
                 } catch (JsonProcessingException exception) {
@@ -124,18 +124,15 @@ public class SystemOfRecordMonitor {
     public static void main(String[] args) {
         SystemOfRecordMonitor monitor;
         try {
-            monitor = new SystemOfRecordMonitor("es-demo-kafka-bootstrap.cp4i1.svc:9092");
-
-//            monitor = new SystemOfRecordMonitor("minimal-prod-kafka-bootstrap-cp4i2.dan-debezium-e2e-ec111ed5d7db435e1c5eeeb4400d693f-0000.eu-gb.containers.appdomain.cloud:443");
-//            monitor.addScramProperties("dan-test", "SCGg6kfxjJ1H");
-//            monitor.addTLSProperties("/Users/daniel.pinkuk.ibm.com/Downloads/dan-test.p12", "VoA8LSmGY3rx");
-
+            monitor = new SystemOfRecordMonitor("es-demo-kafka-bootstrap-uuid.dan-uuid-ec111ed5d7db435e1c5eeeb4400d693f-0000.eu-gb.containers.appdomain.cloud:443");
+            monitor.addScramProperties("es-demo-scram", "UuEDBbVWemgT");
+            monitor.addTLSProperties("/Users/daniel.pinkuk.ibm.com/Downloads/es-cert-dan-uuid.p12", "kejd1aUKEVch");
             monitor.start();
         } catch (Throwable exception) {
             exception.printStackTrace();
             throw exception;
         }
-        Integer id = null;
+        String id = null;
         while (true) {
             try {
                 Thread.sleep(5000);
@@ -145,7 +142,7 @@ public class SystemOfRecordMonitor {
                 if(id == null) {
                     JsonNode firstRow = table.get(0);
                     if(firstRow != null) {
-                        id = firstRow.get("quoteid").intValue();
+                        id = firstRow.get("quoteid").asText();
                     }
                 }
                 if(id != null) {
