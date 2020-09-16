@@ -146,7 +146,7 @@ time=0
 
 # wait for 10 minutes for all replica pods to be deployed with new image
 while [ $numberOfMatchesForImageTag -ne $numberOfReplicas ]; do
-  if [ $time -gt 30 ]; then
+  if [ $time -gt 15 ]; then
     echo "ERROR: Timed-out trying to wait for all $is_release_name demo pods to be deployed with a new image containing the image tag '$imageTag'"
     echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
     exit 1
