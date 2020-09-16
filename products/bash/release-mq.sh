@@ -34,7 +34,11 @@ function usage {
 namespace="cp4i"
 release_name="mq-demo"
 qm_name="QUICKSTART"
-tracing_namespace="cp4i"
+tracing_namespace=""
+tracing_enabled="true"
+CURRENT_DIR=$(dirname $0)
+echo "Current directory: $CURRENT_DIR"
+echo "Namespace: $namespace"
 
 while getopts "n:r:i:q:t:" opt; do
   case ${opt} in
@@ -52,6 +56,11 @@ while getopts "n:r:i:q:t:" opt; do
       ;;
   esac
 done
+
+
+# tracing false if tracing namespace is empty
+[ -z $tracing_namespace ] && tracing_enabled="false"
+echo "[INFO] tracing is set to $tracing_enabled"
 
 if [ -z $image_name ]; then
 
@@ -82,7 +91,7 @@ spec:
   web:
     enabled: true
   tracing:
-    enabled: true
+    enabled: ${tracing_enabled}
     namespace: ${tracing_namespace}
 EOF
 
@@ -136,10 +145,16 @@ spec:
   web:
     enabled: true
   tracing:
-    enabled: true
+    enabled: ${tracing_enabled}
     namespace: ${tracing_namespace}
 EOF
 
+  # -------------------------------------- Register Tracing ---------------------------------------------------------------------
+
+  if ! ${CURRENT_DIR}/register-tracing.sh -n ${namespace} ; then
+  echo "ERROR: Failed to register tracing in project '$namespace'"
+  exit 1
+  fi
   # -------------------------------------- INSTALL JQ ---------------------------------------------------------------------
 
   echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
@@ -183,7 +198,7 @@ EOF
 
   # wait for 10 minutes for all replica pods to be deployed with new image
   while [ $numberOfMatchesForImageTag -ne $numberOfReplicas ]; do
-    if [ $time -gt 10 ]; then
+    if [ $time -gt 20 ]; then
       echo "ERROR: Timed-out trying to wait for all $release_name demo pod(s) to be deployed with a new image containing the image tag '$imageTag'"
       echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
       exit 1

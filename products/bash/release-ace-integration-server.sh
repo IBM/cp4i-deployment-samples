@@ -30,7 +30,8 @@ function usage {
 namespace="cp4i"
 is_release_name="ace-is"
 is_image_name="image-registry.openshift-image-registry.svc:5000/cp4i/ace-11.0.0.9-r2:new-1"
-tracing_namespace="cp4i"
+tracing_namespace=""
+tracing_enabled="true"
 
 while getopts "n:r:i:t:" opt; do
   case ${opt} in
@@ -59,6 +60,10 @@ if [[ -z "$imageTag" ]]; then
   echo "ERROR: Failed to extract image tag from the end of '$is_image_name'"
   exit 1
 fi
+
+# tracing false if tracing namespace is empty
+[ -z $tracing_namespace ] && tracing_enabled="false"
+echo "[INFO] tracing is set to $tracing_enabled"
 
 echo -e "INFO: Going ahead to apply the CR for '$is_release_name'"
 
@@ -90,7 +95,7 @@ spec:
   useCommonServices: true
   version: 11.0.0
   tracing:
-    enabled: true
+    enabled: ${tracing_enabled}
     namespace: ${tracing_namespace}
 EOF
 
@@ -141,7 +146,7 @@ time=0
 
 # wait for 10 minutes for all replica pods to be deployed with new image
 while [ $numberOfMatchesForImageTag -ne $numberOfReplicas ]; do
-  if [ $time -gt 10 ]; then
+  if [ $time -gt 30 ]; then
     echo "ERROR: Timed-out trying to wait for all $is_release_name demo pods to be deployed with a new image containing the image tag '$imageTag'"
     echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
     exit 1
