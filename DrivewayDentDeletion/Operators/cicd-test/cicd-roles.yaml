@@ -105,8 +105,8 @@ metadata:
 rules:
 # Permission to get tasks, pipelines in tekton.dev in dev namespace - to apply pipeline and task yamls
 - apiGroups: [""]
-  resources: ["pods"]
-  verbs: ["list", "get"]
+  resources: ["pods", "pods/exec", "configmaps", "secrets", "serviceaccounts"]
+  verbs: ["list", "get", "create", "delete"]
 # Permissions for MQ deploy in test namespace
 - apiGroups: ["mq.ibm.com"]
   resources: ["queuemanagers", "queuemanagers/finalizers", "queuemanagers/status"]
