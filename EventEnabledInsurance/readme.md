@@ -231,6 +231,20 @@ oc scale deployment/quote-simulator-eei --replicas=0
 ```
 Events should stop appearing in the `sor.public.quotes` topic.
 
+# The Projection Claims application
+Start the Projection Claims application using:
+```
+oc scale deployment/projection-claims-eei --replicas=1
+```
+Get the URL to open in your web browser using:
+```
+oc get route projection-claims-eei --template='https://{{.spec.host}}/getalldata'
+```
+Stop the Projection Claims application using:
+```
+oc scale deployment/projection-claims-eei --replicas=0
+```
+
 # Working directly with the System Of Record database
 Setup some env vars
 ```
