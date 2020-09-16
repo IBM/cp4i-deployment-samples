@@ -47,16 +47,18 @@ public class MyHttpHandler implements HttpHandler {
     @SuppressWarnings("StringConcatenationInsideStringBufferAppend")
     public static void createTableForAllData(JsonNode table, StringBuilder contentBuilder) {
         for (int counter = 0; counter < table.size(); counter++) {
+            JsonNode row = table.get(counter);
+            String quoteid = row.get("quoteid").toString().replace("\"", "");
             contentBuilder.append
             (
                 "<tr>" +
-                    "<td>" + table.get(counter).get("quoteid").toString().replace("\"", "") + "</th>" +
-                    "<td>" + table.get(counter).get("name").toString().replace("\"", "") + "</th>" +
-                    "<td>" + table.get(counter).get("email").toString().replace("\"", "") + "</th>" +
-                    "<td>" + table.get(counter).get("address").toString().replace("\"", "") + "</th>" +
-                    "<td>" + table.get(counter).get("usstate").toString().replace("\"", "") + "</th>" +
-                    "<td>" + table.get(counter).get("licenseplate").toString().replace("\"", "") + "</th>" +
-                    "<td>" + table.get(counter).get("claimstatus").toString().replace("\"", "") + "</th>" +
+                    "<td><a href=\"quoteid=" + quoteid + "\">" + quoteid + "</a></th>" +
+                    "<td>" + row.get("name").toString().replace("\"", "") + "</th>" +
+                    "<td>" + row.get("email").toString().replace("\"", "") + "</th>" +
+                    "<td>" + row.get("address").toString().replace("\"", "") + "</th>" +
+                    "<td>" + row.get("usstate").toString().replace("\"", "") + "</th>" +
+                    "<td>" + row.get("licenseplate").toString().replace("\"", "") + "</th>" +
+                    "<td>" + row.get("claimstatus").toString().replace("\"", "") + "</th>" +
                 "</tr>"
             );
         }
