@@ -136,13 +136,13 @@ public class MyHttpHandler implements HttpHandler {
                 try {
                     JsonNode row = this.monitor.getRow(requestParamValue);
                     if (row != null) {
-                        trimmedRow.put("quoteid", row.get("quoteid").toString().replace("\"", ""));
-                        trimmedRow.put("name", row.get("name").toString().replace("\"", ""));
-                        trimmedRow.put("email", row.get("email").toString().replace("\"", ""));
-                        trimmedRow.put("address", row.get("address").toString().replace("\"", ""));
-                        trimmedRow.put("usstate", row.get("usstate").toString().replace("\"", ""));
-                        trimmedRow.put("licenseplate", row.get("licenseplate").toString().replace("\"", ""));
-                        trimmedRow.put("claimstatus", row.get("claimstatus").toString().replace("\"", ""));
+                        trimmedRow.put("quoteid", row.get("quoteid").asText());
+                        trimmedRow.put("name", row.get("name").asText());
+                        trimmedRow.put("email", row.get("email").asText());
+                        trimmedRow.put("address", row.get("address").asText());
+                        trimmedRow.put("usstate", row.get("usstate").asText());
+                        trimmedRow.put("licenseplate", row.get("licenseplate").asText());
+                        trimmedRow.put("claimstatus", row.get("claimstatus").asText());
                         byteResponse = trimmedRow.toString(4).getBytes(StandardCharsets.UTF_8);
                         httpExchange.sendResponseHeaders(200, byteResponse.length);
                     } else {
