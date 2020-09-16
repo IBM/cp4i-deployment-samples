@@ -47,8 +47,8 @@ rules:
   verbs: ["create", "delete", "get", "list", "patch", "update", "watch"]
 # Permission to get pods during deploy stage
 - apiGroups: [""]
-  resources: ["pods"]
-  verbs: ["list", "get", "pods/exec"]
+  resources: ["pods", "pods/exec", "configmaps"]
+  verbs: ["list", "get", "create"]
 
 ---
 
