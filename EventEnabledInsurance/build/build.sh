@@ -154,10 +154,10 @@ if [[ "$pipelinerunSuccess" == "false" ]];then
   exit 1
 else
   echo -e "\n$tick INFO: The eei demo related applications have been deployed, but with zero replicas.\n"
-  echo "INFO: To start the quote simulator app run the command 'oc scale deployment/quote-simulator-eei --replicas=1'"
+  oc get deployment -n $namespace -l demo=eei
+  echo -e "\nINFO: To start the quote simulator app run the command 'oc scale deployment/quote-simulator-eei --replicas=1'"
   echo "INFO: To start the projection claims app run the command 'oc scale deployment/projection-claims-eei --replicas=1'"
   PC_ROUTE=$(oc get route projection-claims-eei --template='https://{{.spec.host}}/getalldata')
   echo -e "INFO: To view the projection claims (once the app is running), navigate to:\n${PC_ROUTE}\n"
-  oc get deployment -n $namespace -l demo=eei
 
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
