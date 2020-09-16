@@ -109,10 +109,11 @@ public class MyHttpHandler implements HttpHandler {
         // get a particular record
         else if (!requestParamValue.isEmpty()) {
             System.out.println("Requested for a particular quote id: " + requestParamValue);
+            JSONObject trimmedRow = new JSONObject();
+            byte[] byteResponse;
             try {
                 JsonNode row = this.monitor.getRow(requestParamValue);
                 if (row != null) {
-                    JSONObject trimmedRow = new JSONObject();
                     trimmedRow.put("quoteid", row.get("quoteid").toString().replace("\"", ""));
                     trimmedRow.put("name", row.get("name").toString().replace("\"", ""));
                     trimmedRow.put("email", row.get("email").toString().replace("\"", ""));
@@ -120,18 +121,18 @@ public class MyHttpHandler implements HttpHandler {
                     trimmedRow.put("usstate", row.get("usstate").toString().replace("\"", ""));
                     trimmedRow.put("licenseplate",row.get("licenseplate").toString().replace("\"", ""));
                     trimmedRow.put("claimstatus", row.get("claimstatus").toString().replace("\"", ""));
-                    System.out.println(trimmedRow.toString(4));
-                    byte[] byteResponse = trimmedRow.toString(4).getBytes(StandardCharsets.UTF_8);
+                    byteResponse = trimmedRow.toString(4).getBytes(StandardCharsets.UTF_8);
                     httpExchange.sendResponseHeaders(200, byteResponse.length);
-                    outputStream.write(byteResponse);
                 } else {
                     System.out.println("No record found with id: " + requestParamValue);
-                    httpExchange.sendResponseHeaders(200, 0);
-                    outputStream.write("".getBytes());
+                    byteResponse = trimmedRow.toString(4).getBytes(StandardCharsets.UTF_8);
+                    httpExchange.sendResponseHeaders(404, byteResponse.length);
                 }
-            } catch (IOException ioe) {
-                ioe.printStackTrace();
+                outputStream.write(byteResponse);
+            } catch (Exception ex) {
+                ex.printStackTrace();
             }
+            System.out.println(trimmedRow.toString(4));
         } else {
             System.out.println("Unsupported request");
             in = new BufferedReader(new FileReader("./src/main/resources/404.html"));
@@ -144,7 +145,7 @@ public class MyHttpHandler implements HttpHandler {
             }
             in.close();
             htmlResponse = contentBuilder.toString();
-            httpExchange.sendResponseHeaders(200, htmlResponse.length());
+            httpExchange.sendResponseHeaders(404, htmlResponse.length());
             outputStream.write(htmlResponse.getBytes());
         }
         outputStream.flush();
