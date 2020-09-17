@@ -1,0 +1,36 @@
+info:
+  version: 1.0.0
+  title: {{NAMESPACE}}-product-ddd
+  name: {{NAMESPACE}}-product-ddd
+gateways:
+  - datapower-api-gateway
+plans:
+  default-plan:
+    rate-limits:
+      default:
+        value: 100/1hour
+    title: Default Plan
+    description: Default Plan
+    approval: false
+  gold-plan:
+    rate-limits:
+      default:
+        value: 10/1second
+    title: Gold Plan
+    description: Gold Plan for Valued Customers
+    approval: false
+visibility:
+  view:
+    type: public
+    orgs: []
+    tags: []
+    enabled: true
+  subscribe:
+    type: authenticated
+    orgs: []
+    tags: []
+    enabled: true
+product: 1.0.0
+apis:
+  drivewaydentdeletion1.0.0:
+    name: "drivewaydentdeletion:1.0.0"

@@ -19,3 +19,6 @@ gradlew.bat
 .settings
 bin
 settings.json
+pgpass_gen.sh
+api.yaml
+product.yaml
