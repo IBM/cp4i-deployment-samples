@@ -152,10 +152,18 @@ EOF
   # -------------------------------------- Register Tracing ---------------------------------------------------------------------
   if ! oc get secrets icp4i-od-store-cred -n ${namespace} ; then
   echo "[INFO] secret icp4i-od-store-cred does not exist in ${namespace}, running tracing registration"
-    if ! ${CURRENT_DIR}/register-tracing.sh -n ${namespace} ; then
-    echo "ERROR: Failed to register tracing in project '$namespace'"
-    exit 1
-    fi
+  sleep 60 #waiting for MQ to come-up
+    if [ ${namespace} == ${tracing_namespace} ]; then
+        if ! ${CURRENT_DIR}/register-tracing.sh -n {$tracing_namespace} ; then
+          echo "ERROR: Failed to register tracing in project '$namespace'"
+          exit 1
+        fi
+    else
+       if ! ${CURRENT_DIR}/register-tracing.sh -n {$tracing_namespace} -e ; then
+          echo "ERROR: Failed to register tracing in project '$namespace'"
+          exit 1
+        fi
+    fi    
   else
     echo "[INFO] secret icp4i-od-store-cred exist, no need to run tracing registration"
   fi
