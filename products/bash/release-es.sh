@@ -77,7 +77,7 @@ spec:
       storage:
         type: ephemeral
     zookeeper:
-      replicas: 1
+      replicas: 3
       metrics: {}
       storage:
         type: ephemeral
