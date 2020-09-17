@@ -103,7 +103,6 @@ roleRef:
 
 
 ---
-this one
 # Role binding for the mq deploy in test namespace
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
