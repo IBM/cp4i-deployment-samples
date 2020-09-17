@@ -163,6 +163,7 @@ EOF
         fi
     else
        if ! ${CURRENT_DIR}/register-tracing.sh -n $tracing_namespace -e ; then
+          echo "INFO: Running with test environment flag"
           echo "ERROR: Failed to register tracing in project '$namespace'"
           exit 1
         fi
