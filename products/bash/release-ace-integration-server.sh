@@ -104,7 +104,7 @@ EOF
 timer=0
 while ! oc get secrets icp4i-od-store-cred -n ${namespace} ; do
  echo "Waiting for the secret icp4i-od-store-cred to get created"
- if [ $timer -gt 3 ]; then
+ if [ $timer -gt 5 ]; then
     echo "Secret icp4i-od-store-cred didn't get created in  ${namespace}, going to create the secret next "
     break
     timer=$((timer + 1))
