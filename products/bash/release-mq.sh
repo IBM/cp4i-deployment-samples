@@ -150,10 +150,8 @@ spec:
 EOF
 
   # -------------------------------------- Register Tracing ---------------------------------------------------------------------
- # if ! oc get secrets icp4i-od-store-cred -n ${namespace} ; then
- # echo "[INFO] secret icp4i-od-store-cred does not exist in ${namespace}, running tracing registration"
-  sleep 60 #waiting for MQ to come-up
-
+ if ! oc get secrets icp4i-od-store-cred -n ${namespace} ; then
+ echo "[INFO] secret icp4i-od-store-cred does not exist in ${namespace}, running tracing registration"
     echo "Tracing_Namespace= ${tracing_namespace}"
     echo "Namespace= ${namespace}"
     if [ "${namespace}" == "${tracing_namespace}" ]; then
@@ -168,9 +166,9 @@ EOF
           exit 1
         fi
     fi    
-#  else
-#    echo "[INFO] secret icp4i-od-store-cred exist, no need to run tracing registration"
-#  fi
+ else
+   echo "[INFO] secret icp4i-od-store-cred exist, no need to run tracing registration"
+ fi
   # -------------------------------------- INSTALL JQ ---------------------------------------------------------------------
 
   echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
