@@ -32,6 +32,8 @@ is_release_name="ace-is"
 is_image_name="image-registry.openshift-image-registry.svc:5000/cp4i/ace-11.0.0.9-r2:new-1"
 tracing_namespace=""
 tracing_enabled="true"
+CURRENT_DIR=$(dirname $0)
+echo "Current directory: $CURRENT_DIR"
 
 while getopts "n:r:i:t:" opt; do
   case ${opt} in
