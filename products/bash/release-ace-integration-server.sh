@@ -100,7 +100,18 @@ spec:
     enabled: ${tracing_enabled}
     namespace: ${tracing_namespace}
 EOF
-sleep 60 #to check if MQ has created the tracing secret
+
+timer=0
+while ! oc get secrets icp4i-od-store-cred -n ${namespace} ; do
+ echo "Waiting for the secret icp4i-od-store-cred to get created"
+ if [ $time -gt 3 ]; then
+    echo "Secret icp4i-od-store-cred didn't get created in  ${namespace}, going to create the secret next "
+    break
+    timer=$((timer + 1))
+  fi
+  sleep 60
+done
+
  # -------------------------------------- Register Tracing ---------------------------------------------------------------------
  if ! oc get secrets icp4i-od-store-cred -n ${namespace} ; then
  echo "[INFO] secret icp4i-od-store-cred does not exist in ${namespace}, running tracing registration"
