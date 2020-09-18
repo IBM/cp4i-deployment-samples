@@ -27,10 +27,10 @@ rules:
 - apiGroups: ["appconnect.ibm.com"]
   resources: ["designerauthorings", "dashboards", "switchservers", "configurations", "integrationservers"]
   verbs: ["create", "delete", "get", "list", "patch", "update", "watch"]
-# Permission to get pods
+# Permission to get pods during deploy stage
 - apiGroups: [""]
-  resources: ["pods"]
-  verbs: ["list", "get"]
+  resources: ["pods", "pods/exec", "configmaps", "secrets", "serviceaccounts"]
+  verbs: ["list", "get", "create", "delete"]
 
 
 ---
