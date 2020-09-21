@@ -162,36 +162,12 @@ EOF
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
 echo -e "INFO: Configuring postgres in the '$namespace' namespace with the user '$DB_USER' and database name '$DB_NAME' and suffix '$SUFFIX'\n"
-if ! ${CURRENT_DIR}/../products/bash/create-postgres-db.sh -n ${POSTGRES_NAMESPACE} -u $DB_USER -d $DB_NAME -p $DB_PASS; then
+if ! ${CURRENT_DIR}/../products/bash/create-postgres-db.sh -n ${POSTGRES_NAMESPACE} -u $DB_USER -d $DB_NAME -p $DB_PASS -e $SUFFIX; then
   echo -e "$cross ERROR: Failed to configure postgres in the '$namespace' namespace with the user '$DB_USER' and database name '$DB_NAME' amd suffix '$SUFFIX'"
   exit 1
 else
   echo -e "$tick INFO: Successfully configured postgres in the '$namespace' namespace with the user '$DB_USER' and database name '$DB_NAME' and suffix '$SUFFIX'"
 fi #create-postgres-db.sh
-
-echo -e "\nINFO: Creating the table 'QUOTES' and in the database '$DB_NAME' with the username '$DB_USER' in the '$namespace' namespace"
-if ! oc exec -n $POSTGRES_NAMESPACE -it $DB_POD \
-  -- psql -U $DB_USER -d $DB_NAME -c \
-  "
-  CREATE TABLE IF NOT EXISTS QUOTES (
-    QuoteID VARCHAR(100) PRIMARY KEY NOT NULL,
-    Source VARCHAR(20),
-    Name VARCHAR(100),
-    EMail VARCHAR(100),
-    Age INTEGER,
-    Address VARCHAR(100),
-    USState VARCHAR(100),
-    LicensePlate VARCHAR(100),
-    DescriptionOfDamage VARCHAR(100),
-    ClaimStatus INTEGER,
-    ClaimCost INTEGER
-  );
-  "; then
-  echo -e "\n$cross ERROR: Failed to create the table 'QUOTES' in the database '$DB_NAME' with the username '$DB_USER' in the namespace '$namespace'"
-  exit 1
-else
-  echo -e "\n$tick INFO: Created the table 'QUOTES' in the database '$DB_NAME' with the username '$DB_USER' in the namespace '$namespace'"
-fi
 
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 

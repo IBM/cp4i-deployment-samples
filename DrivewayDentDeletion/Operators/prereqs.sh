@@ -123,34 +123,14 @@ data:
 EOF
 
   echo -e "INFO: Creating '$DB_NAME' database and '$DB_USER' user in the postgres instance in the ${POSTGRES_NAMESPACE} namespace\n"
-  if ! ${CURRENT_DIR}/../../products/bash/create-postgres-db.sh -n ${POSTGRES_NAMESPACE} -u $DB_USER -d $DB_NAME -p $DB_PASS; then
+  if ! ${CURRENT_DIR}/../../products/bash/create-postgres-db.sh -n ${POSTGRES_NAMESPACE} -u $DB_USER -d $DB_NAME -p $DB_PASS -e $SUFFIX; then
     echo -e "\n$cross ERROR: Failed to configure postgres in the '$POSTGRES_NAMESPACE' namespace with the user '$DB_USER' and database name '$DB_NAME'\n"
     exit 1
   else
     echo -e "\n$tick INFO: Successfully configured postgres in the '$POSTGRES_NAMESPACE' namespace with the user '$DB_USER' and database name '$DB_NAME'\n"
-  fi  #${CURRENT_DIR}/../../products/bash/create-postgres-db.sh -n ${image_project} -u $DB_USER -d $DB_NAME -p $DB_PASS
+  fi  #create-postgres-db.sh
 
-  echo "INFO: Creating the table 'QUOTES' in the database '$DB_NAME' with the username '$DB_USER' in the '$image_project' namespace"
-  if ! oc exec -n $POSTGRES_NAMESPACE -it $DB_POD \
-      -- psql -U $DB_USER -d $DB_NAME -c \
-    'CREATE TABLE IF NOT EXISTS QUOTES (
-      QuoteID SERIAL PRIMARY KEY NOT NULL,
-      Name VARCHAR(100),
-      EMail VARCHAR(100),
-      Address VARCHAR(100),
-      USState VARCHAR(100),
-      LicensePlate VARCHAR(100),
-      ACMECost INTEGER,
-      ACMEDate DATE,
-      BernieCost INTEGER,
-      BernieDate DATE,
-      ChrisCost INTEGER,
-      ChrisDate DATE);'; then
-    echo -e "\n$cross ERROR: Failed to create the table 'QUOTES' in the database '$DB_NAME' with the username '$DB_USER' in the namespace '$image_project'"
-    exit 1
-  else
-    echo -e "\n$tick INFO: Created the table 'QUOTES' in the database '$DB_NAME' with the username '$DB_USER' in the namespace '$namespace'"
-  fi
+  
 
   echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 

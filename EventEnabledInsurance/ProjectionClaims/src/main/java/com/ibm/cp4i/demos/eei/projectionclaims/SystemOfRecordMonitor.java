@@ -124,9 +124,10 @@ public class SystemOfRecordMonitor {
     public static void main(String[] args) {
         SystemOfRecordMonitor monitor;
         try {
-            monitor = new SystemOfRecordMonitor("es-demo-kafka-bootstrap-uuid.dan-uuid-ec111ed5d7db435e1c5eeeb4400d693f-0000.eu-gb.containers.appdomain.cloud:443");
-            monitor.addScramProperties("es-demo-scram", "UuEDBbVWemgT");
-            monitor.addTLSProperties("/Users/daniel.pinkuk.ibm.com/Downloads/es-cert-dan-uuid.p12", "kejd1aUKEVch");
+            // the end point could be the kafka external listener too
+            monitor = new SystemOfRecordMonitor("es-demo-kafka-bootstrap:9092");
+            // monitor.addScramProperties("es-demo-scram", "<pass1>>");
+            // monitor.addTLSProperties("<path-to>/es-cert-cluster.p12", "<pass2>");
             monitor.start();
         } catch (Throwable exception) {
             exception.printStackTrace();
