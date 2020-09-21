@@ -17,7 +17,7 @@
 #   -r : <release_name> (string), Defaults to "mq-demo"
 #   -i : <image_name> (string)
 #   -q : <qm_name> (string), Defaults to "QUICKSTART"
-#   -t : <tracing_namespace> (string), Defaults to "cp4i"
+#   -z : <tracing_namespace> (string), Defaults to "cp4i"
 #
 # USAGE:
 #   With defaults values
@@ -27,7 +27,7 @@
 #     ./release-mq -n cp4i -r mq-demo -i image-registry.openshift-image-registry.svc:5000/cp4i/mq-ddd -q mq-qm
 
 function usage {
-    echo "Usage: $0 -n <namespace> -r <release_name> -i <image_name> -q <qm_name> -t <tracing_namespace>"
+    echo "Usage: $0 -n <namespace> -r <release_name> -i <image_name> -q <qm_name> -z <tracing_namespace>"
     exit 1
 }
 
@@ -40,7 +40,7 @@ CURRENT_DIR=$(dirname $0)
 echo "Current directory: $CURRENT_DIR"
 echo "Namespace: $namespace"
 
-while getopts "n:r:i:q:t:" opt; do
+while getopts "n:r:i:q:z:" opt; do
   case ${opt} in
     n ) namespace="$OPTARG"
       ;;
@@ -50,7 +50,7 @@ while getopts "n:r:i:q:t:" opt; do
       ;;
     q ) qm_name="$OPTARG"
       ;;
-    t ) tracing_namespace="$OPTARG"
+    z ) tracing_namespace="$OPTARG"
       ;;
     \? ) usage; exit
       ;;
@@ -59,6 +59,7 @@ done
 
 
 # tracing false if tracing namespace is empty
+# assgining value to tracing_namespace b/c empty values causes CR to throw an error
 if [ -z $tracing_namespace ]; then
   tracing_enabled="false"
   tracing_namespace=${namespace}
