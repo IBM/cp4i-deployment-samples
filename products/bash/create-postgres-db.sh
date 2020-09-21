@@ -99,7 +99,7 @@ fi
 
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
-if [[ "$DEMO" == "ddd" ]]' then
+if [[ "$DEMO" == "ddd" ]]; then
   echo "INFO: Creating the table 'QUOTES' in the database '$DB_NAME' with the username '$DB_USER'"
   if ! oc exec -n $POSTGRES_NAMESPACE -it $DB_POD \
       -- psql -U $DB_USER -d $DB_NAME -c \
