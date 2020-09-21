@@ -10,44 +10,68 @@
 
 # PARAMETERS:
 #   -n : <NAMESPACE> (string), Defaults to 'cp4i'
-#   -s : <SUFFIX> (string), Defaults to ''
+#   -g : <POSTGRES_NAMESPACE> (string), Defaults to 'postgres'
+#   -u : <DB_USER> (string), Defaults to 'cp4i'
+#   -d : <DB_NAME> (string), Defaults to 'db_cp4i'
+#   -p : <DB_PASS> (string), Defaults to ''
+#   -a : <ACE_CONFIGURATION_NAME> (string), Defaults to 'ace-policyproject'
 #
 #   With defaults values
 #     ./create-ace-config.sh
 #
 #   With overridden values
-#     ./create-ace-config.sh -n <NAMESPACE> -s <SUFFIX>
+#     ./create-ace-config.sh -n <NAMESPACE> -g <POSTGRES_NAMESPACE> -u <DB_USER> -d <DB_NAME> -p <DB_PASS> -a <ACE_CONFIGURATION_NAME>
 
 function usage {
-  echo "Usage: $0 -n <NAMESPACE> -s <SUFFIX>"
+  echo "Usage: $0 -n <NAMESPACE> -g <POSTGRES_NAMESPACE> -u <DB_USER> -d <DB_NAME> -p <DB_PASS> -a <ACE_CONFIGURATION_NAME>"
+  exit 1
 }
 
 NAMESPACE="cp4i"
+POSTGRES_NAMESPACE="postgres"
+DB_USER="cp4i"
+DB_NAME="db_cp4i"
+DB_PASS=""
+tick="\xE2\x9C\x85"
+cross="\xE2\x9D\x8C"
+ACE_CONFIGURATION_NAME="ace-policyproject"
 
-while getopts "n:s:" opt; do
+while getopts "n:g:u:d:p:a:" opt; do
   case ${opt} in
     n ) NAMESPACE="$OPTARG"
       ;;
-    s ) SUFFIX="$OPTARG"
+    g ) POSTGRES_NAMESPACE="$OPTARG"
+      ;;
+    u ) DB_USER="$OPTARG"
+      ;;
+    d ) DB_NAME="$OPTARG"
+      ;;
+    p ) DB_PASS="$OPTARG"
+      ;;
+    a ) ACE_CONFIGURATION_NAME="$OPTARG"
       ;;
     \? ) usage; exit
       ;;
   esac
 done
 
+if [[ -z "${DB_PASS// }" || -z "${NAMESPACE// }" || -z "${DB_USER// }" || -z "${DB_NAME// }" || -z "${POSTGRES_NAMESPACE// }" || -z "${ACE_CONFIGURATION_NAME// }" ]]; then
+  echo -e "$cross ERROR: Some mandatory parameters are empty"
+  usage
+fi
+
 CURRENT_DIR=$(dirname $0)
 echo "Current directory: $CURRENT_DIR"
 
 echo "INFO: Creating policyproject for ace in the '$NAMESPACE' namespace"
 
-# Add suffix created for a user and database for the policy
-DB_USER=$(echo ${NAMESPACE}_${SUFFIX} | sed 's/-/_/g')
-DB_NAME="db_$DB_USER"
-DB_SVC="$(oc get cm -n postgres postgres-config -o json | jq '.data["postgres.env"] | split("\n  ")' | grep DATABASE_SERVICE_NAME | cut -d "=" -f 2- | tr -dc '[a-z0-9-]\n').postgres.svc.cluster.local"
-DB_PASS=$(oc get secret -n $NAMESPACE postgres-credential --template={{.data.password}} | base64 --decode)
+DB_POD=$(oc get pod -n $POSTGRES_NAMESPACE -l name=postgresql -o jsonpath='{.items[].metadata.name}')
+DB_SVC="postgresql.$POSTGRES_NAMESPACE.svc.cluster.local"
 
-echo "INFO: Postgres db is: '$DB_NAME'"
-echo "INFO: Postgres user is: '$DB_USER'"
+echo "INFO: Database user: '$DB_USER'"
+echo "INFO: Database name: '$DB_NAME'"
+echo "INFO: Postgres pod name in the '$POSTGRES_NAMESPACE' namespace: '$DB_POD'"
+echo "INFO: Postgres svc name: '$DB_SVC'"
 
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
@@ -142,13 +166,13 @@ fi
 
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
-# setting up policyporject for namespace
-echo "INFO: Setting up policyporject in the '$NAMESPACE' namespace"
+# setting up policyproject for namespace
+echo "INFO: Setting up policyproject in the '$NAMESPACE' namespace"
 CONFIG="\
 apiVersion: appconnect.ibm.com/v1beta1
 kind: Configuration
 metadata:
-  name: ace-policyproject
+  name: $ACE_CONFIGURATION_NAME
   namespace: $NAMESPACE
 spec:
   contents: "$ENCODED"

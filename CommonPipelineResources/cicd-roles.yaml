@@ -1,0 +1,11 @@
+# Role for the test task in postgres namespace
+kind: Role
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: role-postgres-test-task
+  namespace: postgres
+rules:
+# Permissions for test task to list, get and create pods and configmaps in postgres namespace
+- apiGroups: [""]
+  resources: ["pods", "pods/exec", "configmaps"]
+  verbs: ["list", "get", "create"]

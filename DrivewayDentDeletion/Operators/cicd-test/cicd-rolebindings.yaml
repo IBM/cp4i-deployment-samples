@@ -1,20 +1,6 @@
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
-  name: tekton-triggers-rolebinding
-subjects:
-- kind: ServiceAccount
-  name: cicd-pipeline
-roleRef:
-  apiGroup: rbac.authorization.k8s.io
-  kind: Role
-  name: tekton-triggers-role
-
----
-
-apiVersion: rbac.authorization.k8s.io/v1
-kind: RoleBinding
-metadata:
   name: ace-int-srv-rolebinding
 subjects:
 - kind: ServiceAccount
@@ -52,23 +38,6 @@ roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: Role
   name: role-for-test-in-dev-namespace
-
----
-
-# Role binding for the tesk task in postgres namespace
-apiVersion: rbac.authorization.k8s.io/v1
-kind: RoleBinding
-metadata:
-  name: test-postgres-rolebinding
-  namespace: postgres
-subjects:
-- kind: ServiceAccount
-  name: cicd-test
-  namespace: "{{NAMESPACE}}"
-roleRef:
-  apiGroup: rbac.authorization.k8s.io
-  kind: Role
-  name: role-postgres-test-task
 
 ---
 

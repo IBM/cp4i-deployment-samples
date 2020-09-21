@@ -1,22 +1,3 @@
-kind: Role
-apiVersion: rbac.authorization.k8s.io/v1
-metadata:
-  name: tekton-triggers-role
-rules:
-# Permissions for every EventListener deployment to function
-- apiGroups: ["triggers.tekton.dev"]
-  resources: ["eventlisteners", "triggerbindings", "triggertemplates"]
-  verbs: ["get"]
-- apiGroups: [""]
-# secrets are only needed for Github/Gitlab interceptors, serviceaccounts only for per trigger authorization
-  resources: ["configmaps", "secrets", "serviceaccounts"]
-  verbs: ["get", "list", "watch"]
-# Permissions to create resources in associated TriggerTemplates
-- apiGroups: ["tekton.dev"]
-  resources: ["pipelineruns", "pipelineresources", "taskruns"]
-  verbs: ["create"]
----
-
 # Ace Integration Service account configuration
 kind: Role
 apiVersion: rbac.authorization.k8s.io/v1
@@ -66,20 +47,6 @@ rules:
 - apiGroups: [""]
   resources: ["secrets"]
   verbs: ["get"]
-
----
-
-# Role for the test task in postgres namespace
-kind: Role
-apiVersion: rbac.authorization.k8s.io/v1
-metadata:
-  name: role-postgres-test-task
-  namespace: postgres
-rules:
-# Permissions for test task to list, get and create pods and configmaps in postgres namespace
-- apiGroups: [""]
-  resources: ["pods", "pods/exec", "configmaps"]
-  verbs: ["list", "get", "create"]
 
 ---
 

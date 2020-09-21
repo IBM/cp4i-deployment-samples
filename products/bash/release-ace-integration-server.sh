@@ -83,7 +83,7 @@ spec:
      runtime:
        image: ${is_image_name}
   configurations:
-  - ace-policyproject
+  - ace-policyproject-ddd
   designerFlowsOperationMode: disabled
   license:
     accept: true
