@@ -64,7 +64,10 @@ if [[ -z "$imageTag" ]]; then
 fi
 
 # tracing false if tracing namespace is empty
-[ -z $tracing_namespace ] && tracing_enabled="false"
+if [ -z $tracing_namespace ]; then
+  tracing_enabled="false"
+  tracing_namespace=${namespace}
+fi
 echo "[INFO] tracing is set to $tracing_enabled"
 
 echo -e "INFO: Going ahead to apply the CR for '$is_release_name'"
@@ -102,18 +105,20 @@ spec:
 EOF
 
 timer=0
-while ! oc get secrets icp4i-od-store-cred -n ${namespace} ; do
- echo "Waiting for the secret icp4i-od-store-cred to get created"
- if [ $timer -gt 5 ]; then
-    echo "Secret icp4i-od-store-cred didn't get created in  ${namespace}, going to create the secret next "
-    break
-    timer=$((timer + 1))
-  fi
-  sleep 60
-done
+if [ $tracing_enabled=="true"  ] ; then
+  while ! oc get secrets icp4i-od-store-cred -n ${namespace} ; do
+  echo "Waiting for the secret icp4i-od-store-cred to get created"
+  if [ $timer -gt 5 ]; then
+      echo "Secret icp4i-od-store-cred didn't get created in  ${namespace}, going to create the secret next "
+      break
+      timer=$((timer + 1))
+    fi
+    sleep 60
+  done
+fi
 
  # -------------------------------------- Register Tracing ---------------------------------------------------------------------
- if ! oc get secrets icp4i-od-store-cred -n ${namespace} ; then
+ if [ ! oc get secrets icp4i-od-store-cred -n ${namespace} ] && [ $tracing_enabled=="true"  ] ; then
  echo "[INFO] secret icp4i-od-store-cred does not exist in ${namespace}, running tracing registration"
     echo "Tracing_Namespace= ${tracing_namespace}"
     echo "Namespace= ${namespace}"
