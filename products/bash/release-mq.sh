@@ -27,7 +27,7 @@
 #     ./release-mq -n cp4i -r mq-demo -i image-registry.openshift-image-registry.svc:5000/cp4i/mq-ddd -q mq-qm
 
 function usage {
-    echo "Usage: $0 -n <namespace> -r <release_name> -i <image_name> -q <qm_name> -z <tracing_namespace>"
+    echo "Usage: $0 -n <namespace> -r <release_name> -i <image_name> -q <qm_name> -z <tracing_namespace> [-t]"
     exit 1
 }
 
@@ -40,7 +40,7 @@ CURRENT_DIR=$(dirname $0)
 echo "Current directory: $CURRENT_DIR"
 echo "Namespace: $namespace"
 
-while getopts "n:r:i:q:z:" opt; do
+while getopts "n:r:i:q:z:t" opt; do
   case ${opt} in
     n ) namespace="$OPTARG"
       ;;
@@ -52,11 +52,19 @@ while getopts "n:r:i:q:z:" opt; do
       ;;
     z ) tracing_namespace="$OPTARG"
       ;;
+    t ) tracing=true
+      ;;
     \? ) usage; exit
       ;;
   esac
 done
 
+
+# when called from install.sh
+if [ "$tracing" == "true" ]; then
+  tracing_enabled="true"
+  tracing_namespace=${namespace}
+fi
 
 # tracing false if tracing namespace is empty
 # assgining value to tracing_namespace b/c empty values causes CR to throw an error
