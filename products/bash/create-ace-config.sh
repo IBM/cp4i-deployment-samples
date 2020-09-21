@@ -48,7 +48,7 @@ function usage {
 function buildConfigurationCR {
   local type=$1
   local name=$2
-  local file=$CURRENT_DIR/$3
+  local file=$3
   echo "apiVersion: appconnect.ibm.com/v1beta1" >> $CONFIG_YAML
   echo "kind: Configuration" >> $CONFIG_YAML
   echo "metadata:" >> $CONFIG_YAML
@@ -233,7 +233,7 @@ echo "[INFO]  Generating configuration yaml"
 for i in ${!NAMES[@]}; do
   file=$CURRENT_DIR/${FILES[$i]}
   if [[ -d $CURRENT_DIR/${FILES[$i]} ]]; then
-    python -m zipfile -c $file $file
+    python -m zipfile -c ${file}.zip $file/
     file=${file}.zip
   fi
   buildConfigurationCR ${TYPES[$i]} ${NAMES[$i]} $file
