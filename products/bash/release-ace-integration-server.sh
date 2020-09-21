@@ -22,9 +22,9 @@
 #   Overriding the namespace and release-name
 #     ./release-ace-integration-server -n cp4i -r cp4i-bernie-ace
 
-function usage {
-    echo "Usage: $0 -n <namespace> -r <is_release_name> -i <is_image_name> -t <tracing_namespace>"
-    exit 1
+function usage() {
+  echo "Usage: $0 -n <namespace> -r <is_release_name> -i <is_image_name> -t <tracing_namespace>"
+  exit 1
 }
 
 namespace="cp4i"
@@ -37,16 +37,22 @@ echo "Current directory: $CURRENT_DIR"
 
 while getopts "n:r:i:t:" opt; do
   case ${opt} in
-    n ) namespace="$OPTARG"
-      ;;
-    r ) is_release_name="$OPTARG"
-      ;;
-    i ) is_image_name="$OPTARG"
-      ;;
-    t ) tracing_namespace="$OPTARG"
-      ;;
-    \? ) usage; exit
-      ;;
+  n)
+    namespace="$OPTARG"
+    ;;
+  r)
+    is_release_name="$OPTARG"
+    ;;
+  i)
+    is_image_name="$OPTARG"
+    ;;
+  t)
+    tracing_namespace="$OPTARG"
+    ;;
+  \?)
+    usage
+    exit
+    ;;
   esac
 done
 
@@ -74,7 +80,7 @@ echo -e "INFO: Going ahead to apply the CR for '$is_release_name'"
 
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
-cat << EOF | oc apply -f -
+cat <<EOF | oc apply -f -
 apiVersion: appconnect.ibm.com/v1beta1
 kind: IntegrationServer
 metadata:
@@ -105,39 +111,39 @@ spec:
 EOF
 
 timer=0
-if [ $tracing_enabled=="true"  ] ; then
-  while ! oc get secrets icp4i-od-store-cred -n ${namespace} ; do
-  echo "Waiting for the secret icp4i-od-store-cred to get created"
-  if [ $timer -gt 5 ]; then
+echo "[INFO] tracing is set to $tracing_enabled"
+if [ "$tracing_enabled" == "true" ]; then
+  while ! oc get secrets icp4i-od-store-cred -n ${namespace}; do
+    echo "Waiting for the secret icp4i-od-store-cred to get created"
+    if [ $timer -gt 5 ]; then
       echo "Secret icp4i-od-store-cred didn't get created in  ${namespace}, going to create the secret next "
       break
       timer=$((timer + 1))
     fi
     sleep 60
   done
-fi
 
- # -------------------------------------- Register Tracing ---------------------------------------------------------------------
- if [ ! oc get secrets icp4i-od-store-cred -n ${namespace} ] && [ $tracing_enabled=="true"  ] ; then
- echo "[INFO] secret icp4i-od-store-cred does not exist in ${namespace}, running tracing registration"
+  # -------------------------------------- Register Tracing ---------------------------------------------------------------------
+  if [ ! oc get secrets icp4i-od-store-cred -n ${namespace} ]; then
+    echo "[INFO] secret icp4i-od-store-cred does not exist in ${namespace}, running tracing registration"
     echo "Tracing_Namespace= ${tracing_namespace}"
     echo "Namespace= ${namespace}"
     if [ "${namespace}" == "${tracing_namespace}" ]; then
-        if ! ${CURRENT_DIR}/register-tracing.sh -n $tracing_namespace ; then
-          echo "ERROR: Failed to register tracing in project '$namespace'"
-          exit 1
-        fi
+      if ! ${CURRENT_DIR}/register-tracing.sh -n $tracing_namespace; then
+        echo "ERROR: Failed to register tracing in project '$namespace'"
+        exit 1
+      fi
     else
-       if ! ${CURRENT_DIR}/register-tracing.sh -n $tracing_namespace -e ; then
-          echo "INFO: Running with test environment flag"
-          echo "ERROR: Failed to register tracing in project '$namespace'"
-          exit 1
-        fi
-    fi    
- else
-   echo "[INFO] secret icp4i-od-store-cred exist, no need to run tracing registration"
- fi
-
+      if ! ${CURRENT_DIR}/register-tracing.sh -n $tracing_namespace -e; then
+        echo "INFO: Running with test environment flag"
+        echo "ERROR: Failed to register tracing in project '$namespace'"
+        exit 1
+      fi
+    fi
+  else
+    echo "[INFO] secret icp4i-od-store-cred exist, no need to run tracing registration"
+  fi
+fi
 # -------------------------------------- INSTALL JQ ---------------------------------------------------------------------
 
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
@@ -202,16 +208,15 @@ while [ $numberOfMatchesForImageTag -ne $numberOfReplicas ]; do
   echo "[INFO] Total pods for ACE Integration Server $allCorrespondingPods"
 
   echo -e "\nINFO: For ACE Integration server '$is_release_name':"
-  for eachAcePod in $allCorrespondingPods
-    do
-      imageInPod=$(oc get pod $eachAcePod -n $namespace -o json | ./jq -r '.spec.containers[0].image')
-      echo "INFO: Image present in the pod '$eachAcePod' is '$imageInPod'"
-      if [[ $imageInPod == *:$imageTag ]]; then
-        echo "INFO: Image tag matches.."
-        numberOfMatchesForImageTag=$((numberOfMatchesForImageTag + 1))
-      else
-        echo "INFO: Image tag '$imageTag' is not present in the image of the pod '$eachAcePod'"
-      fi
+  for eachAcePod in $allCorrespondingPods; do
+    imageInPod=$(oc get pod $eachAcePod -n $namespace -o json | ./jq -r '.spec.containers[0].image')
+    echo "INFO: Image present in the pod '$eachAcePod' is '$imageInPod'"
+    if [[ $imageInPod == *:$imageTag ]]; then
+      echo "INFO: Image tag matches.."
+      numberOfMatchesForImageTag=$((numberOfMatchesForImageTag + 1))
+    else
+      echo "INFO: Image tag '$imageTag' is not present in the image of the pod '$eachAcePod'"
+    fi
   done
 
   echo -e "\nINFO: Total $is_release_name demo pods deployed with new image: $numberOfMatchesForImageTag"

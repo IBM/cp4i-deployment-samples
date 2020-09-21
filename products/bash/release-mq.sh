@@ -153,7 +153,8 @@ spec:
 EOF
 
   # -------------------------------------- Register Tracing ---------------------------------------------------------------------
- if [ ! oc get secrets icp4i-od-store-cred -n ${namespace} ] && [ $tracing_enabled=="true"  ] ; then
+oc get secrets icp4i-od-store-cred -n ${namespace}
+if [ $? -ne 0 ] && [ "$tracing_enabled" == "true"  ] ; then
  echo "[INFO] secret icp4i-od-store-cred does not exist in ${namespace}, running tracing registration"
     echo "Tracing_Namespace= ${tracing_namespace}"
     echo "Namespace= ${namespace}"
@@ -170,7 +171,11 @@ EOF
         fi
     fi    
  else
-   echo "[INFO] secret icp4i-od-store-cred exist, no need to run tracing registration"
+    if [ "$tracing_enabled" == "false" ]; then 
+        echo "[INFO] Tracing Registration not need. Tracing set to $tracing_enabled"
+     else
+        echo "[INFO] secret icp4i-od-store-cred exist, no need to run tracing registration"
+    fi
  fi
   # -------------------------------------- INSTALL JQ ---------------------------------------------------------------------
 
