@@ -41,7 +41,7 @@ while getopts "n:r:" opt; do
       ;;
     r ) nav_replicas="$OPTARG"
       ;;
-    \? ) usage; exit
+    \? ) usage;
       ;;
   esac
 done
