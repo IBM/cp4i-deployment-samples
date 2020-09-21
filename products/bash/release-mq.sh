@@ -59,7 +59,10 @@ done
 
 
 # tracing false if tracing namespace is empty
-[ -z $tracing_namespace ] && tracing_enabled="false"
+if [ -z $tracing_namespace ]; then
+  tracing_enabled="false"
+  tracing_namespace=${namespace}
+fi
 echo "[INFO] tracing is set to $tracing_enabled"
 
 if [ -z $image_name ]; then
