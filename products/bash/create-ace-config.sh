@@ -15,14 +15,13 @@
 #   -d : <DB_NAME> (string), Defaults to 'db_cp4i'
 #   -p : <DB_PASS> (string), Defaults to ''
 #   -a : <ACE_CONFIGURATION_NAME> (string), Defaults to 'ace-policyproject'
-#   -s : <SUFFIX> (string), Defaults to ''
 #   -d : <DEBUG>
 #
 #   With defaults values
 #     ./create-ace-config.sh
 #
 #   With overridden values
-#     ./create-ace-config.sh -n <NAMESPACE> -g <POSTGRES_NAMESPACE> -u <DB_USER> -d <DB_NAME> -p <DB_PASS> -a <ACE_CONFIGURATION_NAME> -s <SUFFIX> -d
+#     ./create-ace-config.sh -n <NAMESPACE> -g <POSTGRES_NAMESPACE> -u <DB_USER> -d <DB_NAME> -p <DB_PASS> -a <ACE_CONFIGURATION_NAME>
 
 tick="\xE2\x9C\x85"
 cross="\xE2\x9D\x8C"
@@ -35,7 +34,6 @@ DB_PASS=""
 ACE_CONFIGURATION_NAME="ace-policyproject"
 TYPES=("serverconf" "keystore" "policyproject" "setdbparms")
 FILES=("tmp/serverconf.yaml" "tmp/keystore.p12" "DefaultPolicies" "tmp/setdbparms")
-NAMES=("ace-serverconf" "ace-keystore" "ace-policyproject" "ace-setdbparms")
 CURRENT_DIR=$(dirname $0)
 CONFIG_YAML=$CURRENT_DIR/tmp/configuration.yaml
 API_USER=bruce
@@ -43,7 +41,7 @@ API_PASS=$(LC_ALL=C tr -dc 'A-Za-z0-9' </dev/urandom | head -c 16 ; echo)
 KEYSTORE_PASS=$(LC_ALL=C tr -dc 'A-Za-z0-9' </dev/urandom | head -c 16 ; echo)
 
 function usage {
-  echo "Usage: $0 -n <NAMESPACE> -g <POSTGRES_NAMESPACE> -u <DB_USER> -d <DB_NAME> -p <DB_PASS> -a <ACE_CONFIGURATION_NAME> -s <SUFFIX> -d"
+  echo "Usage: $0 -n <NAMESPACE> -g <POSTGRES_NAMESPACE> -u <DB_USER> -d <DB_NAME> -p <DB_PASS> -a <ACE_CONFIGURATION_NAME>"
   exit 1
 }
 
@@ -62,7 +60,7 @@ function buildConfigurationCR {
   echo "---" >> $CONFIG_YAML
 }
 
-while getopts "n:g:u:d:p:a:s:" opt; do
+while getopts "n:g:u:d:p:a:" opt; do
   case ${opt} in
     n ) NAMESPACE="$OPTARG"
       ;;
@@ -76,12 +74,12 @@ while getopts "n:g:u:d:p:a:s:" opt; do
       ;;
     a ) ACE_CONFIGURATION_NAME="$OPTARG"
       ;;
-    d ) DEBUG=true
-      ;;
     \? ) usage; exit
       ;;
   esac
 done
+
+NAMES=("ace-serverconf" "ace-keystore" "$ACE_CONFIGURATION_NAME" "ace-setdbparms")
 
 if [[ -z "${DB_PASS// }" || -z "${NAMESPACE// }" || -z "${DB_USER// }" || -z "${DB_NAME// }" || -z "${POSTGRES_NAMESPACE// }" || -z "${ACE_CONFIGURATION_NAME// }" ]]; then
   echo -e "$cross ERROR: Some mandatory parameters are empty"
@@ -139,7 +137,6 @@ cat << EOF > $CURRENT_DIR/DefaultPolicies/default.policyxml
   </policy>
 </policies>
 EOF
-$DEBUG && echo -e "[DEBUG] mq policy:\n$(cat $CURRENT_DIR/DefaultPolicies/default.policyxml)"
 
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
@@ -172,7 +169,6 @@ cat << EOF > $CURRENT_DIR/DefaultPolicies/PostgresqlPolicy.policyxml
   </policy>
 </policies>
 EOF
-$DEBUG && echo -e "[DEBUG] postgres policy:\n$(cat $CURRENT_DIR/DefaultPolicies/PostgresqlPolicy.policyxml)"
 
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
@@ -185,7 +181,6 @@ cat << EOF > $CURRENT_DIR/DefaultPolicies/BasicAuth.policyxml
   </policy>
 </policies>
 EOF
-$DEBUG && echo -e "[DEBUG] basic auth policy:\n$(cat $CURRENT_DIR/DefaultPolicies/BasicAuth.policyxml)"
 
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
@@ -196,7 +191,6 @@ cat << EOF > $CURRENT_DIR/DefaultPolicies/policy.descriptor
   <references/>
 </ns2:policyProjectDescriptor>
 EOF
-$DEBUG && echo -e "[DEBUG] policy descriptor:\n$(cat $CURRENT_DIR/DefaultPolicies/policy.descriptor)"
 
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
@@ -211,7 +205,6 @@ ResourceManagers:
     KeystoreType: 'PKCS12'
     KeystorePassword: 'brokerKeystore::password'
 EOF
-$DEBUG && echo -e "[DEBUG] server conf:\n$(cat $CURRENT_DIR/tmp/serverconf.yaml)"
 
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
@@ -221,13 +214,9 @@ CERTS=$CURRENT_DIR/tmp/certs.pem
 KEY=$CURRENT_DIR/tmp/key.pem
 KEYSTORE=$CURRENT_DIR/tmp/keystore.p12
 oc get secret -n openshift-config-managed router-certs -o json | jq -r '.data | .[]' | base64 -d > $CERTS_KEY_BUNDLE
-$DEBUG && echo -e "[DEBUG] certs+key bundle:\n$(cat $CERTS_KEY_BUNDLE)"
 openssl crl2pkcs7 -nocrl -certfile $CERTS_KEY_BUNDLE | openssl pkcs7 -print_certs -out $CERTS
-$DEBUG && echo -e "[DEBUG] certs:\n$(cat $CERTS)"
 openssl pkey -in $CERTS_KEY_BUNDLE -out $KEY
-$DEBUG && echo -e "[DEBUG] key:\n$(cat $KEY)"
 openssl pkcs12 -export -out $KEYSTORE -inkey $KEY -in $CERTS -password pass:$KEYSTORE_PASS
-$DEBUG && echo -e "[DEBUG] p12:\n$(openssl pkcs12 -nodes -in $KEYSTORE -password pass:$KEYSTORE_PASS)"
 
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
@@ -236,26 +225,20 @@ cat << EOF > $CURRENT_DIR/tmp/setdbparms
 local::basicAuthOverride $API_USER $API_PASS
 brokerKeystore::password ignore $KEYSTORE_PASS
 EOF
-$DEBUG && echo -e "[DEBUG] setdbparms:\n$(cat $CURRENT_DIR/tmp/setdbparms)"
-
-echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
-
-$DEBUG && echo "[DEBUG] Listing the files in $CURRENT_DIR/DefaultPolicies"
-$DEBUG && ls -lFA $CURRENT_DIR/DefaultPolicies
 
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
 # Generate configuration yaml
 echo "[INFO]  Generating configuration yaml"
 for i in ${!NAMES[@]}; do
-  file=${FILES[$i]}
-  if [[ -d ${FILES[$i]} ]]; then
-    python -m zipfile -c ${file} ${file}
+  file=$CURRENT_DIR/${FILES[$i]}
+  if [[ -d $CURRENT_DIR/${FILES[$i]} ]]; then
+    python -m zipfile -c $file $file
     file=${file}.zip
   fi
-  buildConfigurationCR ${TYPES[$i]} ${NAMES[$i]} ${file}
+  buildConfigurationCR ${TYPES[$i]} ${NAMES[$i]} $file
 done
-$DEBUG && echo -e "[DEBUG] config yaml:\n$(cat $CONFIG_YAML)"
+echo -e "[DEBUG] config yaml:\n$(cat -n $CONFIG_YAML)"
 
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
