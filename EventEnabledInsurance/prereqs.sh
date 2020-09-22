@@ -162,12 +162,12 @@ EOF
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
 echo -e "INFO: Configuring postgres in the '$namespace' namespace with the user '$DB_USER' and database name '$DB_NAME' and suffix '$SUFFIX'\n"
-if ! ${CURRENT_DIR}/../products/bash/create-postgres-db.sh -n ${POSTGRES_NAMESPACE} -u $DB_USER -d $DB_NAME -p $DB_PASS -e $SUFFIX; then
+if ! ${CURRENT_DIR}/../products/bash/configure-postgres-db.sh -n ${POSTGRES_NAMESPACE} -u $DB_USER -d $DB_NAME -p $DB_PASS -e $SUFFIX; then
   echo -e "$cross ERROR: Failed to configure postgres in the '$namespace' namespace with the user '$DB_USER' and database name '$DB_NAME' amd suffix '$SUFFIX'"
   exit 1
 else
   echo -e "$tick INFO: Successfully configured postgres in the '$namespace' namespace with the user '$DB_USER' and database name '$DB_NAME' and suffix '$SUFFIX'"
-fi #create-postgres-db.sh
+fi #configure-postgres-db.sh
 
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 

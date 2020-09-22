@@ -123,12 +123,12 @@ data:
 EOF
 
   echo -e "INFO: Creating '$DB_NAME' database and '$DB_USER' user in the postgres instance in the ${POSTGRES_NAMESPACE} namespace\n"
-  if ! ${CURRENT_DIR}/../../products/bash/create-postgres-db.sh -n ${POSTGRES_NAMESPACE} -u $DB_USER -d $DB_NAME -p $DB_PASS -e $SUFFIX; then
+  if ! ${CURRENT_DIR}/../../products/bash/configure-postgres-db.sh -n ${POSTGRES_NAMESPACE} -u $DB_USER -d $DB_NAME -p $DB_PASS -e $SUFFIX; then
     echo -e "\n$cross ERROR: Failed to configure postgres in the '$POSTGRES_NAMESPACE' namespace with the user '$DB_USER' and database name '$DB_NAME'\n"
     exit 1
   else
     echo -e "\n$tick INFO: Successfully configured postgres in the '$POSTGRES_NAMESPACE' namespace with the user '$DB_USER' and database name '$DB_NAME'\n"
-  fi  #create-postgres-db.sh
+  fi  #configure-postgres-db.sh
 
   
 

@@ -19,10 +19,10 @@
 #   -e : <DEMO> (string), Defaults to ''
 #
 #   With defaults values
-#     ./create-postgres-db.sh
+#     ./configure-postgres-db.sh
 #
 #   With overridden values
-#     ./create-postgres-db.sh -n <POSTGRES_NAMESPACE> -u <DB_USER> -d <DB_NAME> -p <DB_PASS> -e <DEMO>
+#     ./configure-postgres-db.sh -n <POSTGRES_NAMESPACE> -u <DB_USER> -d <DB_NAME> -p <DB_PASS> -e <DEMO>
 
 function usage {
   echo "Usage: $0 -n <POSTGRES_NAMESPACE> -u <DB_USER> -d <DB_NAME> -p <DB_PASS> -e <DEMO>"
