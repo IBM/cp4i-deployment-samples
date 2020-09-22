@@ -121,7 +121,7 @@ mkdir -p $CURRENT_DIR/tmp
 mkdir -p $CURRENT_DIR/DefaultPolicies
 
 echo "[INFO]  Creating mq policy"
-cat << EOF > $CURRENT_DIR/DefaultPolicies/default.policyxml
+cat << EOF > $CURRENT_DIR/DefaultPolicies/MQEndpointPolicy.policyxml
 <?xml version="1.0" encoding="UTF-8"?>
 <policies>
   <policy policyType="MQEndpoint" policyName="MQEndpointPolicy" policyTemplate="MQEndpoint">
@@ -173,9 +173,9 @@ EOF
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
 echo "[INFO] Creating basic auth policy"
-cat << EOF > $CURRENT_DIR/DefaultPolicies/BasicAuth.policyxml
+cat << EOF > $CURRENT_DIR/DefaultPolicies/BasicAuthPolicy.policyxml
 <policies>
-  <policy policyType="SecurityProfiles" policyName="SecProfLocal">
+  <policy policyType="SecurityProfiles" policyName="BasicAuthPolicy">
     <authentication>Local</authentication>
     <authenticationConfig>basicAuthOverride</authenticationConfig>
   </policy>
@@ -198,7 +198,7 @@ echo "[INFO] Creating server conf"
 cat << EOF > $CURRENT_DIR/tmp/server.conf.yaml
 serverConfVersion: 1
 forceServerHTTPS: true
-forceServerHTTPSecurityProfile: '{forceServerHTTPSecurityProfile}:SecProfLocal'
+forceServerHTTPSecurityProfile: '{DefaultPolicies}:BasicAuthPolicy'
 ResourceManagers:
   HTTPSConnector:
     KeystoreFile: '/home/aceuser/keystores/keystore.p12'
