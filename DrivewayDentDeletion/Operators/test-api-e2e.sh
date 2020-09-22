@@ -115,7 +115,7 @@ echo -e "\n---------------------------------------------------------------------
 
 # -------------------------------------- TEST E2E API ------------------------------------------
 # BASE_PATH=/basepath, all ready contains /
-HOST=http://$(oc get routes -n ${NAMESPACE} | grep ace-api-int-srv-https | awk '{print $2}')/drivewayrepair
+HOST=https://$(oc get routes -n ${NAMESPACE} | grep ace-api-int-srv-https | awk '{print $2}')/drivewayrepair
 if [[ $APIC == true ]]; then
   OUTPUT=""
   function handle_res {

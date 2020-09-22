@@ -55,7 +55,7 @@ function buildConfigurationCR {
   echo "  name: $name" >> $CONFIG_YAML
   echo "  namespace: $NAMESPACE" >> $CONFIG_YAML
   echo "spec:" >> $CONFIG_YAML
-  echo "  contents: $(base64 -w0 $file)" >> $CONFIG_YAML
+  echo "  contents: $(base64 $file)" >> $CONFIG_YAML
   echo "  type: $type" >> $CONFIG_YAML
   echo "---" >> $CONFIG_YAML
 }
@@ -195,7 +195,7 @@ EOF
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
 echo "[INFO] Creating server conf"
-cat << EOF > $CURRENT_DIR/tmp/serverconf.yaml
+cat << EOF > $CURRENT_DIR/tmp/server.conf.yaml
 serverConfVersion: 1
 forceServerHTTPS: true
 forceServerHTTPSecurityProfile: '{forceServerHTTPSecurityProfile}:SecProfLocal'
@@ -220,8 +220,8 @@ openssl pkcs12 -export -out $KEYSTORE -inkey $KEY -in $CERTS -password pass:$KEY
 
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
-echo "[INFO]  Creating setdbparms"
-cat << EOF > $CURRENT_DIR/tmp/setdbparms
+echo "[INFO]  Creating setdbparms.txt"
+cat << EOF > $CURRENT_DIR/tmp/setdbparms.txt
 local::basicAuthOverride $API_USER $API_PASS
 brokerKeystore::password ignore $KEYSTORE_PASS
 EOF
