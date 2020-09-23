@@ -9,4 +9,4 @@
 - Choose this dir as the project dir
 - Open the "com.ibm.cp4i.demos.eei.projectionclaims.Main" class
 - Click the ">" next to "main" and choose "Debug"
-- This should build/run the application and print "Hello world"
+- This should build/run the application and start the web server

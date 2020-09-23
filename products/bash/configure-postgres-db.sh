@@ -16,15 +16,16 @@
 #   -d : <DB_NAME> (string), Defaults to 'db_cp4i'
 #   -u : <DB_USER> (string), Defaults to 'cp4i'
 #   -p : <DB_PASS> (string), Defaults to ''
+#   -e : <DEMO> (string), Defaults to ''
 #
 #   With defaults values
-#     ./create-postgres-db.sh
+#     ./configure-postgres-db.sh
 #
 #   With overridden values
-#     ./create-postgres-db.sh -n <POSTGRES_NAMESPACE> -u <DB_USER> -d <DB_NAME> -p <DB_PASS>
+#     ./configure-postgres-db.sh -n <POSTGRES_NAMESPACE> -u <DB_USER> -d <DB_NAME> -p <DB_PASS> -e <DEMO>
 
 function usage {
-  echo "Usage: $0 -n <POSTGRES_NAMESPACE> -u <DB_USER> -d <DB_NAME> -p <DB_PASS>"
+  echo "Usage: $0 -n <POSTGRES_NAMESPACE> -u <DB_USER> -d <DB_NAME> -p <DB_PASS> -e <DEMO>"
   exit 1
 }
 
@@ -32,10 +33,11 @@ POSTGRES_NAMESPACE="postgres"
 DB_USER="cp4i"
 DB_NAME="db_cp4i"
 DB_PASS=""
+DEMO=""
 tick="\xE2\x9C\x85"
 cross="\xE2\x9D\x8C"
 
-while getopts "n:u:d:p:" opt; do
+while getopts "n:u:d:p:e:" opt; do
   case ${opt} in
     n ) POSTGRES_NAMESPACE="$OPTARG"
       ;;
@@ -45,12 +47,14 @@ while getopts "n:u:d:p:" opt; do
       ;;
     p ) DB_PASS="$OPTARG"
       ;;
-    \? ) usage; exit
+    e ) DEMO="$OPTARG"
+      ;;
+    \? ) usage;
       ;;
   esac
 done
 
-if [[ -z "${DB_PASS// }" || -z "${POSTGRES_NAMESPACE// }" || -z "${DB_USER// }" || -z "${DB_NAME// }" ]]; then
+if [[ -z "${DB_PASS// }" || -z "${POSTGRES_NAMESPACE// }" || -z "${DB_USER// }" || -z "${DB_NAME// }" || -z "${DEMO// }" ]]; then
   echo -e "$cross ERROR: Some mandatory parameters are empty"
   usage
 fi
@@ -94,3 +98,52 @@ EOF
 fi
 
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
+
+if [[ "$DEMO" == "ddd" ]]; then
+  echo "INFO: Creating the table 'QUOTES' in the database '$DB_NAME' with the username '$DB_USER'"
+  if ! oc exec -n $POSTGRES_NAMESPACE -it $DB_POD \
+      -- psql -U $DB_USER -d $DB_NAME -c \
+    '
+    CREATE TABLE IF NOT EXISTS QUOTES (
+      QuoteID SERIAL PRIMARY KEY NOT NULL,
+      Name VARCHAR(100),
+      EMail VARCHAR(100),
+      Address VARCHAR(100),
+      USState VARCHAR(100),
+      LicensePlate VARCHAR(100),
+      ACMECost INTEGER,
+      ACMEDate DATE,
+      BernieCost INTEGER,
+      BernieDate DATE,
+      ChrisCost INTEGER,
+      ChrisDate DATE
+    );'; then
+    echo -e "\n$cross ERROR: Failed to create the table 'QUOTES' in the database '$DB_NAME' with the username '$DB_USER'"
+    exit 1
+  else
+    echo -e "\n$tick INFO: Created the table 'QUOTES' in the database '$DB_NAME' with the username '$DB_USER'"
+  fi
+else
+  echo -e "\nINFO: Creating the table 'QUOTES' and in the database '$DB_NAME' with the username '$DB_USER'"
+  if ! oc exec -n $POSTGRES_NAMESPACE -it $DB_POD \
+    -- psql -U $DB_USER -d $DB_NAME -c \
+    '
+    CREATE TABLE IF NOT EXISTS QUOTES (
+      QuoteID VARCHAR(100) PRIMARY KEY NOT NULL,
+      Source VARCHAR(20),
+      Name VARCHAR(100),
+      EMail VARCHAR(100),
+      Age INTEGER,
+      Address VARCHAR(100),
+      USState VARCHAR(100),
+      LicensePlate VARCHAR(100),
+      DescriptionOfDamage VARCHAR(100),
+      ClaimStatus INTEGER,
+      ClaimCost INTEGER
+    );'; then
+    echo -e "\n$cross ERROR: Failed to create the table 'QUOTES' in the database '$DB_NAME' with the username '$DB_USER'"
+    exit 1
+  else
+    echo -e "\n$tick INFO: Created the table 'QUOTES' in the database '$DB_NAME' with the username '$DB_USER'"
+  fi
+fi
