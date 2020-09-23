@@ -188,11 +188,12 @@ echo -e "\n---------------------------------------------------------------------
 echo -e "INFO: Testing E2E API now..."
 
 API_AUTH=$(oc get secret -n $NAMESPACE ace-api-creds -o json | $JQ -r '.data.auth')
+echo "api auth: $API_AUTH"
 
 # ------- Post to the database -------
 echo "request url: $HOST/quote"
 post_response=$(curl -ksw " %{http_code}" -X POST $HOST/quote \
-  -H "authentication: basic ${API_AUTH}" \
+  -H "authorization: Basic ${API_AUTH}" \
   -H "X-IBM-Client-Id: ${CLIENT_ID}" \
   -H "content-type: application/json" \
   -d "{
