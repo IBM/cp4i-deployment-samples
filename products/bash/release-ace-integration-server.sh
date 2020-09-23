@@ -13,7 +13,7 @@
 #   -n : <namespace> (string), Defaults to "cp4i"
 #   -r : <is_release_name> (string), Defaults to "ace-is"
 #   -i : <is_image_name> (string), Defaults to "image-registry.openshift-image-registry.svc:5000/cp4i/ace-11.0.0.9-r2:new-1"
-#   -z : <tracing_namespace> (string), Defaults to "cp4i"
+#   -z : <tracing_namespace> (string), Defaults to ""
 #
 # USAGE:
 #   With defaults values
@@ -22,8 +22,8 @@
 #   Overriding the namespace and release-name
 #     ./release-ace-integration-server -n cp4i -r cp4i-bernie-ace
 
-function usage() {
-  echo "Usage: $0 -n <namespace> -r <is_release_name> -i <is_image_name> -z <tracing_namespace>"
+function usage {
+  echo "Usage: $0 -n <namespace> -r <is_release_name> -i <is_image_name> -t -z <tracing_namespace>"
   exit 1
 }
 
@@ -31,11 +31,11 @@ namespace="cp4i"
 is_release_name="ace-is"
 is_image_name="image-registry.openshift-image-registry.svc:5000/cp4i/ace-11.0.0.9-r2:new-1"
 tracing_namespace=""
-tracing_enabled="true"
+tracing_enabled="false"
 CURRENT_DIR=$(dirname $0)
 echo "Current directory: $CURRENT_DIR"
 
-while getopts "n:r:i:z:" opt; do
+while getopts "n:r:i:z:t" opt; do
   case ${opt} in
   n)
     namespace="$OPTARG"
@@ -49,12 +49,22 @@ while getopts "n:r:i:z:" opt; do
   z)
     tracing_namespace="$OPTARG"
     ;;
+  t)
+    tracing_enabled=true
+    ;;
   \?)
     usage
     exit
     ;;
   esac
 done
+
+if [ "$tracing_enabled" == "true" ] ; then
+   if [ -z "$tracing_namespace" ]; then tracing_namespace=${namespace} ; fi  
+else 
+    # assgining value to tracing_namespace b/c empty values causes CR to throw an error
+    tracing_namespace=${namespace}
+fi
 
 # ------------------------------------------------ FIND IMAGE TAG --------------------------------------------------
 
@@ -69,11 +79,7 @@ if [[ -z "$imageTag" ]]; then
   exit 1
 fi
 
-# tracing false if tracing namespace is empty
-if [ -z $tracing_namespace ]; then
-  tracing_enabled="false"
-  tracing_namespace=${namespace}
-fi
+
 echo "[INFO] tracing is set to $tracing_enabled"
 
 echo -e "INFO: Going ahead to apply the CR for '$is_release_name'"
@@ -134,7 +140,7 @@ if [ "$tracing_enabled" == "true" ]; then
         exit 1
       fi
     else
-      if ! ${CURRENT_DIR}/register-tracing.sh -n $tracing_namespace -e; then
+      if ! ${CURRENT_DIR}/register-tracing.sh -n $tracing_namespace -a ${namespace} ; then
         echo "INFO: Running with test environment flag"
         echo "ERROR: Failed to register tracing in project '$namespace'"
         exit 1

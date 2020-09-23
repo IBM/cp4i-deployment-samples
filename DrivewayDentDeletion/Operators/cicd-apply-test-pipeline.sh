@@ -124,9 +124,11 @@ fi
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
 # create common roles for tasks
+tracing="-t -z ${namespace}"
 echo "INFO: Create common roles for tasks"
 if cat $CURRENT_DIR/../../CommonPipelineResources/cicd-roles.yaml |
   sed "s#{{NAMESPACE}}#$namespace#g;" |
+  sed "s#{{TRACING}}#$tracing#g;" |
   oc apply -f -; then
     printf "$tick "
     echo "Successfully created roles for tasks in the '$namespace' namespace"

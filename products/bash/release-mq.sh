@@ -17,7 +17,8 @@
 #   -r : <release_name> (string), Defaults to "mq-demo"
 #   -i : <image_name> (string)
 #   -q : <qm_name> (string), Defaults to "QUICKSTART"
-#   -z : <tracing_namespace> (string), Defaults to "cp4i"
+#   -z : <tracing_namespace> (string), Defaults to ""
+#   -t : optional flag to enable tracing
 #
 # USAGE:
 #   With defaults values
@@ -35,7 +36,7 @@ namespace="cp4i"
 release_name="mq-demo"
 qm_name="QUICKSTART"
 tracing_namespace=""
-tracing_enabled="true"
+tracing_enabled="false"
 CURRENT_DIR=$(dirname $0)
 echo "Current directory: $CURRENT_DIR"
 echo "Namespace: $namespace"
@@ -52,7 +53,7 @@ while getopts "n:r:i:q:z:t" opt; do
       ;;
     z ) tracing_namespace="$OPTARG"
       ;;
-    t ) tracing=true
+    t ) tracing_enabled=true
       ;;
     \? ) usage; exit
       ;;
@@ -60,18 +61,15 @@ while getopts "n:r:i:q:z:t" opt; do
 done
 
 
+
 # when called from install.sh
-if [ "$tracing" == "true" ]; then
-  tracing_enabled="true"
-  tracing_namespace=${namespace}
+if [ "$tracing_enabled" == "true" ] ; then
+   if [ -z "$tracing_namespace" ]; then tracing_namespace=${namespace} ; fi  
+else 
+    # assgining value to tracing_namespace b/c empty values causes CR to throw an error
+    tracing_namespace=${namespace}
 fi
 
-# tracing false if tracing namespace is empty
-# assgining value to tracing_namespace b/c empty values causes CR to throw an error
-if [ -z $tracing_namespace ]; then
-  tracing_enabled="false"
-  tracing_namespace=${namespace}
-fi
 echo "[INFO] tracing is set to $tracing_enabled"
 
 if [ -z $image_name ]; then
@@ -173,7 +171,7 @@ if [ $? -ne 0 ] && [ "$tracing_enabled" == "true"  ] ; then
           exit 1
         fi
     else
-       if ! ${CURRENT_DIR}/register-tracing.sh -n $tracing_namespace -e ; then
+       if ! ${CURRENT_DIR}/register-tracing.sh -n $tracing_namespace -a ${namespace} ; then
           echo "INFO: Running with test environment flag"
           echo "ERROR: Failed to register tracing in project '$namespace'"
           exit 1

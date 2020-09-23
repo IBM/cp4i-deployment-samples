@@ -28,7 +28,7 @@
 # }
 #
 namespace="cp4i"
-test_environment="false"
+apps_namespace=""
 
 SCRIPT_DIR="$(dirname $0)"
 echo "Current Dir: $SCRIPT_DIR"
@@ -37,16 +37,14 @@ while getopts "n:e" opt; do
   case ${opt} in
     n ) namespace="$OPTARG"
       ;;
-    e ) test_environment="true"
+    a ) apps_namespace="$OPTARG"
       ;;
     \? ) usage; exit
       ;;
   esac
 done
 
-if [ ${test_environment} == "true" ]; then 
-  apps_namespace=${namespace}-ddd-test
-else
+if [ -z "$apps_namespace" ]; then 
   apps_namespace=${namespace}
 fi
 
