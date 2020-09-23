@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: git-workspace-eei
+  labels:
+    app: pipeline-eei
+    demo: eei
+spec:
+  storageClassName: ibmc-file-gold-gid
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 10Gi

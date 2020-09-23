@@ -109,7 +109,7 @@ if [[ "$jqInstalled" == "false" ]]; then
   fi
 fi
 
-echo -e "\nINFO: Installed JQ version is $($JQ --version)"
+echo -e "\n$TICK INFO: Installed JQ version is $($JQ --version)"
 
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
@@ -180,13 +180,12 @@ echo "INFO: Host: ${HOST}"
 DB_USER=$(echo ${NAMESPACE}_${USER_DB_SUFFIX} | sed 's/-/_/g')
 DB_NAME="db_${DB_USER}"
 DB_POD=$(oc get pod -n postgres -l name=postgresql -o jsonpath='{.items[].metadata.name}')
-DB_SVC="$(oc get cm -n postgres postgres-config -o json | $JQ '.data["postgres.env"] | split("\n  ")' | grep DATABASE_SERVICE_NAME | cut -d "=" -f 2- | tr -dc '[a-z0-9-]\n').postgres.svc.cluster.local"
 echo "INFO: Username name is: '${DB_USER}'"
 echo "INFO: Database name is: '${DB_NAME}'"
 
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
-echo -e "\nINFO: Testing E2E API now..."
+echo -e "INFO: Testing E2E API now..."
 
 # ------- Post to the database -------
 echo "request url: $HOST/quote"
@@ -218,7 +217,7 @@ if [ "$post_response_code" == "200" ]; then
   # The usage of sed here is to prevent an error caused between the -w flag of curl and jq not interacting well
   quote_id=$(echo "$post_response" | $JQ '.' | sed $os_sed_flag '$ d' | $JQ '.QuoteID')
 
-  echo -e "INFO: SUCCESS - POST with response code: ${post_response_code}, QuoteID: ${quote_id}, and Response Body:\n"
+  echo -e "$TICK INFO: SUCCESS - POST with response code: ${post_response_code}, QuoteID: ${quote_id}, and Response Body:\n"
   # The usage of sed here is to prevent an error caused between the -w flag of curl and jq not interacting well
   echo ${post_response} | $JQ '.' | sed $os_sed_flag '$ d'
 
@@ -230,7 +229,7 @@ if [ "$post_response_code" == "200" ]; then
   get_response_code=$(echo "${get_response##* }")
 
   if [ "$get_response_code" == "200" ]; then
-    echo -e "INFO: SUCCESS - GET with response code: ${get_response_code}, and Response Body:\n"
+    echo -e "$TICK INFO: SUCCESS - GET with response code: ${get_response_code}, and Response Body:\n"
     # The usage of sed here is to prevent an error caused between the -w flag of curl and jq not interacting well
     echo ${get_response} | $JQ '.' | sed $os_sed_flag '$ d'
 
@@ -238,11 +237,16 @@ if [ "$post_response_code" == "200" ]; then
 
     #  ------- Get row to confirm post -------
     echo -e "\nINFO: Select and print the row as user '${DB_USER}' from database '${DB_NAME}' with id '$quote_id' to confirm POST and GET..."
-    oc exec -n postgres -it ${DB_POD} \
-      -- psql -U ${DB_USER} -d ${DB_NAME} -h ${DB_SVC} -c \
-      "SELECT * FROM quotes WHERE quotes.quoteid=${quote_id};"
+    if ! oc exec -n postgres -it ${DB_POD} \
+      -- psql -U ${DB_USER} -d ${DB_NAME} -c \
+      "SELECT * FROM quotes WHERE quotes.quoteid=${quote_id};"; then
+      echo -e "\n$CROSS ERROR: Cannot get row with quote id '$quote_id' to confirm POST and GET"
+    else
+      echo -e "\n$TICK INFO: Successfully got row to confirm POST and GET"
+    fi
+
   else
-    echo "ERROR: FAILED - Error code: ${get_response_code}"
+    echo "$CROSS ERROR: FAILED - Error code: ${get_response_code}"
     echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
     exit 1
   fi
@@ -250,21 +254,32 @@ if [ "$post_response_code" == "200" ]; then
   echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------"
   # ------- Delete from the database -------
   echo -e "\nINFO: Deleting row from database '${DB_NAME}' as user '${DB_USER}' with quote id '$quote_id'..."
-  oc exec -n postgres -it ${DB_POD} \
-    -- psql -U ${DB_USER} -d ${DB_NAME} -h ${DB_SVC} -c \
-    "DELETE FROM quotes WHERE quotes.quoteid=${quote_id};"
+  if ! oc exec -n postgres -it ${DB_POD} \
+    -- psql -U ${DB_USER} -d ${DB_NAME} -c \
+    "DELETE FROM quotes WHERE quotes.quoteid=${quote_id};"; then
+    echo -e "\n$CROSS ERROR: Cannot delete the row with quote id '$quote_id'"
+  else
+    echo -e "\n$TICK INFO: Successfully deleted the row with quote id '$quote_id'"
+  fi
 
   echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------"
 
-  #  ------- Get row to confirm deletion -------
-  echo -e "\nINFO: Select and print the row as user '${DB_USER}' from database '${DB_NAME}' with id '$quote_id' to confirm deletion..."
+  #  ------- Get row output and check for '0 rows' in output to confirm deletion -------
+  echo -e "\nINFO: Confirming the deletion of the row with the quote id '$quote_id' from database '${DB_NAME}' as the user '${DB_USER}'..."
   oc exec -n postgres -it ${DB_POD} \
-    -- psql -U ${DB_USER} -d ${DB_NAME} -h ${DB_SVC} -c \
-    "SELECT * FROM quotes WHERE quotes.quoteid=${quote_id};"
+    -- psql -U ${DB_USER} -d ${DB_NAME} -c \
+    "SELECT * FROM quotes WHERE quotes.quoteid=${quote_id};" \
+    | grep '0 rows'
+
+  if [ $? -eq 0 ]; then
+    echo -e "\n$TICK INFO: Successfully confirmed deletion of row with quote id '$quote_id'"
+  else
+    echo -e "\n$CROSS ERROR: Deletion of the row with quote id '$quote_id' failed"
+  fi
 
 else
   # Failure catch during POST
-  echo "ERROR: Post request failed - Error code: ${post_response_code}"
+  echo "$CROSS ERROR: Post request failed - Error code: ${post_response_code}"
   exit 1
 fi
 echo -e "----------------------------------------------------------------------------------------------------------------------------------------------------------"

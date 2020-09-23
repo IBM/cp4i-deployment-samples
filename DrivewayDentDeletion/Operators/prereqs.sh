@@ -31,6 +31,9 @@ nav_replicas="2"
 tick="\xE2\x9C\x85"
 cross="\xE2\x9D\x8C"
 all_done="\xF0\x9F\x92\xAF"
+SUFFIX="ddd"
+POSTGRES_NAMESPACE="postgres"
+ACE_CONFIGURATION_NAME="ace-policyproject-$SUFFIX"
 
 while getopts "n:r:" opt; do
   case ${opt} in
@@ -38,36 +41,47 @@ while getopts "n:r:" opt; do
       ;;
     r ) nav_replicas="$OPTARG"
       ;;
-    \? ) usage; exit
+    \? ) usage;
       ;;
   esac
 done
 
 CURRENT_DIR=$(dirname $0)
-echo "Current directory: $CURRENT_DIR"
-echo "Namespace: $namespace"
+echo "INFO: Current directory: '$CURRENT_DIR'"
+echo "INFO: Namespace: '$namespace'"
+echo "INFO: Suffix for the postgres is: '$SUFFIX'"
+
+
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
-DOCKERCONFIGJSON_ER=$(oc get secret -n ${namespace} ibm-entitlement-key -o json | jq -r '.data.".dockerconfigjson"' | base64 --decode)
-if [ -z ${DOCKERCONFIGJSON_ER} ] ; then
-  echo "ERROR: Failed to find ibm-entitlement-key secret in the namespace '${namespace}'" 1>&2
+echo "INFO: Installing OCP pipelines..."
+if ! ${CURRENT_DIR}/../../products/bash/install-ocp-pipeline.sh; then
+  echo -e "$cross ERROR: Failed to install OCP pipelines\n"
   exit 1
-fi
+else
+  echo -e "$tick INFO: Successfully installed OCP pipelines"
+fi  #${CURRENT_DIR}/../../products/bash/install-ocp-pipeline
 
-export ER_REGISTRY=$(echo "$DOCKERCONFIGJSON_ER" | jq -r '.auths' | jq 'keys[]' | tr -d '"')
-export ER_USERNAME=$(echo "$DOCKERCONFIGJSON_ER" | jq -r '.auths."cp.icr.io".username')
-export ER_PASSWORD=$(echo "$DOCKERCONFIGJSON_ER" | jq -r '.auths."cp.icr.io".password')
+echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
-#namespaces for the pipeline
+echo "INFO: Configuring secrets and permissions related to ocp pipelines in the '$namespace' namespace for the ddd demo..."
+if ! ${CURRENT_DIR}/../../products/bash/configure-ocp-pipeline.sh -n ${namespace}; then
+  echo -e "$cross ERROR: Failed to create secrets and permissions related to ocp pipelines in the '$namespace' namespace for the ddd demo\n"
+  exit 1
+else
+  echo -e "$tick INFO: Successfully configured secrets and permissions related to ocp pipelines in the '$namespace' namespace for the ddd demo"
+fi  #${CURRENT_DIR}/../../products/bash/configure-ocp-pipeline.sh -n ${namespace}
+
+echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
+
+echo -e "INFO: Installing prerequisites for the driveway dent deletion demo in the '$namespace' namespace...\n"
+
+#namespaces for the driveway dent deletion demo pipeline
 export dev_namespace=${namespace}
 export test_namespace=${namespace}-ddd-test
 
 oc project ${dev_namespace}
 
-oc adm policy add-scc-to-group privileged system:serviceaccounts:$dev_namespace
-
-echo "INFO: Namespace passed='${namespace}'"
-echo "INFO: Dev Namespace='${dev_namespace}'"
 echo "INFO: Test Namespace='${test_namespace}'"
 
 #creating new namespace for test/prod and adding namespace to sa
@@ -76,90 +90,58 @@ oc adm policy add-scc-to-group privileged system:serviceaccounts:${test_namespac
 
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
-echo "INFO: Installing OCP pipelines"
-cat <<EOF | oc apply -f -
-apiVersion: operators.coreos.com/v1alpha1
-kind: Subscription
-metadata:
-  name: openshift-pipelines-operator
-  namespace: openshift-operators
-spec:
-  channel: ocp-4.4
-  name: openshift-pipelines-operator-rh
-  source: redhat-operators
-  sourceNamespace: openshift-marketplace
-EOF
-
-echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
-
-echo "Creating secrets to push images to openshift local registry"
-export DOCKER_REGISTRY="image-registry.openshift-image-registry.svc:5000"
-export username=image-bot
-kubectl -n ${dev_namespace} create serviceaccount image-bot
-oc -n ${dev_namespace} policy add-role-to-user registry-editor system:serviceaccount:${dev_namespace}:image-bot
+echo "INFO: Adding permission for '$dev_namespace' to write images to openshift local registry in the '$test_namespace'"
 # enable dev namespace to push to test namespace
 oc -n ${test_namespace} policy add-role-to-user registry-editor system:serviceaccount:${dev_namespace}:image-bot
-export password="$(oc -n ${dev_namespace} serviceaccounts get-token image-bot)"
-
-echo -e "\nCreating secrets to push images to openshift local registry"
-oc create -n ${dev_namespace} secret docker-registry cicd-${dev_namespace} --docker-server=${DOCKER_REGISTRY} \
-  --docker-username=${username} --docker-password=${password} -o yaml | oc apply -f -
-
-echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
-
-# Creating a new secret as the type of entitlement key is 'kubernetes.io/DOCKERCONFIGJSON_ER' but we need secret of type 'kubernetes.io/basic-auth'
-# to pull imags from the ER
-echo "Creating secret to pull base images from Entitled Registry"
-cat << EOF | oc apply --namespace ${dev_namespace} -f -
-apiVersion: v1
-kind: Secret
-metadata:
-  name: er-pull-secret
-  annotations:
-    tekton.dev/docker-0: ${ER_REGISTRY}
-type: kubernetes.io/basic-auth
-stringData:
-  username: ${ER_USERNAME}
-  password: ${ER_PASSWORD}
-EOF
-
-echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
-
-echo "Waiting for postgres to be ready"
-oc wait -n postgres --for=condition=available deploymentconfig --timeout=20m postgresql
 
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
 declare -a image_projects=("${dev_namespace}" "${test_namespace}")
-declare -a suffix=("ddd")
 
 for image_project in "${image_projects[@]}" #for_outer
 do
-  for each_suffix in "${suffix[@]}" #for_inner
-  do
-    if [[ ("$each_suffix" == "ddd") ]]; then
-      echo -e "\nINFO: Configuring postgres in the namespace '$image_project' with the suffix '$each_suffix'\n"
-      if ! ${CURRENT_DIR}/configure-postgres.sh -n ${image_project} -s $each_suffix; then
-        echo -e "\n$cross ERROR: Failed to configure postgres in the namespace '$image_project' with the suffix '$each_suffix'"
-        exit 1
-      else
-        printf "$tick "
-        echo -e "\nINFO: Successfuly configured postgres in the namespace '$image_project' with the suffix '$each_suffix'"
-      fi  #${CURRENT_DIR}/configure-postgres.sh -n ${image_project} -s $each_suffix
+  echo "INFO: Generating user, database name and password for the postgres database in the '$image_project' namespace"
+  DB_POD=$(oc get pod -n $POSTGRES_NAMESPACE -l name=postgresql -o jsonpath='{.items[].metadata.name}')
+  DB_USER=$(echo ${image_project}_${SUFFIX} | sed 's/-/_/g')
+  DB_NAME="db_$DB_USER"
+  DB_PASS=$(LC_ALL=C tr -dc 'A-Za-z0-9' </dev/urandom | head -c 32 ; echo)
+  PASSWORD_ENCODED=$(echo -n ${DB_PASS} | base64)
 
-      echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
-      echo -e "INFO: Creating ace integration server configuration resources in the namespace '$image_project'"
+  echo "INFO: Creating a secret for the database user '$DB_USER' in the database '$DB_NAME' with the password generated"
+  # everything inside 'data' must be in the base64 encoded form
+  cat << EOF | oc apply -f -
+apiVersion: v1
+kind: Secret
+metadata:
+  namespace: $image_project
+  name: postgres-credential
+type: Opaque
+stringData:
+  username: $DB_USER
+data:
+  password: ${PASSWORD_ENCODED}
+EOF
 
-      if ! ${CURRENT_DIR}/../../products/bash/create-ace-config.sh -n ${image_project} -s $each_suffix; then
-        printf "$cross "
-        echo "ERROR: Failed to configure ace in the namespace '$image_project'  with the suffix '$each_suffix'"
-        exit 1
-      else
-        printf "$tick "
-        echo "INFO: Successfuly configured ace in the namespace '$image_project' with the suffix '$each_suffix'"
-      fi  #${CURRENT_DIR}/../../products/bash/create-ace-config.sh -n ${image_project} -s $each_suffix
-    fi  #("$each_suffix" == "ddd")
-  done #for_inner_done
+  echo -e "INFO: Creating '$DB_NAME' database and '$DB_USER' user in the postgres instance in the ${POSTGRES_NAMESPACE} namespace\n"
+  if ! ${CURRENT_DIR}/../../products/bash/configure-postgres-db.sh -n ${POSTGRES_NAMESPACE} -u $DB_USER -d $DB_NAME -p $DB_PASS -e $SUFFIX; then
+    echo -e "\n$cross ERROR: Failed to configure postgres in the '$POSTGRES_NAMESPACE' namespace with the user '$DB_USER' and database name '$DB_NAME'\n"
+    exit 1
+  else
+    echo -e "\n$tick INFO: Successfully configured postgres in the '$POSTGRES_NAMESPACE' namespace with the user '$DB_USER' and database name '$DB_NAME'\n"
+  fi  #configure-postgres-db.sh
+
+  
+
+  echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
+
+  echo -e "INFO: Creating ace postgres configuration and policy in the namespace '$image_project' with the user '$DB_USER' and database name '$DB_NAME' and suffix '$SUFFIX'"
+  if ! ${CURRENT_DIR}/../../products/bash/create-ace-config.sh -n ${image_project} -g $POSTGRES_NAMESPACE -u $DB_USER -d $DB_NAME -p $DB_PASS -a $ACE_CONFIGURATION_NAME; then
+    echo -e "\n$cross ERROR: Failed to configure ace in the '$image_project' namespace with the user '$DB_USER' and database name '$DB_NAME' and suffix '$SUFFIX'"
+    exit 1
+  else
+    echo -e "\n$tick INFO: Successfully configured ace in the '$image_project' namespace with the user '$DB_USER' and database name '$DB_NAME' and suffix '$SUFFIX'"
+  fi  #${CURRENT_DIR}/../../products/bash/create-ace-config.sh -n ${image_project} -g $POSTGRES_NAMESPACE -u $DB_USER -d $DB_NAME -p $DB_PASS -a $ACE_CONFIGURATION_NAME
+
   echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 done #for_outer_done
 
@@ -177,7 +159,7 @@ echo -e "\n---------------------------------------------------------------------
 echo "INFO: Creating operator group and subscription in the namespace '${test_namespace}'"
 
 if ! ${CURRENT_DIR}/../../products/bash/deploy-og-sub.sh -n ${test_namespace} ; then
-  echo "ERROR: Failed to apply subscriptions and csv in the namespace '$test_namespace'"
+  echo -e "$cross ERROR: Failed to apply subscriptions and csv in the namespace '$test_namespace'"
   exit 1
 fi
 
@@ -186,7 +168,7 @@ echo -e "\n---------------------------------------------------------------------
 echo "INFO: Releasing Navigator in the namespace '${test_namespace}'"
 
 if ! ${CURRENT_DIR}/../../products/bash/release-navigator.sh -n ${test_namespace} -r ${nav_replicas} ; then
-  echo "ERROR: Failed to release the platform navigator in the namespace '$test_namespace'"
+  echo -e "$cross ERROR: Failed to release the platform navigator in the namespace '$test_namespace'"
   exit 1
 fi
 
@@ -195,11 +177,11 @@ echo -e "\n---------------------------------------------------------------------
 echo "INFO: Releasing ACE dashboard in the namespace '${test_namespace}'"
 
 if ! ${CURRENT_DIR}/../../products/bash/release-ace-dashboard.sh -n ${test_namespace} ; then
-  echo "ERROR: Failed to release the ace dashboard in the namespace '$test_namespace'"
+  echo -e $cross "ERROR: Failed to release the ace dashboard in the namespace '$test_namespace'"
   exit 1
 fi
 
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
-echo -e "$tick $all_done INFO: All prerequisites for the driveway dent deletion have been applied successfully $all_done $tick"
+echo -e "$tick $all_done INFO: All prerequisites for the driveway dent deletion demo have been applied successfully $all_done $tick"
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 

@@ -25,7 +25,7 @@ These steps will need to be documented in the demo docs:
 `FORKED_REPO` to the URL for your repo.
   ```
   oc project driveway-dent-deletion
-  export BRANCH=master
+  export BRANCH=main
   export FORKED_REPO=https://github.com/IBM/cp4i-deployment-samples.git
   export CP_CONSOLE=$(oc get route -n kube-system icp-console  -o jsonpath='{.spec.host}')
   cat cicd-webhook-triggers.yaml | \
