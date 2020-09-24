@@ -130,7 +130,7 @@ if [ "$tracing_enabled" == "true" ]; then
   done
 
   # -------------------------------------- Register Tracing ---------------------------------------------------------------------
-  if [ ! oc get secrets icp4i-od-store-cred -n ${namespace} ]; then
+  if  ! oc get secrets icp4i-od-store-cred -n ${namespace} ; then
     echo "[INFO] secret icp4i-od-store-cred does not exist in ${namespace}, running tracing registration"
     echo "Tracing_Namespace= ${tracing_namespace}"
     echo "Namespace= ${namespace}"
