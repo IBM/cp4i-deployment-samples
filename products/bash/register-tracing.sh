@@ -33,7 +33,7 @@ apps_namespace=""
 SCRIPT_DIR="$(dirname $0)"
 echo "Current Dir: $SCRIPT_DIR"
 
-while getopts "n:e" opt; do
+while getopts "n:a:" opt; do
   case ${opt} in
     n ) namespace="$OPTARG"
       ;;
