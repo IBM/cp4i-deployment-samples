@@ -93,6 +93,8 @@ x-ibm-configuration:
             values:
               - ^X-IBM-Client-Id$
           inject-proxy-headers: true
+          username: {{ACE_API_USER}}
+          password: {{ACE_API_PASS}}
   type: rest
   phase: realized
   enforced: true
