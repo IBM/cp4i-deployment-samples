@@ -72,8 +72,8 @@ function wait_for_subscription {
 
     if [[ "$wait" == "1" ]]; then
       ((time=time+$wait_time))
-      if [ $time -gt 1200 ]; then
-        echo "ERROR: Failed after waiting for 20 minutes"
+      if [ $time -gt 3600 ]; then
+        echo "ERROR: Failed after waiting for 60 minutes"
         exit 1
       fi
 
