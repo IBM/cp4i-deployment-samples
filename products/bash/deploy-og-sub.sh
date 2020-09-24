@@ -128,10 +128,14 @@ spec:
     - ${namespace}
 EOF
 
-# Install common services operator with stable channel
-echo "INFO: Applying common services subscription"
-create_subscription ${namespace} "opencloud-operators" "ibm-common-service-operator" "stable-v1"
-echo "INFO: Common services csv installed, proceeding with installation"
+# Apply the subscription for navigator. This needs to be before apic so apic knows it's running in cp4i
+echo "INFO: Applying subscription for platform navigator"
+create_subscription ${namespace} "ibm-operator-catalog" "ibm-integration-platform-navigator" "v4.0"
+
+# Apply uber operator
+echo "INFO: Applying the subscription for the uber operator"
+create_subscription ${namespace} "ibm-operator-catalog" "ibm-cp-integration" "v1.0"
+echo "INFO: ClusterServiceVersion for the Platform Navigator is now installed, proceeding with installation..."
 
 # Wait for upto 10 minutes for the OperandConfig to appear in the common services namespace
 time=0
@@ -147,19 +151,3 @@ done
 echo "INFO: Operand config common-services found: $(oc get OperandConfig -n ibm-common-services | sed -n 2p | awk '{print $1}')"
 echo "INFO: Proceeding with updating the OperandConfig to enable Openshift Authentication..."
 IAM_Update_OperandConfig
-
-# Apply the subscription for navigator. This needs to be before apic so apic knows it's running in cp4i
-echo "INFO: Applying subscription for platform navigator"
-create_subscription ${namespace} "ibm-operator-catalog" "ibm-integration-platform-navigator" "v4.0"
-
-# Applying subscriptions for apic and eventstreams
-echo "INFO: Applying subscriptions for ace, apic, eventstreams, and mq"
-create_subscription ${namespace} "ibm-operator-catalog" "ibm-apiconnect" "v1.0"
-create_subscription ${namespace} "ibm-operator-catalog" "ibm-appconnect" "v1.0"
-create_subscription ${namespace} "ibm-operator-catalog" "ibm-eventstreams" "v2.0"
-create_subscription ${namespace} "ibm-operator-catalog" "ibm-mq" "v1.1"
-
-# Apply uber operator
-echo "INFO: Applying the subscription for the uber operator"
-create_subscription ${namespace} "ibm-operator-catalog" "ibm-cp-integration" "v1.0"
-echo "INFO: ClusterServiceVersion for the Platform Navigator is now installed, proceeding with installation..."
