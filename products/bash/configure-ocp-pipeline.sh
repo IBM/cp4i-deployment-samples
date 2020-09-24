@@ -66,6 +66,13 @@ EOF
 
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
+echo -e "INFO: Adding Entitled Registry secret to pipeline Service Account"
+oc get sa --namespace ${namespace} pipeline -o json |\
+  jq -r 'del(.secrets[] | select(.name == "er-pull-secret")) | .secrets += [{"name": "er-pull-secret"}]' |\
+  oc replace -f -
+
+echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
+
 echo -e "INFO: Adding permissions to '$namespace' to run tekton tasks..."
 oc adm policy add-scc-to-group privileged system:serviceaccounts:$namespace
 
