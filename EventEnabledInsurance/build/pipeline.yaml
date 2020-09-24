@@ -132,7 +132,7 @@ spec:
         steps:
           - name: oc
             image: quay.io/openshift/origin-cli:latest
-            script: "/workspace/git-source/products/bash/release-mq.sh -n {{NAMESPACE}} -r mq-eei -i mq-eei:latest -q eei"
+            script: "/workspace/git-source/products/bash/release-mq.sh -n {{NAMESPACE}} -r mq-eei -i image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}/mq-eei:latest -q eei"
       workspaces:
       - name: git-source
         workspace: git-source
