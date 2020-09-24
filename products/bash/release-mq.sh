@@ -17,7 +17,8 @@
 #   -r : <release_name> (string), Defaults to "mq-demo"
 #   -i : <image_name> (string)
 #   -q : <qm_name> (string), Defaults to "QUICKSTART"
-#   -t : optional flag to enable tracing
+#   -z : <tracing_namespace> (string), Defaults to "namespace"
+#   -t : <tracing_enabled> (boolean), optional flag to enable tracing, Defaults to false
 #
 # USAGE:
 #   With defaults values
@@ -27,16 +28,20 @@
 #     ./release-mq -n cp4i -r mq-demo -i image-registry.openshift-image-registry.svc:5000/cp4i/mq-ddd -q mq-qm
 
 function usage {
-    echo "Usage: $0 -n <namespace> -r <release_name> -i <image_name> -q <qm_name> [-t]"
+    echo "Usage: $0 -n <namespace> -r <release_name> -i <image_name> -q <qm_name> -z <tracing_namespace> [-t]"
     exit 1
 }
 
 namespace="cp4i"
 release_name="mq-demo"
 qm_name="QUICKSTART"
-tracing="false"
+tracing_namespace=""
+tracing_enabled="false"
+CURRENT_DIR=$(dirname $0)
+echo "Current directory: $CURRENT_DIR"
+echo "Namespace: $namespace"
 
-while getopts "n:r:i:q:t" opt; do
+while getopts "n:r:i:q:z:t" opt; do
   case ${opt} in
     n ) namespace="$OPTARG"
       ;;
@@ -46,12 +51,26 @@ while getopts "n:r:i:q:t" opt; do
       ;;
     q ) qm_name="$OPTARG"
       ;;
-    t ) tracing=true
+    z ) tracing_namespace="$OPTARG"
+      ;;
+    t ) tracing_enabled=true
       ;;
     \? ) usage; exit
       ;;
   esac
 done
+
+
+
+# when called from install.sh
+if [ "$tracing_enabled" == "true" ] ; then
+   if [ -z "$tracing_namespace" ]; then tracing_namespace=${namespace} ; fi  
+else 
+    # assgining value to tracing_namespace b/c empty values causes CR to throw an error
+    tracing_namespace=${namespace}
+fi
+
+echo "[INFO] tracing is set to $tracing_enabled"
 
 if [ -z $image_name ]; then
 
@@ -82,8 +101,8 @@ spec:
   web:
     enabled: true
   tracing:
-    enabled: ${tracing}
-    namespace: ${namespace}
+    enabled: ${tracing_enabled}
+    namespace: ${tracing_namespace}
 EOF
 
 else
@@ -135,8 +154,29 @@ spec:
   version: 9.2.0.0-r1
   web:
     enabled: true
+  tracing:
+    enabled: ${tracing_enabled}
+    namespace: ${tracing_namespace}
 EOF
 
+  # -------------------------------------- Register Tracing ---------------------------------------------------------------------
+oc get secrets icp4i-od-store-cred -n ${namespace}
+if [ $? -ne 0 ] && [ "$tracing_enabled" == "true"  ] ; then
+ echo "[INFO] secret icp4i-od-store-cred does not exist in ${namespace}, running tracing registration"
+    echo "Tracing_Namespace= ${tracing_namespace}"
+    echo "Namespace= ${namespace}"
+      if ! ${CURRENT_DIR}/register-tracing.sh -n $tracing_namespace -a ${namespace} ; then
+        echo "INFO: Running with test environment flag"
+        echo "ERROR: Failed to register tracing in project '$namespace'"
+        exit 1
+      fi   
+ else
+    if [ "$tracing_enabled" == "false" ]; then 
+        echo "[INFO] Tracing Registration not need. Tracing set to $tracing_enabled"
+     else
+        echo "[INFO] secret icp4i-od-store-cred exist, no need to run tracing registration"
+    fi
+ fi
   # -------------------------------------- INSTALL JQ ---------------------------------------------------------------------
 
   echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
@@ -188,7 +228,14 @@ EOF
 
     numberOfMatchesForImageTag=0
 
+  if [ "${tracing_enabled}" == "true" ]; then
+    allCorrespondingPods=$(oc get pods -n $namespace | grep $release_name | grep 3/3 | grep Running | awk '{print $1}')
+  else
     allCorrespondingPods=$(oc get pods -n $namespace | grep $release_name | grep 1/1 | grep Running | awk '{print $1}')
+  fi
+
+  echo "[INFO] Total pods for mq $allCorrespondingPods"
+
     for eachMQPod in $allCorrespondingPods
       do
         echo -e "\nINFO: For MQ demo pod '$eachMQPod':"

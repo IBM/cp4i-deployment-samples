@@ -14,6 +14,7 @@
 #
 # PARAMETERS:
 #   -n : <namespace> (string), Defaults to "cp4i"
+#   -a : <apps_namespace> (string), Defaults to "-n namespace"
 #
 # USAGE:
 #   With defaults values
@@ -27,25 +28,31 @@
 # }
 #
 namespace="cp4i"
+apps_namespace=""
 
 SCRIPT_DIR="$(dirname $0)"
 echo "Current Dir: $SCRIPT_DIR"
 
-while getopts "n:" opt; do
+while getopts "n:a:" opt; do
   case ${opt} in
     n ) namespace="$OPTARG"
+      ;;
+    a ) apps_namespace="$OPTARG"
       ;;
     \? ) usage; exit
       ;;
   esac
 done
 
-echo "Registering apps in ${namespace} project for tracing"
+if [ -z "$apps_namespace" ]; then 
+  apps_namespace=${namespace}
+fi
+
+echo "Registering apps in ${apps_namespace} project for tracing"
 
 echo "Waiting for tracing registration jobs to complete..."
 for i in `seq 1 60`; do
-
-  TRACING_JOB_PODS=$(kubectl get pods -n ${namespace} | grep -E '(tracing-reg|odtracing|od-registration)')
+  TRACING_JOB_PODS=$(kubectl get pods -n ${apps_namespace} | grep -E '(tracing-reg|odtracing|od-registration)')
   all_completed="true"
   while IFS= read -r line; do
     state=$(echo $line | awk '{print $3}')
@@ -108,7 +115,7 @@ done
 echo "Running registration jar"
 # Loop/retry here, job to request regustration may not have run yet
 for i in `seq 1 60`; do
-  if oc exec -n ${namespace} ${TRACING_POD} -c ui-manager -- java -cp /usr/local/tomee/derby/derbyclient.jar:/tmp/NameSpaceAutoRegistration.jar org.montier.tracing.demo.NameSpaceAutoRegistration ${namespace} > commands.sh; then
+  if oc exec -n ${namespace} ${TRACING_POD} -c ui-manager -- java -cp /usr/local/tomee/derby/derbyclient.jar:/tmp/NameSpaceAutoRegistration.jar org.montier.tracing.demo.NameSpaceAutoRegistration ${apps_namespace} > commands.sh; then
     echo "Registration successful"
 		break
   else
@@ -121,6 +128,7 @@ for i in `seq 1 60`; do
   fi
 done
 
-echo "Creating secret in ${namespace} namespace"
+# test namespace
+echo "Creating secret in ${apps_namespace} namespace"
 chmod +x ./commands.sh
 . ./commands.sh
