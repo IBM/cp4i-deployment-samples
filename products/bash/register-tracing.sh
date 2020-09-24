@@ -14,7 +14,7 @@
 #
 # PARAMETERS:
 #   -n : <namespace> (string), Defaults to "cp4i"
-#   -e : <test_environment> (flag), Defaults to "false"
+#   -a : <apps_namespace> (string), Defaults to "-n namespace"
 #
 # USAGE:
 #   With defaults values

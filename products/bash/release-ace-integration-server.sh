@@ -13,7 +13,8 @@
 #   -n : <namespace> (string), Defaults to "cp4i"
 #   -r : <is_release_name> (string), Defaults to "ace-is"
 #   -i : <is_image_name> (string), Defaults to "image-registry.openshift-image-registry.svc:5000/cp4i/ace-11.0.0.9-r2:new-1"
-#   -z : <tracing_namespace> (string), Defaults to ""
+#   -z : <tracing_namespace> (string), Defaults to "-n namespace"
+#   -t : <tracing_enabled> (boolean), optional flag to enable tracing, Defaults to false
 #
 # USAGE:
 #   With defaults values
@@ -134,17 +135,10 @@ if [ "$tracing_enabled" == "true" ]; then
     echo "[INFO] secret icp4i-od-store-cred does not exist in ${namespace}, running tracing registration"
     echo "Tracing_Namespace= ${tracing_namespace}"
     echo "Namespace= ${namespace}"
-    if [ "${namespace}" == "${tracing_namespace}" ]; then
-      if ! ${CURRENT_DIR}/register-tracing.sh -n $tracing_namespace; then
-        echo "ERROR: Failed to register tracing in project '$namespace'"
-        exit 1
-      fi
-    else
-      if ! ${CURRENT_DIR}/register-tracing.sh -n $tracing_namespace -a ${namespace} ; then
-        echo "INFO: Running with test environment flag"
-        echo "ERROR: Failed to register tracing in project '$namespace'"
-        exit 1
-      fi
+    if ! ${CURRENT_DIR}/register-tracing.sh -n $tracing_namespace -a ${namespace} ; then
+      echo "INFO: Running with test environment flag"
+      echo "ERROR: Failed to register tracing in project '$namespace'"
+      exit 1
     fi
   else
     echo "[INFO] secret icp4i-od-store-cred exist, no need to run tracing registration"
