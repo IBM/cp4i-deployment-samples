@@ -54,7 +54,7 @@ echo "INFO: Current directory: '$CURRENT_DIR'"
 echo "INFO: Namespace: '$NAMESPACE'"
 echo "INFO: Elastic search CR name: '$NAME'"
 echo "INFO: Elastic search subscription: '$ELASTIC_SUBCRIPTION_NAME'"
-echo "INFO: Suffix for the postgres is: '$SUFFIX'"
+echo "INFO: Suffix is: '$SUFFIX'"
 
 oc create namespace $NAMESPACE
 
