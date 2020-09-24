@@ -106,7 +106,7 @@ PIPELINE_RUN_NAME="eei-build-pipelinerun-${PIPELINERUN_UID}"
 echo "INFO: Creating the pipelinerun for the EEI apps in the '$namespace' namespace with name '$PIPELINE_RUN_NAME'"
 if cat $CURRENT_DIR/pipelinerun.yaml |
   sed "s#{{PIPELINE_RUN_NAME}}#$PIPELINE_RUN_NAME#g;" |
-  oc apply -f -; then
+  oc apply -n ${namespace} -f -; then
   echo -e "\n$tick INFO: Successfully applied the pipelinerun for the EEI apps in the '$namespace' namespace"
 else
   echo -e "\n$cross ERROR: Failed to apply the pipelinerun for the EEI apps in the '$namespace' namespace"
@@ -117,7 +117,7 @@ echo -e "\n---------------------------------------------------------------------
 
 pipelinerunSuccess="false";
 echo -e "INFO: Displaying the pipelinerun logs: \n"
-if ! $TKN pipelinerun logs -f $PIPELINE_RUN_NAME; then
+if ! $TKN pipelinerun logs -n $namespace -f $PIPELINE_RUN_NAME; then
   echo -e "\n$cross ERROR: Failed to get the pipelinerun logs successfully"
 fi
 
@@ -133,7 +133,7 @@ echo -e "\nINFO: Going ahead to delete the pipelinerun instance to delete the re
 
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
-if oc delete pipelinerun -n $namespace $(oc get pipelinerun -n $namespace | grep $PIPELINERUN_UID | awk '{print $1}'); then
+if oc delete pipelinerun -n $namespace $PIPELINE_RUN_NAME ; then
   echo -e "$tick INFO: Deleted the pipelinerun with the uid '$PIPELINERUN_UID'"
 else
   echo -e "$cross ERROR: Failed to delete the pipelinerun with the uid '$PIPELINERUN_UID'"
@@ -157,7 +157,7 @@ else
   oc get deployment -n $namespace -l demo=eei
   echo -e "\nINFO: To start the quote simulator app run the command 'oc scale deployment/quote-simulator-eei --replicas=1'"
   echo "INFO: To start the projection claims app run the command 'oc scale deployment/projection-claims-eei --replicas=1'"
-  PC_ROUTE=$(oc get route projection-claims-eei --template='https://{{.spec.host}}/getalldata')
+  PC_ROUTE=$(oc get route -n $namespace projection-claims-eei --template='https://{{.spec.host}}/getalldata')
   echo -e "INFO: To view the projection claims (once the app is running), navigate to:\n${PC_ROUTE}\n"
 fi
 
