@@ -229,7 +229,7 @@ if [ "$post_response_code" == "200" ]; then
 
   # ------- Get from the database -------
   echo -e "\nINFO: GET request..."
-  get_response=$(curl -ksw " %{http_code}" ${HOST}/quote?QuoteID=${quote_id} -H "authentication: basic ${API_AUTH}" -H "X-IBM-Client-Id: ${CLIENT_ID}")
+  get_response=$(curl -ksw " %{http_code}" ${HOST}/quote?QuoteID=${quote_id} -H "authorization: Basic ${API_AUTH}" -H "X-IBM-Client-Id: ${CLIENT_ID}")
   get_response_code=$(echo "${get_response##* }")
 
   if [ "$get_response_code" == "200" ]; then
