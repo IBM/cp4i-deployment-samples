@@ -127,7 +127,6 @@ cat <<EOF | oc apply -f -
 apiVersion: operators.coreos.com/v1alpha1
 kind: Subscription
 metadata:
-  generation: 1
   name: $ELASTIC_SUBCRIPTION_NAME
   namespace: $ELASTIC_NAMESPACE
 spec:
