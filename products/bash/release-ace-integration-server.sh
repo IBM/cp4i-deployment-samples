@@ -84,7 +84,7 @@ spec:
   service:
     endpointType: http
   useCommonServices: true
-  version: 11.0.0
+  version: 11.0.0.9
 EOF
 
 # -------------------------------------- INSTALL JQ ---------------------------------------------------------------------

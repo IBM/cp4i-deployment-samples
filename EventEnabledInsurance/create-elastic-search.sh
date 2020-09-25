@@ -109,7 +109,9 @@ function wait_for_subscription {
   echo "$NAME has succeeded"
 }
 
-cat <<EOF | oc apply -f -
+
+if [[ "$NAMESPACE" != "$ELASTIC_NAMESPACE" ]]; then
+  cat <<EOF | oc apply -f -
 apiVersion: operators.coreos.com/v1
 kind: OperatorGroup
 metadata:
@@ -118,9 +120,10 @@ metadata:
 spec:
   targetNamespaces:
     - $ELASTIC_NAMESPACE
+EOF
+fi
 
----
-
+cat <<EOF | oc apply -f -
 apiVersion: operators.coreos.com/v1alpha1
 kind: Subscription
 metadata:
@@ -169,7 +172,7 @@ spec:
                 limits:
                   memory: 4Gi
                   cpu: 2
-      count: 3
+      count: 1
 EOF
 
 time=0
