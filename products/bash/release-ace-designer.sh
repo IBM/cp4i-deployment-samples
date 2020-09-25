@@ -63,7 +63,7 @@ spec:
     license: L-AMYG-BQ2E4U
     use: CloudPakForIntegrationNonProduction
   replicas: 1
-  version: 11.0.0
+  version: 11.0.0.9
   designerMappingAssist:
     enabled: true
 EOF
