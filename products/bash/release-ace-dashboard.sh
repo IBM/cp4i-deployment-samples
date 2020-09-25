@@ -60,5 +60,5 @@ spec:
   storage:
     class: ibmc-file-gold-gid
     type: persistent-claim
-  version: 11.0.0
+  version: 11.0.0.9
 EOF
