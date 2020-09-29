@@ -48,7 +48,7 @@ metadata:
   name: ${release_name}
   namespace: ${namespace}
 spec:
-  version: 10.0.0
+  version: 10.1.0
   license:
     accept: true
     use: CloudPakForIntegrationNonProduction
@@ -65,9 +65,9 @@ spec:
     kafka:
       replicas: 3
       config:
-        inter.broker.protocol.version: '2.5'
+        inter.broker.protocol.version: '2.6'
         interceptor.class.names: com.ibm.eventstreams.interceptors.metrics.ProducerMetricsInterceptor
-        log.message.format.version: '2.5'
+        log.message.format.version: '2.6'
         offsets.topic.replication.factor: 1
         transaction.state.log.min.isr: 1
         transaction.state.log.replication.factor: 1
