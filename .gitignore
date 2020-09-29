@@ -1,7 +1,5 @@
 .DS_Store
-DefaultPolicies
 tmp
-policyproject.zip
 delete.sh
 run.sh
 postgres.env

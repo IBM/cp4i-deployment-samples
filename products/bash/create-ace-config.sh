@@ -32,7 +32,8 @@ DB_NAME="db_cp4i"
 DB_PASS=""
 SUFFIX="ddd"
 CURRENT_DIR=$(dirname $0)
-CONFIG_YAML=$CURRENT_DIR/tmp/configuration.yaml
+CONFIG_DIR=$CURRENT_DIR/tmp
+CONFIG_YAML=$CONFIG_DIR/configuration.yaml
 API_USER="bruce"
 API_PASS=$(LC_ALL=C tr -dc 'A-Za-z0-9' </dev/urandom | head -c 16 ; echo)
 KEYSTORE_PASS=$(LC_ALL=C tr -dc 'A-Za-z0-9' </dev/urandom | head -c 16 ; echo)
@@ -52,7 +53,7 @@ function buildConfigurationCR {
   echo "  name: $name" >> $CONFIG_YAML
   echo "  namespace: $NAMESPACE" >> $CONFIG_YAML
   echo "spec:" >> $CONFIG_YAML
-  echo "  contents: $(base64 $file)" >> $CONFIG_YAML
+  echo "  contents: $(base64 -w0 $file)" >> $CONFIG_YAML
   echo "  type: $type" >> $CONFIG_YAML
   echo "---" >> $CONFIG_YAML
 }
@@ -78,7 +79,7 @@ done
 
 if [[ $SUFFIX == "ddd" ]]; then
   TYPES=("serverconf" "keystore" "policyproject" "setdbparms")
-  FILES=("tmp/server.conf.yaml" "tmp/keystore.p12" "DefaultPolicies" "tmp/setdbparms.txt")
+  FILES=("server.conf.yaml" "keystore.p12" "DefaultPolicies" "setdbparms.txt")
   NAMES=("ace-serverconf" "ace-keystore" "ace-policyproject-$SUFFIX" "ace-setdbparms")
 else
   TYPES=("policyproject")
@@ -95,8 +96,11 @@ CURRENT_DIR=$(dirname $0)
 echo "Current directory: $CURRENT_DIR"
 
 # Clean up any exisitng configuration files
-[[ -d $CURRENT_DIR/tmp ]] && rm -rf $CURRENT_DIR/tmp
-[[ -d $CURRENT_DIR/DefaultPolicies ]] && rm -rf $CURRENT_DIR/DefaultPolicies
+[[ -d $CONFIG_DIR ]] && rm -rf $CONFIG_DIR
+
+echo "[INFO]  Creating directories for default policies"
+mkdir -p $CONFIG_DIR
+mkdir -p $CONFIG_DIR/DefaultPolicies
 
 # Store ace api password in secret
 cat << EOF | oc apply -f -
@@ -122,17 +126,11 @@ echo "[INFO]  Database name: '$DB_NAME'"
 echo "[INFO]  Postgres pod name in the '$POSTGRES_NAMESPACE' namespace: '$DB_POD'"
 echo "[INFO]  Postgres svc name: '$DB_SVC'"
 
-echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
-
-echo "[INFO]  Creating directories for default policies"
-mkdir -p $CURRENT_DIR/tmp
-mkdir -p $CURRENT_DIR/DefaultPolicies
-
 if [[ $SUFFIX == "ddd" ]]; then
   echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
   echo "[INFO]  Creating mq policy"
-  cat << EOF > $CURRENT_DIR/DefaultPolicies/MQEndpointPolicy.policyxml
+  cat << EOF > $CONFIG_DIR/DefaultPolicies/MQEndpointPolicy.policyxml
 <?xml version="1.0" encoding="UTF-8"?>
 <policies>
   <policy policyType="MQEndpoint" policyName="MQEndpointPolicy" policyTemplate="MQEndpoint">
@@ -152,7 +150,7 @@ EOF
   echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
   echo "[INFO] Creating basic auth policy"
-  cat << EOF > $CURRENT_DIR/DefaultPolicies/BasicAuthPolicy.policyxml
+  cat << EOF > $CONFIG_DIR/DefaultPolicies/BasicAuthPolicy.policyxml
 <policies>
   <policy policyType="SecurityProfiles" policyName="BasicAuthPolicy">
     <authentication>Local</authentication>
@@ -164,10 +162,10 @@ EOF
   echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
   echo "[INFO] Creating keystore"
-  CERTS_KEY_BUNDLE=$CURRENT_DIR/tmp/certs-key.pem
-  CERTS=$CURRENT_DIR/tmp/certs.pem
-  KEY=$CURRENT_DIR/tmp/key.pem
-  KEYSTORE=$CURRENT_DIR/tmp/keystore.p12
+  CERTS_KEY_BUNDLE=$CONFIG_DIR/certs-key.pem
+  CERTS=$CONFIG_DIR/certs.pem
+  KEY=$CONFIG_DIR/key.pem
+  KEYSTORE=$CONFIG_DIR/keystore.p12
   oc get secret -n openshift-config-managed router-certs -o json | jq -r '.data | .[]' | base64 --decode > $CERTS_KEY_BUNDLE
   openssl crl2pkcs7 -nocrl -certfile $CERTS_KEY_BUNDLE | openssl pkcs7 -print_certs -out $CERTS
   openssl pkey -in $CERTS_KEY_BUNDLE -out $KEY
@@ -176,7 +174,7 @@ EOF
   echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
   echo "[INFO] Creating server conf"
-  cat << EOF > $CURRENT_DIR/tmp/server.conf.yaml
+  cat << EOF > $CONFIG_DIR/server.conf.yaml
 serverConfVersion: 1
 forceServerHTTPS: true
 forceServerHTTPSecurityProfile: '{DefaultPolicies}:BasicAuthPolicy'
@@ -190,7 +188,7 @@ EOF
   echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
   echo "[INFO]  Creating setdbparms.txt"
-  cat << EOF > $CURRENT_DIR/tmp/setdbparms.txt
+  cat << EOF > $CONFIG_DIR/setdbparms.txt
 local::basicAuthOverride $API_USER $API_PASS
 brokerKeystore::password ignore $KEYSTORE_PASS
 EOF
@@ -199,7 +197,7 @@ fi
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
 echo "[INFO] Creating postgresql policy"
-cat << EOF > $CURRENT_DIR/DefaultPolicies/PostgresqlPolicy.policyxml
+cat << EOF > $CONFIG_DIR/DefaultPolicies/PostgresqlPolicy.policyxml
 <?xml version="1.0" encoding="UTF-8"?>
 <policies>
   <policy policyType="JDBCProviders" policyName="PostgresqlPolicy" policyTemplate="DB2_91">
@@ -231,7 +229,7 @@ EOF
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
 echo "[INFO] Creating policy descriptor"
-cat << EOF > $CURRENT_DIR/DefaultPolicies/policy.descriptor
+cat << EOF > $CONFIG_DIR/DefaultPolicies/policy.descriptor
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <ns2:policyProjectDescriptor xmlns="http://com.ibm.etools.mft.descriptor.base" xmlns:ns2="http://com.ibm.etools.mft.descriptor.policyProject">
   <references/>
@@ -243,10 +241,10 @@ echo -e "\n---------------------------------------------------------------------
 # Generate configuration yaml
 echo "[INFO]  Generating configuration yaml"
 for i in ${!NAMES[@]}; do
-  file=$CURRENT_DIR/${FILES[$i]}
-  if [[ -d $CURRENT_DIR/${FILES[$i]} ]]; then
-    python -m zipfile -c $CURRENT_DIR/${file}.zip $file/
-    file=$CURRENT_DIR/${file}.zip
+  file=$CONFIG_DIR/${FILES[$i]}
+  if [[ -d $file ]]; then
+    python -m zipfile -c $file.zip $file/
+    file=$file.zip
   fi
   buildConfigurationCR ${TYPES[$i]} ${NAMES[$i]} $file
 done
