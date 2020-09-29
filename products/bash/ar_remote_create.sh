@@ -67,10 +67,10 @@ for i in `seq 1 60`; do
         token=`jq -r '.access_token' <<< "$token_response"`
         break
     else
-      echo "Error: Failed to parse JSON, $token_response. (Attempt $i of 20)."
+      echo "Error: Failed to parse JSON, $token_response. (Attempt $i of 60)."
     fi
   else
-    echo "Error: No token found (Attempt $i of 20)"
+    echo "Error: No token found (Attempt $i of 60)"
   fi
   echo "Checking again in 10 seconds..."
   sleep 10
