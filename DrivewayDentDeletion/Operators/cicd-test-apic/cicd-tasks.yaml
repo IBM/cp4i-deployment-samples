@@ -79,7 +79,7 @@ spec:
   steps:
     - name: oc
       image: quay.io/openshift/origin-cli:latest
-      script: "/workspace/git-source/products/bash/$(params.releaseScript) -n $(params.namespace) -r $(params.releaseName) -i image-registry.openshift-image-registry.svc:5000/$(params.namespace)/$(params.imageName):$(params.imageTag)"
+      script: "/workspace/git-source/products/bash/$(params.releaseScript) -n $(params.namespace) -r $(params.releaseName) -i image-registry.openshift-image-registry.svc:5000/$(params.namespace)/$(params.imageName):$(params.imageTag) {{TRACING}}"
 
 ---
 

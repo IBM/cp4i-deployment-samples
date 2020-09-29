@@ -13,35 +13,59 @@
 #   -n : <namespace> (string), Defaults to "cp4i"
 #   -r : <is_release_name> (string), Defaults to "ace-is"
 #   -i : <is_image_name> (string), Defaults to "image-registry.openshift-image-registry.svc:5000/cp4i/ace-11.0.0.9-r2:new-1"
+#   -z : <tracing_namespace> (string), Defaults to "-n namespace"
+#   -t : <tracing_enabled> (boolean), optional flag to enable tracing, Defaults to false
 #
 # USAGE:
 #   With defaults values
-#     ./release-ace-is.sh
+#     ./release-ace-integration-server.sh
 #
 #   Overriding the namespace and release-name
-#     ./release-ace-is -n cp4i -r cp4i-bernie-ace
+#     ./release-ace-integration-server -n cp4i -r cp4i-bernie-ace
 
 function usage {
-    echo "Usage: $0 -n <namespace> -r <is_release_name> -i <is_image_name>"
-    exit 1
+  echo "Usage: $0 -n <namespace> -r <is_release_name> -i <is_image_name> -t -z <tracing_namespace>"
+  exit 1
 }
 
 namespace="cp4i"
 is_release_name="ace-is"
 is_image_name="image-registry.openshift-image-registry.svc:5000/cp4i/ace-11.0.0.9-r2:new-1"
+tracing_namespace=""
+tracing_enabled="false"
+CURRENT_DIR=$(dirname $0)
+echo "Current directory: $CURRENT_DIR"
 
-while getopts "n:r:i:" opt; do
+while getopts "n:r:i:z:t" opt; do
   case ${opt} in
-    n ) namespace="$OPTARG"
-      ;;
-    r ) is_release_name="$OPTARG"
-      ;;
-    i ) is_image_name="$OPTARG"
-      ;;
-    \? ) usage; exit
-      ;;
+  n)
+    namespace="$OPTARG"
+    ;;
+  r)
+    is_release_name="$OPTARG"
+    ;;
+  i)
+    is_image_name="$OPTARG"
+    ;;
+  z)
+    tracing_namespace="$OPTARG"
+    ;;
+  t)
+    tracing_enabled=true
+    ;;
+  \?)
+    usage
+    exit
+    ;;
   esac
 done
+
+if [ "$tracing_enabled" == "true" ] ; then
+   if [ -z "$tracing_namespace" ]; then tracing_namespace=${namespace} ; fi  
+else 
+    # assgining value to tracing_namespace b/c empty values causes CR to throw an error
+    tracing_namespace=${namespace}
+fi
 
 # ------------------------------------------------ FIND IMAGE TAG --------------------------------------------------
 
@@ -56,11 +80,14 @@ if [[ -z "$imageTag" ]]; then
   exit 1
 fi
 
+
+echo "[INFO] tracing is set to $tracing_enabled"
+
 echo -e "INFO: Going ahead to apply the CR for '$is_release_name'"
 
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
-cat << EOF | oc apply -f -
+cat <<EOF | oc apply -f -
 apiVersion: appconnect.ibm.com/v1beta1
 kind: IntegrationServer
 metadata:
@@ -84,9 +111,39 @@ spec:
   service:
     endpointType: http
   useCommonServices: true
-  version: 11.0.0.9
+  version: 11.0.0.9-r3
+  tracing:
+    enabled: ${tracing_enabled}
+    namespace: ${tracing_namespace}
 EOF
 
+timer=0
+echo "[INFO] tracing is set to $tracing_enabled"
+if [ "$tracing_enabled" == "true" ]; then
+  while ! oc get secrets icp4i-od-store-cred -n ${namespace}; do
+    echo "Waiting for the secret icp4i-od-store-cred to get created"
+    if [ $timer -gt 5 ]; then
+      echo "Secret icp4i-od-store-cred didn't get created in  ${namespace}, going to create the secret next "
+      break
+      timer=$((timer + 1))
+    fi
+    sleep 60
+  done
+
+  # -------------------------------------- Register Tracing ---------------------------------------------------------------------
+  if  ! oc get secrets icp4i-od-store-cred -n ${namespace} ; then
+    echo "[INFO] secret icp4i-od-store-cred does not exist in ${namespace}, running tracing registration"
+    echo "Tracing_Namespace= ${tracing_namespace}"
+    echo "Namespace= ${namespace}"
+    if ! ${CURRENT_DIR}/register-tracing.sh -n $tracing_namespace -a ${namespace} ; then
+      echo "INFO: Running with test environment flag"
+      echo "ERROR: Failed to register tracing in project '$namespace'"
+      exit 1
+    fi
+  else
+    echo "[INFO] secret icp4i-od-store-cred exist, no need to run tracing registration"
+  fi
+fi
 # -------------------------------------- INSTALL JQ ---------------------------------------------------------------------
 
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
@@ -134,7 +191,7 @@ time=0
 
 # wait for 10 minutes for all replica pods to be deployed with new image
 while [ $numberOfMatchesForImageTag -ne $numberOfReplicas ]; do
-  if [ $time -gt 10 ]; then
+  if [ $time -gt 15 ]; then
     echo "ERROR: Timed-out trying to wait for all $is_release_name demo pods to be deployed with a new image containing the image tag '$imageTag'"
     echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
     exit 1
@@ -142,18 +199,24 @@ while [ $numberOfMatchesForImageTag -ne $numberOfReplicas ]; do
 
   numberOfMatchesForImageTag=0
 
-  allCorrespondingPods=$(oc get pods -n $namespace | grep $is_release_name | grep 1/1 | grep Running | awk '{print $1}')
+  if [ "${tracing_enabled}" == "true" ]; then
+    allCorrespondingPods=$(oc get pods -n $namespace | grep $is_release_name | grep 3/3 | grep Running | awk '{print $1}')
+  else
+    allCorrespondingPods=$(oc get pods -n $namespace | grep $is_release_name | grep 1/1 | grep Running | awk '{print $1}')
+  fi
+
+  echo "[INFO] Total pods for ACE Integration Server $allCorrespondingPods"
+
   echo -e "\nINFO: For ACE Integration server '$is_release_name':"
-  for eachAcePod in $allCorrespondingPods
-    do
-      imageInPod=$(oc get pod $eachAcePod -n $namespace -o json | ./jq -r '.spec.containers[0].image')
-      echo "INFO: Image present in the pod '$eachAcePod' is '$imageInPod'"
-      if [[ $imageInPod == *:$imageTag ]]; then
-        echo "INFO: Image tag matches.."
-        numberOfMatchesForImageTag=$((numberOfMatchesForImageTag + 1))
-      else
-        echo "INFO: Image tag '$imageTag' is not present in the image of the pod '$eachAcePod'"
-      fi
+  for eachAcePod in $allCorrespondingPods; do
+    imageInPod=$(oc get pod $eachAcePod -n $namespace -o json | ./jq -r '.spec.containers[0].image')
+    echo "INFO: Image present in the pod '$eachAcePod' is '$imageInPod'"
+    if [[ $imageInPod == *:$imageTag ]]; then
+      echo "INFO: Image tag matches.."
+      numberOfMatchesForImageTag=$((numberOfMatchesForImageTag + 1))
+    else
+      echo "INFO: Image tag '$imageTag' is not present in the image of the pod '$eachAcePod'"
+    fi
   done
 
   echo -e "\nINFO: Total $is_release_name demo pods deployed with new image: $numberOfMatchesForImageTag"

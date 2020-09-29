@@ -72,8 +72,8 @@ function wait_for_subscription {
 
     if [[ "$wait" == "1" ]]; then
       ((time=time+$wait_time))
-      if [ $time -gt 1200 ]; then
-        echo "ERROR: Failed after waiting for 20 minutes"
+      if [ $time -gt 7200 ]; then
+        echo "ERROR: Failed after waiting for 120 minutes"
         exit 1
       fi
 
@@ -128,10 +128,27 @@ spec:
     - ${namespace}
 EOF
 
-# Install common services operator with stable channel
-echo "INFO: Applying common services subscription"
+echo "INFO: Applying individual subscriptions for cp4i dependencies"
 create_subscription ${namespace} "opencloud-operators" "ibm-common-service-operator" "stable-v1"
-echo "INFO: Common services csv installed, proceeding with installation"
+create_subscription ${namespace} "certified-operators" "couchdb-operator-certified" "v1.2"
+create_subscription ${namespace} "ibm-operator-catalog" "ibm-cloud-databases-redis-operator" "v1.1"
+create_subscription ${namespace} "ibm-operator-catalog" "aspera-hsts-operator" "v1.1"
+create_subscription ${namespace} "ibm-operator-catalog" "datapower-operator" "v1.0"
+create_subscription ${namespace} "ibm-operator-catalog" "ibm-appconnect" "v1.0"
+create_subscription ${namespace} "ibm-operator-catalog" "ibm-eventstreams" "v2.1"
+create_subscription ${namespace} "ibm-operator-catalog" "ibm-mq" "v1.1"
+create_subscription ${namespace} "ibm-operator-catalog" "ibm-integration-operations-dashboard" "v1.0"
+create_subscription ${namespace} "ibm-operator-catalog" "ibm-integration-asset-repository" "v1.0"
+
+# Apply the subscription for navigator. This needs to be before apic so apic knows it's running in cp4i
+echo "INFO: Applying subscription for platform navigator"
+create_subscription ${namespace} "ibm-operator-catalog" "ibm-integration-platform-navigator" "v4.0"
+
+create_subscription ${namespace} "ibm-operator-catalog" "ibm-apiconnect" "v1.0"
+
+# echo "INFO: Applying the subscription for the uber operator"
+# create_subscription ${namespace} "ibm-operator-catalog" "ibm-cp-integration" "v1.0"
+# echo "INFO: ClusterServiceVersion for the Platform Navigator is now installed, proceeding with installation..."
 
 # Wait for upto 10 minutes for the OperandConfig to appear in the common services namespace
 time=0
@@ -147,19 +164,3 @@ done
 echo "INFO: Operand config common-services found: $(oc get OperandConfig -n ibm-common-services | sed -n 2p | awk '{print $1}')"
 echo "INFO: Proceeding with updating the OperandConfig to enable Openshift Authentication..."
 IAM_Update_OperandConfig
-
-# Apply the subscription for navigator. This needs to be before apic so apic knows it's running in cp4i
-echo "INFO: Applying subscription for platform navigator"
-create_subscription ${namespace} "ibm-operator-catalog" "ibm-integration-platform-navigator" "v4.0"
-
-# Applying subscriptions for apic and eventstreams
-echo "INFO: Applying subscriptions for ace, apic, eventstreams, and mq"
-create_subscription ${namespace} "ibm-operator-catalog" "ibm-apiconnect" "v1.0"
-create_subscription ${namespace} "ibm-operator-catalog" "ibm-appconnect" "v1.0"
-create_subscription ${namespace} "ibm-operator-catalog" "ibm-eventstreams" "v2.0"
-create_subscription ${namespace} "ibm-operator-catalog" "ibm-mq" "v1.1"
-
-# Apply uber operator
-echo "INFO: Applying the subscription for the uber operator"
-create_subscription ${namespace} "ibm-operator-catalog" "ibm-cp-integration" "v1.0"
-echo "INFO: ClusterServiceVersion for the Platform Navigator is now installed, proceeding with installation..."
