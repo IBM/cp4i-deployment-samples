@@ -61,8 +61,8 @@ while getopts "n:r:i:z:t" opt; do
 done
 
 if [ "$tracing_enabled" == "true" ] ; then
-   if [ -z "$tracing_namespace" ]; then tracing_namespace=${namespace} ; fi  
-else 
+   if [ -z "$tracing_namespace" ]; then tracing_namespace=${namespace} ; fi
+else
     # assgining value to tracing_namespace b/c empty values causes CR to throw an error
     tracing_namespace=${namespace}
 fi
@@ -103,7 +103,7 @@ spec:
   designerFlowsOperationMode: disabled
   license:
     accept: true
-    license: L-AMYG-BQ2E4U
+    license: L-APEH-BPUCJK
     use: CloudPakForIntegrationProduction
   replicas: 2
   router:
@@ -111,7 +111,7 @@ spec:
   service:
     endpointType: http
   useCommonServices: true
-  version: 11.0.0.9
+  version: 11.0.0.10-r1
   tracing:
     enabled: ${tracing_enabled}
     namespace: ${tracing_namespace}
