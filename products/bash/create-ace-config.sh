@@ -9,19 +9,18 @@
 #******************************************************************************
 
 # PARAMETERS:
-#   -n : <NAMESPACE> (string), Defaults to 'cp4i'
-#   -g : <POSTGRES_NAMESPACE> (string), Defaults to 'postgres'
-#   -u : <DB_USER> (string), Defaults to 'cp4i'
-#   -d : <DB_NAME> (string), Defaults to 'db_cp4i'
-#   -p : <DB_PASS> (string), Defaults to ''
-#   -a : <ACE_CONFIGURATION_NAME> (string), Defaults to 'ace-policyproject'
-#   -d : <DEBUG>
+#   -n : <NAMESPACE> (string), namespace defaults to 'cp4i'
+#   -g : <POSTGRES_NAMESPACE> psql namespace defaults to 'postgres'
+#   -u : <DB_USER> (string), psql db user defaults to 'cp4i'
+#   -d : <DB_NAME> (string), psql db name defaults to 'db_cp4i'
+#   -p : <DB_PASS> (string), psql db password defaults to ''
+#   -s : <SUFFIX> (string), project suffix defaults to 'ddd'
 #
 #   With defaults values
 #     ./create-ace-config.sh
 #
 #   With overridden values
-#     ./create-ace-config.sh -n <NAMESPACE> -g <POSTGRES_NAMESPACE> -u <DB_USER> -d <DB_NAME> -p <DB_PASS> -a <ACE_CONFIGURATION_NAME>
+#     ./create-ace-config.sh -n <NAMESPACE> -g <POSTGRES_NAMESPACE> -u <DB_USER> -d <DB_NAME> -p <DB_PASS> -s <SUFFIX>
 
 tick="\xE2\x9C\x85"
 cross="\xE2\x9D\x8C"
@@ -31,17 +30,15 @@ POSTGRES_NAMESPACE="postgres"
 DB_USER="cp4i"
 DB_NAME="db_cp4i"
 DB_PASS=""
-ACE_CONFIGURATION_NAME="ace-policyproject"
-TYPES=("serverconf" "keystore" "policyproject" "setdbparms")
-FILES=("tmp/serverconf.yaml" "tmp/keystore.p12" "DefaultPolicies" "tmp/setdbparms")
+SUFFIX="ddd"
 CURRENT_DIR=$(dirname $0)
 CONFIG_YAML=$CURRENT_DIR/tmp/configuration.yaml
-API_USER=bruce
+API_USER="bruce"
 API_PASS=$(LC_ALL=C tr -dc 'A-Za-z0-9' </dev/urandom | head -c 16 ; echo)
 KEYSTORE_PASS=$(LC_ALL=C tr -dc 'A-Za-z0-9' </dev/urandom | head -c 16 ; echo)
 
 function usage {
-  echo "Usage: $0 -n <NAMESPACE> -g <POSTGRES_NAMESPACE> -u <DB_USER> -d <DB_NAME> -p <DB_PASS> -a <ACE_CONFIGURATION_NAME>"
+  echo "Usage: $0 -n <NAMESPACE> -g <POSTGRES_NAMESPACE> -u <DB_USER> -d <DB_NAME> -p <DB_PASS> -s <SUFFIX>"
   exit 1
 }
 
@@ -60,7 +57,7 @@ function buildConfigurationCR {
   echo "---" >> $CONFIG_YAML
 }
 
-while getopts "n:g:u:d:p:a:" opt; do
+while getopts "n:g:u:d:p:s:" opt; do
   case ${opt} in
     n ) NAMESPACE="$OPTARG"
       ;;
@@ -72,16 +69,24 @@ while getopts "n:g:u:d:p:a:" opt; do
       ;;
     p ) DB_PASS="$OPTARG"
       ;;
-    a ) ACE_CONFIGURATION_NAME="$OPTARG"
+    s ) SUFFIX="$OPTARG"
       ;;
     \? ) usage; exit
       ;;
   esac
 done
 
-NAMES=("ace-serverconf" "ace-keystore" "$ACE_CONFIGURATION_NAME" "ace-setdbparms")
+if [[ $SUFFIX == "ddd" ]]; then
+  TYPES=("serverconf" "keystore" "policyproject" "setdbparms")
+  FILES=("tmp/server.conf.yaml" "tmp/keystore.p12" "DefaultPolicies" "tmp/setdbparms.txt")
+  NAMES=("ace-serverconf" "ace-keystore" "ace-policyproject-$SUFFIX" "ace-setdbparms")
+else
+  TYPES=("policyproject")
+  FILES=("DefaultPolicies")
+  NAMES=("ace-policyproject-$SUFFIX")
+fi
 
-if [[ -z "${DB_PASS// }" || -z "${NAMESPACE// }" || -z "${DB_USER// }" || -z "${DB_NAME// }" || -z "${POSTGRES_NAMESPACE// }" || -z "${ACE_CONFIGURATION_NAME// }" ]]; then
+if [[ -z "${DB_PASS// }" || -z "${NAMESPACE// }" || -z "${DB_USER// }" || -z "${DB_NAME// }" || -z "${POSTGRES_NAMESPACE// }" || -z "${SUFFIX// }" ]]; then
   echo -e "$cross ERROR: Some mandatory parameters are empty"
   usage
 fi
@@ -89,8 +94,9 @@ fi
 CURRENT_DIR=$(dirname $0)
 echo "Current directory: $CURRENT_DIR"
 
-# Clean up exisitng configuration
-[[ -f $CONFIG_YAML ]] && rm $CONFIG_YAML
+# Clean up any exisitng configuration files
+[[ -d $CURRENT_DIR/tmp ]] && rm -rf $CURRENT_DIR/tmp
+[[ -d $CURRENT_DIR/DefaultPolicies ]] && rm -rf $CURRENT_DIR/DefaultPolicies
 
 # Store ace api password in secret
 cat << EOF | oc apply -f -
@@ -122,8 +128,11 @@ echo "[INFO]  Creating directories for default policies"
 mkdir -p $CURRENT_DIR/tmp
 mkdir -p $CURRENT_DIR/DefaultPolicies
 
-echo "[INFO]  Creating mq policy"
-cat << EOF > $CURRENT_DIR/DefaultPolicies/MQEndpointPolicy.policyxml
+if [[ $SUFFIX == "ddd" ]]; then
+  echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
+
+  echo "[INFO]  Creating mq policy"
+  cat << EOF > $CURRENT_DIR/DefaultPolicies/MQEndpointPolicy.policyxml
 <?xml version="1.0" encoding="UTF-8"?>
 <policies>
   <policy policyType="MQEndpoint" policyName="MQEndpointPolicy" policyTemplate="MQEndpoint">
@@ -139,6 +148,53 @@ cat << EOF > $CURRENT_DIR/DefaultPolicies/MQEndpointPolicy.policyxml
   </policy>
 </policies>
 EOF
+
+  echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
+
+  echo "[INFO] Creating basic auth policy"
+  cat << EOF > $CURRENT_DIR/DefaultPolicies/BasicAuthPolicy.policyxml
+<policies>
+  <policy policyType="SecurityProfiles" policyName="BasicAuthPolicy">
+    <authentication>Local</authentication>
+    <authenticationConfig>basicAuthOverride</authenticationConfig>
+  </policy>
+</policies>
+EOF
+
+  echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
+
+  echo "[INFO] Creating keystore"
+  CERTS_KEY_BUNDLE=$CURRENT_DIR/tmp/certs-key.pem
+  CERTS=$CURRENT_DIR/tmp/certs.pem
+  KEY=$CURRENT_DIR/tmp/key.pem
+  KEYSTORE=$CURRENT_DIR/tmp/keystore.p12
+  oc get secret -n openshift-config-managed router-certs -o json | jq -r '.data | .[]' | base64 --decode > $CERTS_KEY_BUNDLE
+  openssl crl2pkcs7 -nocrl -certfile $CERTS_KEY_BUNDLE | openssl pkcs7 -print_certs -out $CERTS
+  openssl pkey -in $CERTS_KEY_BUNDLE -out $KEY
+  openssl pkcs12 -export -out $KEYSTORE -inkey $KEY -in $CERTS -password pass:$KEYSTORE_PASS
+
+  echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
+
+  echo "[INFO] Creating server conf"
+  cat << EOF > $CURRENT_DIR/tmp/server.conf.yaml
+serverConfVersion: 1
+forceServerHTTPS: true
+forceServerHTTPSecurityProfile: '{DefaultPolicies}:BasicAuthPolicy'
+ResourceManagers:
+  HTTPSConnector:
+    KeystoreFile: '/home/aceuser/keystores/ace-keystore'
+    KeystoreType: 'PKCS12'
+    KeystorePassword: 'brokerKeystore::password'
+EOF
+
+  echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
+
+  echo "[INFO]  Creating setdbparms.txt"
+  cat << EOF > $CURRENT_DIR/tmp/setdbparms.txt
+local::basicAuthOverride $API_USER $API_PASS
+brokerKeystore::password ignore $KEYSTORE_PASS
+EOF
+fi
 
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
@@ -174,18 +230,6 @@ EOF
 
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
-echo "[INFO] Creating basic auth policy"
-cat << EOF > $CURRENT_DIR/DefaultPolicies/BasicAuthPolicy.policyxml
-<policies>
-  <policy policyType="SecurityProfiles" policyName="BasicAuthPolicy">
-    <authentication>Local</authentication>
-    <authenticationConfig>basicAuthOverride</authenticationConfig>
-  </policy>
-</policies>
-EOF
-
-echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
-
 echo "[INFO] Creating policy descriptor"
 cat << EOF > $CURRENT_DIR/DefaultPolicies/policy.descriptor
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
@@ -196,47 +240,13 @@ EOF
 
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
-echo "[INFO] Creating server conf"
-cat << EOF > $CURRENT_DIR/tmp/server.conf.yaml
-serverConfVersion: 1
-forceServerHTTPS: true
-forceServerHTTPSecurityProfile: '{DefaultPolicies}:BasicAuthPolicy'
-ResourceManagers:
-  HTTPSConnector:
-    KeystoreFile: '/home/aceuser/keystores/ace-keystore'
-    KeystoreType: 'PKCS12'
-    KeystorePassword: 'brokerKeystore::password'
-EOF
-
-echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
-
-echo "[INFO] Creating keystore"
-CERTS_KEY_BUNDLE=$CURRENT_DIR/tmp/certs-key.pem
-CERTS=$CURRENT_DIR/tmp/certs.pem
-KEY=$CURRENT_DIR/tmp/key.pem
-KEYSTORE=$CURRENT_DIR/tmp/keystore.p12
-oc get secret -n openshift-config-managed router-certs -o json | jq -r '.data | .[]' | base64 --decode > $CERTS_KEY_BUNDLE
-openssl crl2pkcs7 -nocrl -certfile $CERTS_KEY_BUNDLE | openssl pkcs7 -print_certs -out $CERTS
-openssl pkey -in $CERTS_KEY_BUNDLE -out $KEY
-openssl pkcs12 -export -out $KEYSTORE -inkey $KEY -in $CERTS -password pass:$KEYSTORE_PASS
-
-echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
-
-echo "[INFO]  Creating setdbparms.txt"
-cat << EOF > $CURRENT_DIR/tmp/setdbparms.txt
-local::basicAuthOverride $API_USER $API_PASS
-brokerKeystore::password ignore $KEYSTORE_PASS
-EOF
-
-echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
-
 # Generate configuration yaml
 echo "[INFO]  Generating configuration yaml"
 for i in ${!NAMES[@]}; do
   file=$CURRENT_DIR/${FILES[$i]}
   if [[ -d $CURRENT_DIR/${FILES[$i]} ]]; then
-    python -m zipfile -c ${file}.zip $file/
-    file=${file}.zip
+    python -m zipfile -c $CURRENT_DIR/${file}.zip $file/
+    file=$CURRENT_DIR/${file}.zip
   fi
   buildConfigurationCR ${TYPES[$i]} ${NAMES[$i]} $file
 done
