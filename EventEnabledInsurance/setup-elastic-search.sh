@@ -54,17 +54,23 @@ if [[ -z "${NAMESPACE// }" || -z "${ELASTIC_NAMESPACE// }" ]]; then
   usage
 fi
 
+echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
+
 CURRENT_DIR=$(dirname $0)
 echo "INFO: Current directory: '$CURRENT_DIR'"
-echo "INFO: Namespace: '$ELASTIC_NAMESPACE'"
+echo "INFO: Elastic Namespace: '$ELASTIC_NAMESPACE'"
 echo "INFO: Elastic search CR name: '$ELASTIC_CR_NAME'"
 echo "INFO: Namespace: $NAMESPACE"
 echo "INFO: Elastic search subscription: '$ELASTIC_SUBCRIPTION_NAME'"
 echo "INFO: Suffix is: '$SUFFIX'"
 
+echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
+
 oc create namespace $ELASTIC_NAMESPACE
 
 oc project $ELASTIC_NAMESPACE
+
+echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
 function output_time {
   SECONDS=${1}
@@ -78,7 +84,6 @@ function output_time {
 function wait_for_subscription {
   ELASTIC_NAMESPACE=${1}
   NAME=${2}
-
   phase=""
   time=0
   wait_time=5
@@ -109,9 +114,7 @@ function wait_for_subscription {
   echo "$NAME has succeeded"
 }
 
-
-if [[ "$NAMESPACE" != "$ELASTIC_NAMESPACE" ]]; then
-  cat <<EOF | oc apply -f -
+cat <<EOF | oc apply -f -
 apiVersion: operators.coreos.com/v1
 kind: OperatorGroup
 metadata:
@@ -121,7 +124,6 @@ spec:
   targetNamespaces:
     - $ELASTIC_NAMESPACE
 EOF
-fi
 
 cat <<EOF | oc apply -f -
 apiVersion: operators.coreos.com/v1alpha1
@@ -138,7 +140,11 @@ spec:
   startingCSV: elastic-cloud-eck.v1.2.1
 EOF
 
+echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
+
 wait_for_subscription $ELASTIC_NAMESPACE $ELASTIC_SUBCRIPTION_NAME
+
+echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
 cat <<EOF | oc apply -f -
 apiVersion: elasticsearch.k8s.elastic.co/v1
@@ -174,6 +180,8 @@ spec:
       count: 1
 EOF
 
+echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
+
 time=0
 ES_CR_STATE=$(oc get elasticsearch -n $ELASTIC_NAMESPACE $ELASTIC_CR_NAME -o json | jq -r '.status.phase')
 while [ "$ES_CR_STATE" != "Ready" ]; do
@@ -183,8 +191,8 @@ while [ "$ES_CR_STATE" != "Ready" ]; do
     exit 1
   fi
 
-  oc get elasticsearch -n $ELASTIC_NAMESPACE $ELASTIC_CR_NAME -o json | jq -r '.status.phase'
-  echo -e "\nINFO: The elastic search CR is not yet ready, waiting for upto 10 minutes. Waited ${time} minute(s)."
+  echo "Elasticsearch current status: '$(oc get elasticsearch -n $ELASTIC_NAMESPACE $ELASTIC_CR_NAME -o json | jq -r '.status.phase')'"
+  echo -e "INFO: The elastic search CR is not yet ready, waiting for upto 10 minutes. Waited ${time} minute(s).\n"
   time=$((time + 1))
   sleep 60
   ES_CR_STATE=$(oc get elasticsearch -n $ELASTIC_NAMESPACE $ELASTIC_CR_NAME -o json | jq -r '.status.phase')
@@ -192,16 +200,21 @@ done
 
 echo -e "INFO: The elastic search CR is now ready:\n"
 oc get elasticsearch -n $ELASTIC_NAMESPACE
+echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
 echo -e "INFO: The pods for the elastic search:\n"
 oc get pods -n $ELASTIC_NAMESPACE --selector='elasticsearch.k8s.elastic.co/cluster-name='${ELASTIC_CR_NAME}''
 
+echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
+
 echo -e "INFO: The elastic search service:\n"
 oc get service -n $ELASTIC_NAMESPACE $ELASTIC_CR_NAME-es-http
 
+echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
+
 ELASTIC_PASSWORD=$(oc get secret $ELASTIC_CR_NAME-es-elastic-user -n $ELASTIC_NAMESPACE -o go-template='{{.data.elastic | base64decode}}')
 ELASTIC_USER="elastic"
-echo -e "INFO: Got the password for elastic search\n"
+echo -e "INFO: Got the password for elastic search..."
 
 echo -e "\nINFO: Creating secret for elastic search connector"
 cat << EOF | oc apply -f -
@@ -216,3 +229,5 @@ stringData:
     dbPassword: $ELASTIC_PASSWORD
     dbUser: $ELASTIC_USER
 EOF
+
+echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
