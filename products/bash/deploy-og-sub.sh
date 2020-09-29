@@ -137,7 +137,7 @@ create_subscription ${namespace} "ibm-operator-catalog" "datapower-operator" "v1
 create_subscription ${namespace} "ibm-operator-catalog" "ibm-appconnect" "v1.0"
 create_subscription ${namespace} "ibm-operator-catalog" "ibm-eventstreams" "v2.1"
 create_subscription ${namespace} "ibm-operator-catalog" "ibm-mq" "v1.1"
-create_subscription ${namespace} "ibm-operator-catalog" "ibm-integration-operations-dashboard" "v1.0"
+create_subscription ${namespace} "ibm-operator-catalog" "ibm-integration-operations-dashboard" "v2.0"
 create_subscription ${namespace} "ibm-operator-catalog" "ibm-integration-asset-repository" "v1.0"
 
 # Apply the subscription for navigator. This needs to be before apic so apic knows it's running in cp4i
