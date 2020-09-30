@@ -193,9 +193,9 @@ post_response=$(curl -ksw " %{http_code}" -X POST $HOST/quote \
   -H "X-IBM-Client-Id: ${CLIENT_ID}" \
   -H "content-type: application/json" \
   -d "{
-    \"Name\": \"Mickey Mouse\",
-    \"EMail\": \"MickeyMouse@us.ibm.com\",
-    \"Address\": \"30DisneyLand\",
+    \"Name\": \"Jane Doe\",
+    \"EMail\": \"janedoe@example.com\",
+    \"Address\": \"123 Fake Road\",
     \"USState\": \"FL\",
     \"LicensePlate\": \"MMM123\",
     \"DentLocations\": [

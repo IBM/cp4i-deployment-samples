@@ -117,9 +117,9 @@ while true; do
   post_response=$(curl -kLsS -w " %{http_code}" -X POST ${API_BASE_URL}/quote \
     -H "X-IBM-CLIENT-ID: ${API_CLIENT_ID}" \
     -d "{
-      \"Name\": \"Mickey Mouse\",
-      \"EMail\": \"MickeyMouse@us.ibm.com\",
-      \"Address\": \"30DisneyLand\",
+      \"Name\": \"Jane Doe\",
+      \"EMail\": \"janedoe@example.com\",
+      \"Address\": \"123 Fake Road\",
       \"USState\": \"FL\",
       \"LicensePlate\": \"MMM123\",
       \"DentLocations\": [
