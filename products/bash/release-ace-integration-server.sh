@@ -111,7 +111,7 @@ spec:
   service:
     endpointType: http
   useCommonServices: true
-  version: 11.0.0
+  version: 11.0.0.9-r3
   tracing:
     enabled: ${tracing_enabled}
     namespace: ${tracing_namespace}
