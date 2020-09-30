@@ -12,7 +12,7 @@
 #   - Logged into cluster on the OC CLI (https://docs.openshift.com/container-platform/4.4/cli_reference/openshift_cli/getting-started-cli.html)
 #
 # PARAMETERS:
-#   -n : <ELASTIC_NAMESPACE> (string), Defaults to 'elasticsearch'
+#   -n : <ELASTIC_NAMESPACE> (string), Defaults to 'elasticsearch', the namespace where elastic search is installed to
 #   -n : <NAMESPACE> (string), Defaults to 'cp4i'
 #
 #   With defaults values
@@ -67,8 +67,6 @@ echo "INFO: Suffix is: '$SUFFIX'"
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
 oc create namespace $ELASTIC_NAMESPACE
-
-oc project $ELASTIC_NAMESPACE
 
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
@@ -228,6 +226,8 @@ stringData:
   connector.properties: |-
     dbPassword: $ELASTIC_PASSWORD
     dbUser: $ELASTIC_USER
+    dbHost: $ELASTIC_CR_NAME-es-http.$ELASTIC_NAMESPACE.svc.cluster.local
+    dbPort: 9200
 EOF
 
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
