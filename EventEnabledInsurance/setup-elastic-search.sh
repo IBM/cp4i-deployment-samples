@@ -12,7 +12,7 @@
 #   - Logged into cluster on the OC CLI (https://docs.openshift.com/container-platform/4.4/cli_reference/openshift_cli/getting-started-cli.html)
 #
 # PARAMETERS:
-#   -n : <ELASTIC_NAMESPACE> (string), Defaults to 'elasticsearch', the namespace where elastic search is installed to
+#   -e : <ELASTIC_NAMESPACE> (string), Defaults to 'elasticsearch', the namespace where elastic search is installed to
 #   -n : <NAMESPACE> (string), Defaults to 'cp4i'
 #
 #   With defaults values
