@@ -103,7 +103,8 @@ spec:
   designerFlowsOperationMode: disabled
   license:
     accept: true
-    license: L-APEH-BPUCJK
+    license: L-AMYG-BQ2E4U
+    # license: L-APEH-BPUCJK
     use: CloudPakForIntegrationProduction
   replicas: 2
   router:
@@ -111,7 +112,8 @@ spec:
   service:
     endpointType: http
   useCommonServices: true
-  version: 11.0.0.10-r1
+  version: 11.0.0.9
+  # version: 11.0.0.10-r1
   tracing:
     enabled: ${tracing_enabled}
     namespace: ${tracing_namespace}
