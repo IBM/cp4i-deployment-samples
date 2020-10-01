@@ -41,7 +41,7 @@ done
 IAM_Update_OperandConfig() {
   export EXTERNAL=$(oc get configmap cluster-info -n kube-system -o jsonpath='{.data.master_public_url}')
   export INT_URL="${EXTERNAL}/.well-known/oauth-authorization-server"
-  export IAM_URL=$(curl $INT_URL | jq -r '.issuer')
+  export IAM_URL=$(curl $INT_URL 2>/dev/null | jq -r '.issuer')
   echo "INFO: External url: ${EXTERNAL}"
   echo "INFO: INT_URL: ${INT_URL}"
   echo "INFO: IAM URL : ${IAM_URL}"
@@ -199,7 +199,7 @@ create_subscription ${namespace} "ibm-operator-catalog" "ibm-integration-platfor
 
 echo "INFO: Applying individual subscriptions for CP4I dependencies"
 create_subscription ${namespace} "ibm-operator-catalog" "aspera-hsts-operator" "v1.1"
-create_subscription ${namespace} "ibm-operator-catalog" "datapower-operator" "v1.0"
+create_subscription ${namespace} "ibm-operator-catalog" "datapower-operator" "v1.1"
 create_subscription ${namespace} "ibm-operator-catalog" "ibm-appconnect" "v1.0"
 create_subscription ${namespace} "ibm-operator-catalog" "ibm-eventstreams" "v2.1"
 create_subscription ${namespace} "ibm-operator-catalog" "ibm-mq" "v1.1"
@@ -209,7 +209,7 @@ echo "INFO: Wait for platform navigator before applying the APIC/Tracing subscri
 wait_for_subscription ${namespace} "ibm-operator-catalog" "ibm-integration-platform-navigator" "v4.0"
 
 echo "INFO: Apply the APIC/Tracing subscriptions"
-create_subscription ${namespace} "ibm-operator-catalog" "ibm-apiconnect" "v1.0"
+create_subscription ${namespace} "ibm-operator-catalog" "ibm-apiconnect" "v2.0"
 create_subscription ${namespace} "ibm-operator-catalog" "ibm-integration-operations-dashboard" "v2.0"
 
 # echo "INFO: Applying the subscription for the uber operator"
