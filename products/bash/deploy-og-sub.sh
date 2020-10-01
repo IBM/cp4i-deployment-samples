@@ -78,7 +78,7 @@ function wait_for_subscription {
       echo "  ${SUBSCRIPTION_NAME}: Not got csv"
       wait=1
     else
-      phase=$(oc get csv -n ${NAMESPACE} $csv -o json | jq -r .status.phase)
+      phase=$(oc get csv -n ${NAMESPACE} $csv -o json 2>/dev/null | jq -r .status.phase)
       if [[ "$phase" != "Succeeded" ]]; then
         echo "  ${SUBSCRIPTION_NAME}: CSV \"$csv\" in phase \"${phase}\""
         wait=1
