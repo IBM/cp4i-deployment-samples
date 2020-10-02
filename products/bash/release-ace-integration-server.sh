@@ -30,7 +30,7 @@ function usage {
 
 namespace="cp4i"
 is_release_name="ace-is"
-is_image_name="image-registry.openshift-image-registry.svc:5000/cp4i/ace-11.0.0.9-r2:new-1"
+is_image_name=""
 tracing_namespace=""
 tracing_enabled="false"
 CURRENT_DIR=$(dirname $0)
@@ -106,8 +106,7 @@ spec:
   designerFlowsOperationMode: disabled
   license:
     accept: true
-    license: L-AMYG-BQ2E4U
-    # license: L-APEH-BPUCJK
+    license: L-APEH-BPUCJK
     use: CloudPakForIntegrationProduction
   replicas: 2
   router:
@@ -115,8 +114,7 @@ spec:
   service:
     endpointType: http
   useCommonServices: true
-  version: 11.0.0.9-r3
-  # version: 11.0.0.10-r1
+  version: 11.0.0.10
   tracing:
     enabled: ${tracing_enabled}
     namespace: ${tracing_namespace}
