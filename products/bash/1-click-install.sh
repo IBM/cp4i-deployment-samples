@@ -219,7 +219,7 @@ if [[ "${eventEnabledInsuranceDemo}" == "true" || "${demoPreparation}" == "true"
   # call prereqs for event enabled without branch and repo params
   # branch defaults to 'main' inside the prereqs
   # repo defaults to 'https://github.com/IBM/cp4i-deployment-samples.git' inside the prereqs
-  if ! $CURRENT_DIR/cp4i-deployment-samples-${demoDeploymentBranch}/EventEnabledInsurance/prereqs.sh -n ${NAMESPACE} -b ${demoDeploymentBranch}; then
+  if ! $CURRENT_DIR/../../EventEnabledInsurance/prereqs.sh -n ${NAMESPACE} -b ${demoDeploymentBranch}; then
     echo "ERROR: Failed to run event enabled insurance prereqs script" 1>&2
     divider
     exit 1
@@ -232,7 +232,7 @@ if [[ "${drivewayDentDeletionDemo}" == "true" || "${demoPreparation}" == "true" 
 
   divider
 
-  if ! $CURRENT_DIR/cp4i-deployment-samples-${demoDeploymentBranch}/DrivewayDentDeletion/Operators/prereqs.sh -n ${NAMESPACE}; then
+  if ! $CURRENT_DIR/../../DrivewayDentDeletion/Operators/prereqs.sh -n ${NAMESPACE}; then
     echo "ERROR: Failed to run driveway dent deletion prereqs script" 1>&2
     divider
     exit 1
@@ -310,6 +310,7 @@ if [[ "${demoPreparation}" == "true" ]]; then
     exit 1
   else
     echo -e "$tick INFO: Successfully created remote for Asset repo"
-    divider
   fi
 fi #demoPreparation
+
+divider
