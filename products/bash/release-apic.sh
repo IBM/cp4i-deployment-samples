@@ -51,8 +51,12 @@ kind: APIConnectCluster
 metadata:
   name: ${release_name}
   namespace: ${namespace}
+  labels:
+    app.kubernetes.io/instance: apiconnect
+    app.kubernetes.io/managed-by: ibm-apiconnect
+    app.kubernetes.io/name: apiconnect-production
 spec:
-  appVersion: 10.0.0.0
+  version: 10.0.1.0
   license:
     accept: true
     use: production
