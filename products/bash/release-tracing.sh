@@ -25,6 +25,9 @@
 #   Overriding the namespace and release-name
 #     ./release-tracing -n cp4i-prod -r prod
 
+echo "INFO: Tracing support currently disabled"
+exit 0
+
 function usage {
     echo "Usage: $0 -n <namespace> -r <release-name>"
 }
