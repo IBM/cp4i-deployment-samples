@@ -22,3 +22,5 @@ settings.json
 pgpass_gen.sh
 api.yaml
 product.yaml
+uninstall-1click.sh
+uninstall-cs.sh
