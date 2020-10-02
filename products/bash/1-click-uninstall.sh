@@ -88,4 +88,4 @@ oc delete secret -n ${NAMESPACE} ibm-entitlement-key
 
 divider
 
-echo -e "$tick $all_done INFO: Uninstallation is completed successfully $all_done $tick"
+echo -e "$tick INFO: Uninstallation is completed successfully"
