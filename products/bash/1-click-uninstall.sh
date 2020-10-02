@@ -17,10 +17,10 @@
 #
 # USAGE:
 #   With defaults values
-#     ./install.sh -p <csDefaultAdminPassword> -q <demoAPICMailServerPassword>
+#     ./1-click-uninstall.sh
 #
 #   Overriding the namespace and release-name
-#     ./isntall.sh -n <NAMESPACE> -r <navReplicaCount> -c <pwdChange> -u <csDefaultAdminUser> -p <csDefaultAdminPassword> -d <demoPreparation> -a <eventEnabledInsuranceDemo> -f <drivewayDentDeletionDemo> -e <demoAPICEmailAddress> -h <demoAPICMailServerHost> -o <demoAPICMailServerPort> -m <demoAPICMailServerUsername> -q <demoAPICMailServerPassword>
+#     ./1-click-uninstall.sh -n <NAMESPACE>
 
 function divider {
     echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
