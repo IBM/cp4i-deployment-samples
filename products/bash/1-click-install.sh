@@ -35,7 +35,7 @@
 #     ./1-click-install.sh -n <NAMESPACE> -r <navReplicaCount> -c <pwdChange> -u <csDefaultAdminUser> -p <csDefaultAdminPassword> -d <demoPreparation> -a <eventEnabledInsuranceDemo> -f <drivewayDentDeletionDemo> -e <demoAPICEmailAddress> -h <demoAPICMailServerHost> -o <demoAPICMailServerPort> -m <demoAPICMailServerUsername> -q <demoAPICMailServerPassword>
 
 function divider {
-  echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
+  echo -e "\n-------------------------------------------------------------------------------------------------------------------\n"
 }
 
 function usage {
