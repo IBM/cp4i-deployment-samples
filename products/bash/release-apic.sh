@@ -46,7 +46,7 @@ while getopts "n:r:t" opt; do
 done
 
 echo "INFO: Tracing support currently disabled"
-tracing_enabled=false
+tracing="false"
 
 cat << EOF | oc apply -f -
 apiVersion: apiconnect.ibm.com/v1beta1
