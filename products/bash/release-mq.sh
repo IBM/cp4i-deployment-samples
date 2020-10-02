@@ -60,12 +60,13 @@ while getopts "n:r:i:q:z:t" opt; do
   esac
 done
 
-
+echo "INFO: Tracing support currently disabled"
+tracing_enabled=false
 
 # when called from install.sh
 if [ "$tracing_enabled" == "true" ] ; then
-   if [ -z "$tracing_namespace" ]; then tracing_namespace=${namespace} ; fi  
-else 
+   if [ -z "$tracing_namespace" ]; then tracing_namespace=${namespace} ; fi
+else
     # assgining value to tracing_namespace b/c empty values causes CR to throw an error
     tracing_namespace=${namespace}
 fi
@@ -169,9 +170,9 @@ if [ $? -ne 0 ] && [ "$tracing_enabled" == "true"  ] ; then
         echo "INFO: Running with test environment flag"
         echo "ERROR: Failed to register tracing in project '$namespace'"
         exit 1
-      fi   
+      fi
  else
-    if [ "$tracing_enabled" == "false" ]; then 
+    if [ "$tracing_enabled" == "false" ]; then
         echo "[INFO] Tracing Registration not need. Tracing set to $tracing_enabled"
      else
         echo "[INFO] secret icp4i-od-store-cred exist, no need to run tracing registration"
