@@ -166,10 +166,9 @@ if [[ "${demoPreparation}" == "true" || "${eventEnabledInsuranceDemo}" == "true"
     exit 1
   else
     echo -e "$tick INFO: Successfully released PostgresSQL"
+    divider
   fi
 fi #postgres
-
-divider
 
 # -------------------------------------------------- All other demos ----------------------------------------------------------------
 
@@ -200,10 +199,9 @@ if [[ "${demoPreparation}" == "true" ]]; then
     exit 1
   else
     echo -e "$tick INFO: Successfully released asset repo"
+    divider
   fi
 fi #demoPreparation
-
-divider
 
 # ------------------------------------------- Event Enabled Insurance demo specific ---------------------------------------------------
 
@@ -228,11 +226,11 @@ if [[ "${eventEnabledInsuranceDemo}" == "true" || "${demoPreparation}" == "true"
   fi
 fi #eventEnabledInsuranceDemo
 
-divider
-
 # ------------------------------------------- Driveway Dent Deletion demo specific ---------------------------------------------------
 
 if [[ "${drivewayDentDeletionDemo}" == "true" || "${demoPreparation}" == "true" ]]; then
+
+  divider
 
   if ! $CURRENT_DIR/cp4i-deployment-samples-${demoDeploymentBranch}/DrivewayDentDeletion/Operators/prereqs.sh -n ${NAMESPACE}; then
     echo "ERROR: Failed to run driveway dent deletion prereqs script" 1>&2
@@ -247,36 +245,32 @@ if [[ "${drivewayDentDeletionDemo}" == "true" || "${demoPreparation}" == "true" 
     exit 1
   else
     echo -e "$tick INFO: Successfully released tracing"
+    divider
   fi
-
-  divider
 
   if ! $CURRENT_DIR/release-ace-dashboard.sh -n ${NAMESPACE}; then
     echo "ERROR: Failed to release ace dashboard" 1>&2
     exit 1
   else
     echo -e "$tick INFO: Successfully released ace dashboard"
+    divider
   fi
-
-  divider
 
   if ! $CURRENT_DIR/release-apic.sh -n ${NAMESPACE} -t ; then
     echo "ERROR: Failed to release apic" 1>&2
     exit 1
   else
     echo -e "$tick INFO: Successfully released apic"
+    divider
   fi
-
-  divider
 
   if ! $CURRENT_DIR/register-tracing.sh -n ${NAMESPACE} ; then
     echo "ERROR: Failed to register tracing. Tracing secret not created" 1>&2
     exit 1
   else
     echo -e "$tick INFO: Successfully registered tracing"
+    divider
   fi
-
-  divider
 
   export PORG_ADMIN_EMAIL=${demoAPICEmailAddress}
   export MAIL_SERVER_HOST=${demoAPICMailServerHost}
@@ -289,10 +283,9 @@ if [[ "${drivewayDentDeletionDemo}" == "true" || "${demoPreparation}" == "true" 
     exit 1
   else
     echo -e "$tick INFO: Successfully onfigured apic"
+    divider
   fi
 fi #drivewayDentDeletionDemo
-
-divider
 
 # -------------------------------------------------- All other demos ----------------------------------------------------------------
 
@@ -317,7 +310,6 @@ if [[ "${demoPreparation}" == "true" ]]; then
     exit 1
   else
     echo -e "$tick INFO: Successfully created remote for Asset repo"
+    divider
   fi
 fi #demoPreparation
-
-divider

@@ -37,6 +37,7 @@ CURRENT_DIR=$(dirname $0)
 tick="\xE2\x9C\x85"
 cross="\xE2\x9D\x8C"
 all_done="\xF0\x9F\x92\xAF"
+info="\xE2\x84\xB9"
 
 while getopts "n:" opt; do
   case ${opt} in
@@ -88,5 +89,3 @@ oc delete secret -n ${NAMESPACE} ibm-entitlement-key
 divider
 
 echo -e "$tick $all_done INFO: Uninstallation is completed successfully $all_done $tick"
-
-divider
