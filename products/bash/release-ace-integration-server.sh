@@ -112,7 +112,7 @@ spec:
   service:
     endpointType: http
   useCommonServices: true
-  version: 11.0.0.9
+  version: 11.0.0.9-r3
   # version: 11.0.0.10-r1
   tracing:
     enabled: ${tracing_enabled}

@@ -28,11 +28,20 @@
 #
 namespace="cp4i"
 
+while getopts "n:" opt; do
+  case ${opt} in
+    n ) namespace="$OPTARG"
+      ;;
+    \? ) usage; exit
+      ;;
+  esac
+done
+
 # Get auth port with internal url and apply the operand config in common services namespace
 IAM_Update_OperandConfig() {
   export EXTERNAL=$(oc get configmap cluster-info -n kube-system -o jsonpath='{.data.master_public_url}')
   export INT_URL="${EXTERNAL}/.well-known/oauth-authorization-server"
-  export IAM_URL=$(curl $INT_URL | jq -r '.issuer')
+  export IAM_URL=$(curl $INT_URL 2>/dev/null | jq -r '.issuer')
   echo "INFO: External url: ${EXTERNAL}"
   echo "INFO: INT_URL: ${INT_URL}"
   echo "INFO: IAM URL : ${IAM_URL}"
@@ -51,36 +60,101 @@ function output_time {
 
 function wait_for_subscription {
   NAMESPACE=${1}
-  NAME=${2}
+  SOURCE=${2}
+  NAME=${3}
+  CHANNEL=${4}
+  SOURCE_NAMESPACE="openshift-marketplace"
+  SUBSCRIPTION_NAME="${NAME}-${CHANNEL}-${SOURCE}-${SOURCE_NAMESPACE}"
+
+  echo "Waiting for subscription \"${SUBSCRIPTION_NAME}\" in namespace \"${NAMESPACE}\""
 
   phase=""
   time=0
   wait_time=5
   until [[ "$phase" == "Succeeded" ]]; do
-    csv=$(oc get subscription -n ${NAMESPACE} ${NAME} -o json | jq -r .status.currentCSV)
+    csv=$(oc get subscription -n ${NAMESPACE} ${SUBSCRIPTION_NAME} -o json | jq -r .status.currentCSV)
     wait=0
     if [[ "$csv" == "null" ]]; then
-      echo "Waited for $(output_time $time), not got csv for subscription"
+      echo "  ${SUBSCRIPTION_NAME}: Not got csv"
       wait=1
     else
-      phase=$(oc get csv -n ${NAMESPACE} $csv -o json | jq -r .status.phase)
+      phase=$(oc get csv -n ${NAMESPACE} $csv -o json 2>/dev/null | jq -r .status.phase)
       if [[ "$phase" != "Succeeded" ]]; then
-        echo "Waited for $(output_time $time), csv not in Succeeded phase, currently: $phase"
+        echo "  ${SUBSCRIPTION_NAME}: CSV \"$csv\" in phase \"${phase}\""
         wait=1
       fi
     fi
 
     if [[ "$wait" == "1" ]]; then
-      ((time=time+$wait_time))
-      if [ $time -gt 7200 ]; then
+      if [ $time -ge 7200 ]; then
         echo "ERROR: Failed after waiting for 120 minutes"
         exit 1
       fi
 
+      echo "Retrying in ${wait_time} seconds, waited for $(output_time $time) so far"
+      ((time=time+$wait_time))
       sleep $wait_time
     fi
   done
-  echo "$NAME has succeeded"
+  echo "$SUBSCRIPTION_NAME has succeeded"
+}
+
+function wait_for_all_subscriptions {
+  NAMESPACE=${1}
+  echo "Waiting for all subscriptions in namespace: $NAMESPACE"
+
+  all_succeeded="false"
+  time=0
+  wait_time=5
+  until [[ "$all_succeeded" == "true" ]]; do
+    all_succeeded="true"
+    subscriptions_succeeded=""
+    subscriptions_waiting=""
+
+    rows=$(oc get subscription -n ${NAMESPACE} -o json | jq -r '.items[] | { name: .metadata.name, csv: .status.currentCSV } | @base64')
+    for row in $rows; do
+      _jq() {
+       echo ${row} | base64 --decode | jq -r ${1}
+      }
+
+      SUBSCRIPTION_NAME=$(_jq '.name')
+      csv=$(_jq '.csv')
+
+      if [[ "$csv" == "null" ]]; then
+        all_succeeded="false"
+        subscriptions_waiting="${subscriptions_waiting}\n    ${SUBSCRIPTION_NAME}: Not got csv"
+      else
+        phase=$(oc get csv -n ${NAMESPACE} $csv -o json 2>/dev/null | jq -r .status.phase)
+        if [[ "$phase" != "Succeeded" ]]; then
+          subscriptions_waiting="${subscriptions_waiting}\n    ${SUBSCRIPTION_NAME}: CSV \"$csv\" in phase \"${phase}\""
+          all_succeeded="false"
+        else
+          subscriptions_succeeded="${subscriptions_succeeded}\n    ${SUBSCRIPTION_NAME}"
+        fi
+      fi
+    done
+
+    if [[ ! -z "$subscriptions_succeeded" ]]; then
+      echo -e "  The following subscriptions have succeeded:${subscriptions_succeeded}"
+    fi
+    if [[ ! -z "$subscriptions_waiting" ]]; then
+      echo -e "  Still waiting for the following subscriptions:${subscriptions_waiting}"
+    fi
+
+    if [[ "$all_succeeded" == "false" ]]; then
+      if [ $time -ge 7200 ]; then
+        echo "ERROR: Failed after waiting for 120 minutes"
+        exit 1
+      fi
+
+      echo "Retrying in ${wait_time} seconds, waited for $(output_time $time) so far"
+      ((time=time+$wait_time))
+      sleep $wait_time
+    fi
+
+  done
+
+  echo "All subscriptions in $NAMESPACE have succeeded"
 }
 
 function create_subscription {
@@ -104,18 +178,7 @@ spec:
   source: ${SOURCE}
   sourceNamespace: ${SOURCE_NAMESPACE}
 EOF
-
-  wait_for_subscription ${NAMESPACE} ${SUBSCRIPTION_NAME}
 }
-
-while getopts "n:" opt; do
-  case ${opt} in
-    n ) namespace="$OPTARG"
-      ;;
-    \? ) usage; exit
-      ;;
-  esac
-done
 
 cat <<EOF | oc apply -f -
 apiVersion: operators.coreos.com/v1
@@ -128,28 +191,33 @@ spec:
     - ${namespace}
 EOF
 
-echo "INFO: Applying individual subscriptions for cp4i dependencies"
-create_subscription ${namespace} "opencloud-operators" "ibm-common-service-operator" "stable-v1"
-create_subscription ${namespace} "certified-operators" "couchdb-operator-certified" "v1.2"
-create_subscription ${namespace} "ibm-operator-catalog" "ibm-cloud-databases-redis-operator" "v1.1"
-create_subscription ${namespace} "ibm-operator-catalog" "aspera-hsts-operator" "v1.1"
-create_subscription ${namespace} "ibm-operator-catalog" "datapower-operator" "v1.0"
-create_subscription ${namespace} "ibm-operator-catalog" "ibm-appconnect" "v1.0"
-create_subscription ${namespace} "ibm-operator-catalog" "ibm-eventstreams" "v2.1"
-create_subscription ${namespace} "ibm-operator-catalog" "ibm-mq" "v1.1"
-create_subscription ${namespace} "ibm-operator-catalog" "ibm-integration-operations-dashboard" "v1.0"
-# TODO create_subscription ${namespace} "ibm-operator-catalog" "ibm-integration-operations-dashboard" "v2.0"
-create_subscription ${namespace} "ibm-operator-catalog" "ibm-integration-asset-repository" "v1.0"
-
-# Apply the subscription for navigator. This needs to be before apic so apic knows it's running in cp4i
+# Create the subscription for navigator. This needs to be before APIC (ibm-apiconnect)
+# so APIC knows it's running in CP4I and before tracing (ibm-integration-operations-dashboard)
+# as tracing uses a CRD created by the navigator operator.
 echo "INFO: Applying subscription for platform navigator"
 create_subscription ${namespace} "ibm-operator-catalog" "ibm-integration-platform-navigator" "v4.0"
 
-create_subscription ${namespace} "ibm-operator-catalog" "ibm-apiconnect" "v1.0"
+echo "INFO: Applying individual subscriptions for CP4I dependencies"
+create_subscription ${namespace} "ibm-operator-catalog" "aspera-hsts-operator" "v1.1"
+create_subscription ${namespace} "ibm-operator-catalog" "datapower-operator" "v1.1"
+create_subscription ${namespace} "ibm-operator-catalog" "ibm-appconnect" "v1.0"
+create_subscription ${namespace} "ibm-operator-catalog" "ibm-eventstreams" "v2.1"
+create_subscription ${namespace} "ibm-operator-catalog" "ibm-mq" "v1.1"
+create_subscription ${namespace} "ibm-operator-catalog" "ibm-integration-asset-repository" "v1.0"
+
+echo "INFO: Wait for platform navigator before applying the APIC/Tracing subscriptions"
+wait_for_subscription ${namespace} "ibm-operator-catalog" "ibm-integration-platform-navigator" "v4.0"
+
+echo "INFO: Apply the APIC/Tracing subscriptions"
+create_subscription ${namespace} "ibm-operator-catalog" "ibm-apiconnect" "v2.0"
+create_subscription ${namespace} "ibm-operator-catalog" "ibm-integration-operations-dashboard" "v2.0"
 
 # echo "INFO: Applying the subscription for the uber operator"
 # create_subscription ${namespace} "ibm-operator-catalog" "ibm-cp-integration" "v1.0"
 # echo "INFO: ClusterServiceVersion for the Platform Navigator is now installed, proceeding with installation..."
+
+echo "INFO: Wait for all subscriptions to succeed"
+wait_for_all_subscriptions ${namespace}
 
 # Wait for upto 10 minutes for the OperandConfig to appear in the common services namespace
 time=0
