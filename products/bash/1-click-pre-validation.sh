@@ -45,13 +45,13 @@ info="\xE2\x84\xB9"
 
 while getopts "p:r:u:d:" opt; do
   case ${opt} in
-    n ) csDefaultAdminPassword="$OPTARG"
+    p ) csDefaultAdminPassword="$OPTARG"
       ;;
-    n ) navReplicaCount="$OPTARG"
+    r ) navReplicaCount="$OPTARG"
       ;;
-    n ) csDefaultAdminUser="$OPTARG"
+    u ) csDefaultAdminUser="$OPTARG"
       ;;
-    n ) demoPreparation="$OPTARG"
+    d ) demoPreparation="$OPTARG"
       ;;
     \? ) usage;
       ;;
