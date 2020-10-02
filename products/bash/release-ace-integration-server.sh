@@ -114,7 +114,7 @@ spec:
   service:
     endpointType: http
   useCommonServices: true
-  version: 11.0.0.10
+  version: 11.0.0.10-r1
   tracing:
     enabled: ${tracing_enabled}
     namespace: ${tracing_namespace}
@@ -157,8 +157,10 @@ jqVersionCheck=$(jq --version)
 
 if [ $? -ne 0 ]; then
   jqInstalled=false
+  JQ=./jq
 else
   jqInstalled=true
+  JQ=jq
 fi
 
 if [[ "$jqInstalled" == "false" ]]; then
@@ -171,16 +173,17 @@ if [[ "$jqInstalled" == "false" ]]; then
     echo "INFO: Installing on MAC"
     /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)"
     brew install jq
+    JQ=jq
   fi
 fi
 
-echo -e "\nINFO: Installed JQ version is $(./jq --version)"
+echo -e "\nINFO: Installed JQ version is $($JQ --version)"
 
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
 # -------------------------------------- FIND TOTAL ACE REPLICAS DEPLOYED -----------------------------------------------
 
-numberOfReplicas=$(oc get integrationservers $is_release_name -n $namespace -o json | ./jq -r '.spec.replicas')
+numberOfReplicas=$(oc get integrationservers $is_release_name -n $namespace -o json | $JQ -r '.spec.replicas')
 echo "INFO: Number of Replicas for '$is_release_name' is $numberOfReplicas"
 echo -e "\nINFO: Total number of ACE integration server '$is_release_name' related pods after deployment should be $numberOfReplicas"
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
@@ -212,7 +215,7 @@ while [ $numberOfMatchesForImageTag -ne $numberOfReplicas ]; do
 
   echo -e "\nINFO: For ACE Integration server '$is_release_name':"
   for eachAcePod in $allCorrespondingPods; do
-    imageInPod=$(oc get pod $eachAcePod -n $namespace -o json | ./jq -r '.spec.containers[0].image')
+    imageInPod=$(oc get pod $eachAcePod -n $namespace -o json | $JQ -r '.spec.containers[0].image')
     echo "INFO: Image present in the pod '$eachAcePod' is '$imageInPod'"
     if [[ $imageInPod == *:$imageTag ]]; then
       echo "INFO: Image tag matches.."
