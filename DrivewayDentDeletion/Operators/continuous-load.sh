@@ -78,7 +78,6 @@ DB_USER=$(echo $NAMESPACE | sed 's/-/_/g')_ddd
 DB_NAME=db_${DB_USER}
 DB_PASS=$(oc get secret -n $NAMESPACE postgres-credential --template={{.data.password}} | base64 --decode)
 DB_POD=$(oc get pod -n postgres -l name=postgresql -o jsonpath='{.items[].metadata.name}')
-DB_SVC="postgresql.postgres.svc.cluster.local"
 echo "[INFO]  Username name is: '${DB_USER}'"
 echo "[INFO]  Database name is: '${DB_NAME}'"
 
@@ -102,7 +101,7 @@ function cleanup_table() {
   table_name="quotes"
   echo -e "\Clearing '${table_name}' database of all rows..."
   oc exec -n postgres -it ${DB_POD} -- \
-    psql -U ${DB_USER} -d ${DB_NAME} -h ${DB_SVC} -c \
+    psql -U ${DB_USER} -d ${DB_NAME} -c \
     "TRUNCATE ${table_name};"
 }
 
@@ -170,7 +169,7 @@ while true; do
     if [ "$SAVE_ROW_AFTER_RUN" = false ]; then
       echo -e "\nDeleting row from database..."
       oc exec -n postgres -it ${DB_POD} -- \
-        psql -U ${DB_USER} -d ${DB_NAME} -h ${DB_SVC} -c \
+        psql -U ${DB_USER} -d ${DB_NAME} -c \
         "DELETE FROM quotes WHERE quotes.quoteid = ${quote_id};"
     fi
   else

@@ -54,11 +54,11 @@ metadata:
 spec:
   license:
     accept: true
-    license: L-AMYG-BQ2E4U
+    license: L-APEH-BPUCJK
     use: CloudPakForIntegrationNonProduction
   replicas: 1
   storage:
     class: ibmc-file-gold-gid
     type: persistent-claim
-  version: 11.0.0.9
+  version: 11.0.0.10
 EOF
