@@ -61,7 +61,7 @@ all_done="\xF0\x9F\x92\xAF"
 info="\xE2\x84\xB9"
 CURRENT_DIR=$(dirname $0)
 
-while getopts "n:r:c:u:p:d:a:f:e:h:o:m:q:" opt; do
+while getopts "n:r:c:u:p:d:a:f:e:h:o:m:q" opt; do
   case ${opt} in
     n ) NAMESPACE="$OPTARG"
       ;;
@@ -101,12 +101,7 @@ if [[ -z "${NAMESPACE// }" \
   || -z "${csDefaultAdminPassword// }" \
   || -z "${demoPreparation// }" \
   || -z "${eventEnabledInsuranceDemo// }" \
-  || -z "${drivewayDentDeletionDemo// }" \
-  || -z "${demoAPICEmailAddress// }" \
-  || -z "${demoAPICMailServerHost// }" \
-  || -z "${demoAPICMailServerPort// }" \
-  || -z "${demoAPICMailServerUsername// }" \
-  || -z "${demoAPICMailServerPassword// }" ]]; then
+  || -z "${drivewayDentDeletionDemo// }" ]]; then
   echo -e "$cross ERROR: Mandatory parameters are empty"
   usage
 fi
