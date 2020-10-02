@@ -103,10 +103,10 @@ if [[ -z "${NAMESPACE// }" \
   || -z "${eventEnabledInsuranceDemo// }" \
   || -z "${drivewayDentDeletionDemo// }" ]]; then
   echo -e "$cross ERROR: Mandatory parameters are empty"
+  divider
   usage
 fi
 
-divider
 echo -e "$info Current directory: $CURRENT_DIR"
 echo -e "$info 1-click namespace: $NAMESPACE"
 echo -e "$info Navigator replica count: $navReplicaCount"
