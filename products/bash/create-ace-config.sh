@@ -96,7 +96,7 @@ CURRENT_DIR=$(dirname $0)
 echo "Current directory: $CURRENT_DIR"
 
 # Clean up any exisitng configuration files
-[[ -d $CONFIG_DIR ]] && rm -rf $CONFIG_DIR
+[[ -d $CONFIG_DIR ]] && echo "Cleanning up exisiting config files..." && rm -rf $CONFIG_DIR
 
 echo "[INFO]  Creating directories for default policies"
 mkdir -p $CONFIG_DIR
