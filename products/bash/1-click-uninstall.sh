@@ -38,6 +38,7 @@ tick="\xE2\x9C\x85"
 cross="\xE2\x9D\x8C"
 all_done="\xF0\x9F\x92\xAF"
 info="\xE2\x84\xB9"
+missingParams="false"
 
 while getopts "n:" opt; do
   case ${opt} in
@@ -49,7 +50,12 @@ while getopts "n:" opt; do
 done
 
 if [[ -z "${NAMESPACE// }" ]]; then
-  echo -e "$cross ERROR: A mandatory parameter namespace is empty"
+  echo -e "$cross ERROR: 1-click uninstall namespace is empty. Please provide a value for '-n' parameter."
+  missingParams="true"
+fi
+
+if [[ "$missingParams" == "true" ]]; then
+  divider
   usage
 fi
 

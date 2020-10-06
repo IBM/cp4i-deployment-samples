@@ -60,6 +60,7 @@ cross="\xE2\x9D\x8C"
 all_done="\xF0\x9F\x92\xAF"
 info="\xE2\x84\xB9"
 CURRENT_DIR=$(dirname $0)
+missingParams="false"
 
 while getopts "n:r:c:u:p:d:a:f:e:h:o:m:q" opt; do
   case ${opt} in
@@ -94,15 +95,47 @@ while getopts "n:r:c:u:p:d:a:f:e:h:o:m:q" opt; do
   esac
 done
 
-if [[ -z "${NAMESPACE// }" \
-  || -z "${navReplicaCount// }" \
-  || -z "${pwdChange// }" \
-  || -z "${csDefaultAdminUser// }" \
-  || -z "${csDefaultAdminPassword// }" \
-  || -z "${demoPreparation// }" \
-  || -z "${eventEnabledInsuranceDemo// }" \
-  || -z "${drivewayDentDeletionDemo// }" ]]; then
-  echo -e "$cross ERROR: Mandatory parameters are empty"
+if [[ -z "${NAMESPACE// }" ]]; then
+  echo -e "$cross ERROR: 1-click installation namespace is empty. Please provide a value for '-n' parameter."
+  missingParams="true"
+fi
+
+if [[ -z "${navReplicaCount// }" ]]; then
+  echo -e "$cross ERROR: Platform navigator replica count is empty. Please provide a value for '-r' parameter."
+  missingParams="true"
+fi
+
+if [[ -z "${csDefaultAdminUser// }" ]]; then
+  echo -e "$cross ERROR: Default admin username is empty. Please provide a value for '-u' parameter."
+  missingParams="true"
+fi
+
+if [[ -z "${demoPreparation// }" ]]; then
+  echo -e "$cross ERROR: Demo preparation parameter is empty. Please provide a value for '-d' parameter."
+  missingParams="true"
+fi
+
+if [[ -z "${pwdChange// }" ]]; then
+  echo -e "$cross ERROR: Common service password change parameter is empty. Please provide a value for '-c' parameter."
+  missingParams="true"
+fi
+
+if [[ -z "${csDefaultAdminPassword// }" ]]; then
+  echo -e "$cross ERROR: Default admin password is empty. Please provide a value for '-p' parameter."
+  missingParams="true"
+fi
+
+if [[ -z "${eventEnabledInsuranceDemo// }" ]]; then
+  echo -e "$cross ERROR: Event enabled insurance parameter is empty. Please provide a value for '-a' parameter."
+  missingParams="true"
+fi
+
+if [[ -z "${drivewayDentDeletionDemo// }" ]]; then
+  echo -e "$cross ERROR: Driveway dent deletion parameter is empty. Please provide a value for '-f' parameter."
+  missingParams="true"
+fi
+
+if [[ "$missingParams" == "true" ]]; then
   divider
   usage
 fi

@@ -42,6 +42,7 @@ CURRENT_DIR=$(dirname $0)
 tick="\xE2\x9C\x85"
 cross="\xE2\x9D\x8C"
 info="\xE2\x84\xB9"
+missingParams="false"
 
 while getopts "p:r:u:d:" opt; do
   case ${opt} in
@@ -58,11 +59,28 @@ while getopts "p:r:u:d:" opt; do
   esac
 done
 
-if [[ -z "${csDefaultAdminPassword// }" \
-  || -z "${navReplicaCount// }" \
-  || -z "${csDefaultAdminUser// }" \
-  || -z "${demoPreparation// }" ]]; then
-  echo -e "$cross ERROR: Mandatory parameters are empty"
+if [[ -z "${csDefaultAdminPassword// }" ]]; then
+  echo -e "$cross ERROR: Default admin password is empty. Please provide a value for '-p' parameter."
+  missingParams="true"
+fi
+
+if [[ -z "${navReplicaCount// }" ]]; then
+  echo -e "$cross ERROR: Platform navigator replica count is empty. Please provide a value for '-r' parameter."
+  missingParams="true"
+fi
+
+if [[ -z "${csDefaultAdminUser// }" ]]; then
+  echo -e "$cross ERROR: Default admin username is empty. Please provide a value for '-u' parameter."
+  missingParams="true"
+fi
+
+if [[ -z "${demoPreparation// }" ]]; then
+  echo -e "$cross ERROR: Demo preparation parameter is empty. Please provide a value for '-d' parameter."
+  missingParams="true"
+fi
+
+if [[ "$missingParams" == "true" ]]; then
+  divider
   usage
 fi
 
