@@ -89,6 +89,15 @@ oc adm policy add-scc-to-group privileged system:serviceaccounts:${test_namespac
 
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
+echo "INFO: Creating operator group and subscription in the namespace '${test_namespace}'"
+
+if ! ${CURRENT_DIR}/../../products/bash/deploy-og-sub.sh -n ${test_namespace} ; then
+  echo -e "$cross ERROR: Failed to apply subscriptions and csv in the namespace '$test_namespace'"
+  exit 1
+fi
+
+echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
+
 echo "INFO: Adding permission for '$dev_namespace' to write images to openshift local registry in the '$test_namespace'"
 # enable dev namespace to push to test namespace
 oc -n ${test_namespace} policy add-role-to-user registry-editor system:serviceaccount:${dev_namespace}:image-bot
@@ -157,15 +166,6 @@ if ! oc get secrets -n ${test_namespace} ibm-entitlement-key; then
   fi
 else
   echo -e "\nINFO: ibm-entitlement-key secret already exists in the '${test_namespace}' namespace"
-fi
-
-echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
-
-echo "INFO: Creating operator group and subscription in the namespace '${test_namespace}'"
-
-if ! ${CURRENT_DIR}/../../products/bash/deploy-og-sub.sh -n ${test_namespace} ; then
-  echo -e "$cross ERROR: Failed to apply subscriptions and csv in the namespace '$test_namespace'"
-  exit 1
 fi
 
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
