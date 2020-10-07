@@ -33,7 +33,7 @@ SUFFIX="ddd"
 CURRENT_DIR=$(dirname $0)
 CONFIG_DIR=$CURRENT_DIR/ace
 CONFIG_YAML=$CONFIG_DIR/configurations.yaml
-MQ_CERT=$CURRENT_DIR/mq
+MQ_CERT=$CURRENT_DIR/mq/createcerts
 API_USER="bruce"
 API_PASS=$(LC_ALL=C tr -dc 'A-Za-z0-9' </dev/urandom | head -c 16 ; echo)
 KEYSTORE_PASS=$(LC_ALL=C tr -dc 'A-Za-z0-9' </dev/urandom | head -c 16 ; echo)

@@ -108,8 +108,6 @@ spec:
   - ace-setdbparms
   - application.kdb
   - application.sth
-  - server.conf.demo.yaml
-  - setdbparms.demo.txt
   - application.jks
   designerFlowsOperationMode: disabled
   license:
