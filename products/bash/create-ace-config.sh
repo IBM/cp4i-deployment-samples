@@ -33,6 +33,7 @@ SUFFIX="ddd"
 CURRENT_DIR=$(dirname $0)
 CONFIG_DIR=$CURRENT_DIR/ace
 CONFIG_YAML=$CONFIG_DIR/configurations.yaml
+MQ_CERT=$CURRENT_DIR/mq
 API_USER="bruce"
 API_PASS=$(LC_ALL=C tr -dc 'A-Za-z0-9' </dev/urandom | head -c 16 ; echo)
 KEYSTORE_PASS=$(LC_ALL=C tr -dc 'A-Za-z0-9' </dev/urandom | head -c 16 ; echo)
@@ -79,9 +80,9 @@ done
 echo "[DEBUG] Current directory: $CURRENT_DIR"
 
 if [[ $SUFFIX == "ddd" ]]; then
-  TYPES=("serverconf"                   "keystore"                 "policyproject"               "setdbparms")
-  FILES=("$CONFIG_DIR/server.conf.yaml" "$CONFIG_DIR/keystore.p12" "$CONFIG_DIR/$SUFFIX/DefaultPolicies" "$CONFIG_DIR/setdbparms.txt")
-  NAMES=("ace-serverconf"               "ace-keystore"             "ace-policyproject-$SUFFIX"   "ace-setdbparms")
+  TYPES=("serverconf"                   "keystore"                 "keystore"                    "keystore"                         "truststore"                   "policyproject"                           "setdbparms"               )
+  FILES=("$CONFIG_DIR/server.conf.yaml" "$CONFIG_DIR/keystore.p12" "$MQ_CERT/application.kdb"    "$MQ_CERT/application.sth"          "$MQ_CERT/application.jks"    "$CONFIG_DIR/$SUFFIX/DefaultPolicies"     "$CONFIG_DIR/setdbparms.txt")
+  NAMES=("ace-serverconf"               "ace-keystore"             "application.kdb"             "application.sth"                   "application.jks"             "ace-policyproject-$SUFFIX"               "ace-setdbparms")
 else
   TYPES=("policyproject")
   FILES=("$CONFIG_DIR/$SUFFIX/DefaultPolicies")
