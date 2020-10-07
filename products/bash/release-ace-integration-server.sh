@@ -51,7 +51,7 @@ while getopts "n:r:i:z:t" opt; do
     tracing_namespace="$OPTARG"
     ;;
   t)
-    tracing_enabled=true
+    tracing_enabled=false
     ;;
   \?)
     usage
@@ -101,12 +101,22 @@ spec:
    containers:
      runtime:
        image: ${is_image_name}
+  configurations:
+  - ace-keystore
+  - ace-policyproject-ddd
+  - ace-serverconf
+  - ace-setdbparms
+  - application.kdb
+  - application.sth
+  - server.conf.demo.yaml
+  - setdbparms.demo.txt
+  - application.jks
   designerFlowsOperationMode: disabled
   license:
     accept: true
     license: L-APEH-BPUCJK
     use: CloudPakForIntegrationProduction
-  replicas: 2
+  replicas: 1
   router:
     timeout: 120s
   service:
@@ -116,11 +126,6 @@ spec:
   tracing:
     enabled: ${tracing_enabled}
     namespace: ${tracing_namespace}
-  configurations:
-    - ace-keystore
-    - ace-policyproject-ddd
-    - ace-serverconf
-    - ace-setdbparms
 EOF
 
 timer=0
