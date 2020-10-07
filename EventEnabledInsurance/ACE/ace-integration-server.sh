@@ -151,7 +151,7 @@ metadata:
 spec:
   adminServerSecure: true
   barURL: >-
-    https://ace-dashboard-demo-dash:3443/v1/directories/DrivewayDemo?95f5b0cc-6c18-4063-8063-f819f4666616
+    https://raw.githubusercontent.com/IBM/cp4i-deployment-samples/acebardeploy/EventEnabledInsurance/Bar_files/ace-api/DrivewayDemo.bar
   designerFlowsOperationMode: local
   license:
     accept: true
