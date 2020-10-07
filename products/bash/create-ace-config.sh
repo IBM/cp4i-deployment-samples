@@ -170,13 +170,13 @@ echo -e "[DEBUG] config yaml:\n$(cat -n $CONFIG_YAML)"
 
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
-# Apply configuration yaml
-echo "[INFO]  Applying configuration yaml"
-oc apply -f $CONFIG_YAML
+# # Apply configuration yaml
+# echo "[INFO]  Applying configuration yaml"
+# oc apply -f $CONFIG_YAML
 
-# DEBUG: get configurations
-echo "[DEBUG] Getting configurations"
-for i in ${!NAMES[@]}; do
-  echo "[DEBUG] ${NAMES[$i]}"
-  oc get -n $NAMESPACE configuration ${NAMES[$i]} -o yaml
-done
+# # DEBUG: get configurations
+# echo "[DEBUG] Getting configurations"
+# for i in ${!NAMES[@]}; do
+#   echo "[DEBUG] ${NAMES[$i]}"
+#   oc get -n $NAMESPACE configuration ${NAMES[$i]} -o yaml
+# done
