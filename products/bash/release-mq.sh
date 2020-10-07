@@ -63,6 +63,37 @@ done
 echo "INFO: Tracing support currently disabled"
 tracing_enabled=false
 
+echo "INFO: Setting up certs for MQ TLS"
+QM_KEY=$(cat $CURRENT_DIR/mq/createcerts/server.key | base64 -w0)
+QM_CERT=$(cat $CURRENT_DIR/mq/createcerts/server.crt | base64 -w0)
+APP_CERT=$(cat $CURRENT_DIR/mq/createcerts/application.crt | base64 -w0)
+
+cat << EOF | oc apply -f -
+---
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: mtlsmqsc
+  namespace: $namespace
+data:
+  example.ini: |-
+    Service:
+      Name=AuthorizationService
+      EntryPoints=14
+      SecurityPolicy=User
+---
+kind: Secret
+apiVersion: v1
+metadata:
+  name: mqcert
+  namespace: $namespace
+data:
+  tls.key: $QM_KEY
+  tls.crt: $QM_CERT
+  app.crt: $APP_CERT
+type: Opaque
+EOF
+
 # when called from install.sh
 if [ "$tracing_enabled" == "true" ] ; then
    if [ -z "$tracing_namespace" ]; then tracing_namespace=${namespace} ; fi
@@ -86,17 +117,36 @@ spec:
     accept: true
     license: L-RJON-BN7PN3
     use: NonProduction
+  pki:
+    keys:
+      - name: default
+        secret:
+          items:
+            - tls.key
+            - tls.crt
+          secretName: mqcert
+    trust:
+      - name: app
+        secret:
+          items:
+            - app.crt
+          secretName: mqcert
   queueManager:
     name: ${qm_name}
     storage:
       queueManager:
         type: ephemeral
+    ini:
+      - configMap:
+          items:
+            - example.ini
+          name: mtlsmqsc
   template:
     pod:
       containers:
         - env:
-            - name: MQSNOAUT
-              value: 'yes'
+            - name: MQS_PERMIT_UNKNOWN_ID
+              value: 'true'
           name: qmgr
   version: 9.2.0.0-r1
   web:
@@ -138,6 +188,20 @@ spec:
     accept: true
     license: L-RJON-BN7PN3
     use: NonProduction
+  pki:
+    keys:
+      - name: default
+        secret:
+          items:
+            - tls.key
+            - tls.crt
+          secretName: mqcert
+    trust:
+      - name: app
+        secret:
+          items:
+            - app.crt
+          secretName: mqcert
   queueManager:
     image: ${image_name}
     imagePullPolicy: Always
@@ -145,12 +209,17 @@ spec:
     storage:
       queueManager:
         type: ephemeral
+    ini:
+      - configMap:
+          items:
+            - example.ini
+          name: mtlsmqsc
   template:
     pod:
       containers:
         - env:
-            - name: MQSNOAUT
-              value: 'yes'
+            - name: MQS_PERMIT_UNKNOWN_ID
+              value: 'true'
           name: qmgr
   version: 9.2.0.0-r1
   web:
