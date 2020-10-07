@@ -1,0 +1,2 @@
+local::basicAuthOverride {{API_USER}} {{API_PASS}}
+brokerKeystore::password ignore {{KEYSTORE_PASS}}

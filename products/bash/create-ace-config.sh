@@ -25,15 +25,14 @@
 tick="\xE2\x9C\x85"
 cross="\xE2\x9D\x8C"
 NAMESPACE="cp4i"
-DEBUG=false
 POSTGRES_NAMESPACE="postgres"
 DB_USER="cp4i"
 DB_NAME="db_cp4i"
 DB_PASS=""
 SUFFIX="ddd"
 CURRENT_DIR=$(dirname $0)
-CONFIG_DIR=$CURRENT_DIR/tmp
-CONFIG_YAML=$CONFIG_DIR/configuration.yaml
+CONFIG_DIR=$CURRENT_DIR/ace
+CONFIG_YAML=$CONFIG_DIR/configurations.yaml
 API_USER="bruce"
 API_PASS=$(LC_ALL=C tr -dc 'A-Za-z0-9' </dev/urandom | head -c 16 ; echo)
 KEYSTORE_PASS=$(LC_ALL=C tr -dc 'A-Za-z0-9' </dev/urandom | head -c 16 ; echo)
@@ -77,13 +76,15 @@ while getopts "n:g:u:d:p:s:" opt; do
   esac
 done
 
+echo "[DEBUG] Current directory: $CURRENT_DIR"
+
 if [[ $SUFFIX == "ddd" ]]; then
-  TYPES=("serverconf" "keystore" "policyproject" "setdbparms")
-  FILES=("server.conf.yaml" "keystore.p12" "DefaultPolicies" "setdbparms.txt")
-  NAMES=("ace-serverconf" "ace-keystore" "ace-policyproject-$SUFFIX" "ace-setdbparms")
+  TYPES=("serverconf"                   "keystore"                 "policyproject"               "setdbparms")
+  FILES=("$CONFIG_DIR/server.conf.yaml" "$CONFIG_DIR/keystore.p12" "$CONFIG_DIR/$SUFFIX/DefaultPolicies" "$CONFIG_DIR/setdbparms.txt")
+  NAMES=("ace-serverconf"               "ace-keystore"             "ace-policyproject-$SUFFIX"   "ace-setdbparms")
 else
   TYPES=("policyproject")
-  FILES=("DefaultPolicies")
+  FILES=("$CONFIG_DIR/$SUFFIX/DefaultPolicies")
   NAMES=("ace-policyproject-$SUFFIX")
 fi
 
@@ -91,16 +92,6 @@ if [[ -z "${DB_PASS// }" || -z "${NAMESPACE// }" || -z "${DB_USER// }" || -z "${
   echo -e "$cross ERROR: Some mandatory parameters are empty"
   usage
 fi
-
-CURRENT_DIR=$(dirname $0)
-echo "Current directory: $CURRENT_DIR"
-
-# Clean up any exisitng configuration files
-[[ -d $CONFIG_DIR ]] && echo "Cleanning up exisiting config files..." && rm -rf $CONFIG_DIR
-
-echo "[INFO]  Creating directories for default policies"
-mkdir -p $CONFIG_DIR
-mkdir -p $CONFIG_DIR/DefaultPolicies
 
 # Store ace api password in secret
 cat << EOF | oc apply -f -
@@ -116,6 +107,8 @@ stringData:
 type: Opaque
 EOF
 
+[[ -f $CONFIG_YAML ]] && echo "[INFO]  Removing existing configurations yaml" && rm -f $CONFIG_YAML
+
 echo "[INFO]  Creating policyproject for ace in the '$NAMESPACE' namespace"
 
 DB_POD=$(oc get pod -n $POSTGRES_NAMESPACE -l name=postgresql -o jsonpath='{.items[].metadata.name}')
@@ -129,39 +122,7 @@ echo "[INFO]  Postgres svc name: '$DB_SVC'"
 if [[ $SUFFIX == "ddd" ]]; then
   echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
-  echo "[INFO]  Creating mq policy"
-  cat << EOF > $CONFIG_DIR/DefaultPolicies/MQEndpointPolicy.policyxml
-<?xml version="1.0" encoding="UTF-8"?>
-<policies>
-  <policy policyType="MQEndpoint" policyName="MQEndpointPolicy" policyTemplate="MQEndpoint">
-    <connection>CLIENT</connection>
-    <destinationQueueManagerName>QUICKSTART</destinationQueueManagerName>
-    <queueManagerHostname>mq-ddd-qm-ibm-mq</queueManagerHostname>
-    <listenerPortNumber>1414</listenerPortNumber>
-    <channelName>ACE_SVRCONN</channelName>
-    <securityIdentity></securityIdentity>
-    <useSSL>false</useSSL>
-    <SSLPeerName></SSLPeerName>
-    <SSLCipherSpec></SSLCipherSpec>
-  </policy>
-</policies>
-EOF
-
-  echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
-
-  echo "[INFO] Creating basic auth policy"
-  cat << EOF > $CONFIG_DIR/DefaultPolicies/BasicAuthPolicy.policyxml
-<policies>
-  <policy policyType="SecurityProfiles" policyName="BasicAuthPolicy">
-    <authentication>Local</authentication>
-    <authenticationConfig>basicAuthOverride</authenticationConfig>
-  </policy>
-</policies>
-EOF
-
-  echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
-
-  echo "[INFO] Creating keystore"
+  echo "[INFO]  Creating keystore"
   CERTS_KEY_BUNDLE=$CONFIG_DIR/certs-key.pem
   CERTS=$CONFIG_DIR/certs.pem
   KEY=$CONFIG_DIR/key.pem
@@ -173,78 +134,35 @@ EOF
 
   echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
-  echo "[INFO] Creating server conf"
-  cat << EOF > $CONFIG_DIR/server.conf.yaml
-serverConfVersion: 1
-forceServerHTTPS: true
-forceServerHTTPSecurityProfile: '{DefaultPolicies}:BasicAuthPolicy'
-ResourceManagers:
-  HTTPSConnector:
-    KeystoreFile: '/home/aceuser/keystores/ace-keystore'
-    KeystoreType: 'PKCS12'
-    KeystorePassword: 'brokerKeystore::password'
-EOF
-
-  echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
-
-  echo "[INFO]  Creating setdbparms.txt"
-  cat << EOF > $CONFIG_DIR/setdbparms.txt
-local::basicAuthOverride $API_USER $API_PASS
-brokerKeystore::password ignore $KEYSTORE_PASS
-EOF
+  echo "[INFO]  Templating setdbparms.txt"
+  cat $CONFIG_DIR/setdbparms.txt.template |
+    sed "s#{{API_USER}}#$API_USER#g;" |
+    sed "s#{{API_PASS}}#$API_PASS#g;" |
+    sed "s#{{KEYSTORE_PASS}}#$KEYSTORE_PASS#g;" > $CONFIG_DIR/setdbparms.txt
 fi
 
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
-echo "[INFO] Creating postgresql policy"
-cat << EOF > $CONFIG_DIR/DefaultPolicies/PostgresqlPolicy.policyxml
-<?xml version="1.0" encoding="UTF-8"?>
-<policies>
-  <policy policyType="JDBCProviders" policyName="PostgresqlPolicy" policyTemplate="DB2_91">
-    <databaseName>${DB_NAME}</databaseName>
-    <databaseType>Postgresql</databaseType>
-    <databaseVersion>999</databaseVersion>
-    <type4DriverClassName>org.postgresql.Driver</type4DriverClassName>
-    <type4DatasourceClassName>org.postgresql.xa.PGXADataSource</type4DatasourceClassName>
-    <connectionUrlFormat>jdbc:postgresql://[serverName]:[portNumber]/[databaseName]?user=${DB_USER}&amp;password=${DB_PASS}</connectionUrlFormat>
-    <connectionUrlFormatAttr1></connectionUrlFormatAttr1>
-    <connectionUrlFormatAttr2></connectionUrlFormatAttr2>
-    <connectionUrlFormatAttr3></connectionUrlFormatAttr3>
-    <connectionUrlFormatAttr4></connectionUrlFormatAttr4>
-    <connectionUrlFormatAttr5></connectionUrlFormatAttr5>
-    <serverName>${DB_SVC}</serverName>
-    <portNumber>5432</portNumber>
-    <jarsURL></jarsURL>
-    <databaseSchemaNames>useProvidedSchemaNames</databaseSchemaNames>
-    <description></description>
-    <maxConnectionPoolSize>0</maxConnectionPoolSize>
-    <securityIdentity></securityIdentity>
-    <environmentParms></environmentParms>
-    <jdbcProviderXASupport>false</jdbcProviderXASupport>
-    <useDeployedJars>true</useDeployedJars>
-  </policy>
-</policies>
-EOF
+[[ ! -d $CONFIG_DIR/$SUFFIX/DefaultPolicies ]] && mkdir -p $CONFIG_DIR/$SUFFIX/DefaultPolicies
 
-echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
-
-echo "[INFO] Creating policy descriptor"
-cat << EOF > $CONFIG_DIR/DefaultPolicies/policy.descriptor
-<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<ns2:policyProjectDescriptor xmlns="http://com.ibm.etools.mft.descriptor.base" xmlns:ns2="http://com.ibm.etools.mft.descriptor.policyProject">
-  <references/>
-</ns2:policyProjectDescriptor>
-EOF
+echo "[INFO]  Templating postgresql policy"
+cat $CONFIG_DIR/PostgresqlPolicy.policyxml.template |
+  sed "s#{{DB_NAME}}#$DB_NAME#g;" |
+  sed "s#{{DB_USER}}#$DB_USER#g;" |
+  sed "s#{{DB_PASS}}#$DB_PASS#g;" |
+  sed "s#{{DB_SVC}}#$DB_SVC#g;" > $CONFIG_DIR/$SUFFIX/DefaultPolicies/PostgresqlPolicy.policyxml
 
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
 # Generate configuration yaml
 echo "[INFO]  Generating configuration yaml"
 for i in ${!NAMES[@]}; do
-  file=$CONFIG_DIR/${FILES[$i]}
+  file=${FILES[$i]}
+  echo "target: $file"
   if [[ -d $file ]]; then
     python -m zipfile -c $file.zip $file/
     file=$file.zip
+    echo "zipped: $file.zip"
   fi
   buildConfigurationCR ${TYPES[$i]} ${NAMES[$i]} $file
 done
