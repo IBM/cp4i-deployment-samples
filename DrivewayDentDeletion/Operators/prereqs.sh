@@ -130,8 +130,6 @@ EOF
     echo -e "\n$tick INFO: Successfully configured postgres in the '$POSTGRES_NAMESPACE' namespace with the user '$DB_USER' and database name '$DB_NAME'\n"
   fi  #configure-postgres-db.sh
 
-  
-
   echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
   echo -e "INFO: Creating ace postgres configuration and policy in the namespace '$image_project' with the user '$DB_USER' and database name '$DB_NAME' and suffix '$SUFFIX'"
@@ -147,9 +145,17 @@ done #for_outer_done
 
 echo -e "INFO: Creating secret to pull images from the ER in the '${test_namespace}' namespace\n"
 
+ER_REGISTRY=$(oc get secret -n $dev_namespace ibm-entitlement-key -o json | jq -r '.data.".dockerconfigjson"' | base64 --decode | jq -r '.auths' | jq -r 'keys[]' | tr -d '"')
+ER_USERNAME=$(oc get secret -n $dev_namespace ibm-entitlement-key -o json | jq -r '.data.".dockerconfigjson"' | base64 --decode | jq -r '.auths."cp.icr.io".username')
+ER_PASSWORD=$(oc get secret -n $dev_namespace ibm-entitlement-key -o json | jq -r '.data.".dockerconfigjson"' | base64 --decode | jq -r '.auths."cp.icr.io".password')
+
 if ! oc get secrets -n ${test_namespace} ibm-entitlement-key; then
   oc create -n ${test_namespace} secret docker-registry ibm-entitlement-key --docker-server=${ER_REGISTRY} \
     --docker-username=${ER_USERNAME} --docker-password=${ER_PASSWORD} -o yaml | oc apply -f -
+  if [ $? -ne 0 ]; then
+    echo -e "\n$cross ERROR: Failed to create ibm-entitlement-key in test namespace ($test_namespace)"
+    exit 1
+  fi
 else
   echo -e "\nINFO: ibm-entitlement-key secret already exists in the '${test_namespace}' namespace"
 fi
@@ -184,4 +190,3 @@ fi
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 echo -e "$tick $all_done INFO: All prerequisites for the driveway dent deletion demo have been applied successfully $all_done $tick"
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
-

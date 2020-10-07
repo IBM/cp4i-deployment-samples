@@ -42,12 +42,12 @@ spec:
           eventstreams.production.type: CloudPakForIntegrationNonProduction
           productID: 2a79e49111f44ec3acd89608e56138f5
           productName: IBM Event Streams for Non Production
-          productVersion: 10.0.0
+          productVersion: 10.1.0                                                             # Change 4
           productMetric: VIRTUAL_PROCESSOR_CORE
           productChargedContainers: my-connect-cluster-connect
           cloudpakId: c8b82d189e7545f0892db9ef2731b90d
           cloudpakName: IBM Cloud Pak for Integration
-          cloudpakVersion: 2020.2.1
+          cloudpakVersion: 2020.3.1                                                         # Change 4
           productCloudpakRatio: "2:1"
   config:
     group.id: connect-cluster
@@ -89,6 +89,7 @@ spec:
   ```
 - Change 2: This enables a class that allows reading properties from files
 - Change 3: This mounts the `eei-postgres-replication-credential` secret into the connector at `/opt/kafka/external-configuration/connector-config`
+- Change 4: Use the correct version number for the 2020.3.1 version of Event Streams.
 - There is no need to change the replication factors, `es-demos` has 3 replicas and so the default value of 3 is appropriate.
 - There is no need to add tls or authentication properties, `es-demos` has no security setup.
 

@@ -58,7 +58,7 @@ spec:
     accept: true
   mqDashboard: true
   replicas: ${replicas}
-  version: 2020.2.1
+  version: 2020.3.1
 EOF
 
 do
