@@ -136,3 +136,44 @@ spec:
       workspaces:
       - name: git-source
         workspace: git-source
+
+    - name: build-ace-api-eei
+      runAfter:
+        - git-clone-eei
+      taskRef:
+        name: build-task
+      params:
+        - name: imageTag
+          value: "latest"
+        - name: imageName
+          value: "ace-api-eei"
+        - name: dockerfile
+          value: "../../../EventEnabledInsurance/ACE/ACE-API-EEI.Dockerfile"
+        - name: contextPath
+          value: "../../EventEnabledInsurance/Bar_files/ace-api"
+        - name: pvc
+          value: "buildah-ace-api"
+      workspaces:
+        - name: git-source
+          workspace: git-source
+
+    # deploy all ace in dev namespace
+    - name: deploy-wait-ace-api-eei
+      runAfter:
+        - build-ace-api-eei
+      taskRef:
+        name: deploy-task
+      params:
+        - name: imageTag
+          value: "latest"
+        - name: imageName
+          value: "ace-api-eei"
+        - name: releaseName
+          value: "ace-api-int-srv-eei"
+        - name: releaseScript
+          value: release-ace-integration-server.sh
+        - name: namespace
+          value: "{{NAMESPACE}}"
+      workspaces:
+        - name: git-source
+          workspace: git-source
