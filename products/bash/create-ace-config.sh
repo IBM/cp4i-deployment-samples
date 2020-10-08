@@ -80,7 +80,7 @@ while getopts "n:g:u:d:p:s:" opt; do
       ;;
     s ) SUFFIX="$OPTARG"
       ;;
-    \? ) usage; exit
+    \? ) usage;
       ;;
   esac
 done

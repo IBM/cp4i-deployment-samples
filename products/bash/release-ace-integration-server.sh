@@ -55,7 +55,6 @@ while getopts "n:r:i:z:t" opt; do
     ;;
   \?)
     usage
-    exit
     ;;
   esac
 done
