@@ -26,6 +26,17 @@
 #     echo "Usage: $0 -n <namespace>"
 # }
 #
+
+echo "Test if keytool available"
+keytool -help
+
+echo "Test if java available"
+java -version
+
+echo "PATH=$PATH"
+
+exit 1
+
 namespace="cp4i"
 
 # Get auth port with internal url and apply the operand config in common services namespace
