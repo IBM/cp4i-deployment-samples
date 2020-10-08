@@ -74,13 +74,28 @@ echo "INFO: TKN: '$TKN'"
 
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
-# apply pvc for buildah tasks
 echo "INFO: Apply pvc for buildah tasks for ACE build and deploy"
 if oc apply -n $namespace -f $CURRENT_DIR/../../DrivewayDentDeletion/Operators/cicd-dev/cicd-pvc.yaml; then
   echo "\n$tick INFO: Successfully applied pvc in the '$namespace' namespace"
 else
   echo "\n$cross Failed to apply pvc in the '$namespace' namespace"
   exit 1
+fi
+
+echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
+
+if oc delete pvc buildah-mq -n $namespace; then
+  echo -e "$tick INFO: Deleted the pvc 'buildah-mq'"
+else
+  echo -e "$cross ERROR: Failed to delete the pvc 'buildah-mq'"
+fi
+
+echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
+
+if oc delete pvc git-source-workspace -n $namespace; then
+  echo -e "$tick INFO: Deleted the pvc 'git-source-workspace'"
+else
+  echo -e "$cross ERROR: Failed to delete the pvc 'git-source-workspace'"
 fi
 
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
@@ -169,6 +184,38 @@ if oc delete pvc git-workspace-eei -n $namespace; then
   echo -e "$tick INFO: Deleted the pvc 'git-workspace-eei'"
 else
   echo -e "$cross ERROR: Failed to delete the pvc 'git-workspace-eei'"
+fi
+
+echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
+
+if oc delete pvc buildah-ace-acme -n $namespace; then
+  echo -e "$tick INFO: Deleted the pvc 'buildah-ace-acme'"
+else
+  echo -e "$cross ERROR: Failed to delete the pvc 'buildah-ace-acme'"
+fi
+
+echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
+
+if oc delete pvc buildah-ace-api -n $namespace; then
+  echo -e "$tick INFO: Deleted the pvc 'buildah-ace-api'"
+else
+  echo -e "$cross ERROR: Failed to delete the pvc 'buildah-ace-api'"
+fi
+
+echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
+
+if oc delete pvc buildah-ace-bernie -n $namespace; then
+  echo -e "$tick INFO: Deleted the pvc 'buildah-ace-bernie'"
+else
+  echo -e "$cross ERROR: Failed to delete the pvc 'buildah-ace-bernie'"
+fi
+
+echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
+
+if oc delete pvc buildah-ace-chris -n $namespace; then
+  echo -e "$tick INFO: Deleted the pvc 'buildah-ace-chris'"
+else
+  echo -e "$cross ERROR: Failed to delete the pvc 'buildah-ace-chris'"
 fi
 
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
