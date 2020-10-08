@@ -36,6 +36,8 @@ POSTGRES_NAMESPACE="postgres"
 REPO="https://github.com/IBM/cp4i-deployment-samples.git"
 BRANCH="main"
 ELASTIC_NAMESPACE="elasticsearch"
+info="\xE2\x84\xB9"
+missingParams="false"
 
 while getopts "n:r:b:" opt; do
   case ${opt} in
@@ -54,17 +56,32 @@ while getopts "n:r:b:" opt; do
   esac
 done
 
-if [[ -z "${namespace// }" || -z "${REPO// }" || -z "${BRANCH// }" ]]; then
-  echo -e "$cross ERROR: Mandatory parameters are empty"
+if [[ -z "${namespace// }" ]]; then
+  echo -e "$cross ERROR: Namespace for EEI is empty. Please provide a value for '-n' parameter."
+  missingParams="true"
+fi
+
+if [[ -z "${REPO// }" ]]; then
+  echo -e "$cross ERROR: Repository name is empty. Please provide a value for '-r' parameter."
+  missingParams="true"
+fi
+
+if [[ -z "${BRANCH// }" ]]; then
+  echo -e "$cross ERROR: Branch for the repository is empty. Please provide a value for '-b' parameter."
+  missingParams="true"
+fi
+
+if [[ "$missingParams" == "true" ]]; then
+  echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
   usage
 fi
 
 CURRENT_DIR=$(dirname $0)
-echo "INFO: Current directory: '$CURRENT_DIR'"
-echo "INFO: Namespace: '$namespace'"
-echo "INFO: Suffix for the postgres is: '$SUFFIX'"
-echo "INFO: Repo: '$REPO'"
-echo "INFO: Branch: '$BRANCH'"
+echo -e "$info INFO: Current directory: '$CURRENT_DIR'"
+echo -e "$info INFO: Namespace: '$namespace'"
+echo -e "$info INFO: Suffix for the postgres is: '$SUFFIX'"
+echo -e "$info INFO: Repo: '$REPO'"
+echo -e "$info INFO: Branch: '$BRANCH'"
 
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
