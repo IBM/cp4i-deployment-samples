@@ -132,8 +132,8 @@ while true; do
         }
       ]
     }")
-  $DEBUG && echo "[DEBUG] post response: ${post_response}"
   post_response_code=$(echo "${post_response##* }")
+  $DEBUG && echo "[DEBUG] post response: ${post_response}"
 
   if [ "$post_response_code" == "200" ]; then
     # The usage of sed here is to prevent an error caused between the -w flag of curl and jq not interacting well
@@ -149,8 +149,9 @@ while true; do
 
     # - GET ---
     echo -e "\nGET request..."
-    get_response=$(curl -s -w " %{http_code}" -X GET ${API_BASE_URL}/quote?QuoteID=${quote_id})
+    get_response=$(curl -kLsS -w " %{http_code}" -X GET ${API_BASE_URL}/quote?QuoteID=${quote_id} -H "X-IBM-CLIENT-ID: ${API_CLIENT_ID}")
     get_response_code=$(echo "${get_response##* }")
+    $DEBUG && echo "[DEBUG] get response: ${get_response}"
 
     if [ "$get_response_code" == "200" ]; then
       echo -e "SUCCESS - GETed with response code: ${get_response_code}, and Response Body:\n"
