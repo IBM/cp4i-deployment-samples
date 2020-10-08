@@ -50,7 +50,7 @@ while getopts "n:g:u:d:p:a:" opt; do
       ;;
     a ) ACE_CONFIGURATION_NAME="$OPTARG"
       ;;
-    \? ) usage; exit
+    \? ) usage;
       ;;
   esac
 done

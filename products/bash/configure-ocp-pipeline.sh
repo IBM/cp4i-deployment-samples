@@ -88,10 +88,13 @@ done
 echo -e "\nINFO: 'pipeline' service account is now available\n"
 oc get sa --namespace ${namespace} pipeline
 
-echo -e "\nINFO: Adding Entitled Registry secret to pipeline Service Account"
-oc get sa --namespace ${namespace} pipeline -o json |\
-  jq -r 'del(.secrets[] | select(.name == "er-pull-secret")) | .secrets += [{"name": "er-pull-secret"}]' |\
-  oc replace -f -
+echo -e "\nINFO: Adding Entitled Registry secret to pipeline Service Account..."
+if ! oc get sa --namespace ${namespace} pipeline -o json | jq -r 'del(.secrets[] | select(.name == "er-pull-secret")) | .secrets += [{"name": "er-pull-secret"}]' | oc replace -f -; then
+  echo -e "ERROR: Failed to add the secret 'er-pull-secret' to the service account 'pipeline' in the '$namespace' namespace"
+  exit 1
+else
+  echo -e "INFO: Successfully added the secret 'er-pull-secret' to the service account 'pipeline' in the '$namespace' namespace"
+fi
 
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
