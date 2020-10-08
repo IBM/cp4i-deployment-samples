@@ -148,9 +148,9 @@ spec:
         - name: imageName
           value: "ace-api-eei"
         - name: dockerfile
-          value: "../../../EventEnabledInsurance/ACE/ACE-API-EEI.Dockerfile"
+          value: "../../EventEnabledInsurance/ACE/ACE-API-EEI.Dockerfile"
         - name: contextPath
-          value: "../../EventEnabledInsurance/Bar_files/ace-api"
+          value: "../EventEnabledInsurance/Bar_files/ace-api"
         - name: pvc
           value: "buildah-ace-api"
       workspaces:
