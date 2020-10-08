@@ -81,14 +81,16 @@ DB_POD=$(oc get pod -n postgres -l name=postgresql -o jsonpath='{.items[].metada
 echo "[INFO]  Username name is: '${DB_USER}'"
 echo "[INFO]  Database name is: '${DB_NAME}'"
 
+CURL_OPTS=( -s -L -S )
 if [[ $APIC == true ]]; then
   $DEBUG && echo "[DEBUG] apic integration enabled"
+  CURL_OPTS+=( -k )
   API_BASE_URL=$(oc get secret -n $NAMESPACE ddd-api-endpoint-client-id -o jsonpath='{.data.api}' | base64 --decode)
   API_CLIENT_ID=$(oc get secret -n $NAMESPACE ddd-api-endpoint-client-id -o jsonpath='{.data.cid}' | base64 --decode)
   echo -e "[INFO]  api base url: ${API_BASE_URL}\n[INFO]  client id: ${API_CLIENT_ID}"
 fi
 if [ -z "${API_BASE_URL}" ]; then
-  API_BASE_URL=$(echo "http://$(oc get routes -n $NAMESPACE | grep ace-api-int-srv-http | grep -v ace-api-int-srv-https | awk '{print $2}')/drivewayrepair")
+  API_BASE_URL=$(echo "https://$(oc get routes -n $NAMESPACE | grep ace-api-int-srv-https | awk '{print $2}')/drivewayrepair")
   echo "[INFO]  api base URL: ${API_BASE_URL}"
 fi
 
@@ -110,10 +112,14 @@ if [ "$TABLE_CLEANUP" = true ]; then
   trap "cleanup_table" EXIT
 fi
 
+API_AUTH=$(oc get secret -n $NAMESPACE ace-api-creds -o json | $JQ -r '.data.auth')
+echo "api auth: $API_AUTH"
+
 while true; do
   # - POST ---
   echo -e "\nPOST request..."
-  post_response=$(curl -kLsS -w " %{http_code}" -X POST ${API_BASE_URL}/quote \
+  post_response=$(curl $CURL_OPTS -w " %{http_code}" -X POST ${API_BASE_URL}/quote \
+    -H "authorization: Basic ${API_AUTH}" \
     -H "X-IBM-CLIENT-ID: ${API_CLIENT_ID}" \
     -d "{
       \"Name\": \"Jane Doe\",
@@ -149,7 +155,9 @@ while true; do
 
     # - GET ---
     echo -e "\nGET request..."
-    get_response=$(curl -kLsS -w " %{http_code}" -X GET ${API_BASE_URL}/quote?QuoteID=${quote_id} -H "X-IBM-CLIENT-ID: ${API_CLIENT_ID}")
+    get_response=$(curl $CURL_OPTS -w " %{http_code}" -X GET ${API_BASE_URL}/quote?QuoteID=${quote_id} \
+      -H "authorization: Basic ${API_AUTH}" \
+      -H "X-IBM-CLIENT-ID: ${API_CLIENT_ID}")
     get_response_code=$(echo "${get_response##* }")
     $DEBUG && echo "[DEBUG] get response: ${get_response}"
 
