@@ -221,7 +221,7 @@ ELASTIC_USER="elastic"
 echo -e "INFO: Got the password for elastic search..."
 
 echo -e "\nINFO: Creating secret for elastic search connector"
-oc get secret -n elastic-search elasticsearch-eei-es-http-certs-public -o json | jq -r '.data["ca.crt"]' | base64 --decode > ca.crt
+oc get secret -n ${ELASTIC_NAMESPACE} $ELASTIC_CR_NAME-es-http-certs-public -o json | jq -r '.data["ca.crt"]' | base64 --decode > ca.crt
 rm elastic-ts.jks
 
 TRUSTSTORE_PASSWORD=$(LC_ALL=C tr -dc 'A-Za-z0-9' </dev/urandom | head -c 32 ; echo)
