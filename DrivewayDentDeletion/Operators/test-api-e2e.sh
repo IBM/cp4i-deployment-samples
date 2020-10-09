@@ -115,7 +115,7 @@ echo -e "\n---------------------------------------------------------------------
 
 # -------------------------------------- TEST E2E API ------------------------------------------
 # BASE_PATH=/basepath, all ready contains /
-HOST=http://$(oc get routes -n ${NAMESPACE} | grep ace-api-int-srv-http | grep -v ace-api-int-srv-https | awk '{print $2}')/drivewayrepair
+HOST=https://$(oc get routes -n ${NAMESPACE} | grep ace-api-int-srv-https | awk '{print $2}')/drivewayrepair
 if [[ $APIC == true ]]; then
   OUTPUT=""
   function handle_res {
@@ -187,9 +187,13 @@ echo -e "\n---------------------------------------------------------------------
 
 echo -e "INFO: Testing E2E API now..."
 
+API_AUTH=$(oc get secret -n $NAMESPACE ace-api-creds -o json | $JQ -r '.data.auth')
+echo "api auth: $API_AUTH"
+
 # ------- Post to the database -------
 echo "request url: $HOST/quote"
 post_response=$(curl -ksw " %{http_code}" -X POST $HOST/quote \
+  -H "authorization: Basic ${API_AUTH}" \
   -H "X-IBM-Client-Id: ${CLIENT_ID}" \
   -H "content-type: application/json" \
   -d "{
@@ -225,7 +229,7 @@ if [ "$post_response_code" == "200" ]; then
 
   # ------- Get from the database -------
   echo -e "\nINFO: GET request..."
-  get_response=$(curl -ksw " %{http_code}" ${HOST}/quote?QuoteID=${quote_id} -H "X-IBM-Client-Id: ${CLIENT_ID}")
+  get_response=$(curl -ksw " %{http_code}" ${HOST}/quote?QuoteID=${quote_id} -H "authorization: Basic ${API_AUTH}" -H "X-IBM-Client-Id: ${CLIENT_ID}")
   get_response_code=$(echo "${get_response##* }")
 
   if [ "$get_response_code" == "200" ]; then

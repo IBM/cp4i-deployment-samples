@@ -36,7 +36,7 @@ tracing_namespace=""
 tracing_enabled="false"
 CURRENT_DIR=$(dirname $0)
 eei_config="false"
-ace_policy_name=""
+ace_policy_names=""
 ace_replicas="2"
 echo "Current directory: $CURRENT_DIR"
 
@@ -79,11 +79,11 @@ fi
 # ------------------------------------------------ SET ACE POLICY --------------------------------------------------
 
 if [[ "$eei_config" == "true" ]]; then
-  ace_policy_name="ace-policyproject-eei"
+  ace_policy_names="[ace-policyproject-eei]"
 else
-  ace_policy_name="ace-policyproject-ddd"
+  ace_policy_names="[ace-keystore, ace-policyproject-ddd, ace-serverconf, ace-setdbparms]"
 fi
-echo -e "\nINFO: ACE policy configuration is set to: '$ace_policy_name'"
+echo -e "\nINFO: ACE policy configuration is set to: '$ace_policy_names'"
 
 # ------------------------------------------------ FIND IMAGE TAG --------------------------------------------------
 
@@ -116,8 +116,6 @@ spec:
    containers:
      runtime:
        image: ${is_image_name}
-  configurations:
-  - ${ace_policy_name}
   designerFlowsOperationMode: disabled
   license:
     accept: true
@@ -127,12 +125,13 @@ spec:
   router:
     timeout: 120s
   service:
-    endpointType: http
+    endpointType: https
   useCommonServices: true
   version: 11.0.0.10-r1
   tracing:
     enabled: ${tracing_enabled}
     namespace: ${tracing_namespace}
+  configurations: $ace_policy_names
 EOF
 
 timer=0
