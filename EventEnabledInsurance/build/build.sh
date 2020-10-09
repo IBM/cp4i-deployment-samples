@@ -149,25 +149,25 @@ if [[ "$(oc get pipelinerun -n $namespace $PIPELINE_RUN_NAME -o json | jq -r '.s
   pipelinerunSuccess="true"
 fi
 
-echo -e "\nINFO: Going ahead to delete the pipelinerun instance to delete the related pods and the pvc"
+# echo -e "\nINFO: Going ahead to delete the pipelinerun instance to delete the related pods and the pvc"
 
-echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
+# echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
-if oc delete pipelinerun -n $namespace $PIPELINE_RUN_NAME ; then
-  echo -e "$tick INFO: Deleted the pipelinerun with the uid '$PIPELINERUN_UID'"
-else
-  echo -e "$cross ERROR: Failed to delete the pipelinerun with the uid '$PIPELINERUN_UID'"
-fi
+# if oc delete pipelinerun -n $namespace $PIPELINE_RUN_NAME ; then
+#   echo -e "$tick INFO: Deleted the pipelinerun with the uid '$PIPELINERUN_UID'"
+# else
+#   echo -e "$cross ERROR: Failed to delete the pipelinerun with the uid '$PIPELINERUN_UID'"
+# fi
 
-echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
+# echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
-if oc delete pvc git-workspace-eei -n $namespace; then
-  echo -e "$tick INFO: Deleted the pvc 'git-workspace-eei'"
-else
-  echo -e "$cross ERROR: Failed to delete the pvc 'git-workspace-eei'"
-fi
+# if oc delete pvc git-workspace-eei -n $namespace; then
+#   echo -e "$tick INFO: Deleted the pvc 'git-workspace-eei'"
+# else
+#   echo -e "$cross ERROR: Failed to delete the pvc 'git-workspace-eei'"
+# fi
 
-echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
+# echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
 if oc delete pvc buildah-ace-rest-eei -n $namespace; then
   echo -e "$tick INFO: Deleted the pvc 'buildah-ace-rest-eei'"
@@ -175,7 +175,7 @@ else
   echo -e "$cross ERROR: Failed to delete the pvc 'buildah-ace-rest-eei'"
 fi
 
-echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
+# echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
 if oc delete pvc buildah-ace-db-writer-eei -n $namespace; then
   echo -e "$tick INFO: Deleted the pvc 'buildah-ace-db-writer-eei'"
@@ -183,7 +183,7 @@ else
   echo -e "$cross ERROR: Failed to delete the pvc 'buildah-ace-db-writer-eei'"
 fi
 
-echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
+# echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
 if [[ "$pipelinerunSuccess" == "false" ]];then
   echo -e "\n$cross ERROR: The pipelinerun did not succeed\n"
