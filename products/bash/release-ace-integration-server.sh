@@ -101,8 +101,6 @@ spec:
    containers:
      runtime:
        image: ${is_image_name}
-  configurations:
-  - ace-policyproject-ddd
   designerFlowsOperationMode: disabled
   license:
     accept: true
@@ -112,12 +110,17 @@ spec:
   router:
     timeout: 120s
   service:
-    endpointType: http
+    endpointType: https
   useCommonServices: true
   version: 11.0.0.10-r1
   tracing:
     enabled: ${tracing_enabled}
     namespace: ${tracing_namespace}
+  configurations:
+    - ace-keystore
+    - ace-policyproject-ddd
+    - ace-serverconf
+    - ace-setdbparms
 EOF
 
 timer=0

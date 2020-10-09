@@ -1,0 +1,8 @@
+serverConfVersion: 1
+forceServerHTTPS: true
+forceServerHTTPSecurityProfile: '{DefaultPolicies}:BasicAuthPolicy'
+ResourceManagers:
+  HTTPSConnector:
+    KeystoreFile: '/home/aceuser/keystores/ace-keystore'
+    KeystoreType: 'PKCS12'
+    KeystorePassword: 'brokerKeystore::password'
