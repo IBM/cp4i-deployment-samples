@@ -79,7 +79,7 @@ if [[ "$eei_config" == "true" ]]; then
 else
   ace_policy_name="ace-policyproject-ddd"
 fi
-echo -e "\n INFO: ACE policy configuration is set to: '$ace_policy_name'"
+echo -e "\nINFO: ACE policy configuration is set to: '$ace_policy_name'"
 
 # ------------------------------------------------ FIND IMAGE TAG --------------------------------------------------
 
