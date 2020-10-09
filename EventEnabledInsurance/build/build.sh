@@ -182,6 +182,14 @@ fi
 
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
+if oc delete pvc eei-apps -n $namespace; then
+  echo -e "$tick INFO: Deleted the pvc 'eei-apps'"
+else
+  echo -e "$cross ERROR: Failed to delete the pvc 'eei-apps'"
+fi
+
+echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
+
 if [[ "$pipelinerunSuccess" == "false" ]];then
   echo -e "\n$cross ERROR: The pipelinerun did not succeed\n"
   exit 1
