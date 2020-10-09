@@ -26,29 +26,52 @@ spec:
         - name: output
           workspace: git-source
 
+    # build simulator app image
     - name: build-simulator-image
       runAfter:
         - git-clone-eei
-      taskSpec:
-        workspaces:
-          - name: git-source
-        steps:
-          - name: build
-            image: quay.io/buildah/stable:latest
-            securityContext:
-              privileged: true
-            script: |
-              buildah --storage-driver vfs bud \
-                -f /workspace/git-source/EventEnabledInsurance/QuoteLifecycleSimulator/Simulator.Dockerfile \
-                -t image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}/quote-simulator-eei:latest \
-                /workspace/git-source/EventEnabledInsurance/QuoteLifecycleSimulator
-              buildah --storage-driver vfs push \
-                --tls-verify=false \
-                image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}/quote-simulator-eei:latest
+      taskRef:
+        name: build-task
+      params:
+        - name: imageTag
+          value: "latest"
+        - name: imageName
+          value: "quote-simulator-eei"
+        - name: dockerfile
+          value: "../../../EventEnabledInsurance/QuoteLifecycleSimulator/Simulator.Dockerfile"
+        - name: contextPath
+          value: "../EventEnabledInsurance/QuoteLifecycleSimulator"
+        - name: pvc
+          value: "git-workspace-eei"
       workspaces:
-      - name: git-source
-        workspace: git-source
+        - name: git-source
+          workspace: git-source
 
+
+    # - name: build-simulator-image
+    #   runAfter:
+    #     - git-clone-eei
+    #   taskSpec:
+    #     workspaces:
+    #       - name: git-source
+    #     steps:
+    #       - name: build
+    #         image: quay.io/buildah/stable:latest
+    #         securityContext:
+    #           privileged: true
+    #         script: |
+    #           buildah --storage-driver vfs bud \
+    #             -f /workspace/git-source/EventEnabledInsurance/QuoteLifecycleSimulator/Simulator.Dockerfile \
+    #             -t image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}/quote-simulator-eei:latest \
+    #             /workspace/git-source/EventEnabledInsurance/QuoteLifecycleSimulator
+    #           buildah --storage-driver vfs push \
+    #             --tls-verify=false \
+    #             image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}/quote-simulator-eei:latest
+    #   workspaces:
+    #   - name: git-source
+    #     workspace: git-source
+
+    # deploy simulator app image
     - name: deploy-simulator-app
       runAfter:
         - build-simulator-image
@@ -63,29 +86,51 @@ spec:
       - name: git-source
         workspace: git-source
 
+    # build projection claim app image
     - name: build-projection-claims-image
       runAfter:
         - git-clone-eei
-      taskSpec:
-        workspaces:
-          - name: git-source
-        steps:
-          - name: build
-            image: quay.io/buildah/stable:latest
-            securityContext:
-              privileged: true
-            script: |
-              buildah --storage-driver vfs bud \
-                -f /workspace/git-source/EventEnabledInsurance/ProjectionClaims/Dockerfile \
-                -t image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}/projection-claims-eei:latest \
-                /workspace/git-source/EventEnabledInsurance/ProjectionClaims
-              buildah --storage-driver vfs push \
-                --tls-verify=false \
-                image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}/projection-claims-eei:latest
+      taskRef:
+        name: build-task
+      params:
+        - name: imageTag
+          value: "latest"
+        - name: imageName
+          value: "projection-claims-eei"
+        - name: dockerfile
+          value: "../../../EventEnabledInsurance/ProjectionClaims/Dockerfile"
+        - name: contextPath
+          value: "../EventEnabledInsurance/ProjectionClaims"
+        - name: pvc
+          value: "git-workspace-eei"
       workspaces:
-      - name: git-source
-        workspace: git-source
+        - name: git-source
+          workspace: git-source
 
+    # - name: build-projection-claims-image
+    #   runAfter:
+    #     - git-clone-eei
+    #   taskSpec:
+    #     workspaces:
+    #       - name: git-source
+    #     steps:
+    #       - name: build
+    #         image: quay.io/buildah/stable:latest
+    #         securityContext:
+    #           privileged: true
+    #         script: |
+    #           buildah --storage-driver vfs bud \
+    #             -f /workspace/git-source/EventEnabledInsurance/ProjectionClaims/Dockerfile \
+    #             -t image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}/projection-claims-eei:latest \
+    #             /workspace/git-source/EventEnabledInsurance/ProjectionClaims
+    #           buildah --storage-driver vfs push \
+    #             --tls-verify=false \
+    #             image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}/projection-claims-eei:latest
+    #   workspaces:
+    #   - name: git-source
+    #     workspace: git-source
+
+    # deploy projection claim app image
     - name: deploy-projection-claims-app
       runAfter:
         - build-projection-claims-image
@@ -100,29 +145,51 @@ spec:
       - name: git-source
         workspace: git-source
 
+    # build mq image
     - name: build-mq-image
       runAfter:
         - git-clone-eei
-      taskSpec:
-        workspaces:
-          - name: git-source
-        steps:
-          - name: build
-            image: quay.io/buildah/stable:latest
-            securityContext:
-              privileged: true
-            script: |
-              buildah --storage-driver vfs bud \
-                -f /workspace/git-source/EventEnabledInsurance/MQ/Dockerfile \
-                -t image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}/mq-eei:latest \
-                /workspace/git-source/EventEnabledInsurance/MQ
-              buildah --storage-driver vfs push \
-                --tls-verify=false \
-                image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}/mq-eei:latest
+      taskRef:
+        name: build-task
+      params:
+        - name: imageTag
+          value: "latest"
+        - name: imageName
+          value: "mq-eei"
+        - name: dockerfile
+          value: "../../../EventEnabledInsurance/MQ/Dockerfile"
+        - name: contextPath
+          value: "../EventEnabledInsurance/MQ"
+        - name: pvc
+          value: "git-workspace-eei"
       workspaces:
-      - name: git-source
-        workspace: git-source
+        - name: git-source
+          workspace: git-source
 
+    # - name: build-mq-image
+    #   runAfter:
+    #     - git-clone-eei
+    #   taskSpec:
+    #     workspaces:
+    #       - name: git-source
+    #     steps:
+    #       - name: build
+    #         image: quay.io/buildah/stable:latest
+    #         securityContext:
+    #           privileged: true
+    #         script: |
+    #           buildah --storage-driver vfs bud \
+    #             -f /workspace/git-source/EventEnabledInsurance/MQ/Dockerfile \
+    #             -t image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}/mq-eei:latest \
+    #             /workspace/git-source/EventEnabledInsurance/MQ
+    #           buildah --storage-driver vfs push \
+    #             --tls-verify=false \
+    #             image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}/mq-eei:latest
+    #   workspaces:
+    #   - name: git-source
+    #     workspace: git-source
+
+    # deploy mq image
     - name: deploy-mq
       runAfter:
         - build-mq-image
