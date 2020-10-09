@@ -1,0 +1,30 @@
+apiVersion: eventstreams.ibm.com/v1alpha1
+kind: KafkaConnector
+metadata:
+  name: eei-postgres
+  labels:
+    eventstreams.ibm.com/cluster: eei-cluster
+spec:
+  # This uses the Postgres Debezium plugin from the KafkaConnectS2I
+  class: io.debezium.connector.postgresql.PostgresConnector
+  tasksMax: 1
+  config:
+    # These are connection details to the Postgres database setup by the prereqs.
+    database.hostname: "postgresql.postgres.svc.cluster.local"
+    database.port: "5432"
+    # The following credentials refer to the mounted secret and use the FileConfigProvider
+    # from the KafkaConnectS2I to extract properties from the properties file.
+    database.dbname : "${file:/opt/kafka/external-configuration/postgres-connector-config/connector.properties:dbName}"
+    database.user: "${file:/opt/kafka/external-configuration/postgres-connector-config/connector.properties:dbUsername}"
+    database.password: "${file:/opt/kafka/external-configuration/postgres-connector-config/connector.properties:dbPassword}"
+    # This is the prefix used for the topic created by this connector.
+    database.server.name: "sor"
+    # The Postgres Debezium connector has various ways of monitoring the Postgres database.
+    #  We're using Postgres 10 which includes the `pgoutput` plugin by default.
+    plugin.name: pgoutput
+    # The following settings disable autocreation of a Postgres PUBLICATION and instead use
+    # the one we created as part of the prereqs. This allows the Debezium Connector to
+    # connect to Postgres with reduced privileges. For this connector to create a PUBLICATION
+    # would require the connector to run with superuser privileges.
+    publication.autocreate.mode: disabled
+    publication.name: db_eei_quotes

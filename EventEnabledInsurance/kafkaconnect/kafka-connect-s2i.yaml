@@ -1,0 +1,66 @@
+apiVersion: eventstreams.ibm.com/v1beta1
+kind: KafkaConnectS2I
+metadata:
+  name: eei-cluster
+  annotations:
+    eventstreams.ibm.com/use-connector-resources: "true"
+spec:
+  # Use the latest version of kafka
+  version: 2.6.0
+  replicas: 1
+  # The `es-demo` Event Streams runtime is setup with no external access. This is the
+  # service name of the demo bootstrap server and can only be used within the cluster.
+  bootstrapServers: es-demo-kafka-bootstrap:9092
+  template:
+    pod:
+      imagePullSecrets: []
+      metadata:
+        annotations:
+          eventstreams.production.type: CloudPakForIntegrationNonProduction
+          productID: 2a79e49111f44ec3acd89608e56138f5
+          productName: IBM Event Streams for Non Production
+           # Use the latest version of Eventstreams
+          productVersion: 10.1.0
+          productMetric: VIRTUAL_PROCESSOR_CORE
+          productChargedContainers: eei-cluster-connect
+          cloudpakId: c8b82d189e7545f0892db9ef2731b90d
+          cloudpakName: IBM Cloud Pak for Integration
+           # Use the latest version of Eventstreams
+          cloudpakVersion: 2020.3.1
+          productCloudpakRatio: "2:1"
+  config:
+    group.id: connect-cluster
+    offset.storage.topic: connect-cluster-offsets
+    config.storage.topic: connect-cluster-configs
+    status.storage.topic: connect-cluster-status
+    # There is no need to change the replication factors, `es-demos` has 3 replicas and so
+    # the default value of 3 is appropriate.
+    config.storage.replication.factor: 3
+    offset.storage.replication.factor: 3
+    status.storage.replication.factor: 3
+    # The followoing 2 properties enable a class that allows reading properties from files.
+    config.providers: file
+    config.providers.file.class: org.apache.kafka.common.config.provider.FileConfigProvider
+  # This mounts secrets into the connector at /opt/kafka/external-configuration. These
+  # secrets have been pre-created by the prereqs.sh script and configure access to the
+  # demo installs of Postgres and Elasticsearch.
+  externalConfiguration:
+    volumes:
+      - name: postgres-connector-config
+        secret:
+          secretName: eei-postgres-replication-credential
+      - name: elastic-connector-config
+        secret:
+          secretName: eei-elastic-credential
+# There is no need to add tls or authentication properties, `es-demos` has no security
+# setup.
+#  tls:
+#    trustedCertificates:
+#      - secretName: quickstart-cluster-ca-cert
+#        certificate: ca.crt
+#  authentication:
+#    type: scram-sha-512
+#    username: my-connect-user
+#    passwordSecret:
+#      secretName: my-connect-user
+#      password: my-connect-password-key

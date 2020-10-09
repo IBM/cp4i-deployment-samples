@@ -35,6 +35,7 @@ SUFFIX="eei"
 POSTGRES_NAMESPACE="postgres"
 REPO="https://github.com/IBM/cp4i-deployment-samples.git"
 BRANCH="main"
+ELASTIC_NAMESPACE="elasticsearch"
 
 while getopts "n:r:b:" opt; do
   case ${opt} in
@@ -230,6 +231,16 @@ done
 
 echo -e "\nINFO: Cluster task 'git-clone' is now available\n"
 $TKN clustertask ls | grep git-clone
+
+echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
+
+echo "INFO: Installing Elastic search operator and Elastic search instance..."
+if ! ${CURRENT_DIR}/setup-elastic-search.sh -n ${namespace} -e $ELASTIC_NAMESPACE; then
+  echo -e "\n$cross ERROR: Failed to install elastic search in the '$ELASTIC_NAMESPACE' namespace and configure it in the '$namespace' namespace"
+  exit 1
+else
+  echo -e "\n$tick INFO: Successfully installed elastic search in the '$ELASTIC_NAMESPACE' namespace and configured it in the '$namespace' namespace"
+fi #setup-elastic-search.sh
 
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
