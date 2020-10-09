@@ -180,7 +180,7 @@ spec:
           workspace: git-source
 
     # deploy ace rest
-    - name: deploy-build-ace-rest
+    - name: deploy-ace-rest
       runAfter:
         - build-ace-rest
       taskRef:
@@ -201,9 +201,9 @@ spec:
           workspace: git-source
 
     # deploy ace db_writer
-    - name: deploy-build-ace-rest
+    - name: deploy-db-writer
       runAfter:
-        - build-ace-rest
+        - build-ace-db-writer
       taskRef:
         name: deploy-task
       params:
