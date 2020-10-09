@@ -137,7 +137,8 @@ spec:
       - name: git-source
         workspace: git-source
 
-    - name: build-ace-api-eei
+    # build ace rest
+    - name: build-ace-rest
       runAfter:
         - git-clone-eei
       taskRef:
@@ -146,30 +147,72 @@ spec:
         - name: imageTag
           value: "latest"
         - name: imageName
-          value: "ace-api-eei"
+          value: "ace-rest-eei"
         - name: dockerfile
-          value: "../../../EventEnabledInsurance/ACE/ACE-API-EEI.Dockerfile"
+          value: "../../../EventEnabledInsurance/ACE/ACE-REST.Dockerfile"
         - name: contextPath
-          value: "../EventEnabledInsurance/Bar_files/ace-api"
+          value: "../EventEnabledInsurance/Bar_files/REST"
         - name: pvc
           value: "buildah-ace-api"
       workspaces:
         - name: git-source
           workspace: git-source
 
-    # deploy all ace in dev namespace
-    - name: deploy-wait-ace-api-eei
+    # build ace db-writer
+    - name: build-ace-db-writer
       runAfter:
-        - build-ace-api-eei
+        - git-clone-eei
+      taskRef:
+        name: build-task
+      params:
+        - name: imageTag
+          value: "latest"
+        - name: imageName
+          value: "ace-db-writer-eei"
+        - name: dockerfile
+          value: "../../../EventEnabledInsurance/ACE/ACE-DB-WRITER.Dockerfile"
+        - name: contextPath
+          value: "../EventEnabledInsurance/Bar_files/DB-WRITER"
+        - name: pvc
+          value: "buildah-ace-api"
+      workspaces:
+        - name: git-source
+          workspace: git-source
+
+    # deploy ace rest
+    - name: deploy-build-ace-rest
+      runAfter:
+        - build-ace-rest
       taskRef:
         name: deploy-task
       params:
         - name: imageTag
           value: "latest"
         - name: imageName
-          value: "ace-api-eei"
+          value: "ace-rest-eei"
         - name: releaseName
-          value: "ace-api-int-srv-eei"
+          value: "ace-rest-int-srv-eei"
+        - name: releaseScript
+          value: release-ace-integration-server.sh -e
+        - name: namespace
+          value: "{{NAMESPACE}}"
+      workspaces:
+        - name: git-source
+          workspace: git-source
+
+    # deploy ace db_writer
+    - name: deploy-build-ace-rest
+      runAfter:
+        - build-ace-rest
+      taskRef:
+        name: deploy-task
+      params:
+        - name: imageTag
+          value: "latest"
+        - name: imageName
+          value: "ace-db-writer-eei"
+        - name: releaseName
+          value: "ace-db-writer-int-srv-eei"
         - name: releaseScript
           value: release-ace-integration-server.sh -e
         - name: namespace
