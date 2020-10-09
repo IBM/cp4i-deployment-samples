@@ -15,6 +15,7 @@
 #   -i : <is_image_name> (string), Defaults to "image-registry.openshift-image-registry.svc:5000/cp4i/ace-11.0.0.9-r2:new-1"
 #   -z : <tracing_namespace> (string), Defaults to "-n namespace"
 #   -t : <tracing_enabled> (boolean), optional flag to enable tracing, Defaults to false
+#   -e : <eei_config> (boolean), optional flag for using ace policy configuration for EEI, Defaults to false
 #
 # USAGE:
 #   With defaults values
@@ -24,7 +25,7 @@
 #     ./release-ace-integration-server -n cp4i -r cp4i-bernie-ace
 
 function usage {
-  echo "Usage: $0 -n <namespace> -r <is_release_name> -i <is_image_name> -t -z <tracing_namespace>"
+  echo "Usage: $0 -n <namespace> -r <is_release_name> -i <is_image_name> -t -z <tracing_namespace> -e"
   exit 1
 }
 
@@ -34,9 +35,11 @@ is_image_name=""
 tracing_namespace=""
 tracing_enabled="false"
 CURRENT_DIR=$(dirname $0)
+eei_config="false"
+ace_policy_name=""
 echo "Current directory: $CURRENT_DIR"
 
-while getopts "n:r:i:z:t" opt; do
+while getopts "n:r:i:z:te" opt; do
   case ${opt} in
   n)
     namespace="$OPTARG"
@@ -53,6 +56,9 @@ while getopts "n:r:i:z:t" opt; do
   t)
     tracing_enabled=true
     ;;
+  e)
+    eei_config=true
+    ;;
   \?)
     usage
     ;;
@@ -65,6 +71,15 @@ else
     # assgining value to tracing_namespace b/c empty values causes CR to throw an error
     tracing_namespace=${namespace}
 fi
+
+# ------------------------------------------------ SET ACE POLICY --------------------------------------------------
+
+if [[ "$eei_config" == "true" ]]; then
+  ace_policy_name="ace-policyproject-eei"
+else
+  ace_policy_name="ace-policyproject-ddd"
+fi
+echo -e "\n INFO: ACE policy configuration is set to: '$ace_policy_name'"
 
 # ------------------------------------------------ FIND IMAGE TAG --------------------------------------------------
 
@@ -97,14 +112,7 @@ spec:
    containers:
      runtime:
        image: ${is_image_name}
-  configurations:
-  - ace-keystore
-  - ace-policyproject-ddd
-  - ace-serverconf
-  - ace-setdbparms
-  - application.kdb
-  - application.sth
-  - application.jks
+  configurations: ${ace_policy_name}
   designerFlowsOperationMode: disabled
   license:
     accept: true
