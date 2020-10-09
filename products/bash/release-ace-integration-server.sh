@@ -51,7 +51,7 @@ while getopts "n:r:i:z:t" opt; do
     tracing_namespace="$OPTARG"
     ;;
   t)
-    tracing_enabled=false
+    tracing_enabled=true
     ;;
   \?)
     usage
@@ -114,7 +114,7 @@ spec:
     accept: true
     license: L-APEH-BPUCJK
     use: CloudPakForIntegrationProduction
-  replicas: 1
+  replicas: 2
   router:
     timeout: 120s
   service:
