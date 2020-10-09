@@ -129,14 +129,18 @@ fi #pipelinerun.yaml
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
 pipelinerunSuccess="false";
-echo -e "INFO: Displaying the pipelinerun logs: \n"
+echo -e "INFO: Displaying the pipelinerun logs in the '$namespace' namespace: \n"
 if ! $TKN pipelinerun logs -n $namespace -f $PIPELINE_RUN_NAME; then
   echo -e "\n$cross ERROR: Failed to get the pipelinerun logs successfully"
 fi
 
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
+echo -e "\nINFO: The pipeline run in the '$namespace' namespace:\n"
 oc get pipelinerun -n $namespace $PIPELINE_RUN_NAME
+
+echo -e "\nINFO: The task runs in the '$namespace' namespace:\n"
+oc get taskrun -n $namespace
 
 if [[ "$(oc get pipelinerun -n $namespace $PIPELINE_RUN_NAME -o json | jq -r '.status.conditions[0].status')" == "True" ]];then
   pipelinerunSuccess="true"
