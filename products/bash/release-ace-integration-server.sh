@@ -77,10 +77,8 @@ fi
 
 if [[ "$eei_config" == "true" ]]; then
   ace_policy_name="ace-policyproject-eei"
-  ace_replicas="0"
 else
   ace_policy_name="ace-policyproject-ddd"
-  ace_replicas="2"
 fi
 echo -e "\nINFO: ACE policy configuration is set to: '$ace_policy_name'"
 
