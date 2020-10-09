@@ -143,7 +143,7 @@ Add connectors for Postgres Debezium and Elastic Search.
   - PostgreSQL (Debezium)
   - Elasticsearch
 - Extract the PostgreSQL (Debezium) tgz into a dir named `my-plugins`
-- Copy the Elasticsearch into the same `my-plugins` dir
+- Copy the Elasticsearch jar into the same `my-plugins` dir
 You should end up with a dir structure as follows:
 ![dir structure](./media/my-plugins-dir.png)
 
@@ -293,7 +293,7 @@ oc scale deployment/projection-claims-eei --replicas=1
 ```
 Get the URL to open in your web browser using:
 ```
-oc get route projection-claims-eei --template='https://{{.spec.host}}/getalldata'
+echo $(oc get route projection-claims-eei --template='https://{{.spec.host}}/getalldata')
 ```
 Stop the Projection Claims application using:
 ```
