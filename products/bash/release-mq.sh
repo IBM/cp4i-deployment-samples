@@ -117,36 +117,17 @@ spec:
     accept: true
     license: L-RJON-BN7PN3
     use: NonProduction
-  pki:
-    keys:
-      - name: default
-        secret:
-          items:
-            - tls.key
-            - tls.crt
-          secretName: mqcert
-    trust:
-      - name: app
-        secret:
-          items:
-            - app.crt
-          secretName: mqcert
   queueManager:
     name: ${qm_name}
     storage:
       queueManager:
         type: ephemeral
-    ini:
-      - configMap:
-          items:
-            - example.ini
-          name: mtlsmqsc
   template:
     pod:
       containers:
         - env:
-            - name: MQS_PERMIT_UNKNOWN_ID
-              value: 'true'
+            - name: MQSNOAUT
+              value: 'yes'
           name: qmgr
   version: 9.2.0.0-r1
   web:
