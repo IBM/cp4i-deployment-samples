@@ -152,6 +152,12 @@ metadata:
   namespace: $ELASTIC_NAMESPACE
 spec:
   version: 7.9.1
+  http:
+    tls:
+      selfSignedCertificate:
+        # https://www.elastic.co/guide/en/cloud-on-k8s/1.0/k8s-common-k8s-elastic-co-v1.html#common-k8s-elastic-co-v1-selfsignedcertificate
+        subjectAltNames:
+        - dns: "$ELASTIC_CR_NAME-es-http.$ELASTIC_NAMESPACE.svc.cluster.local"
   nodeSets:
     - name: default
       config:
@@ -215,6 +221,13 @@ ELASTIC_USER="elastic"
 echo -e "INFO: Got the password for elastic search..."
 
 echo -e "\nINFO: Creating secret for elastic search connector"
+oc get secret -n elastic-search elasticsearch-eei-es-http-certs-public -o json | jq -r '.data["ca.crt"]' | base64 --decode > ca.crt
+rm elastic-ts.jks
+
+TRUSTSTORE_PASSWORD=$(LC_ALL=C tr -dc 'A-Za-z0-9' </dev/urandom | head -c 32 ; echo)
+keytool -import -file ca.crt -alias elasticCA -keystore elastic-ts.jks -storepass "$TRUSTSTORE_PASSWORD" -noprompt
+BASE64_TS=$(cat elastic-ts.jks | base64 -b 0)
+
 cat << EOF | oc apply -f -
 apiVersion: v1
 kind: Secret
@@ -224,10 +237,10 @@ metadata:
 type: Opaque
 stringData:
   connector.properties: |-
-    dbPassword: $ELASTIC_PASSWORD
+    dbConnection: $ELASTIC_CR_NAME-es-http.$ELASTIC_NAMESPACE.svc.cluster.local:9200
     dbUser: $ELASTIC_USER
-    dbHost: $ELASTIC_CR_NAME-es-http.$ELASTIC_NAMESPACE.svc.cluster.local
-    dbPort: 9200
+    dbPassword: $ELASTIC_PASSWORD
+    truststorePassword: $TRUSTSTORE_PASSWORD
+data:
+  elastic-ts.jks: $BASE64_TS
 EOF
-
-echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
