@@ -56,14 +56,14 @@ spec:
     storage:
       size: 10Gi
       type: persistent-claim
-      class: ibmc-file-gold-gid
+      class: ibmc-block-gold
   designerFlowsOperationMode: local
   license:
     accept: true
-    license: L-AMYG-BQ2E4U
+    license: L-APEH-BPUCJK
     use: CloudPakForIntegrationNonProduction
   replicas: 1
-  version: 11.0.0.9
+  version: 11.0.0.10
   designerMappingAssist:
     enabled: true
 EOF

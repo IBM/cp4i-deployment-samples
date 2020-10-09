@@ -30,6 +30,9 @@
 namespace="cp4i"
 apps_namespace=""
 
+echo "INFO: Tracing support currently disabled"
+exit 0
+
 SCRIPT_DIR="$(dirname $0)"
 echo "Current Dir: $SCRIPT_DIR"
 
@@ -44,7 +47,7 @@ while getopts "n:a:" opt; do
   esac
 done
 
-if [ -z "$apps_namespace" ]; then 
+if [ -z "$apps_namespace" ]; then
   apps_namespace=${namespace}
 fi
 
