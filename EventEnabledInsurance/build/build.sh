@@ -174,10 +174,10 @@ fi
 
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
-if oc delete pvc eei-apps -n $namespace; then
-  echo -e "$tick INFO: Deleted the pvc 'eei-apps'"
+if oc delete pvc buildah-ace-db-writer-eei -n $namespace; then
+  echo -e "$tick INFO: Deleted the pvc 'buildah-ace-db-writer-eei'"
 else
-  echo -e "$cross ERROR: Failed to delete the pvc 'eei-apps'"
+  echo -e "$cross ERROR: Failed to delete the pvc 'buildah-ace-db-writer-eei'"
 fi
 
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
