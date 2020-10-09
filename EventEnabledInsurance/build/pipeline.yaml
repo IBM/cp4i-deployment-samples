@@ -153,7 +153,7 @@ spec:
         - name: contextPath
           value: "../EventEnabledInsurance/Bar_files/REST"
         - name: pvc
-          value: "buildah-ace-api"
+          value: "buildah-ace-rest-eei"
       workspaces:
         - name: git-source
           workspace: git-source
@@ -174,7 +174,7 @@ spec:
         - name: contextPath
           value: "../EventEnabledInsurance/Bar_files/DB-WRITER"
         - name: pvc
-          value: "buildah-ace-api"
+          value: "buildah-ace-db-writer-eei"
       workspaces:
         - name: git-source
           workspace: git-source
