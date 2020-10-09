@@ -35,6 +35,7 @@ metadata:
   annotations:
     eventstreams.ibm.com/use-connector-resources: "true"
 spec:
+  # Use the latest version of kafka
   version: 2.6.0
   replicas: 1
   # The `es-demo` Event Streams runtime is setup with no external access. This is the
@@ -214,7 +215,6 @@ spec:
     # would require the connector to run with superuser privileges.
     publication.autocreate.mode: disabled
     publication.name: db_eei_quotes
-  pause: false
 ```
 
 Apply the yaml using:
@@ -231,23 +231,23 @@ oc logs -f $CONNECTOR_POD
 
 The following should appear in the logs (maybe after a minute):
 ```
-2020-09-03 07:41:56,537 INFO Snapshot step 1 - Preparing (io.debezium.relational.RelationalSnapshotChangeEventSource) [debezium-postgresconnector-sor-change-event-source-coordinator]
-2020-09-03 07:41:56,537 INFO Setting isolation level (io.debezium.connector.postgresql.PostgresSnapshotChangeEventSource) [debezium-postgresconnector-sor-change-event-source-coordinator]
-2020-09-03 07:41:56,537 INFO Opening transaction with statement SET TRANSACTION ISOLATION LEVEL SERIALIZABLE, READ ONLY, DEFERRABLE; (io.debezium.connector.postgresql.PostgresSnapshotChangeEventSource) [debezium-postgresconnector-sor-change-event-source-coordinator]
-2020-09-03 07:41:56,707 INFO Snapshot step 2 - Determining captured tables (io.debezium.relational.RelationalSnapshotChangeEventSource) [debezium-postgresconnector-sor-change-event-source-coordinator]
-2020-09-03 07:41:56,712 INFO Snapshot step 3 - Locking captured tables (io.debezium.relational.RelationalSnapshotChangeEventSource) [debezium-postgresconnector-sor-change-event-source-coordinator]
-2020-09-03 07:41:56,713 INFO Waiting a maximum of '10' seconds for each table lock (io.debezium.connector.postgresql.PostgresSnapshotChangeEventSource) [debezium-postgresconnector-sor-change-event-source-coordinator]
-2020-09-03 07:41:56,771 INFO Snapshot step 4 - Determining snapshot offset (io.debezium.relational.RelationalSnapshotChangeEventSource) [debezium-postgresconnector-sor-change-event-source-coordinator]
-2020-09-03 07:41:56,774 INFO Read xlogStart at '0/15EA6A8' from transaction '566' (io.debezium.connector.postgresql.PostgresSnapshotChangeEventSource) [debezium-postgresconnector-sor-change-event-source-coordinator]
-2020-09-03 07:41:56,775 INFO Creating initial offset context (io.debezium.connector.postgresql.PostgresSnapshotChangeEventSource) [debezium-postgresconnector-sor-change-event-source-coordinator]
-2020-09-03 07:41:56,777 INFO Read xlogStart at '0/15EA6A8' from transaction '566' (io.debezium.connector.postgresql.PostgresSnapshotChangeEventSource) [debezium-postgresconnector-sor-change-event-source-coordinator]
-2020-09-03 07:41:56,779 INFO Snapshot step 5 - Reading structure of captured tables (io.debezium.relational.RelationalSnapshotChangeEventSource) [debezium-postgresconnector-sor-change-event-source-coordinator]
-2020-09-03 07:41:56,779 INFO Reading structure of schema 'db_cp4i_sor_eei' (io.debezium.connector.postgresql.PostgresSnapshotChangeEventSource) [debezium-postgresconnector-sor-change-event-source-coordinator]
-2020-09-03 07:41:56,848 INFO Snapshot step 6 - Persisting schema history (io.debezium.relational.RelationalSnapshotChangeEventSource) [debezium-postgresconnector-sor-change-event-source-coordinator]
-2020-09-03 07:41:56,848 INFO Snapshot step 7 - Snapshotting data (io.debezium.relational.RelationalSnapshotChangeEventSource) [debezium-postgresconnector-sor-change-event-source-coordinator]
-2020-09-03 07:41:56,849 INFO 	 Exporting data from table 'public.quotes' (io.debezium.relational.RelationalSnapshotChangeEventSource) [debezium-postgresconnector-sor-change-event-source-coordinator]
-2020-09-03 07:41:56,849 INFO 	 For table 'public.quotes' using select statement: 'SELECT * FROM "public"."quotes"' (io.debezium.relational.RelationalSnapshotChangeEventSource) [debezium-postgresconnector-sor-change-event-source-coordinator]
-2020-09-03 07:41:56,853 INFO 	 Finished exporting 0 records for table 'public.quotes'; total duration '00:00:00.003' (io.debezium.relational.RelationalSnapshotChangeEventSource) [debezium-postgresconnector-sor-change-event-source-coordinator]
+2020-10-09 14:09:02,083 INFO Snapshot step 1 - Preparing (io.debezium.relational.RelationalSnapshotChangeEventSource) [debezium-postgresconnector-sor-change-event-source-coordinator]
+2020-10-09 14:09:02,083 INFO Setting isolation level (io.debezium.connector.postgresql.PostgresSnapshotChangeEventSource) [debezium-postgresconnector-sor-change-event-source-coordinator]
+2020-10-09 14:09:02,083 INFO Opening transaction with statement SET TRANSACTION ISOLATION LEVEL SERIALIZABLE, READ ONLY, DEFERRABLE; (io.debezium.connector.postgresql.PostgresSnapshotChangeEventSource) [debezium-postgresconnector-sor-change-event-source-coordinator]
+2020-10-09 14:09:02,186 INFO Snapshot step 2 - Determining captured tables (io.debezium.relational.RelationalSnapshotChangeEventSource) [debezium-postgresconnector-sor-change-event-source-coordinator]
+2020-10-09 14:09:02,189 INFO Snapshot step 3 - Locking captured tables (io.debezium.relational.RelationalSnapshotChangeEventSource) [debezium-postgresconnector-sor-change-event-source-coordinator]
+2020-10-09 14:09:02,190 INFO Waiting a maximum of '10' seconds for each table lock (io.debezium.connector.postgresql.PostgresSnapshotChangeEventSource) [debezium-postgresconnector-sor-change-event-source-coordinator]
+2020-10-09 14:09:02,228 INFO Snapshot step 4 - Determining snapshot offset (io.debezium.relational.RelationalSnapshotChangeEventSource) [debezium-postgresconnector-sor-change-event-source-coordinator]
+2020-10-09 14:09:02,230 INFO Read xlogStart at '0/15E8B80' from transaction '569' (io.debezium.connector.postgresql.PostgresSnapshotChangeEventSource) [debezium-postgresconnector-sor-change-event-source-coordinator]
+2020-10-09 14:09:02,231 INFO Creating initial offset context (io.debezium.connector.postgresql.PostgresSnapshotChangeEventSource) [debezium-postgresconnector-sor-change-event-source-coordinator]
+2020-10-09 14:09:02,232 INFO Read xlogStart at '0/15E8B80' from transaction '569' (io.debezium.connector.postgresql.PostgresSnapshotChangeEventSource) [debezium-postgresconnector-sor-change-event-source-coordinator]
+2020-10-09 14:09:02,233 INFO Snapshot step 5 - Reading structure of captured tables (io.debezium.relational.RelationalSnapshotChangeEventSource) [debezium-postgresconnector-sor-change-event-source-coordinator]
+2020-10-09 14:09:02,233 INFO Reading structure of schema 'db_dan_sor_eei' (io.debezium.connector.postgresql.PostgresSnapshotChangeEventSource) [debezium-postgresconnector-sor-change-event-source-coordinator]
+2020-10-09 14:09:02,277 INFO Snapshot step 6 - Persisting schema history (io.debezium.relational.RelationalSnapshotChangeEventSource) [debezium-postgresconnector-sor-change-event-source-coordinator]
+2020-10-09 14:09:02,277 INFO Snapshot step 7 - Snapshotting data (io.debezium.relational.RelationalSnapshotChangeEventSource) [debezium-postgresconnector-sor-change-event-source-coordinator]
+2020-10-09 14:09:02,277 INFO 	 Exporting data from table 'public.quotes' (io.debezium.relational.RelationalSnapshotChangeEventSource) [debezium-postgresconnector-sor-change-event-source-coordinator]
+2020-10-09 14:09:02,278 INFO 	 For table 'public.quotes' using select statement: 'SELECT * FROM "public"."quotes"' (io.debezium.relational.RelationalSnapshotChangeEventSource) [debezium-postgresconnector-sor-change-event-source-coordinator]
+2020-10-09 14:09:02,280 INFO 	 Finished exporting 0 records for table 'public.quotes'; total duration '00:00:00.003' (io.debezium.relational.RelationalSnapshotChangeEventSource) [debezium-postgresconnector-sor-change-event-source-coordinator]
 ```
 And now the connector is monitoring the quotes table and creating events in the `sor.public.quotes` topic.
 
@@ -268,15 +268,16 @@ oc logs -f $SIMULATOR_POD
 ```
 You should see output every second with logs something like:
 ```
-2020/09/08 13:31:24 Found mobile claim with quoteID of 9 and claimStatus of 2
-2020/09/08 13:31:24 For claim with quoteID of 9, updating claimStatus to 3
-2020/09/08 13:31:24 Found non-mobile claim with quoteID of 15 and claimStatus of 1
-2020/09/08 13:31:24 For claim with quoteID of 15, updating claimStatus to 2
-2020/09/08 13:31:24 Created new claim with id of 16
-2020/09/08 13:31:25 Found mobile claim with quoteID of 2 and claimStatus of 1
-2020/09/08 13:31:25 For claim with quoteID of 2, updating claimStatus to 2
-2020/09/08 13:31:25 Found non-mobile claim with quoteID of 11 and claimStatus of 6
-2020/09/08 13:31:25 For claim with quoteID of 11, updating claimStatus to 7
+2020/10/09 14:10:04 Found mobile claim with quoteID of 4e7e14fa-d242-4ad5-ae01-c554b7650430 and claimStatus of 1
+2020/10/09 14:10:04 For claim with quoteID of 4e7e14fa-d242-4ad5-ae01-c554b7650430, updating claimStatus to 2
+2020/10/09 14:10:04 No outstanding non-mobile claims found
+2020/10/09 14:10:05 Found mobile claim with quoteID of 12abfe16-0c41-42a4-9edb-201f79ef05c2 and claimStatus of 1
+2020/10/09 14:10:05 For claim with quoteID of 12abfe16-0c41-42a4-9edb-201f79ef05c2, updating claimStatus to 2
+2020/10/09 14:10:05 No outstanding non-mobile claims found
+2020/10/09 14:10:06 Found mobile claim with quoteID of 5a91ca69-0dd7-41ad-8d65-d7d4d8d55dea and claimStatus of 1
+2020/10/09 14:10:06 For claim with quoteID of 5a91ca69-0dd7-41ad-8d65-d7d4d8d55dea, updating claimStatus to 2
+2020/10/09 14:10:06 No outstanding non-mobile claims found
+2020/10/09 14:10:06 Created new claim with id of c567cb9d-d296-4a41-96e0-a49d18d57c60
 ```
 View the `sor.public.quotes` topic in Event Streams, new events should appear for every update to the database.
 
@@ -298,6 +299,143 @@ echo $(oc get route projection-claims-eei --template='https://{{.spec.host}}/get
 Stop the Projection Claims application using:
 ```
 oc scale deployment/projection-claims-eei --replicas=0
+```
+
+# Start Kafka Connect with the Elasticsearch connector
+
+Download the [example connector-elastic.yaml](kafkaconnect/connector-elastic.yaml). This is based on the one in
+the Event Streams toolbox, which can be accessed by:
+- Navigate to the toolbox for the `es-demo` Event Streams runtime
+- Click `Start Kafka Connect with your connectors`
+- Jump to the `Start a connector` section.
+- View the example connector.yaml
+
+The example includes comments describing each change, see the following:
+```yaml
+apiVersion: eventstreams.ibm.com/v1alpha1
+kind: KafkaConnector
+metadata:
+  name: eei-elastic
+  labels:
+    eventstreams.ibm.com/cluster: eei-cluster
+spec:
+  # This uses the Elasticsearch plugin from the KafkaConnectS2I
+  class: com.ibm.eventstreams.connect.elasticsink.ElasticSinkConnector
+  tasksMax: 1
+  config:
+    # Monitors the topic that is being populated by the postgres connector.
+    topics: sor.public.quotes
+    # The following credentials refer to the mounted secret and use the FileConfigProvider
+    # from the KafkaConnectS2I to extract properties from the properties file.
+    es.connection: "${file:/opt/kafka/external-configuration/elastic-connector-config/connector.properties:dbConnection}"
+    es.user.name: "${file:/opt/kafka/external-configuration/elastic-connector-config/connector.properties:dbUser}"
+    es.password: "${file:/opt/kafka/external-configuration/elastic-connector-config/connector.properties:dbPassword}"
+    # Use the default document/index builders
+    es.document.builder: com.ibm.eventstreams.connect.elasticsink.builders.JsonDocumentBuilder
+    es.index.builder: com.ibm.eventstreams.connect.elasticsink.builders.DefaultIndexBuilder
+    # Use the KeyIdentifierBuilder to do CDC, so the Elasticsearch index only includes
+    # the latest copy of all rows from the original data.
+    es.identifier.builder: com.ibm.eventstreams.connect.elasticsink.builders.KeyIdentifierBuilder
+    # Setup the truststore to trust the Elasticsearch self signed certificate. The Elasticsearch
+    # operator creates this certificate and the prereqs create a jks truststore from it and
+    # add it to a secret that gets mounted into the connector pod.
+    es.tls.truststore.location: /opt/kafka/external-configuration/elastic-connector-config/elastic-ts.jks
+    es.tls.truststore.password: "${file:/opt/kafka/external-configuration/elastic-connector-config/connector.properties:truststorePassword}"
+```
+
+Apply the yaml using:
+```
+oc apply -f connector-elastic.yaml
+```
+
+Find the connector pod and watch the logs:
+```
+CONNECTOR_POD=$(oc get pod -l eventstreams.ibm.com/cluster=eei-cluster --output=jsonpath={.items..metadata.name})
+echo "CONNECTOR_POD=${CONNECTOR_POD}"
+oc logs -f $CONNECTOR_POD
+```
+
+The following should appear in the logs:
+```
+2020-10-09 14:12:34,522 INFO Building documents using com.ibm.eventstreams.connect.elasticsink.builders.JsonDocumentBuilder (com.ibm.eventstreams.connect.elasticsink.builders.JsonDocumentBuilder) [task-thread-eei-elastic-0]
+2020-10-09 14:12:35,075 INFO Connection to Elasticsearch established (com.ibm.eventstreams.connect.elasticsink.ElasticWriter) [task-thread-eei-elastic-0]
+2020-10-09 14:12:35,076 INFO WorkerSinkTask{id=eei-elastic-0} Sink task finished initialization and start (org.apache.kafka.connect.runtime.WorkerSinkTask) [task-thread-eei-elastic-0]
+2020-10-09 14:12:38,853 INFO WorkerSinkTask{id=eei-elastic-0} Committing offsets asynchronously using sequence number 1: {sor.public.quotes-0=OffsetAndMetadata{offset=65, leaderEpoch=null, metadata=''}} (org.apache.kafka.connect.runtime.WorkerSinkTask) [task-thread-eei-elastic-0]
+```
+And now the connector is monitoring the `sor.public.quotes` topic and writing to the `sor.public.quotes` index in Elasticsearch.
+
+# Verify contents of Elasticsearch
+Portforward the Elasticsearch service to your localhost:
+```
+ELASTIC_NAMESPACE=elasticsearch
+oc port-forward -n ${ELASTIC_NAMESPACE} service/elasticsearch-eei-es-http 9200
+```
+
+In a separate terminal setup some env vars to allow curl to call Elasticsearch:
+```
+ELASTIC_NAMESPACE=elasticsearch
+ELASTIC_PASSWORD=$(oc get secret elasticsearch-eei-es-elastic-user -n $ELASTIC_NAMESPACE -o go-template='{{.data.elastic | base64decode}}')
+ELASTIC_USER="elastic"
+```
+
+Check that the `sor.public.quotes` index has been created using the command:
+```
+curl -u "${ELASTIC_USER}:${ELASTIC_PASSWORD}" -k 'https://localhost:9200/_cat/indices?v'
+```
+Which should return something like:
+```
+health status index             uuid                   pri rep docs.count docs.deleted store.size pri.store.size
+yellow open   sor.public.quotes fb59dXjURR6uCxRwoRpaIQ   1   1         18           47     39.7kb         39.7kb
+```
+
+Get the current state of the `sor.public.quotes` index into an env var named `JSON`:
+```
+JSON=$(curl -u "${ELASTIC_USER}:${ELASTIC_PASSWORD}" -k "https://localhost:9200/sor.public.quotes/_search" -H 'Content-Type: application/json' -d'{"query":{"match_all":{}}}')
+```
+
+Get the number of rows from the JSON using:
+```
+echo $JSON | jq .hits.total.value
+```
+
+Get the rows from the JSON using:
+```
+echo $JSON | jq '.hits.hits[]._source.after'
+```
+Which should return something like:
+```
+{
+  "quoteid": "22d3ae0a-3498-4207-ae99-b7fe584f6c1b",
+  "source": "Mobile",
+  "name": "Nella Beard",
+  "email": "NBeard@mail.com",
+  "age": 45,
+  "address": "8774 Inverness Dr., Janesville",
+  "usstate": "WI",
+  "licenseplate": "787-YWR",
+  "descriptionofdamage": "Wheel fell off",
+  "claimstatus": 2,
+  "claimcost": null
+}
+{
+  "quoteid": "12abfe16-0c41-42a4-9edb-201f79ef05c2",
+  "source": "Mobile",
+  "name": "Andy Rosales",
+  "email": "AndyR@mail.com",
+  "age": 77,
+  "address": "9783 Oxford St., Duluth",
+  "usstate": "GA",
+  "licenseplate": "GWL3149",
+  "descriptionofdamage": "Won't start",
+  "claimstatus": 3,
+  "claimcost": null
+}
+...
+```
+
+To delete the index:
+```
+curl -X DELETE -u "${ELASTIC_USER}:${ELASTIC_PASSWORD}" -k https://localhost:9200/sor.public.quotes
 ```
 
 # Working directly with the System Of Record database
@@ -356,90 +494,3 @@ To delete the topic.
 - Click `Topics` on the left hand side
 - Click the `...` menu for the `sor.public.quotes` topic
 - Choose `Delete this topic`, then `Delete`
-
-# Start Kafka Connect with the Elasticsearch connector
-
-Download the [example connector-elastic.yaml](kafkaconnect/connector-elastic.yaml). This is based on the one in
-the Event Streams toolbox, which can be accessed by:
-- Navigate to the toolbox for the `es-demo` Event Streams runtime
-- Click `Start Kafka Connect with your connectors`
-- Jump to the `Start a connector` section.
-- View the example connector.yaml
-
-See the following annotated version of the example and details of what each change is for:
-TODO
-![Annotated example](./media/example-connector-postgres-annotated.png)
-
-
-```
-apiVersion: eventstreams.ibm.com/v1alpha1
-kind: KafkaConnector
-metadata:
-  name: my-connector
-  labels:
-    eventstreams.ibm.com/cluster: my-connect-cluster
-spec:
-  class: io.debezium.connector.postgresql.PostgresConnector                                                          # Change 1
-  tasksMax: 1
-  config:
-    database.hostname: "postgresql.postgres.svc.cluster.local"                                                       # Change 2
-    database.port: "5432"                                                                                            # Change 2
-    database.dbname : "${file:/opt/kafka/external-configuration/connector-config/connector.properties:dbName}"       # Change 3
-    database.user: "${file:/opt/kafka/external-configuration/connector-config/connector.properties:dbUsername}"      # Change 3
-    database.password: "${file:/opt/kafka/external-configuration/connector-config/connector.properties:dbPassword}"  # Change 3
-    database.server.name: "sor"                                                                                      # Change 4
-    plugin.name: pgoutput                                                                                            # Change 5
-    publication.autocreate.mode: disabled                                                                            # Change 6
-    publication.name: db_eei_quotes                                                                                  # Change 6
-```
-- Change 1: This uses the Postgres Debezium plugin added in the previous step.
-- Change 2: These are connection details to the Postgres database setup by the prereqs.
-- Change 3: This refers to the mounted secret for the credentials to access the database.
-- Change 4: This is the prefix used for the topic created by this connector.
-- Change 5: The Postgres Debezium connector has various ways of monitoring the Postgres database. We're using Postgres 10 which includes the `pgoutput` plugin by default.
-- Change 6: This disables autocreation of a Postgres PUBLICATION and instead uses the one we created as part of the prereqs. This allows the Debezium Connector to connect to Postgres with reduced privileges, to create a PUBLICATION requires superuser privileges.
-
-Apply the yaml using:
-```
-oc apply -f connector-elastic.yaml
-```
-
-Find the connector pod and watch the logs:
-```
-CONNECTOR_POD=$(oc get pod -l eventstreams.ibm.com/cluster=eei-cluster --output=jsonpath={.items..metadata.name})
-echo "CONNECTOR_POD=${CONNECTOR_POD}"
-oc logs -f $CONNECTOR_POD
-```
-
-The following should appear in the logs:
-```
-2020-10-08 15:25:19,217 INFO Building documents using com.ibm.eventstreams.connect.elasticsink.builders.JsonDocumentBuilder (com.ibm.eventstreams.connect.elasticsink.builders.JsonDocumentBuilder) [task-thread-eei-elastic-0]
-2020-10-08 15:25:20,144 INFO Connection to Elasticsearch established (com.ibm.eventstreams.connect.elasticsink.ElasticWriter) [task-thread-eei-elastic-0]
-2020-10-08 15:25:20,145 INFO WorkerSinkTask{id=eei-elastic-0} Sink task finished initialization and start (org.apache.kafka.connect.runtime.WorkerSinkTask) [task-thread-eei-elastic-0]
-2020-10-08 15:25:24,588 INFO WorkerSinkTask{id=eei-elastic-0} Committing offsets asynchronously using sequence number 1: {sor.public.quotes-0=OffsetAndMetadata{offset=12, leaderEpoch=null, metadata=''}} (org.apache.kafka.connect.runtime.WorkerSinkTask) [task-thread-eei-elastic-0]
-```
-And now the connector is monitoring the `sor.public.quotes` topic and writing to the `sor.public.quotes` index in Elasticsearch.
-
-
-TODO Show how to view elastic search state
-
-ELASTIC_NAMESPACE=elasticsearch
-ELASTIC_PASSWORD=$(oc get secret elasticsearch-eei-es-elastic-user -n $ELASTIC_NAMESPACE -o go-template='{{.data.elastic | base64decode}}')
-ELASTIC_USER="elastic"
-
-curl -u "${ELASTIC_USER}:${ELASTIC_PASSWORD}" -k https://localhost:9200/_aliases?pretty=true
-curl -u "${ELASTIC_USER}:${ELASTIC_PASSWORD}" -k 'https://localhost:9200/_cat/indices?v'
-
-JSON=$(curl -u "${ELASTIC_USER}:${ELASTIC_PASSWORD}" -k "https://localhost:9200/sor.public.quotes/_search" -H 'Content-Type: application/json' -d'{"query":{"match_all":{}}}')
-
-Get the number of rows from the JSON:
-
-echo $JSON | jq .hits.total.value
-
-Get the rows from the JSON:
-
-echo $JSON | jq '.hits.hits[]._source.after'
-
-Delete the index:
-
-curl -X DELETE -u "${ELASTIC_USER}:${ELASTIC_PASSWORD}" -k https://localhost:9200/sor.public.quotes

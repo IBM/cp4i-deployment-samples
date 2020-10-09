@@ -28,4 +28,3 @@ spec:
     # would require the connector to run with superuser privileges.
     publication.autocreate.mode: disabled
     publication.name: db_eei_quotes
-  pause: false
