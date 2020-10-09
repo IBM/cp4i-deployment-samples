@@ -42,7 +42,7 @@ spec:
         - name: contextPath
           value: "../EventEnabledInsurance/QuoteLifecycleSimulator"
         - name: pvc
-          value: "git-workspace-eei"
+          value: "eei-apps"
       workspaces:
         - name: git-source
           workspace: git-source
@@ -102,7 +102,7 @@ spec:
         - name: contextPath
           value: "../EventEnabledInsurance/ProjectionClaims"
         - name: pvc
-          value: "git-workspace-eei"
+          value: "eei-apps"
       workspaces:
         - name: git-source
           workspace: git-source
@@ -161,7 +161,7 @@ spec:
         - name: contextPath
           value: "../EventEnabledInsurance/MQ"
         - name: pvc
-          value: "git-workspace-eei"
+          value: "eei-apps"
       workspaces:
         - name: git-source
           workspace: git-source
