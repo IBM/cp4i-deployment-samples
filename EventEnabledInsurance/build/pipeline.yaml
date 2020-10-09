@@ -42,11 +42,10 @@ spec:
         - name: contextPath
           value: "../EventEnabledInsurance/QuoteLifecycleSimulator"
         - name: pvc
-          value: "eei-apps"
+          value: ""
       workspaces:
         - name: git-source
           workspace: git-source
-
 
     # - name: build-simulator-image
     #   runAfter:
@@ -86,204 +85,204 @@ spec:
       - name: git-source
         workspace: git-source
 
-    # build projection claim app image
-    - name: build-projection-claims-image
-      runAfter:
-        - git-clone-eei
-      taskRef:
-        name: build-task
-      params:
-        - name: imageTag
-          value: "latest"
-        - name: imageName
-          value: "projection-claims-eei"
-        - name: dockerfile
-          value: "../../../EventEnabledInsurance/ProjectionClaims/Dockerfile"
-        - name: contextPath
-          value: "../EventEnabledInsurance/ProjectionClaims"
-        - name: pvc
-          value: "eei-apps"
-      workspaces:
-        - name: git-source
-          workspace: git-source
-
+    # # build projection claim app image
     # - name: build-projection-claims-image
     #   runAfter:
     #     - git-clone-eei
+    #   taskRef:
+    #     name: build-task
+    #   params:
+    #     - name: imageTag
+    #       value: "latest"
+    #     - name: imageName
+    #       value: "projection-claims-eei"
+    #     - name: dockerfile
+    #       value: "../../../EventEnabledInsurance/ProjectionClaims/Dockerfile"
+    #     - name: contextPath
+    #       value: "../EventEnabledInsurance/ProjectionClaims"
+    #     - name: pvc
+    #       value: "eei-apps"
+    #   workspaces:
+    #     - name: git-source
+    #       workspace: git-source
+
+    # # - name: build-projection-claims-image
+    # #   runAfter:
+    # #     - git-clone-eei
+    # #   taskSpec:
+    # #     workspaces:
+    # #       - name: git-source
+    # #     steps:
+    # #       - name: build
+    # #         image: quay.io/buildah/stable:latest
+    # #         securityContext:
+    # #           privileged: true
+    # #         script: |
+    # #           buildah --storage-driver vfs bud \
+    # #             -f /workspace/git-source/EventEnabledInsurance/ProjectionClaims/Dockerfile \
+    # #             -t image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}/projection-claims-eei:latest \
+    # #             /workspace/git-source/EventEnabledInsurance/ProjectionClaims
+    # #           buildah --storage-driver vfs push \
+    # #             --tls-verify=false \
+    # #             image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}/projection-claims-eei:latest
+    # #   workspaces:
+    # #   - name: git-source
+    # #     workspace: git-source
+
+    # # deploy projection claim app image
+    # - name: deploy-projection-claims-app
+    #   runAfter:
+    #     - build-projection-claims-image
     #   taskSpec:
     #     workspaces:
     #       - name: git-source
     #     steps:
-    #       - name: build
-    #         image: quay.io/buildah/stable:latest
-    #         securityContext:
-    #           privileged: true
-    #         script: |
-    #           buildah --storage-driver vfs bud \
-    #             -f /workspace/git-source/EventEnabledInsurance/ProjectionClaims/Dockerfile \
-    #             -t image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}/projection-claims-eei:latest \
-    #             /workspace/git-source/EventEnabledInsurance/ProjectionClaims
-    #           buildah --storage-driver vfs push \
-    #             --tls-verify=false \
-    #             image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}/projection-claims-eei:latest
+    #       - name: oc
+    #         image: quay.io/openshift/origin-cli:latest
+    #         script: "/workspace/git-source/EventEnabledInsurance/ProjectionClaims/deploy.sh -n {{NAMESPACE}}"
     #   workspaces:
     #   - name: git-source
     #     workspace: git-source
 
-    # deploy projection claim app image
-    - name: deploy-projection-claims-app
-      runAfter:
-        - build-projection-claims-image
-      taskSpec:
-        workspaces:
-          - name: git-source
-        steps:
-          - name: oc
-            image: quay.io/openshift/origin-cli:latest
-            script: "/workspace/git-source/EventEnabledInsurance/ProjectionClaims/deploy.sh -n {{NAMESPACE}}"
-      workspaces:
-      - name: git-source
-        workspace: git-source
-
-    # build mq image
-    - name: build-mq-image
-      runAfter:
-        - git-clone-eei
-      taskRef:
-        name: build-task
-      params:
-        - name: imageTag
-          value: "latest"
-        - name: imageName
-          value: "mq-eei"
-        - name: dockerfile
-          value: "../../../EventEnabledInsurance/MQ/Dockerfile"
-        - name: contextPath
-          value: "../EventEnabledInsurance/MQ"
-        - name: pvc
-          value: "eei-apps"
-      workspaces:
-        - name: git-source
-          workspace: git-source
-
+    # # build mq image
     # - name: build-mq-image
     #   runAfter:
     #     - git-clone-eei
+    #   taskRef:
+    #     name: build-task
+    #   params:
+    #     - name: imageTag
+    #       value: "latest"
+    #     - name: imageName
+    #       value: "mq-eei"
+    #     - name: dockerfile
+    #       value: "../../../EventEnabledInsurance/MQ/Dockerfile"
+    #     - name: contextPath
+    #       value: "../EventEnabledInsurance/MQ"
+    #     - name: pvc
+    #       value: "eei-apps"
+    #   workspaces:
+    #     - name: git-source
+    #       workspace: git-source
+
+    # # - name: build-mq-image
+    # #   runAfter:
+    # #     - git-clone-eei
+    # #   taskSpec:
+    # #     workspaces:
+    # #       - name: git-source
+    # #     steps:
+    # #       - name: build
+    # #         image: quay.io/buildah/stable:latest
+    # #         securityContext:
+    # #           privileged: true
+    # #         script: |
+    # #           buildah --storage-driver vfs bud \
+    # #             -f /workspace/git-source/EventEnabledInsurance/MQ/Dockerfile \
+    # #             -t image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}/mq-eei:latest \
+    # #             /workspace/git-source/EventEnabledInsurance/MQ
+    # #           buildah --storage-driver vfs push \
+    # #             --tls-verify=false \
+    # #             image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}/mq-eei:latest
+    # #   workspaces:
+    # #   - name: git-source
+    # #     workspace: git-source
+
+    # # deploy mq image
+    # - name: deploy-mq
+    #   runAfter:
+    #     - build-mq-image
     #   taskSpec:
     #     workspaces:
     #       - name: git-source
     #     steps:
-    #       - name: build
-    #         image: quay.io/buildah/stable:latest
-    #         securityContext:
-    #           privileged: true
-    #         script: |
-    #           buildah --storage-driver vfs bud \
-    #             -f /workspace/git-source/EventEnabledInsurance/MQ/Dockerfile \
-    #             -t image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}/mq-eei:latest \
-    #             /workspace/git-source/EventEnabledInsurance/MQ
-    #           buildah --storage-driver vfs push \
-    #             --tls-verify=false \
-    #             image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}/mq-eei:latest
+    #       - name: oc
+    #         image: quay.io/openshift/origin-cli:latest
+    #         script: "/workspace/git-source/products/bash/release-mq.sh -n {{NAMESPACE}} -r mq-eei -i image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}/mq-eei:latest -q eei"
     #   workspaces:
     #   - name: git-source
     #     workspace: git-source
 
-    # deploy mq image
-    - name: deploy-mq
-      runAfter:
-        - build-mq-image
-      taskSpec:
-        workspaces:
-          - name: git-source
-        steps:
-          - name: oc
-            image: quay.io/openshift/origin-cli:latest
-            script: "/workspace/git-source/products/bash/release-mq.sh -n {{NAMESPACE}} -r mq-eei -i image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}/mq-eei:latest -q eei"
-      workspaces:
-      - name: git-source
-        workspace: git-source
+    # # build ace rest
+    # - name: build-ace-rest
+    #   runAfter:
+    #     - git-clone-eei
+    #   taskRef:
+    #     name: build-task
+    #   params:
+    #     - name: imageTag
+    #       value: "latest"
+    #     - name: imageName
+    #       value: "ace-rest-eei"
+    #     - name: dockerfile
+    #       value: "../../../EventEnabledInsurance/ACE/ACE-REST.Dockerfile"
+    #     - name: contextPath
+    #       value: "../EventEnabledInsurance/Bar_files/REST"
+    #     - name: pvc
+    #       value: "buildah-ace-rest-eei"
+    #   workspaces:
+    #     - name: git-source
+    #       workspace: git-source
 
-    # build ace rest
-    - name: build-ace-rest
-      runAfter:
-        - git-clone-eei
-      taskRef:
-        name: build-task
-      params:
-        - name: imageTag
-          value: "latest"
-        - name: imageName
-          value: "ace-rest-eei"
-        - name: dockerfile
-          value: "../../../EventEnabledInsurance/ACE/ACE-REST.Dockerfile"
-        - name: contextPath
-          value: "../EventEnabledInsurance/Bar_files/REST"
-        - name: pvc
-          value: "buildah-ace-rest-eei"
-      workspaces:
-        - name: git-source
-          workspace: git-source
+    # # build ace db-writer
+    # - name: build-ace-db-writer
+    #   runAfter:
+    #     - git-clone-eei
+    #   taskRef:
+    #     name: build-task
+    #   params:
+    #     - name: imageTag
+    #       value: "latest"
+    #     - name: imageName
+    #       value: "ace-db-writer-eei"
+    #     - name: dockerfile
+    #       value: "../../../EventEnabledInsurance/ACE/ACE-DB-WRITER.Dockerfile"
+    #     - name: contextPath
+    #       value: "../EventEnabledInsurance/Bar_files/DB-WRITER"
+    #     - name: pvc
+    #       value: "buildah-ace-db-writer-eei"
+    #   workspaces:
+    #     - name: git-source
+    #       workspace: git-source
 
-    # build ace db-writer
-    - name: build-ace-db-writer
-      runAfter:
-        - git-clone-eei
-      taskRef:
-        name: build-task
-      params:
-        - name: imageTag
-          value: "latest"
-        - name: imageName
-          value: "ace-db-writer-eei"
-        - name: dockerfile
-          value: "../../../EventEnabledInsurance/ACE/ACE-DB-WRITER.Dockerfile"
-        - name: contextPath
-          value: "../EventEnabledInsurance/Bar_files/DB-WRITER"
-        - name: pvc
-          value: "buildah-ace-db-writer-eei"
-      workspaces:
-        - name: git-source
-          workspace: git-source
+    # # deploy ace rest
+    # - name: deploy-ace-rest
+    #   runAfter:
+    #     - build-ace-rest
+    #   taskRef:
+    #     name: deploy-task
+    #   params:
+    #     - name: imageTag
+    #       value: "latest"
+    #     - name: imageName
+    #       value: "ace-rest-eei"
+    #     - name: releaseName
+    #       value: "ace-rest-int-srv-eei"
+    #     - name: releaseScript
+    #       value: release-ace-integration-server.sh -e
+    #     - name: namespace
+    #       value: "{{NAMESPACE}}"
+    #   workspaces:
+    #     - name: git-source
+    #       workspace: git-source
 
-    # deploy ace rest
-    - name: deploy-ace-rest
-      runAfter:
-        - build-ace-rest
-      taskRef:
-        name: deploy-task
-      params:
-        - name: imageTag
-          value: "latest"
-        - name: imageName
-          value: "ace-rest-eei"
-        - name: releaseName
-          value: "ace-rest-int-srv-eei"
-        - name: releaseScript
-          value: release-ace-integration-server.sh -e
-        - name: namespace
-          value: "{{NAMESPACE}}"
-      workspaces:
-        - name: git-source
-          workspace: git-source
-
-    # deploy ace db_writer
-    - name: deploy-db-writer
-      runAfter:
-        - build-ace-db-writer
-      taskRef:
-        name: deploy-task
-      params:
-        - name: imageTag
-          value: "latest"
-        - name: imageName
-          value: "ace-db-writer-eei"
-        - name: releaseName
-          value: "ace-db-writer-int-srv-eei"
-        - name: releaseScript
-          value: release-ace-integration-server.sh -e
-        - name: namespace
-          value: "{{NAMESPACE}}"
-      workspaces:
-        - name: git-source
-          workspace: git-source
+    # # deploy ace db_writer
+    # - name: deploy-db-writer
+    #   runAfter:
+    #     - build-ace-db-writer
+    #   taskRef:
+    #     name: deploy-task
+    #   params:
+    #     - name: imageTag
+    #       value: "latest"
+    #     - name: imageName
+    #       value: "ace-db-writer-eei"
+    #     - name: releaseName
+    #       value: "ace-db-writer-int-srv-eei"
+    #     - name: releaseScript
+    #       value: release-ace-integration-server.sh -e
+    #     - name: namespace
+    #       value: "{{NAMESPACE}}"
+    #   workspaces:
+    #     - name: git-source
+    #       workspace: git-source
