@@ -37,6 +37,7 @@ tracing_enabled="false"
 CURRENT_DIR=$(dirname $0)
 eei_config="false"
 ace_policy_name=""
+ace_replicas="2"
 echo "Current directory: $CURRENT_DIR"
 
 while getopts "n:r:i:z:te" opt; do
@@ -76,8 +77,10 @@ fi
 
 if [[ "$eei_config" == "true" ]]; then
   ace_policy_name="ace-policyproject-eei"
+  ace_replicas="0"
 else
   ace_policy_name="ace-policyproject-ddd"
+  ace_replicas="2"
 fi
 echo -e "\nINFO: ACE policy configuration is set to: '$ace_policy_name'"
 
@@ -118,7 +121,7 @@ spec:
     accept: true
     license: L-APEH-BPUCJK
     use: CloudPakForIntegrationProduction
-  replicas: 2
+  replicas: ${ace_replicas}
   router:
     timeout: 120s
   service:
