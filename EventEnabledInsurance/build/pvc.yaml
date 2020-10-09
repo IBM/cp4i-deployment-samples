@@ -18,23 +18,6 @@ spec:
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: eei-apps
-  labels:
-    app: pipeline-eei
-    demo: eei
-spec:
-  storageClassName: ibmc-file-gold-gid
-  accessModes:
-    - ReadWriteMany
-  resources:
-    requests:
-      storage: 10Gi
-
----
-
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
   name: buildah-ace-rest-eei
 spec:
   storageClassName: cp4i-block-performance
