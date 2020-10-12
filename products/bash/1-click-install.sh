@@ -62,7 +62,7 @@ info="\xE2\x84\xB9"
 CURRENT_DIR=$(dirname $0)
 missingParams="false"
 
-while getopts ":n:r:c:u:p:d:a:f:e:h:o:m:q:" opt; do
+while getopts "n:r:c:u:p:d:a:f:e:h:o:m:q:" opt; do
   case ${opt} in
     n ) NAMESPACE="$OPTARG"
       ;;
