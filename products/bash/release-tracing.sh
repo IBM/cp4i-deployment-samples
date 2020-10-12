@@ -26,8 +26,6 @@
 #     ./release-tracing -n cp4i-prod -r prod
 
 
-echo "INFO: Tracing support currently disabled"
-exit 0
 
 function usage {
     echo "Usage: $0 -n <namespace> -r <release-name>"
@@ -37,8 +35,11 @@ namespace="cp4i"
 release_name="tracing-demo"
 block_storage="ibmc-block-gold"
 file_storage="ibmc-file-gold-gid"
+production="false"
 
-while getopts "n:r:b:d:f" opt; do
+echo "INFO: Tracing support currently disabled"
+exit 0
+while getopts "n:r:b:d:fp" opt; do
   case ${opt} in
     n ) namespace="$OPTARG"
       ;;
@@ -48,6 +49,8 @@ while getopts "n:r:b:d:f" opt; do
       ;;
     f ) file_storage="$OPTARG"
       ;;
+    p ) production="true"
+      ;;
     \? ) usage; exit
       ;;
   esac
@@ -55,6 +58,47 @@ done
 
 
 
+
+if [[ "$production" == "true" ]]
+then
+echo "Production Mode Enabled"
+
+cat << EOF | oc apply -f -
+apiVersion: integration.ibm.com/v1beta2
+kind: OperationsDashboard
+metadata:
+  namespace: "${namespace}"
+  name: "${release_name}"
+  labels:
+    app.kubernetes.io/instance: ibm-integration-operations-dashboard
+    app.kubernetes.io/managed-by: ibm-integration-operations-dashboard
+    app.kubernetes.io/name: ibm-integration-operations-dashboard
+
+spec:
+  env:
+    - name: ENV_ResourceTemplateName
+      value: production
+  license:
+    accept: true
+  replicas:
+    configDb: 3
+    frontend: 3
+    housekeepingWorker: 3
+    jobWorker: 3
+    master: 3
+    scheduler: 3
+    store: 3
+  storage:
+    configDbVolume:
+      class: "${block_storage}"
+    sharedVolume:
+      class: "${block_storage}"
+    tracingVolume:
+      class: "${block_storage}"
+      size: 150Gi
+  version: 2020.3.1-0
+EOF
+else 
 cat << EOF | oc apply -f -
 apiVersion: integration.ibm.com/v1beta2
 kind: OperationsDashboard
@@ -77,3 +121,5 @@ spec:
       class: "${block_storage}"
   version: 2020.3.1-0
 EOF
+fi
+
