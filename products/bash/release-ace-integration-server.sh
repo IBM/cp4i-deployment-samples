@@ -81,7 +81,7 @@ fi
 if [[ "$eei_config" == "true" ]]; then
   ace_policy_names="[ace-policyproject-eei]"
 else
-  ace_policy_names="[ace-keystore, ace-policyproject-ddd, ace-serverconf, ace-setdbparms]"
+  ace_policy_names="[ace-keystore, ace-policyproject-ddd, ace-serverconf, ace-setdbparms, application.kdb, application.sth, application.jks]"
 fi
 echo -e "\nINFO: ACE policy configuration is set to: '$ace_policy_names'"
 
