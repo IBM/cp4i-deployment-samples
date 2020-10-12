@@ -70,49 +70,50 @@
     name: ${release_name}
     namespace: ${namespace}
     spec:
-    license:
-        accept: true
-        license: L-RJON-BN7PN3
-        use: NonProduction
-    pki:
-        keys:
-        - name: default
-            secret:
-            items:
-                - tls.key
-                - tls.crt
-            secretName: mqcert
-        trust:
-        - name: app
-            secret:
-            items:
-                - app.crt
-            secretName: mqcert
-    queueManager:
-        image: ${image_name}
-        imagePullPolicy: Always
-        name: ${qm_name}
-        storage:
-        queueManager:
-            type: ephemeral
-        ini:
-        - configMap:
-            items:
-                - example.ini
-            name: mtlsmqsc
-    template:
-        pod:
-        containers:
-            - env:
-                - name: MQS_PERMIT_UNKNOWN_ID
-                value: 'true'
-            name: qmgr
-    version: 9.2.0.0-r1
-    web:
-        enabled: true
-    tracing:
-        enabled: ${tracing_enabled}
-        namespace: ${tracing_namespace}
+      license:
+          accept: true
+          license: L-RJON-BN7PN3
+          use: NonProduction
+      pki:
+          keys:
+          - name: default
+              secret:
+              items:
+                  - tls.key
+                  - tls.crt
+              secretName: mqcert
+          trust:
+          - name: app
+              secret:
+              items:
+                  - app.crt
+              secretName: mqcert
+      queueManager:
+          image: ${image_name}
+          imagePullPolicy: Always
+          name: ${qm_name}
+          storage:
+          queueManager:
+              type: ephemeral
+          ini:
+          - configMap:
+              items:
+                  - example.ini
+              name: mtlsmqsc
+      template:
+          pod:
+          containers:
+              - env:
+                  - name: MQS_PERMIT_UNKNOWN_ID
+                  value: 'true'
+              name: qmgr
+      version: 9.2.0.0-r1
+      web:
+          enabled: true
+      tracing:
+          enabled: ${tracing_enabled}
+          namespace: ${tracing_namespace}
+
     ```
 
 ## Setting up ACE to use TLS
