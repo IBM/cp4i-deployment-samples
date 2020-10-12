@@ -29,18 +29,81 @@ function usage {
 
 namespace="cp4i"
 release_name="es-demo"
+production="false"
+storageClass=""
 
-while getopts "n:r:" opt; do
+while getopts "n:r:pc:" opt; do
   case ${opt} in
     n ) namespace="$OPTARG"
       ;;
     r ) release_name="$OPTARG"
+      ;;
+    p ) production="true"
+      ;;
+    c ) storageClass="$OPTARG"
       ;;
     \? ) usage; exit
       ;;
   esac
 done
 
+
+
+if [ "$production" == "true" ]
+then
+echo "Production Mode Enabled"
+cat << EOF | oc apply -f -
+apiVersion: eventstreams.ibm.com/v1beta1
+kind: EventStreams
+metadata:
+  name: ${release_name}
+  namespace: ${namespace}
+spec:
+  version: 10.1.0
+  license:
+    accept: true
+    use: CloudPakForIntegrationProduction
+  adminApi: {}
+  adminUI: {}
+  apicurioRegistry: {}
+  collector: {}
+  restProducer: {}
+  strimziOverrides:
+    kafka:
+      replicas: 3
+      authorization:
+        type: runas
+      config:
+        inter.broker.protocol.version: '2.6'
+        interceptor.class.names: com.ibm.eventstreams.interceptors.metrics.ProducerMetricsInterceptor
+        log.cleaner.threads: 6
+        log.message.format.version: '2.6'
+        num.io.threads: 24
+        num.network.threads: 9
+        num.replica.fetchers: 3
+        offsets.topic.replication.factor: 3
+      listeners:
+        external:
+          authentication:
+            type: scram-sha-512
+          type: route
+        tls:
+          authentication:
+            type: tls
+      metrics: {}
+      storage:
+        class: ${storageClass}
+        size: 4Gi
+        type: persistent-claim
+    zookeeper:
+      replicas: 3
+      metrics: {}
+      storage:
+        class: ${storageClass}
+        size: 2Gi
+        type: persistent-claim
+EOF
+else 
 cat << EOF | oc apply -f -
 apiVersion: eventstreams.ibm.com/v1beta1
 kind: EventStreams
@@ -82,3 +145,5 @@ spec:
       storage:
         type: ephemeral
 EOF
+
+fi
