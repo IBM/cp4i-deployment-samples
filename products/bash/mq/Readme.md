@@ -63,68 +63,67 @@
 
     For MQ to use this secret and to enable auth we use a modified CR of MQ:
 
-    ```
-    apiVersion: mq.ibm.com/v1beta1
-    kind: QueueManager
-    metadata:
+  ```yaml
+  apiVersion: mq.ibm.com/v1beta1
+  kind: QueueManager
+  metadata:
     name: ${release_name}
     namespace: ${namespace}
-    spec:
-      license:
-          accept: true
-          license: L-RJON-BN7PN3
-          use: NonProduction
-      pki:
-          keys:
-          - name: default
-              secret:
-              items:
-                  - tls.key
-                  - tls.crt
-              secretName: mqcert
-          trust:
-          - name: app
-              secret:
-              items:
-                  - app.crt
-              secretName: mqcert
-      queueManager:
-          image: ${image_name}
-          imagePullPolicy: Always
-          name: ${qm_name}
-          storage:
-          queueManager:
-              type: ephemeral
-          ini:
-          - configMap:
-              items:
-                  - example.ini
-              name: mtlsmqsc
-      template:
-          pod:
-          containers:
-              - env:
-                  - name: MQS_PERMIT_UNKNOWN_ID
-                  value: 'true'
-              name: qmgr
-      version: 9.2.0.0-r1
-      web:
-          enabled: true
-      tracing:
-          enabled: ${tracing_enabled}
-          namespace: ${tracing_namespace}
-
-    ```
+  spec:
+    license:
+      accept: true
+      license: L-RJON-BN7PN3
+      use: NonProduction
+    pki:
+      keys:
+        - name: default
+          secret:
+            items:
+              - tls.key
+              - tls.crt
+            secretName: mqcert
+      trust:
+        - name: app
+          secret:
+            items:
+              - app.crt
+            secretName: mqcert
+    queueManager:
+      image: ${image_name}
+      imagePullPolicy: Always
+      name: ${qm_name}
+      storage:
+        queueManager:
+          type: ephemeral
+      ini:
+        - configMap:
+            items:
+              - example.ini
+            name: mtlsmqsc
+    template:
+      pod:
+        containers:
+          - env:
+              - name: MQS_PERMIT_UNKNOWN_ID
+                value: 'true'
+            name: qmgr
+    version: 9.2.0.0-r1
+    web:
+      enabled: true
+    tracing:
+      enabled: ${tracing_enabled}
+      namespace: ${tracing_namespace}
+  ```
 
 ## Setting up ACE to use TLS
 
 For ACE to use the TLS configuration we need provide the following `ace-configuration` to ACE instegration server CR:
 
-```
-serverconf:
+```yaml
+#serverconf.yaml:
 serverConfVersion: 1
 BrokerRegistry:
-mqKeyRepository: /home/aceuser/keystores/application
+   mqKeyRepository: /home/aceuser/keystores/application
 
 apiVersion: appconnect.ibm.com/v1beta1
 kind: Configuration
@@ -132,11 +131,11 @@ metadata:
   name: ace-serverconf
   namespace: cp4i-ddd-test
 spec:
-  contents: <Base 64 encoded ace-server conf>
+  contents: <Base 64 encoded serverconf.yaml>
   type: serverconf
 ```
 
-```
+```yaml
 apiVersion: appconnect.ibm.com/v1beta1
 kind: Configuration
 metadata:
@@ -146,7 +145,7 @@ spec:
   contents: <base64 encoded for application.kdb>
   type: keystore
 ```
-```
+```yaml
 apiVersion: appconnect.ibm.com/v1beta1
 kind: Configuration
 metadata:
@@ -157,7 +156,7 @@ spec:
   type: keystore
  ```
 
-``` 
+```yaml
 apiVersion: appconnect.ibm.com/v1beta1
 kind: Configuration
 metadata:
@@ -168,7 +167,7 @@ spec:
   type: truststore
 ```
 
-```
+```yaml
 apiVersion: appconnect.ibm.com/v1beta1
 kind: Configuration
 metadata:
@@ -181,7 +180,7 @@ spec:
 
 The ACE Integration Server CR needs to contain these configurations:
 
-```
+```yaml
 apiVersion: appconnect.ibm.com/v1beta1
 kind: IntegrationServer
 metadata:
