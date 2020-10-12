@@ -26,6 +26,8 @@
 #     ./release-tracing -n cp4i-prod -r prod
 
 
+echo "INFO: Tracing support currently disabled"
+exit 0
 
 function usage {
     echo "Usage: $0 -n <namespace> -r <release-name>"
@@ -35,9 +37,8 @@ namespace="cp4i"
 release_name="tracing-demo"
 block_storage="ibmc-block-gold"
 file_storage="ibmc-file-gold-gid"
-tracingEnabled="false"
 
-while getopts "n:r:b:d:fe" opt; do
+while getopts "n:r:b:d:f" opt; do
   case ${opt} in
     n ) namespace="$OPTARG"
       ;;
@@ -47,19 +48,12 @@ while getopts "n:r:b:d:fe" opt; do
       ;;
     f ) file_storage="$OPTARG"
       ;;
-    e ) tracingEnabled=1
-      ;;
     \? ) usage; exit
       ;;
   esac
 done
 
 
-if [[ "$tracingEnabled" == "true" ]]
-then
-echo "INFO: Tracing support currently disabled"
-exit 0
-fi
 
 cat << EOF | oc apply -f -
 apiVersion: integration.ibm.com/v1beta2
