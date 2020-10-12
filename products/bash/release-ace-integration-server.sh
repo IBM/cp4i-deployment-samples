@@ -60,9 +60,6 @@ while getopts "n:r:i:z:t" opt; do
   esac
 done
 
-echo "INFO: Tracing support currently disabled"
-tracing_enabled=false
-
 if [ "$tracing_enabled" == "true" ] ; then
    if [ -z "$tracing_namespace" ]; then tracing_namespace=${namespace} ; fi
 else
@@ -101,6 +98,14 @@ spec:
    containers:
      runtime:
        image: ${is_image_name}
+  configurations:
+  - ace-keystore
+  - ace-policyproject-ddd
+  - ace-serverconf
+  - ace-setdbparms
+  - application.kdb
+  - application.sth
+  - application.jks
   designerFlowsOperationMode: disabled
   license:
     accept: true
@@ -116,11 +121,6 @@ spec:
   tracing:
     enabled: ${tracing_enabled}
     namespace: ${tracing_namespace}
-  configurations:
-    - ace-keystore
-    - ace-policyproject-ddd
-    - ace-serverconf
-    - ace-setdbparms
 EOF
 
 timer=0
