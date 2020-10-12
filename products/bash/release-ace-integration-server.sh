@@ -101,6 +101,14 @@ spec:
    containers:
      runtime:
        image: ${is_image_name}
+  configurations:
+  - ace-keystore
+  - ace-policyproject-ddd
+  - ace-serverconf
+  - ace-setdbparms
+  - application.kdb
+  - application.sth
+  - application.jks
   designerFlowsOperationMode: disabled
   license:
     accept: true
@@ -116,11 +124,6 @@ spec:
   tracing:
     enabled: ${tracing_enabled}
     namespace: ${tracing_namespace}
-  configurations:
-    - ace-keystore
-    - ace-policyproject-ddd
-    - ace-serverconf
-    - ace-setdbparms
 EOF
 
 timer=0
