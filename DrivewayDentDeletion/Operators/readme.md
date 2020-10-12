@@ -16,6 +16,7 @@ The script carries out the following:
 - Creates a database for each of the user in each of the namespaces.
 - Creates a `quotes` table in each database.
 - Creates an operator group and product subscriptions.
+- Creates the relevant ace configurations (policyproject, keystore, serverconf, setdbparms) to enable https and basic auth for the ace api endpoint
 - Releases the platform navigator and ace dashboard.
 
 # User steps
