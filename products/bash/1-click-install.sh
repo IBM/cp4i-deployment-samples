@@ -36,7 +36,7 @@
 #
 # USAGE:
 #   With defaults values
-#     ./1-click-install.sh -p <csDefaultAdminPassword> -q <demoAPICMailServerPassword>
+#     ./1-click-install.sh -p <csDefaultAdminPassword> -q <demoAPICMailServerPassword> -s <DOCKER_REGISTRY_PASS>
 #
 #   Overriding the namespace and release-name
 #     ./1-click-install.sh -n <NAMESPACE> -r <navReplicaCount> -b <demoDeploymentBranch> -u <csDefaultAdminUser> -p <csDefaultAdminPassword> -d <demoPreparation> -a <eventEnabledInsuranceDemo> -f <drivewayDentDeletionDemo> -e <demoAPICEmailAddress> -h <demoAPICMailServerHost> -o <demoAPICMailServerPort> -m <demoAPICMailServerUsername> -q <demoAPICMailServerPassword> -i <IMAGE_REPO> -j <tempERKey> -k <tempRepo> -l <DOCKER_REGISTRY_USER> -s <DOCKER_REGISTRY_PASS> -t <ENVIRONMENT> -v <useFastStorageClass>
@@ -164,18 +164,8 @@ if [[ -z "${IMAGE_REPO// }" ]]; then
   missingParams="true"
 fi
 
-if [[ -z "${tempERKey// }" ]]; then
-  echo -e "$cross ERROR: IAM API key for accessing the entitled registry is empty. Please provide a value for '-j' parameter."
-  missingParams="true"
-fi
-
-if [[ -z "${tempRepo// }" ]]; then
-  echo -e "$cross ERROR: Variable for accessing different Registry is empty. Please provide a value for '-k' parameter."
-  missingParams="true"
-fi
-
 if [[ -z "${ENVIRONMENT// }" ]]; then
-  echo -e "$cross ERROR: Environment value for installation is empty. Please provide a value for '-t' parameter."
+  echo -e "$cross ERROR: Environment for installation is empty. Please provide a value for '-t' parameter."
   missingParams="true"
 fi
 
@@ -201,10 +191,13 @@ echo -e "$info APIC email address: $demoAPICEmailAddress"
 echo -e "$info APIC mail server hostname: $demoAPICMailServerHost"
 echo -e "$info APIC mail server port: $demoAPICMailServerPort"
 echo -e "$info APIC mail server username: $demoAPICMailServerUsername"
+echo -e "$info Image repository for downloading images: $IMAGE_REPO"
+echo -e "$info Temporary ER repository: $tempRepo"
+echo -e "$info Dcoker registry username: $DOCKER_REGISTRY_USER"
+echo -e "$info Environment for installation: $ENVIRONMENT"
+echo -e "$info If using fast storage for the installation: $useFastStorageClass"
+
 divider
-
-
-
 
 if [[ -z "${tempERKey}" ]]; then
   # Use the entitlement key
@@ -238,7 +231,7 @@ divider
 
 # This storage class improves the pvc performance for small PVCs
 echo "INFO: Creating new cp4i-block-performance storage class"
-cat <<EOF | oc apply -f -
+cat <<EOF | oc apply -n $NAMESPACE -f -
 apiVersion: storage.k8s.io/v1
 kind: StorageClass
 metadata:
@@ -336,10 +329,6 @@ spec:
 EOF
 
 divider
-
-
-
-
 
 if ! $CURRENT_DIR/deploy-og-sub.sh -n ${NAMESPACE}; then
   echo -e "$cross ERROR: Failed to deploy the operator group and subscriptions" 1>&2
