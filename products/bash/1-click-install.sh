@@ -15,7 +15,7 @@
 # PARAMETERS:
 #   -n : <NAMESPACE> (string), namespace for the 1-click installation. Defaults to "cp4i"
 #   -r : <navReplicaCount> (string), Platform navigator replicas, Defaults to 3
-#   -c : <pwdChange> (string), If common services password is to be updated. Defaults to "false"
+#   -b : <demoDeploymentBranch> (string), The demo deployment branch to be used, Defaults to 'main'
 #   -u : <csDefaultAdminUser> (string), Default common service username. Defaults to "admin"
 #   -p : <csDefaultAdminPassword> (string), Common service defaul admin password
 #   -d : <demoPreparation> (string), If all demos are to be setup. Defaults to "false"
@@ -26,27 +26,34 @@
 #   -o : <demoAPICMailServerPort> (string), Port number of the mail server. Defaults to "2525"
 #   -m : <demoAPICMailServerUsername> (string), Username for the mail server. Defaults to "<your-username>"
 #   -q : <demoAPICMailServerPassword> (string), Password for the mail server.
+#   -i : <IMAGE_REPO> (string), Repository for downloading images, Defaults to "cp.icr.io"
+#   -j : <tempERKey> (string), IAM API key for accessing the entitled registry.
+#   -k : <tempRepo> (string), For accessing different Registry
+#   -l : <DOCKER_REGISTRY_USER> (string), Docker registry username
+#   -s : <DOCKER_REGISTRY_PASS> (string), Docker registry password
+#   -t : <ENVIRONMENT> (string), Environment for installation, 'staging' when you want to use the staging entitled registry
+#   -v : <useFastStorageClass> (string), If using fast storage class for installation. Defaults to 'false'
 #
 # USAGE:
 #   With defaults values
 #     ./1-click-install.sh -p <csDefaultAdminPassword> -q <demoAPICMailServerPassword>
 #
 #   Overriding the namespace and release-name
-#     ./1-click-install.sh -n <NAMESPACE> -r <navReplicaCount> -c <pwdChange> -u <csDefaultAdminUser> -p <csDefaultAdminPassword> -d <demoPreparation> -a <eventEnabledInsuranceDemo> -f <drivewayDentDeletionDemo> -e <demoAPICEmailAddress> -h <demoAPICMailServerHost> -o <demoAPICMailServerPort> -m <demoAPICMailServerUsername> -q <demoAPICMailServerPassword>
+#     ./1-click-install.sh -n <NAMESPACE> -r <navReplicaCount> -b <demoDeploymentBranch> -u <csDefaultAdminUser> -p <csDefaultAdminPassword> -d <demoPreparation> -a <eventEnabledInsuranceDemo> -f <drivewayDentDeletionDemo> -e <demoAPICEmailAddress> -h <demoAPICMailServerHost> -o <demoAPICMailServerPort> -m <demoAPICMailServerUsername> -q <demoAPICMailServerPassword> -i <IMAGE_REPO> -j <tempERKey> -k <tempRepo> -l <DOCKER_REGISTRY_USER> -s <DOCKER_REGISTRY_PASS> -t <ENVIRONMENT> -v <useFastStorageClass>
 
 function divider {
   echo -e "\n-------------------------------------------------------------------------------------------------------------------\n"
 }
 
 function usage {
-    echo "Usage: $0 -n <NAMESPACE> -r <navReplicaCount> -c <pwdChange> -u <csDefaultAdminUser> -p <csDefaultAdminPassword> -d <demoPreparation> -a <eventEnabledInsuranceDemo> -f <drivewayDentDeletionDemo> -e <demoAPICEmailAddress> -h <demoAPICMailServerHost> -o <demoAPICMailServerPort> -m <demoAPICMailServerUsername> -q <demoAPICMailServerPassword>"
+    echo "Usage: $0 -n <NAMESPACE> -r <navReplicaCount> -b <demoDeploymentBranch> -u <csDefaultAdminUser> -p <csDefaultAdminPassword> -d <demoPreparation> -a <eventEnabledInsuranceDemo> -f <drivewayDentDeletionDemo> -e <demoAPICEmailAddress> -h <demoAPICMailServerHost> -o <demoAPICMailServerPort> -m <demoAPICMailServerUsername> -q <demoAPICMailServerPassword> -i <IMAGE_REPO> -j <tempERKey> -k <tempRepo> -l <DOCKER_REGISTRY_USER> -s <DOCKER_REGISTRY_PASS> -t <ENVIRONMENT> -v <useFastStorageClass>"
     divider
     exit 1
 }
 
 NAMESPACE="cp4i"
 navReplicaCount="3"
-pwdChange="false"
+demoDeploymentBranch="main"
 csDefaultAdminUser="admin"
 demoPreparation="false"
 eventEnabledInsuranceDemo="false"
@@ -61,6 +68,9 @@ all_done="\xF0\x9F\x92\xAF"
 info="\xE2\x84\xB9"
 CURRENT_DIR=$(dirname $0)
 missingParams="false"
+IMAGE_REPO="cp.icr.io"
+pwdChange="true"
+useFastStorageClass="false"
 
 while getopts "n:r:c:u:p:d:a:f:e:h:o:m:q:" opt; do
   case ${opt} in
@@ -68,7 +78,7 @@ while getopts "n:r:c:u:p:d:a:f:e:h:o:m:q:" opt; do
       ;;
     r ) navReplicaCount="$OPTARG"
       ;;
-    c ) pwdChange="$OPTARG"
+    b ) demoDeploymentBranch="$OPTARG"
       ;;
     u ) csDefaultAdminUser="$OPTARG"
       ;;
@@ -89,6 +99,20 @@ while getopts "n:r:c:u:p:d:a:f:e:h:o:m:q:" opt; do
     m ) demoAPICMailServerUsername="$OPTARG"
       ;;
     q ) demoAPICMailServerPassword="$OPTARG"
+      ;;
+    i ) IMAGE_REPO="$OPTARG"
+      ;;
+    j ) tempERKey="$OPTARG"
+      ;;
+    k ) tempRepo="$OPTARG"
+      ;;
+    l ) DOCKER_REGISTRY_USER="$OPTARG"
+      ;;
+    s ) DOCKER_REGISTRY_PASS="$OPTARG"
+      ;;
+    t ) ENVIRONMENT="$OPTARG"
+      ;;
+    v ) useFastStorageClass="$OPTARG"
       ;;
     \? ) usage;
       ;;
@@ -115,8 +139,8 @@ if [[ -z "${demoPreparation// }" ]]; then
   missingParams="true"
 fi
 
-if [[ -z "${pwdChange// }" ]]; then
-  echo -e "$cross ERROR: Common service password change parameter is empty. Please provide a value for '-c' parameter."
+if [[ -z "${demoDeploymentBranch// }" ]]; then
+  echo -e "$cross ERROR: Demo deployment branch is empty. Please provide a value for '-b' parameter."
   missingParams="true"
 fi
 
@@ -135,6 +159,31 @@ if [[ -z "${drivewayDentDeletionDemo// }" ]]; then
   missingParams="true"
 fi
 
+if [[ -z "${IMAGE_REPO// }" ]]; then
+  echo -e "$cross ERROR: Repository for downloading images is empty. Please provide a value for '-i' parameter."
+  missingParams="true"
+fi
+
+if [[ -z "${tempERKey// }" ]]; then
+  echo -e "$cross ERROR: IAM API key for accessing the entitled registry is empty. Please provide a value for '-j' parameter."
+  missingParams="true"
+fi
+
+if [[ -z "${tempRepo// }" ]]; then
+  echo -e "$cross ERROR: Variable for accessing different Registry is empty. Please provide a value for '-k' parameter."
+  missingParams="true"
+fi
+
+if [[ -z "${ENVIRONMENT// }" ]]; then
+  echo -e "$cross ERROR: Environment value for installation is empty. Please provide a value for '-t' parameter."
+  missingParams="true"
+fi
+
+if [[ -z "${useFastStorageClass// }" ]]; then
+  echo -e "$cross ERROR: Fast storage class flag for installation is empty. Please provide a value for '-v' parameter."
+  missingParams="true"
+fi
+
 if [[ "$missingParams" == "true" ]]; then
   divider
   usage
@@ -143,7 +192,7 @@ fi
 echo -e "$info Current directory: $CURRENT_DIR"
 echo -e "$info 1-click namespace: $NAMESPACE"
 echo -e "$info Navigator replica count: $navReplicaCount"
-echo -e "$info Change common service password: $pwdChange"
+echo -e "$info Demo deployment branch: $demoDeploymentBranch"
 echo -e "$info Default common service username: $csDefaultAdminUser"
 echo -e "$info Setup all demos: $demoPreparation"
 echo -e "$info Setup only event enabled insurance demo: $eventEnabledInsuranceDemo"
@@ -153,6 +202,144 @@ echo -e "$info APIC mail server hostname: $demoAPICMailServerHost"
 echo -e "$info APIC mail server port: $demoAPICMailServerPort"
 echo -e "$info APIC mail server username: $demoAPICMailServerUsername"
 divider
+
+
+
+
+if [[ -z "${tempERKey}" ]]; then
+  # Use the entitlement key
+  export DOCKER_REGISTRY_USER=${DOCKER_REGISTRY_USER:-ekey}
+  export DOCKER_REGISTRY_PASS=${DOCKER_REGISTRY_PASS:-none}
+else
+  # Use the tempERKey override as an api key
+  export DOCKER_REGISTRY_USER="iamapikey"
+  export DOCKER_REGISTRY_PASS=${tempERKey}
+fi
+
+if [[ "$ENVIRONMENT" == "STAGING" ]]; then
+  export IMAGE_REPO="cp.stg.icr.io"
+fi
+
+export IMAGE_REPO=${tempRepo:-$IMAGE_REPO}
+
+if oc get namespace $NAMESPACE >/dev/null 2>&1; then
+  echo -e "$info INFO: namespace $NAMESPACE already exists"
+  divider
+else
+  echo "INFO: Creating $NAMESPACE namespace"
+  if ! oc create namespace $NAMESPACE; then
+    echo -e "$cross ERROR: Failed to create the $NAMESPACE namespace" 1>&2
+    divider
+    exit 1
+  fi
+fi
+
+divider
+
+# This storage class improves the pvc performance for small PVCs
+echo "INFO: Creating new cp4i-block-performance storage class"
+cat <<EOF | oc apply -f -
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+ name: cp4i-block-performance
+ labels:
+   kubernetes.io/cluster-service: "true"
+provisioner: ibm.io/ibmc-block
+parameters:
+ billingType: "hourly"
+ classVersion: "2"
+ sizeIOPSRange: |-
+   "[1-39]Gi:[1000]"
+   "[40-79]Gi:[2000]"
+   "[80-99]Gi:[4000]"
+   "[100-499]Gi:[5000-6000]"
+   "[500-999]Gi:[5000-10000]"
+   "[1000-1999]Gi:[10000-20000]"
+   "[2000-2999]Gi:[20000-40000]"
+   "[3000-12000]Gi:[24000-48000]"
+ type: "Performance"
+reclaimPolicy: Delete
+volumeBindingMode: Immediate
+EOF
+
+if [[ "${useFastStorageClass}" == "true" ]]; then
+  defaultStorageClass=$(oc get sc -o json | jq -r '.items[].metadata | select(.annotations["storageclass.kubernetes.io/is-default-class"] == "true") | .name')
+  echo -e "$info INFO: Current default storage class is: $defaultStorageClass"
+
+  echo -e "$info INFO: Making $defaultStorageClass non-default"
+  oc patch storageclass $defaultStorageClass -p '{"metadata": {"annotations":{"storageclass.kubernetes.io/is-default-class":"false"}}}'
+
+  echo -e "$info INFO: Making cp4i-block-performance default"
+  oc patch storageclass cp4i-block-performance -p '{"metadata": {"annotations":{"storageclass.kubernetes.io/is-default-class":"true"}}}'
+fi
+
+divider
+
+echo -e "$info INFO: Current storage classes:"
+oc get sc
+
+divider
+
+# Create secret to pull images from the ER
+echo "INFO: Creating secret to pull images from the ER"
+oc -n ${NAMESPACE} create secret docker-registry ibm-entitlement-key \
+  --docker-server=${IMAGE_REPO} \
+  --docker-username=${DOCKER_REGISTRY_USER} \
+  --docker-password=${DOCKER_REGISTRY_PASS} \
+  --dry-run -o yaml | oc apply -f -
+
+divider
+
+echo "INFO: Checking for the platform-auth-idp-credentials secret"
+if oc get secrets platform-auth-idp-credentials -n ibm-common-services; then
+  pwdChange=false
+  echo -e "$info INFO: Secret platform-auth-idp-credentials already exist so not updating password and username in the installation with provided values"
+else
+  echo -e "$info INFO: Secret platform-auth-idp-credentials does exist so will update password and username in the installation with provided values"
+fi
+
+divider
+
+echo "INFO: Applying catalogsources"
+cat <<EOF | oc apply -f -
+---
+apiVersion: operators.coreos.com/v1alpha1
+kind: CatalogSource
+metadata:
+  name: opencloud-operators
+  namespace: openshift-marketplace
+spec:
+  displayName: IBMCS Operators
+  publisher: IBM
+  sourceType: grpc
+  image: docker.io/ibmcom/ibm-common-service-catalog:latest
+  updateStrategy:
+    registryPoll:
+      interval: 45m
+
+---
+
+apiVersion: operators.coreos.com/v1alpha1
+kind: CatalogSource
+metadata:
+  name: ibm-operator-catalog
+  namespace: openshift-marketplace
+spec:
+  displayName: ibm-operator-catalog
+  publisher: IBM Content
+  sourceType: grpc
+  image: docker.io/ibmcom/ibm-operator-catalog
+  updateStrategy:
+    registryPoll:
+      interval: 45m
+EOF
+
+divider
+
+
+
+
 
 if ! $CURRENT_DIR/deploy-og-sub.sh -n ${NAMESPACE}; then
   echo -e "$cross ERROR: Failed to deploy the operator group and subscriptions" 1>&2
