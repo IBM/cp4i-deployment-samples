@@ -90,9 +90,9 @@ spec:
     store: 3
   storage:
     configDbVolume:
-      class: "${block_storage}"
+      class: "${file_storage}"
     sharedVolume:
-      class: "${block_storage}"
+      class: "${file_storage}"
     tracingVolume:
       class: "${block_storage}"
       size: 150Gi
@@ -114,9 +114,9 @@ spec:
     accept: true
   storage:
     configDbVolume:
-      class: "${block_storage}"
+      class: "${file_storage}"
     sharedVolume:
-      class: "${block_storage}"
+      class: "${file_storage}"
     tracingVolume:
       class: "${block_storage}"
   version: 2020.3.1-0
