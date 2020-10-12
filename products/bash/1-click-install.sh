@@ -72,7 +72,7 @@ IMAGE_REPO="cp.icr.io"
 pwdChange="true"
 useFastStorageClass="false"
 
-while getopts "n:r:c:u:p:d:a:f:e:h:o:m:q:" opt; do
+while getopts "n:r:c:u:p:d:a:f:e:h:o:m:q:i:j:k:l:s:t:v:" opt; do
   case ${opt} in
     n ) NAMESPACE="$OPTARG"
       ;;
