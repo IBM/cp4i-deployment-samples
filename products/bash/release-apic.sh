@@ -45,9 +45,6 @@ while getopts "n:r:t" opt; do
   esac
 done
 
-echo "INFO: Tracing support currently disabled"
-tracing="false"
-
 cat << EOF | oc apply -f -
 apiVersion: apiconnect.ibm.com/v1beta1
 kind: APIConnectCluster

@@ -30,9 +30,6 @@
 namespace="cp4i"
 apps_namespace=""
 
-echo "INFO: Tracing support currently disabled"
-exit 0
-
 SCRIPT_DIR="$(dirname $0)"
 echo "Current Dir: $SCRIPT_DIR"
 
