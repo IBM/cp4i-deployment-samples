@@ -79,14 +79,14 @@ MAIL_SERVER_USERNAME=${MAIL_SERVER_USERNAME:-"<your-username>"}
 MAIL_SERVER_PASSWORD=${MAIL_SERVER_PASSWORD:-"<your-password>"}
 
 echo "Waiting for APIC installation to complete..."
-for i in `seq 1 60`; do
+for i in `seq 1 120`; do
   APIC_STATUS=$(kubectl get apiconnectcluster.apiconnect.ibm.com -n $NAMESPACE ${RELEASE_NAME} -o jsonpath='{.status.phase}')
   if [ "$APIC_STATUS" == "Ready" ]; then
     printf "$tick"
     echo "[OK] APIC is ready"
     break
   else
-    echo "Waiting for APIC install to complete (Attempt $i of 60). Status: $APIC_STATUS"
+    echo "Waiting for APIC install to complete (Attempt $i of 120). Status: $APIC_STATUS"
 
     ${CURRENT_DIR}/fix-cs-dependencies.sh
 

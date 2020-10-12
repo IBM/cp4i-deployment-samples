@@ -27,10 +27,10 @@ rules:
 - apiGroups: ["appconnect.ibm.com"]
   resources: ["designerauthorings", "dashboards", "switchservers", "configurations", "integrationservers"]
   verbs: ["create", "delete", "get", "list", "patch", "update", "watch"]
-# Permission to get pods
+# Permission to get pods during deploy stage
 - apiGroups: [""]
-  resources: ["pods"]
-  verbs: ["list", "get"]
+  resources: ["pods", "pods/exec", "configmaps", "secrets", "serviceaccounts"]
+  verbs: ["list", "get", "create", "delete"]
 
 ---
 
@@ -46,8 +46,8 @@ rules:
   verbs: ["create", "delete", "get", "list", "patch", "update", "watch"]
 # Permission to get pods during deploy stage
 - apiGroups: [""]
-  resources: ["pods"]
-  verbs: ["list", "get"]
+  resources: ["pods", "pods/exec", "configmaps", "secrets", "serviceaccounts"]
+  verbs: ["list", "get", "create", "delete"]
 
 ---
 
@@ -105,14 +105,15 @@ metadata:
 rules:
 # Permission to get tasks, pipelines in tekton.dev in dev namespace - to apply pipeline and task yamls
 - apiGroups: [""]
-  resources: ["pods"]
-  verbs: ["list", "get"]
+  resources: ["pods", "pods/exec", "configmaps", "secrets", "serviceaccounts"]
+  verbs: ["list", "get", "create", "delete"]
 # Permissions for MQ deploy in test namespace
 - apiGroups: ["mq.ibm.com"]
   resources: ["queuemanagers", "queuemanagers/finalizers", "queuemanagers/status"]
   verbs: ["create", "delete", "get", "list", "patch", "update", "watch"]
 
 ---
+
 
 # Deploy ace to test namespace permissions
 kind: Role
@@ -123,8 +124,8 @@ metadata:
 rules:
 # Permission to get tasks, pipelines in tekton.dev in dev namespace - to apply pipeline and task yamls
 - apiGroups: [""]
-  resources: ["pods"]
-  verbs: ["list", "get"]
+  resources: ["pods", "pods/exec", "configmaps", "secrets", "serviceaccounts"]
+  verbs: ["list", "get", "create", "delete"]
 # Permissions for appconnect integration server deployment in test namespace
 - apiGroups: ["appconnect.ibm.com"]
   resources: ["designerauthorings", "dashboards", "switchservers", "configurations", "integrationservers"]

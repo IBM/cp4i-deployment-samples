@@ -29,12 +29,14 @@ function usage {
 
 namespace="cp4i"
 dashboard_release_name="ace-dashboard-demo"
-
-while getopts "n:r:" opt; do
+storage="ibmc-file-gold-gid"
+while getopts "n:r:s:" opt; do
   case ${opt} in
     n ) namespace="$OPTARG"
       ;;
     r ) dashboard_release_name="$OPTARG"
+      ;;
+    s ) storage="$OPTARG"
       ;;
     \? ) usage; exit
       ;;
@@ -54,11 +56,11 @@ metadata:
 spec:
   license:
     accept: true
-    license: L-AMYG-BQ2E4U
+    license: L-APEH-BPUCJK
     use: CloudPakForIntegrationNonProduction
   replicas: 1
   storage:
-    class: ibmc-file-gold-gid
+    class: ${storage}
     type: persistent-claim
-  version: 11.0.0
+  version: 11.0.0.10
 EOF

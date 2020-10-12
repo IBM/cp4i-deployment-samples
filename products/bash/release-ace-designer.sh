@@ -29,18 +29,19 @@ function usage {
 
 namespace="cp4i"
 designer_release_name="ace-designer-demo"
-
-while getopts "n:r:" opt; do
+storage="ibmc-block-gold"
+while getopts "n:r:s:" opt; do
   case ${opt} in
     n ) namespace="$OPTARG"
       ;;
     r ) designer_release_name="$OPTARG"
       ;;
+    s ) storage="$OPTARG"
+     ;;
     \? ) usage; exit
       ;;
   esac
 done
-
 echo "INFO: Release ACE Designer..."
 echo "INFO: Namepace: '$namespace'"
 echo "INFO: Designer Release Name: '$designer_release_name'"
@@ -56,14 +57,14 @@ spec:
     storage:
       size: 10Gi
       type: persistent-claim
-      class: ibmc-file-gold-gid
+      class: ${storage}
   designerFlowsOperationMode: local
   license:
     accept: true
-    license: L-AMYG-BQ2E4U
+    license: L-APEH-BPUCJK
     use: CloudPakForIntegrationNonProduction
   replicas: 1
-  version: 11.0.0
+  version: 11.0.0.10
   designerMappingAssist:
     enabled: true
 EOF

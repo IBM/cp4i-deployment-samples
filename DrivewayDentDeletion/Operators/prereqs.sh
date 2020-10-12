@@ -33,7 +33,6 @@ cross="\xE2\x9D\x8C"
 all_done="\xF0\x9F\x92\xAF"
 SUFFIX="ddd"
 POSTGRES_NAMESPACE="postgres"
-ACE_CONFIGURATION_NAME="ace-policyproject-$SUFFIX"
 
 while getopts "n:r:" opt; do
   case ${opt} in
@@ -90,6 +89,15 @@ oc adm policy add-scc-to-group privileged system:serviceaccounts:${test_namespac
 
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
+echo "INFO: Creating operator group and subscription in the namespace '${test_namespace}'"
+
+if ! ${CURRENT_DIR}/../../products/bash/deploy-og-sub.sh -n ${test_namespace} ; then
+  echo -e "$cross ERROR: Failed to apply subscriptions and csv in the namespace '$test_namespace'"
+  exit 1
+fi
+
+echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
+
 echo "INFO: Adding permission for '$dev_namespace' to write images to openshift local registry in the '$test_namespace'"
 # enable dev namespace to push to test namespace
 oc -n ${test_namespace} policy add-role-to-user registry-editor system:serviceaccount:${dev_namespace}:image-bot
@@ -130,37 +138,34 @@ EOF
     echo -e "\n$tick INFO: Successfully configured postgres in the '$POSTGRES_NAMESPACE' namespace with the user '$DB_USER' and database name '$DB_NAME'\n"
   fi  #configure-postgres-db.sh
 
-  
-
   echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
   echo -e "INFO: Creating ace postgres configuration and policy in the namespace '$image_project' with the user '$DB_USER' and database name '$DB_NAME' and suffix '$SUFFIX'"
-  if ! ${CURRENT_DIR}/../../products/bash/create-ace-config.sh -n ${image_project} -g $POSTGRES_NAMESPACE -u $DB_USER -d $DB_NAME -p $DB_PASS -a $ACE_CONFIGURATION_NAME; then
+  if ! ${CURRENT_DIR}/../../products/bash/create-ace-config.sh -n ${image_project} -g $POSTGRES_NAMESPACE -u $DB_USER -d $DB_NAME -p $DB_PASS -s $SUFFIX; then
     echo -e "\n$cross ERROR: Failed to configure ace in the '$image_project' namespace with the user '$DB_USER' and database name '$DB_NAME' and suffix '$SUFFIX'"
     exit 1
   else
     echo -e "\n$tick INFO: Successfully configured ace in the '$image_project' namespace with the user '$DB_USER' and database name '$DB_NAME' and suffix '$SUFFIX'"
-  fi  #${CURRENT_DIR}/../../products/bash/create-ace-config.sh -n ${image_project} -g $POSTGRES_NAMESPACE -u $DB_USER -d $DB_NAME -p $DB_PASS -a $ACE_CONFIGURATION_NAME
+  fi  #${CURRENT_DIR}/../../products/bash/create-ace-config.sh -n ${image_project} -g $POSTGRES_NAMESPACE -u $DB_USER -d $DB_NAME -p $DB_PASS -s $SUFFIX
 
   echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 done #for_outer_done
 
 echo -e "INFO: Creating secret to pull images from the ER in the '${test_namespace}' namespace\n"
 
+ER_REGISTRY=$(oc get secret -n $dev_namespace ibm-entitlement-key -o json | jq -r '.data.".dockerconfigjson"' | base64 --decode | jq -r '.auths' | jq -r 'keys[]' | tr -d '"')
+ER_USERNAME=$(oc get secret -n $dev_namespace ibm-entitlement-key -o json | jq -r '.data.".dockerconfigjson"' | base64 --decode | jq -r '.auths."cp.icr.io".username')
+ER_PASSWORD=$(oc get secret -n $dev_namespace ibm-entitlement-key -o json | jq -r '.data.".dockerconfigjson"' | base64 --decode | jq -r '.auths."cp.icr.io".password')
+
 if ! oc get secrets -n ${test_namespace} ibm-entitlement-key; then
   oc create -n ${test_namespace} secret docker-registry ibm-entitlement-key --docker-server=${ER_REGISTRY} \
     --docker-username=${ER_USERNAME} --docker-password=${ER_PASSWORD} -o yaml | oc apply -f -
+  if [ $? -ne 0 ]; then
+    echo -e "\n$cross ERROR: Failed to create ibm-entitlement-key in test namespace ($test_namespace)"
+    exit 1
+  fi
 else
   echo -e "\nINFO: ibm-entitlement-key secret already exists in the '${test_namespace}' namespace"
-fi
-
-echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
-
-echo "INFO: Creating operator group and subscription in the namespace '${test_namespace}'"
-
-if ! ${CURRENT_DIR}/../../products/bash/deploy-og-sub.sh -n ${test_namespace} ; then
-  echo -e "$cross ERROR: Failed to apply subscriptions and csv in the namespace '$test_namespace'"
-  exit 1
 fi
 
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
@@ -184,4 +189,3 @@ fi
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 echo -e "$tick $all_done INFO: All prerequisites for the driveway dent deletion demo have been applied successfully $all_done $tick"
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
-

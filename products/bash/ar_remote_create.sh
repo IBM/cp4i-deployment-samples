@@ -7,18 +7,18 @@ CURRENT_DIR=$(dirname $0)
 USING_OPERATORS=false
 
 ### Inputs
-help="Usage $0 \n-a required: common-services-url e.g. https://icp_console... \n-u required: username \n-p required: password  \n-r optional: release-name \n-n optional: namespace \n-g optional: git_remote_url \n-t optional: remote name \n-d optional: remote desc\n-o: Using operators version of asset repo"
+help="Usage $0 \n-r optional: release-name \n-n optional: namespace \n-g optional: git_remote_url \n-t optional: remote name \n-d optional: remote desc\n-o: Using operators version of asset repo"
 while getopts "r:n:a:u:p:t:g:d:o" opt; do
   case ${opt} in
     r ) RELEASE_NAME="$OPTARG"
       ;;
     n ) NAMESPACE="$OPTARG"
       ;;
-    a ) CP_CONSOLE_URL="$OPTARG"
+    a ) echo "-a option ignored"
       ;;
-    u ) CP_USERNAME="$OPTARG"
+    u ) echo "-u option ignored"
       ;;
-    p ) CP_PASSWORD="$OPTARG"
+    p ) echo "-p option ignored"
       ;;
     g ) GIT_REPO="$OPTARG"
       ;;
@@ -32,12 +32,6 @@ while getopts "r:n:a:u:p:t:g:d:o" opt; do
     ;;
   esac
 done
-if [[ -z "$CP_USERNAME" || -z "$CP_PASSWORD" || -z "$CP_CONSOLE_URL" ]]
-then
-  echo "ERROR: Missing argument(s)"
-  echo -e $help
-  exit 1
-fi
 
 ## Defaults
 NAMESPACE=${NAMESPACE:-integration}
@@ -46,9 +40,6 @@ GIT_REPO=${GIT_REPO:-"https://github.com/IBM/cp4i-demos.git"}
 REMOTE_NAME=${REMOTE_NAME:-"CP4I Demo Assets"}
 REMOTE_DESC=${REMOTE_DESC:-"Remote that populates the asset repository with assets for CP4I demos"}
 
-cp4iuser=$CP_USERNAME
-cp4ipwd=$CP_PASSWORD
-icpConsoleUrl=$CP_CONSOLE_URL
 asset_repo_release=$RELEASE_NAME
 asset_repo_namespace=$NAMESPACE
 ### End inputs
@@ -61,22 +52,30 @@ echo "=== Initialising Asset repository with a remote ==="
 rm -rf ar_create_tmp
 mkdir -p ar_create_tmp
 
-echo "- Generating access token for user at $icpConsoleUrl"
-# get an icp token
-token_response=`curl --insecure -s -X POST -H "Content-Type: application/x-www-form-urlencoded" -d "grant_type=password&scope=openid&username=$cp4iuser&password=$cp4ipwd" $icpConsoleUrl/idprovider/v1/auth/identitytoken`
-token=""
+for i in `seq 1 60`; do
+  cp4iuser=$(oc get secrets -n ibm-common-services platform-auth-idp-credentials -o jsonpath='{.data.admin_username}' | base64 --decode)
+  cp4ipwd=$(oc get secrets -n ibm-common-services platform-auth-idp-credentials -o jsonpath='{.data.admin_password}' | base64 --decode)
+  icpConsoleUrl="https://$(oc get routes -n ibm-common-services cp-console -o jsonpath='{.spec.host}')"
 
-if [[ ! -z "$token_response" ]]; then
-  if jq -e '.access_token' >/dev/null 2>&1 <<<"$token_response"; then
-      token=`jq -r '.access_token' <<< "$token_response"`
+  echo "- Generating access token for user at $icpConsoleUrl"
+  # get an icp token
+  token_response=`curl --insecure -s -X POST -H "Content-Type: application/x-www-form-urlencoded" -d "grant_type=password&scope=openid&username=$cp4iuser&password=$cp4ipwd" $icpConsoleUrl/idprovider/v1/auth/identitytoken`
+  token=""
+
+  if [[ ! -z "$token_response" ]]; then
+    if jq -e '.access_token' >/dev/null 2>&1 <<<"$token_response"; then
+        token=`jq -r '.access_token' <<< "$token_response"`
+        break
+    else
+      echo "Error: Failed to parse JSON, $token_response. (Attempt $i of 60)."
+    fi
   else
-      echo "Error: Failed to parse JSON, $token_response"
-      exit 1
+    echo "Error: No token found (Attempt $i of 60)"
   fi
-else
-  echo "Error: No token found"
-  exit 1
-fi
+  echo "Checking again in 10 seconds..."
+  sleep 10
+done
+
 
 echo "=== Checking the route has been created ==="
 i=1
