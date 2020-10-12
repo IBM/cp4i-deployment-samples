@@ -102,6 +102,37 @@ roleRef:
   name: role-deploy-mq-in-test-namespace
 
 ---
+# Role binding for the mq deploy in test namespace for tracing running in main ns
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: deploy-mq-in-dev-rolebinding
+  namespace: "{{NAMESPACE}}"
+subjects:
+- kind: ServiceAccount
+  name: cicd-mq-deploy-in-test-sa
+  namespace: "{{NAMESPACE}}"
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: mq-qm-role
+---
+
+# Role binding for the ACE deploy in test namespace for tracing running in main ns
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: deploy-ace-in-dev-rolebinding
+  namespace: "{{NAMESPACE}}"
+subjects:
+- kind: ServiceAccount
+  name: cicd-ace-deploy-in-test-sa
+  namespace: "{{NAMESPACE}}"
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: ace-int-srv-role
+---
 
 # Role binding for the mq deploy in test namespace
 apiVersion: rbac.authorization.k8s.io/v1

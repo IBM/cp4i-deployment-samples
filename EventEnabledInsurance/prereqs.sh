@@ -33,9 +33,9 @@ cross="\xE2\x9D\x8C"
 all_done="\xF0\x9F\x92\xAF"
 SUFFIX="eei"
 POSTGRES_NAMESPACE="postgres"
-ACE_CONFIGURATION_NAME="ace-policyproject-$SUFFIX"
 REPO="https://github.com/IBM/cp4i-deployment-samples.git"
 BRANCH="main"
+ELASTIC_NAMESPACE="elasticsearch"
 
 while getopts "n:r:b:" opt; do
   case ${opt} in
@@ -199,7 +199,7 @@ stringData:
 EOF
 
 echo -e "\nINFO: Creating ace postgres configuration and policy in the namespace '$namespace' with the user '$DB_USER' and database name '$DB_NAME' and suffix '$SUFFIX'"
-if ! ${CURRENT_DIR}/../products/bash/create-ace-config.sh -n ${namespace} -u $DB_USER -d $DB_NAME -p $DB_PASS -a $ACE_CONFIGURATION_NAME; then
+if ! ${CURRENT_DIR}/../products/bash/create-ace-config.sh -n ${namespace} -u $DB_USER -d $DB_NAME -p $DB_PASS -s $SUFFIX; then
   echo -e "\n$cross ERROR: Failed to configure ace in the '$namespace' namespace with the user '$DB_USER' and database name '$DB_NAME' and suffix '$SUFFIX'"
   exit 1
 else
@@ -231,6 +231,16 @@ done
 
 echo -e "\nINFO: Cluster task 'git-clone' is now available\n"
 $TKN clustertask ls | grep git-clone
+
+echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
+
+echo "INFO: Installing Elastic search operator and Elastic search instance..."
+if ! ${CURRENT_DIR}/setup-elastic-search.sh -n ${namespace} -e $ELASTIC_NAMESPACE; then
+  echo -e "\n$cross ERROR: Failed to install elastic search in the '$ELASTIC_NAMESPACE' namespace and configure it in the '$namespace' namespace"
+  exit 1
+else
+  echo -e "\n$tick INFO: Successfully installed elastic search in the '$ELASTIC_NAMESPACE' namespace and configured it in the '$namespace' namespace"
+fi #setup-elastic-search.sh
 
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 

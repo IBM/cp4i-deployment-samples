@@ -29,12 +29,19 @@ function usage {
 
 namespace="cp4i"
 release_name="demo"
+assetDataVolume="ibmc-file-gold-gid"
+couchVolume="ibmc-block-gold"
 
-while getopts "n:r:" opt; do
+
+while getopts "n:r:a:c:" opt; do
   case ${opt} in
     n ) namespace="$OPTARG"
       ;;
     r ) release_name="$OPTARG"
+      ;;
+    a ) assetDataVolume="$OPTARG" 
+      ;;
+    c ) couchVolume="$OPTARG" 
       ;;
     \? ) usage; exit
       ;;
@@ -52,8 +59,8 @@ spec:
     accept: true
   storage:
     assetDataVolume:
-      class: ibmc-file-gold-gid
+      class: ${assetDataVolume}
     couchVolume:
-      class: ibmc-block-gold
-  version: 2020.2.1.1-0
+      class: ${couchVolume}
+  version: 2020.3.1-0
 EOF

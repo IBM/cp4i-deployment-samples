@@ -139,9 +139,11 @@ fi
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
 # create tekton tasks
+tracing="-t -z ${namespace}"
 echo "INFO: Create tekton tasks"
 if cat $CURRENT_DIR/../../CommonPipelineResources/cicd-tasks.yaml |
   sed "s#{{NAMESPACE}}#$namespace#g;" |
+  sed "s#{{TRACING}}#$tracing#g;" |
   oc apply -f -; then
     printf "$tick "
     echo "Successfully applied tekton tasks in the '$namespace' namespace"

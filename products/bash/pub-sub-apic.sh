@@ -145,8 +145,10 @@ for i in `seq 1 5`; do
   fi
 done
 [[ -z $ACE_API ]] && echo -e "[ERROR] ${CROSS} ace api integration server service doesn't exit" && exit 1
-ACE_API_INT_SRV_PORT=$(oc get svc -n $NAMESPACE $ACE_API -ojson | $JQ -r '.spec.ports[] | select(.name == "http").port')
+ACE_API_INT_SRV_PORT=$(oc get svc -n $NAMESPACE $ACE_API -ojson | $JQ -r '.spec.ports[] | select(.name == "https").port')
 ACE_API_INT_SRV=${ACE_API}.${NAMESPACE}.svc.cluster.local:$ACE_API_INT_SRV_PORT
+ACE_API_USER=$(oc get secret -n $NAMESPACE ace-api-creds -o json | $JQ -r '.data.user' | base64 --decode)
+ACE_API_PASS=$(oc get secret -n $NAMESPACE ace-api-creds -o json | $JQ -r '.data.pass' | base64 --decode)
 $DEBUG && echo "[DEBUG] ACE_API_INT_SRV=${ACE_API_INT_SRV}"
 echo -e "[INFO]  ${TICK} Cluster info gathered"
 
@@ -159,7 +161,9 @@ echo -e "[INFO]  ${TICK} Got bearer token"
 # Template api and product yamls
 echo "[INFO]  Templating api yaml..."
 cat ${CURRENT_DIR}/../../DrivewayDentDeletion/Operators/apic-resources/apic-api-ddd.yaml |
-  sed "s#{{ACE_API_INT_SRV_ROUTE}}#${ACE_API_INT_SRV}#g;" > ${CURRENT_DIR}/api.yaml
+  sed "s#{{ACE_API_INT_SRV_ROUTE}}#${ACE_API_INT_SRV}#g;" |
+  sed "s#{{ACE_API_USER}}#${ACE_API_USER}#g;" |
+  sed "s#{{ACE_API_PASS}}#${ACE_API_PASS}#g;" > ${CURRENT_DIR}/api.yaml
 $DEBUG && echo -e "[DEBUG] api yaml:\n$(cat ${CURRENT_DIR}/api.yaml)"
 echo -e "[INFO]  ${TICK} Templated api yaml"
 

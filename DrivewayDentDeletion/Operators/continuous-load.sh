@@ -78,18 +78,19 @@ DB_USER=$(echo $NAMESPACE | sed 's/-/_/g')_ddd
 DB_NAME=db_${DB_USER}
 DB_PASS=$(oc get secret -n $NAMESPACE postgres-credential --template={{.data.password}} | base64 --decode)
 DB_POD=$(oc get pod -n postgres -l name=postgresql -o jsonpath='{.items[].metadata.name}')
-DB_SVC="postgresql.postgres.svc.cluster.local"
 echo "[INFO]  Username name is: '${DB_USER}'"
 echo "[INFO]  Database name is: '${DB_NAME}'"
 
+CURL_OPTS=( -s -L -S )
 if [[ $APIC == true ]]; then
   $DEBUG && echo "[DEBUG] apic integration enabled"
-  API_BASE_URL=$(oc get secret -n $NAMESPACE ddd-api-endpoint-client-id -o jsonpath='{.data.api}' | base64 -D)
-  API_CLIENT_ID=$(oc get secret -n $NAMESPACE ddd-api-endpoint-client-id -o jsonpath='{.data.cid}' | base64 -D)
+  CURL_OPTS+=( -k )
+  API_BASE_URL=$(oc get secret -n $NAMESPACE ddd-api-endpoint-client-id -o jsonpath='{.data.api}' | base64 --decode)
+  API_CLIENT_ID=$(oc get secret -n $NAMESPACE ddd-api-endpoint-client-id -o jsonpath='{.data.cid}' | base64 --decode)
   echo -e "[INFO]  api base url: ${API_BASE_URL}\n[INFO]  client id: ${API_CLIENT_ID}"
 fi
 if [ -z "${API_BASE_URL}" ]; then
-  API_BASE_URL=$(echo "http://$(oc get routes -n $NAMESPACE | grep ace-api-int-srv-http | grep -v ace-api-int-srv-https | awk '{print $2}')/drivewayrepair")
+  API_BASE_URL=$(echo "https://$(oc get routes -n $NAMESPACE | grep ace-api-int-srv-https | awk '{print $2}')/drivewayrepair")
   echo "[INFO]  api base URL: ${API_BASE_URL}"
 fi
 
@@ -102,7 +103,7 @@ function cleanup_table() {
   table_name="quotes"
   echo -e "\Clearing '${table_name}' database of all rows..."
   oc exec -n postgres -it ${DB_POD} -- \
-    psql -U ${DB_USER} -d ${DB_NAME} -h ${DB_SVC} -c \
+    psql -U ${DB_USER} -d ${DB_NAME} -c \
     "TRUNCATE ${table_name};"
 }
 
@@ -111,15 +112,21 @@ if [ "$TABLE_CLEANUP" = true ]; then
   trap "cleanup_table" EXIT
 fi
 
+
+API_AUTH=$(oc get secret -n $NAMESPACE ace-api-creds -o json | jq -r '.data.auth')
+
+echo "api auth: $API_AUTH"
+
 while true; do
   # - POST ---
   echo -e "\nPOST request..."
-  post_response=$(curl -kLsS -w " %{http_code}" -X POST ${API_BASE_URL}/quote \
+  post_response=$(curl $CURL_OPTS -w " %{http_code}" -X POST ${API_BASE_URL}/quote \
+    -H "authorization: Basic ${API_AUTH}" \
     -H "X-IBM-CLIENT-ID: ${API_CLIENT_ID}" \
     -d "{
-      \"Name\": \"Mickey Mouse\",
-      \"EMail\": \"MickeyMouse@us.ibm.com\",
-      \"Address\": \"30DisneyLand\",
+      \"Name\": \"Jane Doe\",
+      \"EMail\": \"janedoe@example.com\",
+      \"Address\": \"123 Fake Road\",
       \"USState\": \"FL\",
       \"LicensePlate\": \"MMM123\",
       \"DentLocations\": [
@@ -133,8 +140,8 @@ while true; do
         }
       ]
     }")
-  $DEBUG && echo "[DEBUG] post response: ${post_response}"
   post_response_code=$(echo "${post_response##* }")
+  $DEBUG && echo "[DEBUG] post response: ${post_response}"
 
   if [ "$post_response_code" == "200" ]; then
     # The usage of sed here is to prevent an error caused between the -w flag of curl and jq not interacting well
@@ -150,8 +157,11 @@ while true; do
 
     # - GET ---
     echo -e "\nGET request..."
-    get_response=$(curl -s -w " %{http_code}" -X GET ${API_BASE_URL}/quote?QuoteID=${quote_id})
+    get_response=$(curl $CURL_OPTS -w " %{http_code}" -X GET ${API_BASE_URL}/quote?QuoteID=${quote_id} \
+      -H "authorization: Basic ${API_AUTH}" \
+      -H "X-IBM-CLIENT-ID: ${API_CLIENT_ID}")
     get_response_code=$(echo "${get_response##* }")
+    $DEBUG && echo "[DEBUG] get response: ${get_response}"
 
     if [ "$get_response_code" == "200" ]; then
       echo -e "SUCCESS - GETed with response code: ${get_response_code}, and Response Body:\n"
@@ -170,7 +180,7 @@ while true; do
     if [ "$SAVE_ROW_AFTER_RUN" = false ]; then
       echo -e "\nDeleting row from database..."
       oc exec -n postgres -it ${DB_POD} -- \
-        psql -U ${DB_USER} -d ${DB_NAME} -h ${DB_SVC} -c \
+        psql -U ${DB_USER} -d ${DB_NAME} -c \
         "DELETE FROM quotes WHERE quotes.quoteid = ${quote_id};"
     fi
   else
