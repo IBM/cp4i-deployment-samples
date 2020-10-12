@@ -38,6 +38,8 @@
 
     `runmqckm -cert -import -file application.p12 -pw password -type pkcs12 -target application.kdb -target_pw password -target_type cms -label "1" -new_label aceclient`
 
+    Note: runmqckm utility is available as a part of IBM MQ Client package and needs to be installed separately.
+
 - Setup CR and secrets for MQ:
   
     For MQ to utilize the certs that are part of the trust and keystore we create a secret called `mqcert` with the server key, server cert and application cert.
@@ -115,65 +117,65 @@
 
 ## Setting up ACE to use TLS
 
-    For ACE to use the TLS configuration we need provide the following `ace-configuration` to ACE instegration server CR:
+For ACE to use the TLS configuration we need provide the following `ace-configuration` to ACE instegration server CR:
 
 ```
-    serverconf:
-    serverConfVersion: 1
-    BrokerRegistry:
-    mqKeyRepository: /home/aceuser/keystores/application
+serverconf:
+serverConfVersion: 1
+BrokerRegistry:
+mqKeyRepository: /home/aceuser/keystores/application
 
-    apiVersion: appconnect.ibm.com/v1beta1
-    kind: Configuration
-    metadata:
-    name: ace-serverconf
-    namespace: cp4i-ddd-test
-    spec:
-    contents: <Base 64 encoded ace-server conf>
-    type: serverconf
+apiVersion: appconnect.ibm.com/v1beta1
+kind: Configuration
+metadata:
+name: ace-serverconf
+namespace: cp4i-ddd-test
+spec:
+contents: <Base 64 encoded ace-server conf>
+type: serverconf
 ```
 
 ```
-    apiVersion: appconnect.ibm.com/v1beta1
-    kind: Configuration
-    metadata:
-    name: application.kdb
-    namespace: cp4i-ddd-test
-    spec:
-    contents: <base64 encoded for application.kdb>
-    type: keystore
+apiVersion: appconnect.ibm.com/v1beta1
+kind: Configuration
+metadata:
+name: application.kdb
+namespace: cp4i-ddd-test
+spec:
+contents: <base64 encoded for application.kdb>
+type: keystore
 ```
 ```
-    apiVersion: appconnect.ibm.com/v1beta1
-    kind: Configuration
-    metadata:
-    name: application.sth
-    namespace: cp4i-ddd-test
-    spec:
-    contents: <base64 encoded for application.sth>
-    type: keystore
+apiVersion: appconnect.ibm.com/v1beta1
+kind: Configuration
+metadata:
+name: application.sth
+namespace: cp4i-ddd-test
+spec:
+contents: <base64 encoded for application.sth>
+type: keystore
  ```
 
 ``` 
-    apiVersion: appconnect.ibm.com/v1beta1
-    kind: Configuration
-    metadata:
-    name: application.jks
-    namespace: cp4i-ddd-test
-    spec:
-    contents: <base64 encoded for application.jks>
-    type: truststore
+apiVersion: appconnect.ibm.com/v1beta1
+kind: Configuration
+metadata:
+name: application.jks
+namespace: cp4i-ddd-test
+spec:
+contents: <base64 encoded for application.jks>
+type: truststore
 ```
 
 ```
-    apiVersion: appconnect.ibm.com/v1beta1
-    kind: Configuration
-    metadata:
-    name: ace-setdbparms
-    namespace: cp4i-ddd-test
-    spec:
-    contents: <base64 encoded brokerTruststore::<password set in cert> dummy <password set in cert>>
-    type: setdbparms
+apiVersion: appconnect.ibm.com/v1beta1
+kind: Configuration
+metadata:
+name: ace-setdbparms
+namespace: cp4i-ddd-test
+spec:
+contents: <base64 encoded brokerTruststore::<password set in cert> dummy <password set in cert>>
+type: setdbparms
 ```
 
 The ACE Integration Server CR needs to contain these configurations:

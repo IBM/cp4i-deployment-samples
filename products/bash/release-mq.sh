@@ -63,36 +63,6 @@ done
 echo "INFO: Tracing support currently disabled"
 tracing_enabled=false
 
-echo "INFO: Setting up certs for MQ TLS"
-QM_KEY=$(cat $CURRENT_DIR/mq/createcerts/server.key | base64 -w0)
-QM_CERT=$(cat $CURRENT_DIR/mq/createcerts/server.crt | base64 -w0)
-APP_CERT=$(cat $CURRENT_DIR/mq/createcerts/application.crt | base64 -w0)
-
-cat << EOF | oc apply -f -
----
-kind: ConfigMap
-apiVersion: v1
-metadata:
-  name: mtlsmqsc
-  namespace: $namespace
-data:
-  example.ini: |-
-    Service:
-      Name=AuthorizationService
-      EntryPoints=14
-      SecurityPolicy=User
----
-kind: Secret
-apiVersion: v1
-metadata:
-  name: mqcert
-  namespace: $namespace
-data:
-  tls.key: $QM_KEY
-  tls.crt: $QM_CERT
-  app.crt: $APP_CERT
-type: Opaque
-EOF
 
 # when called from install.sh
 if [ "$tracing_enabled" == "true" ] ; then
@@ -153,6 +123,38 @@ if [[ -z "$imageTag" ]]; then
   echo "ERROR: Failed to extract image tag from the end of '$image_name'"
   exit 1
 fi
+
+echo "INFO: Setting up certs for MQ TLS"
+QM_KEY=$(cat $CURRENT_DIR/mq/createcerts/server.key | base64 -w0)
+QM_CERT=$(cat $CURRENT_DIR/mq/createcerts/server.crt | base64 -w0)
+APP_CERT=$(cat $CURRENT_DIR/mq/createcerts/application.crt | base64 -w0)
+
+cat << EOF | oc apply -f -
+---
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: mtlsmqsc
+  namespace: $namespace
+data:
+  example.ini: |-
+    Service:
+      Name=AuthorizationService
+      EntryPoints=14
+      SecurityPolicy=User
+---
+kind: Secret
+apiVersion: v1
+metadata:
+  name: mqcert
+  namespace: $namespace
+data:
+  tls.key: $QM_KEY
+  tls.crt: $QM_CERT
+  app.crt: $APP_CERT
+type: Opaque
+EOF
+
 
 echo -e "INFO: Going ahead to apply the CR for '$release_name'"
 
