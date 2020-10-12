@@ -52,12 +52,12 @@
     kind: Secret
     apiVersion: v1
     metadata:
-    name: mqcert
-    namespace: $namespace
+      name: mqcert
+      namespace: $namespace
     data:
-    tls.key: $QM_KEY
-    tls.crt: $QM_CERT
-    app.crt: $APP_CERT
+      tls.key: $QM_KEY
+      tls.crt: $QM_CERT
+      app.crt: $APP_CERT
     type: Opaque
     ```
 
@@ -128,54 +128,54 @@ mqKeyRepository: /home/aceuser/keystores/application
 apiVersion: appconnect.ibm.com/v1beta1
 kind: Configuration
 metadata:
-name: ace-serverconf
-namespace: cp4i-ddd-test
+  name: ace-serverconf
+  namespace: cp4i-ddd-test
 spec:
-contents: <Base 64 encoded ace-server conf>
-type: serverconf
+  contents: <Base 64 encoded ace-server conf>
+  type: serverconf
 ```
 
 ```
 apiVersion: appconnect.ibm.com/v1beta1
 kind: Configuration
 metadata:
-name: application.kdb
-namespace: cp4i-ddd-test
+  name: application.kdb
+  namespace: cp4i-ddd-test
 spec:
-contents: <base64 encoded for application.kdb>
-type: keystore
+  contents: <base64 encoded for application.kdb>
+  type: keystore
 ```
 ```
 apiVersion: appconnect.ibm.com/v1beta1
 kind: Configuration
 metadata:
-name: application.sth
-namespace: cp4i-ddd-test
+  name: application.sth
+  namespace: cp4i-ddd-test
 spec:
-contents: <base64 encoded for application.sth>
-type: keystore
+  contents: <base64 encoded for application.sth>
+  type: keystore
  ```
 
 ``` 
 apiVersion: appconnect.ibm.com/v1beta1
 kind: Configuration
 metadata:
-name: application.jks
-namespace: cp4i-ddd-test
+  name: application.jks
+  namespace: cp4i-ddd-test
 spec:
-contents: <base64 encoded for application.jks>
-type: truststore
+  contents: <base64 encoded for application.jks>
+  type: truststore
 ```
 
 ```
 apiVersion: appconnect.ibm.com/v1beta1
 kind: Configuration
 metadata:
-name: ace-setdbparms
-namespace: cp4i-ddd-test
+  name: ace-setdbparms
+  namespace: cp4i-ddd-test
 spec:
-contents: <base64 encoded brokerTruststore::<password set in cert> dummy <password set in cert>>
-type: setdbparms
+  contents: <base64 encoded brokerTruststore::<password set in cert> dummy <password set in cert>>
+  type: setdbparms
 ```
 
 The ACE Integration Server CR needs to contain these configurations:
