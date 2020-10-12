@@ -25,6 +25,7 @@
 #   Overriding the namespace and release-name
 #     ./release-tracing -n cp4i-prod -r prod
 
+
 echo "INFO: Tracing support currently disabled"
 exit 0
 
@@ -51,6 +52,8 @@ while getopts "n:r:b:d:f" opt; do
       ;;
   esac
 done
+
+
 
 cat << EOF | oc apply -f -
 apiVersion: integration.ibm.com/v1beta2
