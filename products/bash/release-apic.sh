@@ -31,8 +31,9 @@ function usage {
 namespace="cp4i"
 release_name="ademo"
 tracing="false"
+production="false"
 
-while getopts "n:r:t" opt; do
+while getopts "n:r:tp" opt; do
   case ${opt} in
     n ) namespace="$OPTARG"
       ;;
@@ -40,6 +41,8 @@ while getopts "n:r:t" opt; do
       ;;
     t ) tracing=true
       ;;
+    p ) production="true"
+    ;;
     \? ) usage; exit
       ;;
   esac
@@ -47,7 +50,13 @@ done
 
 echo "INFO: Tracing support currently disabled"
 tracing="false"
+profile="n3xc4.m16"
+if [[ "$production" == "true" ]]
+then 
+echo "Production Mode Enabled"
+profile="n12xc4.m12"
 
+fi
 cat << EOF | oc apply -f -
 apiVersion: apiconnect.ibm.com/v1beta1
 kind: APIConnectCluster
@@ -63,7 +72,7 @@ spec:
   license:
     accept: true
     use: production
-  profile: n3xc4.m16
+  profile: ${profile}
   gateway:
     openTracing:
       enabled: ${tracing}
