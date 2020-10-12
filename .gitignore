@@ -22,3 +22,4 @@ settings.json
 pgpass_gen.sh
 api.yaml
 product.yaml
+.metadata

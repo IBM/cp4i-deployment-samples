@@ -1,0 +1,62 @@
+{
+  "swagger" : "2.0",
+  "info" : {
+    "title" : "EventEnabledInsurance",
+    "version" : "1.0.0",
+    "description" : "EventEnabledInsurance"
+  },
+  "basePath" : "/eventinsurance",
+  "definitions" : {
+    "Quote" : {
+      "type" : "object",
+      "properties" : {
+        "QuoteID" : {
+          "type" : "string"
+        },
+        "Name" : {
+          "type" : "string",
+          "format" : null
+        },
+        "Email" : {
+          "type" : "string"
+        },
+        "Address" : {
+          "type" : "string"
+        },
+        "USState" : {
+          "type" : "string"
+        },
+        "LicensePlate" : {
+          "type" : "string"
+        },
+        "ClaimStatus" : {
+          "type" : "string"
+        }
+      }
+    }
+  },
+  "paths" : {
+    "/quote" : {
+      "post" : {
+        "operationId" : "postQuote",
+        "responses" : {
+          "200" : {
+            "description" : "The operation was successful."
+          }
+        },
+        "consumes" : [ "application/json" ],
+        "produces" : [ "application/json" ],
+        "description" : "Insert a quote",
+        "parameters" : [ {
+          "name" : "body",
+          "in" : "body",
+          "schema" : {
+            "type" : "boolean"
+          },
+          "description" : "The request body for the operation",
+          "required" : true
+        } ]
+      }
+    }
+  }
+}
