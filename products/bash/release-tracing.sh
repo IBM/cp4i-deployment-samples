@@ -35,7 +35,7 @@ block_storage="ibmc-block-gold"
 file_storage="ibmc-file-gold-gid"
 production="false"
 
-while getopts "n:r:b:d:fp" opt; do
+while getopts "n:r:b:d:f:p" opt; do
   case ${opt} in
     n ) namespace="$OPTARG"
       ;;
@@ -58,7 +58,6 @@ done
 if [[ "$production" == "true" ]]
 then
 echo "Production Mode Enabled"
-
 cat << EOF | oc apply -f -
 apiVersion: integration.ibm.com/v1beta2
 kind: OperationsDashboard
