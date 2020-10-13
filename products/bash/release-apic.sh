@@ -48,12 +48,10 @@ while getopts "n:r:tp" opt; do
   esac
 done
 
-tracing="false"
 profile="n3xc4.m16"
-if [[ "$production" == "true" ]]
-then
-echo "Production Mode Enabled"
-profile="n12xc4.m12"
+if [[ "$production" == "true" ]]; then
+  echo "Production Mode Enabled"
+  profile="n12xc4.m12"
 fi
 
 cat << EOF | oc apply -f -
