@@ -81,13 +81,23 @@ sleep 60
 
 echo "Waiting for tracing pod..."
 # Loop/retry here, tracing pod may not exist yet
+JAR=""
 for i in `seq 1 60`; do
-  TRACING_POD=$(oc get pod -n ${namespace} -l helm.sh/chart=ibm-icp4i-tracing-prod -o jsonpath='{.items[].metadata.name}')
-	if [[ -z "$TRACING_POD" ]]; then
+  OLD_TRACING_POD=$(oc get pod -n ${namespace} -l helm.sh/chart=ibm-icp4i-tracing-prod -o jsonpath='{.items[].metadata.name}' 2>/dev/null)
+  NEW_TRACING_POD=$(oc get pod -n ${namespace} -l app.kubernetes.io/name=ibm-integration-operations-dashboard,app.kubernetes.io/component=fe -o jsonpath='{.items[].metadata.name}' 2>/dev/null)
+	if [[ -z "$OLD_TRACING_POD" ]] && [[ -z "$NEW_TRACING_POD" ]] ; then
     echo "Waiting for tracing pod (Attempt $i of 60), checking again in 15 seconds..."
 		sleep 15
 	else
-    echo "Got tracing pod: ${TRACING_POD}"
+    if [[ -z "$OLD_TRACING_POD" ]] ; then
+      echo "Got new tracing pod: ${NEW_TRACING_POD}"
+      JAR=NameSpaceAutoRegistration.2020.3.1.jar
+      TRACING_POD=$NEW_TRACING_POD
+    else
+      echo "Got old tracing pod: ${OLD_TRACING_POD}"
+      JAR=NameSpaceAutoRegistration.jar
+      TRACING_POD=$OLD_TRACING_POD
+    fi
 		break
 	fi
 done
@@ -96,10 +106,10 @@ if [[ -z "$TRACING_POD" ]]; then
   exit 1
 fi
 
-echo "Copying NameSpaceAutoRegistration.jar into tracing pod..."
+echo "Copying ${JAR} into tracing pod..."
 # Loop/retry here, pod exists but ui-manager container may not be ready
 for i in `seq 1 60`; do
-  if oc cp -n ${namespace} ${SCRIPT_DIR}/tracing/NameSpaceAutoRegistration.jar ${TRACING_POD}:/tmp -c ui-manager; then
+  if oc cp -n ${namespace} ${SCRIPT_DIR}/tracing/${JAR} ${TRACING_POD}:/tmp -c ui-manager; then
     echo "Jar copied"
 		break
   else
@@ -115,7 +125,7 @@ done
 echo "Running registration jar"
 # Loop/retry here, job to request regustration may not have run yet
 for i in `seq 1 60`; do
-  if oc exec -n ${namespace} ${TRACING_POD} -c ui-manager -- java -cp /usr/local/tomee/derby/derbyclient.jar:/tmp/NameSpaceAutoRegistration.jar org.montier.tracing.demo.NameSpaceAutoRegistration ${apps_namespace} > commands.sh; then
+  if oc exec -n ${namespace} ${TRACING_POD} -c ui-manager -- java -cp /usr/local/tomee/derby/derbyclient.jar:/tmp/${JAR} org.montier.tracing.demo.NameSpaceAutoRegistration ${apps_namespace} > commands.sh; then
     echo "Registration successful"
 		break
   else
