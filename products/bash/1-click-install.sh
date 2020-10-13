@@ -26,7 +26,6 @@
 #   -o : <demoAPICMailServerPort> (string), Port number of the mail server. Defaults to "2525"
 #   -m : <demoAPICMailServerUsername> (string), Username for the mail server. Defaults to "<your-username>"
 #   -q : <demoAPICMailServerPassword> (string), Password for the mail server.
-#   -i : <IMAGE_REPO> (string), Repository for downloading images, Defaults to "cp.icr.io"
 #   -j : <tempERKey> (string), IAM API key for accessing the entitled registry.
 #   -k : <tempRepo> (string), For accessing different Registry
 #   -l : <DOCKER_REGISTRY_USER> (string), Docker registry username
@@ -39,14 +38,14 @@
 #     ./1-click-install.sh -p <csDefaultAdminPassword> -q <demoAPICMailServerPassword> -s <DOCKER_REGISTRY_PASS>
 #
 #   Overriding the namespace and release-name
-#     ./1-click-install.sh -n <NAMESPACE> -r <navReplicaCount> -b <demoDeploymentBranch> -u <csDefaultAdminUser> -p <csDefaultAdminPassword> -d <demoPreparation> -a <eventEnabledInsuranceDemo> -f <drivewayDentDeletionDemo> -e <demoAPICEmailAddress> -h <demoAPICMailServerHost> -o <demoAPICMailServerPort> -m <demoAPICMailServerUsername> -q <demoAPICMailServerPassword> -i <IMAGE_REPO> -j <tempERKey> -k <tempRepo> -l <DOCKER_REGISTRY_USER> -s <DOCKER_REGISTRY_PASS> -t <ENVIRONMENT> -v <useFastStorageClass>
+#     ./1-click-install.sh -n <NAMESPACE> -r <navReplicaCount> -b <demoDeploymentBranch> -u <csDefaultAdminUser> -p <csDefaultAdminPassword> -d <demoPreparation> -a <eventEnabledInsuranceDemo> -f <drivewayDentDeletionDemo> -e <demoAPICEmailAddress> -h <demoAPICMailServerHost> -o <demoAPICMailServerPort> -m <demoAPICMailServerUsername> -q <demoAPICMailServerPassword> -j <tempERKey> -k <tempRepo> -l <DOCKER_REGISTRY_USER> -s <DOCKER_REGISTRY_PASS> -t <ENVIRONMENT> -v <useFastStorageClass>
 
 function divider {
   echo -e "\n-------------------------------------------------------------------------------------------------------------------\n"
 }
 
 function usage {
-    echo "Usage: $0 -n <NAMESPACE> -r <navReplicaCount> -b <demoDeploymentBranch> -u <csDefaultAdminUser> -p <csDefaultAdminPassword> -d <demoPreparation> -a <eventEnabledInsuranceDemo> -f <drivewayDentDeletionDemo> -e <demoAPICEmailAddress> -h <demoAPICMailServerHost> -o <demoAPICMailServerPort> -m <demoAPICMailServerUsername> -q <demoAPICMailServerPassword> -i <IMAGE_REPO> -j <tempERKey> -k <tempRepo> -l <DOCKER_REGISTRY_USER> -s <DOCKER_REGISTRY_PASS> -t <ENVIRONMENT> -v <useFastStorageClass>"
+    echo "Usage: $0 -n <NAMESPACE> -r <navReplicaCount> -b <demoDeploymentBranch> -u <csDefaultAdminUser> -p <csDefaultAdminPassword> -d <demoPreparation> -a <eventEnabledInsuranceDemo> -f <drivewayDentDeletionDemo> -e <demoAPICEmailAddress> -h <demoAPICMailServerHost> -o <demoAPICMailServerPort> -m <demoAPICMailServerUsername> -q <demoAPICMailServerPassword> -j <tempERKey> -k <tempRepo> -l <DOCKER_REGISTRY_USER> -s <DOCKER_REGISTRY_PASS> -t <ENVIRONMENT> -v <useFastStorageClass>"
     divider
     exit 1
 }
@@ -72,7 +71,7 @@ IMAGE_REPO="cp.icr.io"
 pwdChange="true"
 useFastStorageClass="false"
 
-while getopts "n:r:c:u:p:d:a:f:e:h:o:m:q:i:j:k:l:s:t:v:" opt; do
+while getopts "n:r:c:u:p:d:a:f:e:h:o:m:q:j:k:l:s:t:v:" opt; do
   case ${opt} in
     n ) NAMESPACE="$OPTARG"
       ;;
@@ -99,8 +98,6 @@ while getopts "n:r:c:u:p:d:a:f:e:h:o:m:q:i:j:k:l:s:t:v:" opt; do
     m ) demoAPICMailServerUsername="$OPTARG"
       ;;
     q ) demoAPICMailServerPassword="$OPTARG"
-      ;;
-    i ) IMAGE_REPO="$OPTARG"
       ;;
     j ) tempERKey="$OPTARG"
       ;;
@@ -156,11 +153,6 @@ fi
 
 if [[ -z "${drivewayDentDeletionDemo// }" ]]; then
   echo -e "$cross ERROR: Driveway dent deletion parameter is empty. Please provide a value for '-f' parameter."
-  missingParams="true"
-fi
-
-if [[ -z "${IMAGE_REPO// }" ]]; then
-  echo -e "$cross ERROR: Repository for downloading images is empty. Please provide a value for '-i' parameter."
   missingParams="true"
 fi
 
