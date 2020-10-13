@@ -171,7 +171,7 @@ fi #demoPreparation
 
 if [[ ! -z $namespace ]] && [[ "${demoPreparation}" == "true" ]]; then
   if [ "${#namespace}" -gt 9 ]; then
-    echo -e "$cross ERROR: When using demo preparation the project name mush be 9 characters long or less"
+    echo -e "$cross ERROR: When using demo preparation the project name must be 9 characters long or less"
     check=1
   else
     echo -e "$tick INFO: Project name length ok"
