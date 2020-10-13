@@ -30,7 +30,7 @@ function divider {
 }
 
 function usage {
-    echo "Usage: $0 -p <csDefaultAdminPassword> -r <navReplicaCount> -u <csDefaultAdminUser> -d <demoPreparation>"
+    echo "Usage: $0 -n <NAMESPACE> -p <csDefaultAdminPassword> -r <navReplicaCount> -u <csDefaultAdminUser> -d <demoPreparation>"
     divider
     exit 1
 }
@@ -41,11 +41,15 @@ demoPreparation="false"
 CURRENT_DIR=$(dirname $0)
 tick="\xE2\x9C\x85"
 cross="\xE2\x9D\x8C"
+all_done="\xF0\x9F\x92\xAF"
 info="\xE2\x84\xB9"
 missingParams="false"
+namespace=""
 
-while getopts "p:r:u:d:" opt; do
+while getopts "p:r:u:d:n:" opt; do
   case ${opt} in
+    n ) namespace="$OPTARG"
+      ;;
     p ) csDefaultAdminPassword="$OPTARG"
       ;;
     r ) navReplicaCount="$OPTARG"
@@ -86,6 +90,7 @@ fi
 
 divider
 echo -e "$info Current directory: $CURRENT_DIR"
+echo -e "$info Project name: $namespace"
 echo -e "$info Common services admin username: $csDefaultAdminUser"
 echo -e "$info Platform navigator replica count: $navReplicaCount"
 echo -e "$info Setup all demos: $demoPreparation"
@@ -101,38 +106,8 @@ mem_req_gi=155 #rounded up 154.5
 # converting GiB to KiB by multiplying by (1024*1024)
 mem_req_ki=$(($mem_req_gi * 1048576))
 
-echo "INFO: Validating csDefaultAdminPassword"
-export csDefaultAdminPasswordRegex='^[a-zA-Z0-9-]+$'
-if [ "${#csDefaultAdminPassword}" -lt 32 ]; then
-  echo -e "$cross ERROR: Password should be at least 32 characters long"
-  check=1
-fi
-if ! [[ "$csDefaultAdminPassword" =~ $csDefaultAdminPasswordRegex ]]; then
-  echo -e "$cross ERROR: Password can only include number, letter and -"
-  check=1
-fi
-
-divider
-
-echo "INFO: Validating navReplicaCount"
-if [[ $navReplicaCount -le 0 ]]; then
-   echo -e "$cross ERROR: navReplicaCount should be greater than 0"
-   check=1
-fi
-
-divider
-
-echo "INFO: Validating csDefaultAdminUser"
-export csDefaultAdminUserRegex='^[a-zA-Z]+$'
-if ! [[ "$csDefaultAdminUser" =~ $csDefaultAdminUserRegex   ]]; then
-  echo -e "$cross ERROR: Common Services csDefaultAdminUser can contain only letters"
-  check=1
-fi
-
-divider
-
 if [[ "${demoPreparation}" == "true" ]]; then
-  echo "INFO: Checking for cluster size for demo"
+  echo "INFO: Checking cluster size for demo preparation"
   count=0
   num_nodes=$(oc get nodes -o=name | wc -w)
   if [ $num_nodes -eq 0 ]; then
@@ -145,9 +120,7 @@ if [[ "${demoPreparation}" == "true" ]]; then
       sleep 60
     done
   fi
-  echo "INFO: Total number of nodes= $num_nodes"
-
-  divider
+  echo "  Total number of nodes= $num_nodes"
 
   total_cpu=0
   total_mem=0
@@ -160,28 +133,28 @@ if [[ "${demoPreparation}" == "true" ]]; then
       while true; do
         node=$(oc get node -o jsonpath="{.items[$i].metadata.name}")
         if [ $? -eq 0 ]; then break; fi
-        if [ $count -eq 10  ]; then echo "Error: nodes not found after 10 attempts"; exit 1; fi
+        if [ $count -eq 10  ]; then echo "ERROR: nodes not found after 10 attempts"; exit 1; fi
         echo "INFO: Waiting to fetch nodes"
         count=$((count+1))
         sleep 10
       done
     fi
 
-    echo $node
+    echo "  $node"
     count=0
     cpu_nodes=$(oc get node $node -o jsonpath="{.status.allocatable.cpu}")
     if [[ $? -ne 0 ]]; then
       while true; do
         cpu_nodes=$(oc get node $node -o jsonpath="{.status.allocatable.cpu}")
         if [ $? -eq 0 ]; then break; fi
-        if [ $count -eq 10  ]; then echo "Error: CPU not found after 10 attempts"; exit 1; fi
+        if [ $count -eq 10  ]; then echo "ERROR: CPU not found after 10 attempts"; exit 1; fi
         echo "INFO: Waiting to fetch CPUs info from the nodes"
         count=$((count+1))
         sleep 10
       done
     fi
     #checking the cpu unit if its cores we convert it to m
-    echo "  cpu = $cpu_nodes"
+    echo "    cpu = $cpu_nodes"
     cpu_unit=$(echo $cpu_nodes | sed 's/[^a-zA-Z]*//g')
     if [ -z "$cpu_unit" ]; then
       cpu_nodes=$(( $cpu_nodes * 1000 ))
@@ -197,13 +170,13 @@ if [[ "${demoPreparation}" == "true" ]]; then
       while true; do
         mem_nodes=$(oc get node $node -o jsonpath="{.status.allocatable.memory}")
         if [ $? -eq 0 ]; then break; fi
-        if [ $count -eq 10  ]; then echo "Error: Memory not found after 10 attempts"; exit 1; fi
+        if [ $count -eq 10  ]; then echo "ERROR: Memory not found after 10 attempts"; exit 1; fi
         echo "INFO: Waiting to fetch memory info from the nodes"
         count=$((count+1))
         sleep 10
       done
     fi
-    echo "  memory = $mem_nodes"
+    echo "    memory = $mem_nodes"
     mem_unit=$(echo $mem_nodes | sed 's/[^a-zA-Z]*//g')
 
     # This is the if to make sure the integer limit of bash is not exceeded
@@ -243,8 +216,6 @@ if [[ "${demoPreparation}" == "true" ]]; then
     echo -e "$tick INFO: You have enough allocatable memory for the demo"
   fi
 
-  divider
-
   if [ ${total_cpu} -lt ${cpu_req_m} ]; then
     echo -e "$cross ERROR: You have ${total_cpu}m allocatable cores. Minimum CPU needed for ${demo_products} is ${cpu_req_m}m cores"
     check=1
@@ -252,10 +223,53 @@ if [[ "${demoPreparation}" == "true" ]]; then
     echo -e "$tick INFO: You have enough allocatable cpu for the demo"
   fi
 
-  divider
-
 fi #demoPreparation
 
+if [[ ! -z $namespace ]] && [[ "${demoPreparation}" == "true" ]]; then
+  if [ "${#namespace}" -gt 9 ]; then
+    echo -e "$cross ERROR: When using demo preparation the project name mush be 9 characters long or less"
+    check=1
+  else
+    echo -e "$tick INFO: Project name length ok"
+  fi
+fi
+
+if [[ $navReplicaCount -le 0 ]]; then
+  echo -e "$cross ERROR: Platform navigator replica count should be greater than 0"
+  check=1
+else
+  echo -e "$tick INFO: Platform navigator replica count ok"
+fi
+
+export csDefaultAdminUserRegex='^[a-zA-Z]+$'
+if ! [[ "$csDefaultAdminUser" =~ $csDefaultAdminUserRegex   ]]; then
+  echo -e "$cross ERROR: Common Services admin username can contain only letters"
+  check=1
+else
+  echo -e "$tick INFO: Common Services admin username ok"
+fi
+
+export csDefaultAdminPasswordRegex='^[a-zA-Z0-9-]+$'
+passwordOK=true
+if [ "${#csDefaultAdminPassword}" -lt 32 ]; then
+  echo -e "$cross ERROR: Common Services admin password should be at least 32 characters long"
+  passwordOK=false
+  check=1
+fi
+if ! [[ "$csDefaultAdminPassword" =~ $csDefaultAdminPasswordRegex ]]; then
+  echo -e "$cross ERROR: Common Services admin password can only include number, letter and -"
+  passwordOK=false
+  check=1
+fi
+if [[ "${passwordOK}" = "true" ]]; then
+  echo -e "$tick INFO: Common Services admin password ok"
+fi
+
+divider
+
 if [[ $check -ne 0 ]]; then
+  echo -e "$cross ERROR: Delete the schematics workspace and rerun the installation after fixing the above validation errors"
   exit 1
+else
+  echo -e "$tick $all_done INFO: All validation checks passed $all_done $tick"
 fi
