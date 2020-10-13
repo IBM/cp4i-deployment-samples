@@ -3,6 +3,7 @@
 	<name>EventEnabledInsurance</name>
 	<comment></comment>
 	<projects>
+		<project>EventEnabledInsuranceJava</project>
 	</projects>
 	<buildSpec>
 		<buildCommand>
