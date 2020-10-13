@@ -17,20 +17,21 @@
 #   -r : <navReplicaCount> (string), Platform navigator replica count, Defaults to "3"
 #   -u : <csDefaultAdminUser> (string), Common services default admin username, Defaults to "admin"
 #   -d : <demoPreparation> (string), If all demos are to be setup. Defaults to "false"
+#   -n : <namespace> (string), Namespace for the 1-click validation. Defaults to "cp4i"
 #
 # USAGE:
 #   With defaults values
 #     ./1-click-pre-validation.sh -p <csDefaultAdminPassword>
 #
 #   Overriding the namespace and release-name
-#     ./1-click-pre-validation.sh -p <csDefaultAdminPassword> -r <navReplicaCount> -u <csDefaultAdminUser> -d <demoPreparation>
+#     ./1-click-pre-validation.sh -n <namespace> -p <csDefaultAdminPassword> -r <navReplicaCount> -u <csDefaultAdminUser> -d <demoPreparation>
 
 function divider {
     echo -e "\n-------------------------------------------------------------------------------------------------------------------\n"
 }
 
 function usage {
-    echo "Usage: $0 -n <NAMESPACE> -p <csDefaultAdminPassword> -r <navReplicaCount> -u <csDefaultAdminUser> -d <demoPreparation>"
+    echo "Usage: $0 -n <namespace> -p <csDefaultAdminPassword> -r <navReplicaCount> -u <csDefaultAdminUser> -d <demoPreparation>"
     divider
     exit 1
 }
@@ -44,7 +45,7 @@ cross="\xE2\x9D\x8C"
 all_done="\xF0\x9F\x92\xAF"
 info="\xE2\x84\xB9"
 missingParams="false"
-namespace=""
+namespace="cp4i"
 
 while getopts "p:r:u:d:n:" opt; do
   case ${opt} in
@@ -65,6 +66,11 @@ done
 
 if [[ -z "${csDefaultAdminPassword// }" ]]; then
   echo -e "$cross ERROR: Default admin password is empty. Please provide a value for '-p' parameter."
+  missingParams="true"
+fi
+
+if [[ -z "${namespace// }" ]]; then
+  echo -e "$cross ERROR: Namespace is empty. Please provide a value for '-n' parameter."
   missingParams="true"
 fi
 
