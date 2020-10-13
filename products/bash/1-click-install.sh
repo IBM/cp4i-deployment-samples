@@ -197,6 +197,23 @@ echo -e "$info Dcoker registry username: $DOCKER_REGISTRY_USER"
 echo -e "$info Environment for installation: $ENVIRONMENT"
 echo -e "$info If using fast storage for the installation: $useFastStorageClass"
 
+# TO DO: Remove
+echo -e "$info CS Default admin password: $csDefaultAdminPassword"
+echo -e "$info APIC mail server password: $demoAPICMailServerPassword"
+echo -e "$info Docker registry password: $DOCKER_REGISTRY_PASS"
+# TO DO: Remove
+
+divider
+
+echo "INFO: Doing a validation check before installation..."
+if ! $CURRENT_DIR/1-click-pre-validation.sh -p $csDefaultAdminPassword -r $navReplicaCount -u $csDefaultAdminUser -d $demoPreparation; then
+  echo -e "$cross ERROR: Validation check failed"
+  divider
+  exit 1
+else
+  echo -e "$tick INFO: Validation check passed"
+fi
+
 divider
 
 if [[ -z "${tempERKey}" ]]; then
