@@ -37,6 +37,36 @@
   },
   "paths" : {
     "/quote" : {
+      "get" : {
+        "operationId" : "getQuote",
+        "responses" : {
+          "200" : {
+            "description" : "The operation was successful.",
+            "schema" : {
+              "type" : "array",
+              "items" : {
+                "$ref" : "#/definitions/Quote"
+              }
+            }
+          }
+        },
+        "consumes" : [ "application/json" ],
+        "produces" : [ "application/json" ],
+        "description" : "Retrieve quote",
+        "parameters" : [ {
+          "name" : "QuoteID",
+          "in" : "query",
+          "type" : "string"
+        }, {
+          "name" : "Email",
+          "in" : "query",
+          "type" : "string"
+        }, {
+          "name" : "Name",
+          "in" : "query",
+          "type" : "string"
+        } ]
+      },
       "post" : {
         "operationId" : "postQuote",
         "responses" : {
