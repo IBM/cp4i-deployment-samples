@@ -6,17 +6,12 @@
 	</projects>
 	<buildSpec>
 		<buildCommand>
-			<name>com.ibm.etools.mft.applib.applibbuilder</name>
+			<name>com.ibm.etools.mft.restapi.ui.restApiBuilder</name>
 			<arguments>
 			</arguments>
 		</buildCommand>
 		<buildCommand>
-			<name>com.ibm.etools.mft.applib.applibresourcevalidator</name>
-			<arguments>
-			</arguments>
-		</buildCommand>
-		<buildCommand>
-			<name>com.ibm.etools.mft.connector.policy.ui.PolicyBuilder</name>
+			<name>com.ibm.etools.mft.json.builder.JSONBuilder</name>
 			<arguments>
 			</arguments>
 		</buildCommand>
@@ -76,11 +71,6 @@
 			</arguments>
 		</buildCommand>
 		<buildCommand>
-			<name>com.ibm.etools.mft.json.builder.JSONBuilder</name>
-			<arguments>
-			</arguments>
-		</buildCommand>
-		<buildCommand>
 			<name>com.ibm.etools.mft.restapi.ui.restApiDefinitionsBuilder</name>
 			<arguments>
 			</arguments>
@@ -105,9 +95,25 @@
 			<arguments>
 			</arguments>
 		</buildCommand>
+		<buildCommand>
+			<name>com.ibm.etools.mft.applib.applibbuilder</name>
+			<arguments>
+			</arguments>
+		</buildCommand>
+		<buildCommand>
+			<name>com.ibm.etools.mft.applib.applibresourcevalidator</name>
+			<arguments>
+			</arguments>
+		</buildCommand>
+		<buildCommand>
+			<name>com.ibm.etools.mft.connector.policy.ui.PolicyBuilder</name>
+			<arguments>
+			</arguments>
+		</buildCommand>
 	</buildSpec>
 	<natures>
-		<nature>com.ibm.etools.msgbroker.tooling.applicationNature</nature>
+		<nature>com.ibm.etools.mft.restapi.ui.Nature</nature>
 		<nature>com.ibm.etools.msgbroker.tooling.messageBrokerProjectNature</nature>
+		<nature>com.ibm.etools.msgbroker.tooling.applicationNature</nature>
 	</natures>
 </projectDescription>

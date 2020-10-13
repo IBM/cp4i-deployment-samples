@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<restapiDescriptor xmlns="http://com.ibm.etools.mft.descriptor.restapi" xmlns:ns2="http://com.ibm.etools.mft.descriptor.base" definitionType="swagger_20" definitionFile="swagger.json" implementation="gen/postQuote.msgflow" https="false">
-    <operations>
-        <operation name="postQuote" implementation="postQuote.subflow"/>
-    </operations>
-    <errorHandlers/>
-</restapiDescriptor>
+<ns2:restapiDescriptor xmlns="http://com.ibm.etools.mft.descriptor.base" xmlns:ns2="http://com.ibm.etools.mft.descriptor.restapi" definitionType="swagger_20" definitionFile="swagger.json" implementation="gen/EventEnabledInsurance.msgflow" https="false">
+    <ns2:operations>
+        <ns2:operation name="postQuote" implementation="postQuote.subflow"/>
+    </ns2:operations>
+    <ns2:errorHandlers/>
+</ns2:restapiDescriptor>
