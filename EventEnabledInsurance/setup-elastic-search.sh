@@ -226,7 +226,14 @@ rm elastic-ts.jks
 
 TRUSTSTORE_PASSWORD=$(LC_ALL=C tr -dc 'A-Za-z0-9' </dev/urandom | head -c 32 ; echo)
 keytool -import -file ca.crt -alias elasticCA -keystore elastic-ts.jks -storepass "$TRUSTSTORE_PASSWORD" -noprompt
-BASE64_TS=$(cat elastic-ts.jks | base64 -b 0)
+if [[ "$OSTYPE" == "linux-gnu"* ]]; then
+  echo "INFO: base64 command for linux"
+  COMMAND="base64 -w0 elastic-ts.jks"
+elif [[ "$OSTYPE" == "darwin"* ]]; then
+  echo "INFO: base64 command for MAC"
+  COMMAND="cat elastic-ts.jks | base64 -b 0"
+fi
+BASE64_TS=$($COMMAND)
 
 cat << EOF | oc apply -f -
 apiVersion: v1
