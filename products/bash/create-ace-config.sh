@@ -53,7 +53,7 @@ function buildConfigurationCR {
     COMMAND="base64 -w0 $file"
   elif [[ "$OSTYPE" == "darwin"* ]]; then
     echo "INFO: base64 command for MAC"
-    COMMAND="cat $file | base64 -b 0"
+    COMMAND="base64 $file"
   fi
   echo "apiVersion: appconnect.ibm.com/v1beta1" >> $CONFIG_YAML
   echo "kind: Configuration" >> $CONFIG_YAML
