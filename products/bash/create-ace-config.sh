@@ -53,7 +53,7 @@ function buildConfigurationCR {
   echo "  name: $name" >> $CONFIG_YAML
   echo "  namespace: $NAMESPACE" >> $CONFIG_YAML
   echo "spec:" >> $CONFIG_YAML
-  echo "  contents: $(base64 -b 0 $file)" >> $CONFIG_YAML
+  echo "  contents: $(cat $file | base64 -b 0)" >> $CONFIG_YAML
   echo "  type: $type" >> $CONFIG_YAML
   echo "---" >> $CONFIG_YAML
 }
