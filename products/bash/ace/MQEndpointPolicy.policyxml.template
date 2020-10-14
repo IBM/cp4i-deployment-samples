@@ -3,7 +3,7 @@
   <policy policyType="MQEndpoint" policyName="MQEndpointPolicy" policyTemplate="MQEndpoint">
     <connection>CLIENT</connection>
     <destinationQueueManagerName>QUICKSTART</destinationQueueManagerName>
-    <queueManagerHostname>mq-ddd-qm-ibm-mq</queueManagerHostname>
+    <queueManagerHostname>{{QM_HOST}}</queueManagerHostname>
     <listenerPortNumber>1414</listenerPortNumber>
     <channelName>ACE_SVRCONN</channelName>
     <securityIdentity></securityIdentity>

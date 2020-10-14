@@ -156,10 +156,17 @@ echo -e "\n---------------------------------------------------------------------
 
 echo "[INFO]  Templating postgresql policy"
 cat $CONFIG_DIR/PostgresqlPolicy.policyxml.template |
+  sed "s#{{DB_SVC}}#$DB_SVC#g;" |
   sed "s#{{DB_NAME}}#$DB_NAME#g;" |
   sed "s#{{DB_USER}}#$DB_USER#g;" |
-  sed "s#{{DB_PASS}}#$DB_PASS#g;" |
-  sed "s#{{DB_SVC}}#$DB_SVC#g;" > $CONFIG_DIR/$SUFFIX/DefaultPolicies/PostgresqlPolicy.policyxml
+  sed "s#{{DB_PASS}}#$DB_PASS#g;" > $CONFIG_DIR/$SUFFIX/DefaultPolicies/PostgresqlPolicy.policyxml
+
+echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
+
+echo "[INFO]  Templating mq policy"
+QM_HOST=$([[ $SUFFIX == "ddd" ]] && echo "mq-ddd-qm-ibm-mq" || echo "mq-eei-ibm-mq")
+cat $CONFIG_DIR/MQEndpointPolicy.policyxml.template |
+  sed "s#{{QM_HOST}}#$QM_HOST#g;" > $CONFIG_DIR/$SUFFIX/DefaultPolicies/MQEndpointPolicy.policyxml
 
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
