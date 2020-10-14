@@ -122,47 +122,47 @@ if [[ -z "${NAMESPACE// }" ]]; then
 fi
 
 if [[ -z "${navReplicaCount// }" ]]; then
-  echo -e "$cross ERROR: Platform navigator replica count is empty. Please provide a value for '-r' parameter."
+  echo -e "$cross ERROR: 1-click installation platform navigator replica count is empty. Please provide a value for '-r' parameter."
   missingParams="true"
 fi
 
 if [[ -z "${csDefaultAdminUser// }" ]]; then
-  echo -e "$cross ERROR: Default admin username is empty. Please provide a value for '-u' parameter."
+  echo -e "$cross ERROR: 1-click installation default admin username is empty. Please provide a value for '-u' parameter."
   missingParams="true"
 fi
 
 if [[ -z "${demoPreparation// }" ]]; then
-  echo -e "$cross ERROR: Demo preparation parameter is empty. Please provide a value for '-d' parameter."
+  echo -e "$cross ERROR: 1-click installation demo preparation parameter is empty. Please provide a value for '-d' parameter."
   missingParams="true"
 fi
 
 if [[ -z "${demoDeploymentBranch// }" ]]; then
-  echo -e "$cross ERROR: Demo deployment branch is empty. Please provide a value for '-b' parameter."
+  echo -e "$cross ERROR: 1-click installation demo deployment branch is empty. Please provide a value for '-b' parameter."
   missingParams="true"
 fi
 
 if [[ -z "${csDefaultAdminPassword// }" ]]; then
-  echo -e "$cross ERROR: Default admin password is empty. Please provide a value for '-p' parameter."
+  echo -e "$cross ERROR: 1-click installation default admin password is empty. Please provide a value for '-p' parameter."
   missingParams="true"
 fi
 
 if [[ -z "${eventEnabledInsuranceDemo// }" ]]; then
-  echo -e "$cross ERROR: Event enabled insurance parameter is empty. Please provide a value for '-a' parameter."
+  echo -e "$cross ERROR: 1-click installation event enabled insurance parameter is empty. Please provide a value for '-a' parameter."
   missingParams="true"
 fi
 
 if [[ -z "${drivewayDentDeletionDemo// }" ]]; then
-  echo -e "$cross ERROR: Driveway dent deletion parameter is empty. Please provide a value for '-f' parameter."
+  echo -e "$cross ERROR: 1-click installation driveway dent deletion parameter is empty. Please provide a value for '-f' parameter."
   missingParams="true"
 fi
 
 if [[ -z "${ENVIRONMENT// }" ]]; then
-  echo -e "$cross ERROR: Environment for installation is empty. Please provide a value for '-t' parameter."
+  echo -e "$cross ERROR: 1-click installation environment is empty. Please provide a value for '-t' parameter."
   missingParams="true"
 fi
 
 if [[ -z "${useFastStorageClass// }" ]]; then
-  echo -e "$cross ERROR: Fast storage class flag for installation is empty. Please provide a value for '-v' parameter."
+  echo -e "$cross ERROR: 1-click installation fast storage class flag is empty. Please provide a value for '-v' parameter."
   missingParams="true"
 fi
 
