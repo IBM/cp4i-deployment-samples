@@ -12,7 +12,7 @@
       <nodes xmi:type="eflow:FCMSink" xmi:id="OutTerminal.Output" location="621,66">
         <translation xmi:type="utility:TranslatableString" key="OutTerminal.Output" bundleName="postQuote" pluginId="postQuote"/>
       </nodes>
-      <nodes xmi:type="ComIbmMQOutput.msgnode:FCMComposite_1" xmi:id="FCMComposite_1_1" location="433,134" queueName="BumperIn" transactionMode="no" newMsgId="true" messageContext="default" policyUrl="MQEndpointPolicy">
+      <nodes xmi:type="ComIbmMQOutput.msgnode:FCMComposite_1" xmi:id="FCMComposite_1_1" location="433,134" queueName="Quote" transactionMode="no" newMsgId="true" messageContext="default" policyUrl="MQEndpointPolicy">
         <translation xmi:type="utility:ConstantString" string="MQ Output"/>
       </nodes>
       <nodes xmi:type="ComIbmCompute.msgnode:FCMComposite_1" xmi:id="FCMComposite_1_2" location="223,138" computeExpression="esql://routine/#postQuote_Compute.Main">
