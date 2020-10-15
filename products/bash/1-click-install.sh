@@ -250,6 +250,14 @@ if [[ "${eventEnabledInsuranceDemo}" == "true" || "${demoPreparation}" == "true"
 
   divider
 
+  if ! $CURRENT_DIR/release-ace-dashboard.sh -n ${NAMESPACE}; then
+    echo "ERROR: Failed to release ace dashboard" 1>&2
+    exit 1
+  else
+    echo -e "$tick INFO: Successfully released ace dashboard"
+    divider
+  fi
+
   # call prereqs for event enabled without branch and repo params
   # branch defaults to 'main' inside the prereqs
   # repo defaults to 'https://github.com/IBM/cp4i-deployment-samples.git' inside the prereqs
