@@ -15,7 +15,7 @@
 #   -i : <is_image_name> (string), Defaults to "image-registry.openshift-image-registry.svc:5000/cp4i/ace-11.0.0.9-r2:new-1"
 #   -z : <tracing_namespace> (string), Defaults to "-n namespace"
 #   -t : <tracing_enabled> (boolean), optional flag to enable tracing, Defaults to false
-#   -e : <eei_config> (boolean), optional flag for using ace policy configuration for EEI, Defaults to false
+#   -s : <suffix> (string), Suffix for demo, Defaults to 'ddd'
 #
 # USAGE:
 #   With defaults values
@@ -25,7 +25,7 @@
 #     ./release-ace-integration-server -n cp4i -r cp4i-bernie-ace
 
 function usage {
-  echo "Usage: $0 -n <namespace> -r <is_release_name> -i <is_image_name> -t -z <tracing_namespace> -e"
+  echo "Usage: $0 -n <namespace> -r <is_release_name> -i <is_image_name> -t -z <tracing_namespace> -s <suffix>"
   exit 1
 }
 
@@ -35,12 +35,12 @@ is_image_name=""
 tracing_namespace=""
 tracing_enabled="false"
 CURRENT_DIR=$(dirname $0)
-eei_config="false"
-ace_policy_name=""
+suffix="ddd"
+ace_policy_names="[ace-keystore, ace-policyproject-ddd, ace-serverconf, ace-setdbparms, application.kdb, application.sth, application.jks]"
 ace_replicas="2"
 echo "Current directory: $CURRENT_DIR"
 
-while getopts "n:r:i:z:te" opt; do
+while getopts "n:r:i:z:ts:" opt; do
   case ${opt} in
   n)
     namespace="$OPTARG"
@@ -57,14 +57,19 @@ while getopts "n:r:i:z:te" opt; do
   t)
     tracing_enabled=true
     ;;
-  e)
-    eei_config=true
+  s)
+    suffix=true
     ;;
   \?)
     usage
     ;;
   esac
 done
+
+echo "INFO: Suffix is: $suffix"
+
+echo "INFO: Tracing support currently disabled"
+tracing_enabled=false
 
 if [ "$tracing_enabled" == "true" ] ; then
    if [ -z "$tracing_namespace" ]; then tracing_namespace=${namespace} ; fi
@@ -75,10 +80,10 @@ fi
 
 # ------------------------------------------------ SET ACE POLICY --------------------------------------------------
 
-if [[ "$eei_config" == "true" ]]; then
-  ace_policy_name="ace-policyproject-eei"
-else
-  ace_policy_name="ace-policyproject-ddd"
+if [[ "$suffix" == "eei" ]]; then
+  ace_policy_names="[ace-policyproject-eei]"
+elif [[ "$suffix" == "ddd" ]]; then
+  ace_policy_names="[ace-keystore, ace-policyproject-ddd, ace-serverconf, ace-setdbparms, application.kdb, application.sth, application.jks]"
 fi
 echo -e "\nINFO: ACE policy configuration is set to: '$ace_policy_name'"
 

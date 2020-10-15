@@ -199,9 +199,11 @@ spec:
         - name: releaseName
           value: "ace-rest-int-srv-eei"
         - name: releaseScript
-          value: release-ace-integration-server.sh -e
+          value: release-ace-integration-server.sh
         - name: namespace
           value: "{{NAMESPACE}}"
+        - name: suffix
+          value: "eei"
       workspaces:
         - name: git-source
           workspace: git-source
@@ -220,9 +222,11 @@ spec:
         - name: releaseName
           value: "ace-db-writer-int-srv-eei"
         - name: releaseScript
-          value: release-ace-integration-server.sh -e
+          value: release-ace-integration-server.sh
         - name: namespace
           value: "{{NAMESPACE}}"
+        - name: suffix
+          value: "eei"
       workspaces:
         - name: git-source
           workspace: git-source

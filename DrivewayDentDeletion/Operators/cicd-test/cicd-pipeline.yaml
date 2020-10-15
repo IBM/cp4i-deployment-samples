@@ -164,6 +164,8 @@ spec:
           value: release-ace-integration-server.sh
         - name: namespace
           value: "{{NAMESPACE}}"
+        - name: suffix
+          value: "ddd"
       workspaces:
         - name: git-source
           workspace: git-source
@@ -183,6 +185,8 @@ spec:
           value: release-ace-integration-server.sh
         - name: namespace
           value: "{{NAMESPACE}}"
+        - name: suffix
+          value: "ddd"
       workspaces:
         - name: git-source
           workspace: git-source
@@ -202,6 +206,8 @@ spec:
           value: release-ace-integration-server.sh
         - name: namespace
           value: "{{NAMESPACE}}"
+        - name: suffix
+          value: "ddd"
       workspaces:
         - name: git-source
           workspace: git-source
@@ -221,6 +227,8 @@ spec:
           value: release-ace-integration-server.sh
         - name: namespace
           value: "{{NAMESPACE}}"
+        - name: suffix
+          value: "ddd"
       workspaces:
         - name: git-source
           workspace: git-source
@@ -351,6 +359,8 @@ spec:
           value: release-ace-integration-server.sh
         - name: namespace
           value: "{{NAMESPACE}}-ddd-test"
+        - name: suffix
+          value: "ddd"
       workspaces:
         - name: git-source
           workspace: git-source
@@ -373,6 +383,8 @@ spec:
           value: release-ace-integration-server.sh
         - name: namespace
           value: "{{NAMESPACE}}-ddd-test"
+        - name: suffix
+          value: "ddd"
       workspaces:
         - name: git-source
           workspace: git-source
@@ -395,6 +407,8 @@ spec:
           value: release-ace-integration-server.sh
         - name: namespace
           value: "{{NAMESPACE}}-ddd-test"
+        - name: suffix
+          value: "ddd"
       workspaces:
         - name: git-source
           workspace: git-source
@@ -417,6 +431,8 @@ spec:
           value: release-ace-integration-server.sh
         - name: namespace
           value: "{{NAMESPACE}}-ddd-test"
+        - name: suffix
+          value: "ddd"
       workspaces:
         - name: git-source
           workspace: git-source
