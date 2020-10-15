@@ -139,7 +139,7 @@ if [[ "$bcInstalled" == "false" ]]; then
     fi
   fi
   divider
-  if [[ "bcInstallFailed" == "true" ]]; then
+  if [[ "$bcInstallFailed" == "true" ]]; then
     echo -e "$cross ERROR: 'bc' installation failed"
     divider
     exit 1
