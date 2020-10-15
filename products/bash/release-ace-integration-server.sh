@@ -58,7 +58,7 @@ while getopts "n:r:i:z:ts:" opt; do
     tracing_enabled=true
     ;;
   s)
-    suffix=true
+    suffix="$OPTARG"
     ;;
   \?)
     usage
