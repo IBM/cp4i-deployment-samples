@@ -46,6 +46,8 @@ all_done="\xF0\x9F\x92\xAF"
 info="\xE2\x84\xB9"
 missingParams="false"
 namespace="cp4i"
+bcInstalled="false"
+bcInstallFailed="false"
 
 while getopts "p:r:u:d:n:" opt; do
   case ${opt} in
@@ -107,25 +109,45 @@ echo -e "$info Platform navigator replica count: $navReplicaCount"
 echo -e "$info Setup all demos: $demoPreparation"
 divider
 
-if [[ "$OSTYPE" == "linux-gnu"* ]]; then
-  echo "INFO: Installing 'bc' on linux"
-  if ! yum install bc; then
-    echo -e "$cross ERROR: Could not install 'bc' using yum"
-    exit 1
-  else
-    echo -e "$tick INFO: Successfully installed the 'bc'"
-  fi
-elif [[ "$OSTYPE" == "darwin"* ]]; then
-  echo "INFO: Installing 'bc' on MAC"
-  /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)"
-  brew install bc
-  if [ $? -ne 0 ]; then
-    echo -e "$cross ERROR: Could not install 'bc' using brew"
-    exit 1
-  fi
+bcVersionCheck=$(bc --version)
+
+if [ $? -ne 0 ]; then
+  bcInstalled=false
+else
+  bcInstalled=true
+  echo -e "$info INFO: 'bc' version: $bcVersionCheck"
+  divider
 fi
 
-divider
+if [[ "$bcInstalled" == "false" ]]; then
+  echo "INFO: BC is not installed, installing bc..."
+  if [[ "$OSTYPE" == "linux-gnu"* ]]; then
+    echo "INFO: Installing 'bc' on linux"
+    if ! yum install bc; then
+      echo -e "$cross ERROR: Could not install 'bc' using yum"
+      bcInstallFailed="true"
+    fi
+  elif [[ "$OSTYPE" == "darwin"* ]]; then
+    echo "INFO: Installing 'bc' on MAC"
+    if ! /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)"; then
+      echo -e "$cross ERROR: Could not install 'brew'"
+      bcInstallFailed="true"
+    fi
+    if ! brew install bc; then
+      echo -e "$cross ERROR: Could not install 'bc' using brew"
+      bcInstallFailed="true"
+    fi
+  fi
+  divider
+  if [[ "bcInstallFailed" == "true" ]]; then
+    echo -e "$cross ERROR: 'bc' installation failed"
+    divider
+    exit 1
+  else
+    echo -e "$tick INFO: Successfully installed 'bc'"
+    divider
+  fi
+fi
 
 export check=0
 
