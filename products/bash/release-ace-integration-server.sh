@@ -66,7 +66,7 @@ while getopts "n:r:i:z:ts:" opt; do
   esac
 done
 
-echo "INFO: Suffix is: $suffix"
+echo "INFO: Demo suffix is: $suffix"
 
 echo "INFO: Tracing support currently disabled"
 tracing_enabled=false
