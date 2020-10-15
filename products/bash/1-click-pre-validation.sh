@@ -74,6 +74,11 @@ if [[ -z "${namespace// }" ]]; then
   missingParams="true"
 fi
 
+if [[ -z "${namespace// }" ]]; then
+  echo -e "$cross ERROR: 1-click validation namespace is empty. Please provide a value for '-n' parameter."
+  missingParams="true"
+fi
+
 if [[ -z "${navReplicaCount// }" ]]; then
   echo -e "$cross ERROR: 1-click validation platform navigator replica count is empty. Please provide a value for '-r' parameter."
   missingParams="true"
@@ -102,10 +107,22 @@ echo -e "$info Platform navigator replica count: $navReplicaCount"
 echo -e "$info Setup all demos: $demoPreparation"
 divider
 
-if ! yum install bc; then
-  echo -e "$cross ERROR: Could not install bc using yum"
-else
-  echo -e "$tick INFO: Successfully installed the package 'bc'"
+if [[ "$OSTYPE" == "linux-gnu"* ]]; then
+  echo "INFO: Installing 'bc' on linux"
+  if ! yum install bc; then
+    echo -e "$cross ERROR: Could not install 'bc' using yum"
+    exit 1
+  else
+    echo -e "$tick INFO: Successfully installed the 'bc'"
+  fi
+elif [[ "$OSTYPE" == "darwin"* ]]; then
+  echo "INFO: Installing 'bc' on MAC"
+  /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)"
+  brew install bc
+  if [ $? -ne 0 ]; then
+    echo -e "$cross ERROR: Could not install 'bc' using brew"
+    exit 1
+  fi
 fi
 
 divider
