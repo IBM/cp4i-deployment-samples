@@ -112,13 +112,15 @@ if [ "$TABLE_CLEANUP" = true ]; then
   trap "cleanup_table" EXIT
 fi
 
+
 API_AUTH=$(oc get secret -n $NAMESPACE ace-api-creds -o json | jq -r '.data.auth')
+
 echo "api auth: $API_AUTH"
 
 while true; do
   # - POST ---
   echo -e "\nPOST request..."
-  post_response=$(curl $CURL_OPTS -w " %{http_code}" -X POST ${API_BASE_URL}/quote \
+  post_response=$(curl ${CURL_OPTS[@]} -w " %{http_code}" -X POST ${API_BASE_URL}/quote \
     -H "authorization: Basic ${API_AUTH}" \
     -H "X-IBM-CLIENT-ID: ${API_CLIENT_ID}" \
     -d "{
@@ -153,9 +155,10 @@ while true; do
       echo ${post_response} | jq '.' | sed $os_sed_flag '$ d'
     fi
 
+
     # - GET ---
     echo -e "\nGET request..."
-    get_response=$(curl $CURL_OPTS -w " %{http_code}" -X GET ${API_BASE_URL}/quote?QuoteID=${quote_id} \
+    get_response=$(curl ${CURL_OPTS[@]} -w " %{http_code}" -X GET ${API_BASE_URL}/quote?QuoteID=${quote_id} \
       -H "authorization: Basic ${API_AUTH}" \
       -H "X-IBM-CLIENT-ID: ${API_CLIENT_ID}")
     get_response_code=$(echo "${get_response##* }")

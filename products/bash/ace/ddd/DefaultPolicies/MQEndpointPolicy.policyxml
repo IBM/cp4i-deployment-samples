@@ -7,8 +7,8 @@
     <listenerPortNumber>1414</listenerPortNumber>
     <channelName>ACE_SVRCONN</channelName>
     <securityIdentity></securityIdentity>
-    <useSSL>false</useSSL>
+    <useSSL>true</useSSL>
     <SSLPeerName></SSLPeerName>
-    <SSLCipherSpec></SSLCipherSpec>
+    <SSLCipherSpec>ECDHE_RSA_AES_128_CBC_SHA256</SSLCipherSpec>
   </policy>
 </policies>
