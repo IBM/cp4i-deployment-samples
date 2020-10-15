@@ -102,6 +102,12 @@ echo -e "$info Platform navigator replica count: $navReplicaCount"
 echo -e "$info Setup all demos: $demoPreparation"
 divider
 
+if ! yum install bc; then
+  echo -e "$cross ERROR: Could not install bc using yum"
+else
+  echo -e "$tick INFO: Successfully installed the package 'bc'"
+fi
+
 export check=0
 
 # CPU/Memory requirements when demoPreparation is true
