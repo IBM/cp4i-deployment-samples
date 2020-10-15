@@ -71,7 +71,7 @@ oc delete PlatformNavigator -n ${NAMESPACE} ${NAMESPACE}-navigator
 divider
 
 # Deleting all ClusterServiceVersions
-echo "INFO: Deleting all ClusterServiceVersions in the ${NAMESPACE} namespace"
+echo "INFO: Deleting all ClusterServiceVersions except 'operand-deployment-lifecycle-manager' in the ${NAMESPACE} namespace"
 oc delete ClusterServiceVersion -n ${NAMESPACE} $(oc get -n ${NAMESPACE} ClusterServiceVersion | grep -v operand-deployment-lifecycle-manager | awk '{print $1}' | sed -n '1!p')
 
 divider
