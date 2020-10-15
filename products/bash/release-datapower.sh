@@ -29,6 +29,8 @@ function usage {
     echo "Usage: $0 -n <namespace> -r <release-name> [-t]"
 }
 
+SCRIPT_DIR=$(dirname $0)
+
 namespace="cp4i"
 release_name="datapower"
 production="false"
@@ -62,16 +64,16 @@ then
 fi
 
 # Create ConfigMap for default
-oc create configmap -n ${namespace} default-config --from-file=datapower/default.cfg
+oc create configmap -n ${namespace} default-config --from-file=${SCRIPT_DIR}/datapower/default.cfg
 
 # Create ConfigMap for test domain
-oc create configmap -n ${namespace} test-config --from-file=datapower/testconfig.cfg
+oc create configmap -n ${namespace} test-config --from-file=${SCRIPT_DIR}/datapower/testconfig.cfg
 
 # Create ConfigMap for test domain local
-oc create configmap -n ${namespace} test-tar --from-file=datapower/test.tar.gz
+oc create configmap -n ${namespace} test-tar --from-file=${SCRIPT_DIR}/datapower/test.tar.gz
 
 # Create Secret with certificate
-oc create secret generic -n ${namespace} jon --from-file=datapower/sharedcerts/jon.ssk
+oc create secret generic -n ${namespace} jon --from-file=${SCRIPT_DIR}/datapower/sharedcerts/jon.ssk
 
 # Create Secret with DataPower admin credentials
 oc create secret generic -n ${namespace} datapower-admin-credentials --from-literal=password=${admin_password}
