@@ -17,20 +17,21 @@
 #   -r : <navReplicaCount> (string), Platform navigator replica count, Defaults to "3"
 #   -u : <csDefaultAdminUser> (string), Common services default admin username, Defaults to "admin"
 #   -d : <demoPreparation> (string), If all demos are to be setup. Defaults to "false"
+#   -n : <namespace> (string), Namespace for the 1-click validation. Defaults to "cp4i"
 #
 # USAGE:
 #   With defaults values
 #     ./1-click-pre-validation.sh -p <csDefaultAdminPassword>
 #
 #   Overriding the namespace and release-name
-#     ./1-click-pre-validation.sh -p <csDefaultAdminPassword> -r <navReplicaCount> -u <csDefaultAdminUser> -d <demoPreparation>
+#     ./1-click-pre-validation.sh -n <namespace> -p <csDefaultAdminPassword> -r <navReplicaCount> -u <csDefaultAdminUser> -d <demoPreparation>
 
 function divider {
     echo -e "\n-------------------------------------------------------------------------------------------------------------------\n"
 }
 
 function usage {
-    echo "Usage: $0 -n <NAMESPACE> -p <csDefaultAdminPassword> -r <navReplicaCount> -u <csDefaultAdminUser> -d <demoPreparation>"
+    echo "Usage: $0 -n <namespace> -p <csDefaultAdminPassword> -r <navReplicaCount> -u <csDefaultAdminUser> -d <demoPreparation>"
     divider
     exit 1
 }
@@ -44,7 +45,7 @@ cross="\xE2\x9D\x8C"
 all_done="\xF0\x9F\x92\xAF"
 info="\xE2\x84\xB9"
 missingParams="false"
-namespace=""
+namespace="cp4i"
 
 while getopts "p:r:u:d:n:" opt; do
   case ${opt} in
@@ -65,6 +66,11 @@ done
 
 if [[ -z "${csDefaultAdminPassword// }" ]]; then
   echo -e "$cross ERROR: Default admin password is empty. Please provide a value for '-p' parameter."
+  missingParams="true"
+fi
+
+if [[ -z "${namespace// }" ]]; then
+  echo -e "$cross ERROR: 1-click validation namespace is empty. Please provide a value for '-n' parameter."
   missingParams="true"
 fi
 
@@ -96,10 +102,22 @@ echo -e "$info Platform navigator replica count: $navReplicaCount"
 echo -e "$info Setup all demos: $demoPreparation"
 divider
 
-if ! yum install bc; then
-  echo -e "$cross ERROR: Could not install bc using yum"
-else
-  echo -e "$tick INFO: Successfully installed the package 'bc'"
+if [[ "$OSTYPE" == "linux-gnu"* ]]; then
+  echo "INFO: Installing 'bc' on linux"
+  if ! yum install bc; then
+    echo -e "$cross ERROR: Could not install 'bc' using yum"
+    exit 1
+  else
+    echo -e "$tick INFO: Successfully installed the 'bc'"
+  fi
+elif [[ "$OSTYPE" == "darwin"* ]]; then
+  echo "INFO: Installing 'bc' on MAC"
+  /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)"
+  brew install bc
+  if [ $? -ne 0 ]; then
+    echo -e "$cross ERROR: Could not install 'bc' using brew"
+    exit 1
+  fi
 fi
 
 divider
