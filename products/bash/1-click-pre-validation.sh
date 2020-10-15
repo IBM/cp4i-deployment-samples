@@ -108,6 +108,8 @@ else
   echo -e "$tick INFO: Successfully installed the package 'bc'"
 fi
 
+divider
+
 export check=0
 
 # CPU/Memory requirements when demoPreparation is true
