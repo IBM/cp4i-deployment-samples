@@ -105,6 +105,9 @@ spec:
     - name: releaseParams
       type: string
       description: The release parameters
+    - name: releaseScript
+      type: string
+      description: release name of script
   workspaces:
     - name: git-source
   steps:
