@@ -10,6 +10,7 @@
 
 #******************************************************************************
 # PARAMETERS:
+#   -c : <config_name> (string), Defaults to "[]"
 #   -n : <namespace> (string), Defaults to "cp4i"
 #   -r : <is_release_name> (string), Defaults to "ace-is"
 #   -i : <is_image_name> (string), Defaults to "image-registry.openshift-image-registry.svc:5000/cp4i/ace-11.0.0.9-r2:new-1"
@@ -25,25 +26,27 @@
 #     ./release-ace-integration-server -n cp4i -r cp4i-bernie-ace
 
 function usage {
-  echo "Usage: $0 -n <namespace> -r <is_release_name> -i <is_image_name> -t -z <tracing_namespace> -c <config>"
+  echo "Usage: $0 -c <config_names> -i <is_image_name> -n <namespace> -r <is_release_name> -t -z <tracing_namespace> "
   exit 1
 }
 
+config_names="[]"
 namespace="cp4i"
-is_release_name="ace-is"
 is_image_name=""
-tracing_namespace=""
+is_release_name="ace-is"
 tracing_enabled="false"
+tracing_namespace=""
 CURRENT_DIR=$(dirname $0)
-config=""
-ace_policy_names="[ace-keystore, ace-policyproject-ddd, ace-serverconf, ace-setdbparms, application.kdb, application.sth, application.jks]"
 ace_replicas="2"
 echo "Current directory: $CURRENT_DIR"
 
-while getopts "n:r:i:z:tc:" opt; do
+while getopts "c:i:n:r:tz:" opt; do
   case ${opt} in
   c)
-    config="$OPTARG"
+    config_names="$OPTARG"
+    ;;
+  i)
+    is_image_name="$OPTARG"
     ;;
   n)
     namespace="$OPTARG"
@@ -51,14 +54,11 @@ while getopts "n:r:i:z:tc:" opt; do
   r)
     is_release_name="$OPTARG"
     ;;
-  i)
-    is_image_name="$OPTARG"
+  t)
+    tracing_enabled=true
     ;;
   z)
     tracing_namespace="$OPTARG"
-    ;;
-  t)
-    tracing_enabled=true
     ;;
   \?)
     usage
@@ -78,8 +78,9 @@ fi
 
 # ------------------------------------------------ SET ACE POLICY --------------------------------------------------
 
-if [[ ! -z "${config// }" ]]; then
-  ace_policy_names="$config"
+if [[ "${config_names}" == "[]" ]]; then
+  echo "ERROR: Configuration names not set"
+  exit 1
 fi
 
 echo -e "\nINFO: ACE policy configuration is set to: '$ace_policy_names'"
@@ -115,7 +116,7 @@ spec:
    containers:
      runtime:
        image: ${is_image_name}
-  configurations: ${ace_policy_name}
+  configurations: ${config_names}
   designerFlowsOperationMode: disabled
   license:
     accept: true
