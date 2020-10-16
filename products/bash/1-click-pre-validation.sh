@@ -163,9 +163,9 @@ if [[ "${demoPreparation}" == "true" ]]; then
         echo "null"
       else
         units=$(echo $1 | sed 's/[^a-zA-Z]*//g')
-        value=$(echo $1 | sed 's/[^0-9]*//g')
+        value=$(echo $1 | sed 's/[^0-9.]*//g')
         if [ "$units" = "m" ]; then
-          value=$(echo "scale=9; $value/1000" | bc)
+          value=$(jq -n "$value/1000")
         fi
         echo "${value}"
       fi
@@ -175,15 +175,15 @@ if [[ "${demoPreparation}" == "true" ]]; then
         echo "null"
       else
         units=$(echo $1 | sed 's/[^a-zA-Z]*//g')
-        value=$(echo $1 | sed 's/[^0-9]*//g')
+        value=$(echo $1 | sed 's/[^0-9.]*//g')
         if [ "$units" = "Ki" ]; then
-          value=$(echo "scale=9; $value/1048576" | bc)
+          value=$(jq -n "$value/1048576")
         elif [ "$units" = "Mi" ]; then
-          value=$(echo "scale=9; $value/1024" | bc)
+          value=$(jq -n "$value/1024")
         elif [ "$units" = "Gi" ]; then
-          value=$(echo "scale=9; $value" | bc)
+          value=$(jq -n "$value")
         elif [ "$units" = "Ti" ]; then
-          value=$(echo "scale=9; $value*1048576" | bc)
+          value=$(jq -n "$value*1048576")
         else
           value="null"
         fi
@@ -195,21 +195,21 @@ if [[ "${demoPreparation}" == "true" ]]; then
     cpu=$(_cpu $(_jq '.cpu'))
     mem_gi=$(_memGiB $(_jq '.mem'))
     printf "%s: cpus=%.1f mem=%.1f GiB\n" "$name" $cpu $mem_gi
-    total_cpu=$(echo "scale=9; $total_cpu+$cpu"|bc)
-    total_mem_gi=$(echo "scale=9; $total_mem_gi+$mem_gi"|bc)
+    total_cpu=$(jq -n "$total_cpu+$cpu")
+    total_mem_gi=$(jq -n "$total_mem_gi+$mem_gi")
   done
   printf "Total: cpus=%.1f mem=%.1f GiB\n" $total_cpu $total_mem_gi
 
   divider
 
-  if (( $(echo "$total_cpu < $cpu_req" | bc) )); then
+  if [ $(jq -n "$total_cpu < $cpu_req") == "true" ]; then
     printf "$cross ERROR: You have %0.1f allocatable cores. Minimum CPU requirement for ${demo_products} is %0.1f cores\n" $total_cpu $cpu_req
     check=1
   else
     echo -e "$tick INFO: You have enough allocatable cpu for the demo"
   fi
 
-  if (( $(echo "$total_mem_gi < $mem_req_gi" | bc) )); then
+  if [ $(jq -n "$total_mem_gi < $mem_req_gi") == "true" ]; then
     printf "$cross ERROR: You have %0.1f GiB of allocatable memory. Minimum memory requirement for ${demo_products} is %0.1f GiB\n" $total_mem_gi $mem_req_gi
     check=1
   else
