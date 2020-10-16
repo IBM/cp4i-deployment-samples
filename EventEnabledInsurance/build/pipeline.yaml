@@ -259,7 +259,7 @@ spec:
         - name: dockerfile
           value: "../../../EventEnabledInsurance/ACE/ACE-REST.Dockerfile"
         - name: contextPath
-          value: "../EventEnabledInsurance/Bar_files/REST"
+          value: "../EventEnabledInsurance/Bar_files"
         - name: pvc
           value: "buildah-ace-rest-eei"
       workspaces:
@@ -280,7 +280,7 @@ spec:
         - name: dockerfile
           value: "../../../EventEnabledInsurance/ACE/ACE-DB-WRITER.Dockerfile"
         - name: contextPath
-          value: "../EventEnabledInsurance/Bar_files/DB-WRITER"
+          value: "../EventEnabledInsurance/Bar_files"
         - name: pvc
           value: "buildah-ace-db-writer-eei"
       workspaces:
