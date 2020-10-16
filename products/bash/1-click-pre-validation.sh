@@ -142,7 +142,7 @@ if [[ "$bcInstalled" == "false" ]]; then
   if [[ "$bcInstallFailed" == "true" ]]; then
     echo -e "$cross ERROR: 'bc' installation failed"
     divider
-    exit 1
+    # exit 1
   else
     echo -e "$tick INFO: Successfully installed 'bc'"
     divider
