@@ -6,8 +6,8 @@
 .DS_Store
 api.yaml
 bin
-build
 delete.sh
+EventEnabledInsurance/ProjectionClaims/build
 gradle
 gradlew
 gradlew.bat
