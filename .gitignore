@@ -1,6 +1,7 @@
 .classpath
 .gradle
 .idea
+.metadata
 .project
 .settings
 .DS_Store
