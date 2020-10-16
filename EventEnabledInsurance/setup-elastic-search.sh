@@ -234,7 +234,6 @@ elif [[ "$OSTYPE" == "darwin"* ]]; then
   echo "INFO: Elastic base64 command for MAC"
   BASE64_TS="$(base64 elastic-ts.jks)"
 fi
-# BASE64_TS=$(cat elastic-ts.jks | base64 -b 0)
 
 cat << EOF | oc apply -f -
 apiVersion: v1
