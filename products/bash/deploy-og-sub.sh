@@ -22,17 +22,19 @@
 #   Overriding the namespace
 #     ./deploy-og-sub -n cp4i-prod
 #
-# function usage {
-#     echo "Usage: $0 -n <namespace>"
-# }
-#
+
+function usage {
+    echo "Usage: $0 -n <namespace>"
+    exit 1
+}
+
 namespace="cp4i"
 
 while getopts "n:" opt; do
   case ${opt} in
     n ) namespace="$OPTARG"
       ;;
-    \? ) usage; exit
+    \? ) usage;
       ;;
   esac
 done

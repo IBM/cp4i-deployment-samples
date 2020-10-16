@@ -55,7 +55,7 @@ while getopts "n:r:i:q:z:t" opt; do
       ;;
     t ) tracing_enabled=true
       ;;
-    \? ) usage; exit
+    \? ) usage;
       ;;
   esac
 done

@@ -15,6 +15,7 @@
 #   -i : <is_image_name> (string), Defaults to "image-registry.openshift-image-registry.svc:5000/cp4i/ace-11.0.0.9-r2:new-1"
 #   -z : <tracing_namespace> (string), Defaults to "-n namespace"
 #   -t : <tracing_enabled> (boolean), optional flag to enable tracing, Defaults to false
+#   -c : <config> (boolean), Parameter for changing ace config
 #
 # USAGE:
 #   With defaults values
@@ -24,7 +25,7 @@
 #     ./release-ace-integration-server -n cp4i -r cp4i-bernie-ace
 
 function usage {
-  echo "Usage: $0 -n <namespace> -r <is_release_name> -i <is_image_name> -t -z <tracing_namespace>"
+  echo "Usage: $0 -n <namespace> -r <is_release_name> -i <is_image_name> -t -z <tracing_namespace> -c <config>"
   exit 1
 }
 
@@ -34,10 +35,16 @@ is_image_name=""
 tracing_namespace=""
 tracing_enabled="false"
 CURRENT_DIR=$(dirname $0)
+config=""
+ace_policy_names="[ace-keystore, ace-policyproject-ddd, ace-serverconf, ace-setdbparms, application.kdb, application.sth, application.jks]"
+ace_replicas="2"
 echo "Current directory: $CURRENT_DIR"
 
-while getopts "n:r:i:z:t" opt; do
+while getopts "n:r:i:z:tc:" opt; do
   case ${opt} in
+  c)
+    config="$OPTARG"
+    ;;
   n)
     namespace="$OPTARG"
     ;;
@@ -55,7 +62,6 @@ while getopts "n:r:i:z:t" opt; do
     ;;
   \?)
     usage
-    exit
     ;;
   esac
 done
@@ -69,6 +75,14 @@ else
     # assgining value to tracing_namespace b/c empty values causes CR to throw an error
     tracing_namespace=${namespace}
 fi
+
+# ------------------------------------------------ SET ACE POLICY --------------------------------------------------
+
+if [[ ! -z "${config// }" ]]; then
+  ace_policy_names="$config"
+fi
+
+echo -e "\nINFO: ACE policy configuration is set to: '$ace_policy_names'"
 
 # ------------------------------------------------ FIND IMAGE TAG --------------------------------------------------
 
@@ -101,20 +115,12 @@ spec:
    containers:
      runtime:
        image: ${is_image_name}
-  configurations:
-  - ace-keystore
-  - ace-policyproject-ddd
-  - ace-serverconf
-  - ace-setdbparms
-  - application.kdb
-  - application.sth
-  - application.jks
   designerFlowsOperationMode: disabled
   license:
     accept: true
     license: L-APEH-BPUCJK
     use: CloudPakForIntegrationProduction
-  replicas: 2
+  replicas: ${ace_replicas}
   router:
     timeout: 120s
   service:
@@ -124,6 +130,7 @@ spec:
   tracing:
     enabled: ${tracing_enabled}
     namespace: ${tracing_namespace}
+  configurations: $ace_policy_names
 EOF
 
 timer=0

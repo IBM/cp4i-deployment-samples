@@ -74,11 +74,24 @@ echo "INFO: TKN: '$TKN'"
 
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
-echo "INFO: Creating pvc for EEI apps in the '$namespace' namespace"
+echo "INFO: Creating pvc for EEI in the '$namespace' namespace"
 if oc apply -n $namespace -f $CURRENT_DIR/pvc.yaml; then
   echo -e "\n$tick INFO: Successfully created the pvc in the '$namespace' namespace"
 else
   echo -e "\n$cross ERROR: Failed to create the pvc in the '$namespace' namespace"
+  exit 1
+fi
+
+echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
+
+echo "INFO: Create build and deploy tekton tasks"
+if cat $CURRENT_DIR/../../CommonPipelineResources/cicd-tasks-new.yaml |
+  sed "s#{{NAMESPACE}}#$namespace#g;" |
+  oc apply -n ${namespace} -f -; then
+    echo -e "\n$tick INFO: Successfully applied build and deploy tekton tasks in the '$namespace' namespace"
+else
+  echo -e "\n$cross ERROR: Failed to apply build and deploy tekton tasks in the '$namespace' namespace"
+  exit 1
 fi
 
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
@@ -116,14 +129,18 @@ fi #pipelinerun.yaml
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
 pipelinerunSuccess="false";
-echo -e "INFO: Displaying the pipelinerun logs: \n"
+echo -e "INFO: Displaying the pipelinerun logs in the '$namespace' namespace: \n"
 if ! $TKN pipelinerun logs -n $namespace -f $PIPELINE_RUN_NAME; then
   echo -e "\n$cross ERROR: Failed to get the pipelinerun logs successfully"
 fi
 
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
+echo -e "\nINFO: The pipeline run in the '$namespace' namespace:\n"
 oc get pipelinerun -n $namespace $PIPELINE_RUN_NAME
+
+echo -e "\nINFO: The task runs in the '$namespace' namespace:\n"
+oc get taskrun -n $namespace
 
 if [[ "$(oc get pipelinerun -n $namespace $PIPELINE_RUN_NAME -o json | jq -r '.status.conditions[0].status')" == "True" ]];then
   pipelinerunSuccess="true"
@@ -145,6 +162,22 @@ if oc delete pvc git-workspace-eei -n $namespace; then
   echo -e "$tick INFO: Deleted the pvc 'git-workspace-eei'"
 else
   echo -e "$cross ERROR: Failed to delete the pvc 'git-workspace-eei'"
+fi
+
+echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
+
+if oc delete pvc buildah-ace-rest-eei -n $namespace; then
+  echo -e "$tick INFO: Deleted the pvc 'buildah-ace-rest-eei'"
+else
+  echo -e "$cross ERROR: Failed to delete the pvc 'buildah-ace-rest-eei'"
+fi
+
+echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
+
+if oc delete pvc buildah-ace-db-writer-eei -n $namespace; then
+  echo -e "$tick INFO: Deleted the pvc 'buildah-ace-db-writer-eei'"
+else
+  echo -e "$cross ERROR: Failed to delete the pvc 'buildah-ace-db-writer-eei'"
 fi
 
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
