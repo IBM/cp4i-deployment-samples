@@ -47,13 +47,20 @@ function buildConfigurationCR {
   local type=$1
   local name=$2
   local file=$3
+  if [[ "$OSTYPE" == "linux-gnu"* ]]; then
+    echo "INFO: Create ace config - base64 command for linux"
+    COMMAND="base64 -w0 $file"
+  elif [[ "$OSTYPE" == "darwin"* ]]; then
+    echo "INFO: Create ace config base64 command for MAC"
+    COMMAND="base64 $file"
+  fi
   echo "apiVersion: appconnect.ibm.com/v1beta1" >> $CONFIG_YAML
   echo "kind: Configuration" >> $CONFIG_YAML
   echo "metadata:" >> $CONFIG_YAML
   echo "  name: $name" >> $CONFIG_YAML
   echo "  namespace: $NAMESPACE" >> $CONFIG_YAML
   echo "spec:" >> $CONFIG_YAML
-  echo "  contents: $(base64 -w0 $file)" >> $CONFIG_YAML
+  echo "  contents: $($COMMAND)" >> $CONFIG_YAML
   echo "  type: $type" >> $CONFIG_YAML
   echo "---" >> $CONFIG_YAML
 }

@@ -70,7 +70,7 @@ spec:
     config.storage.replication.factor: 3
     offset.storage.replication.factor: 3
     status.storage.replication.factor: 3
-    # The followoing 2 properties enable a class that allows reading properties from files.
+    # The following 2 properties enable a class that allows reading properties from files.
     config.providers: file
     config.providers.file.class: org.apache.kafka.common.config.provider.FileConfigProvider
   # This mounts secrets into the connector at /opt/kafka/external-configuration. These
