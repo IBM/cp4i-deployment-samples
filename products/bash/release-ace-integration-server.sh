@@ -15,7 +15,7 @@
 #   -i : <is_image_name> (string), Defaults to "image-registry.openshift-image-registry.svc:5000/cp4i/ace-11.0.0.9-r2:new-1"
 #   -z : <tracing_namespace> (string), Defaults to "-n namespace"
 #   -t : <tracing_enabled> (boolean), optional flag to enable tracing, Defaults to false
-#   -s : <suffix> (string), Suffix for demo, Defaults to 'ddd'
+#   -c : <config> (boolean), Parameter for changing ace config
 #
 # USAGE:
 #   With defaults values
@@ -25,7 +25,7 @@
 #     ./release-ace-integration-server -n cp4i -r cp4i-bernie-ace
 
 function usage {
-  echo "Usage: $0 -n <namespace> -r <is_release_name> -i <is_image_name> -t -z <tracing_namespace> -s <suffix>"
+  echo "Usage: $0 -n <namespace> -r <is_release_name> -i <is_image_name> -t -z <tracing_namespace> -c <config>"
   exit 1
 }
 
@@ -35,13 +35,16 @@ is_image_name=""
 tracing_namespace=""
 tracing_enabled="false"
 CURRENT_DIR=$(dirname $0)
-suffix="ddd"
+config=""
 ace_policy_names="[ace-keystore, ace-policyproject-ddd, ace-serverconf, ace-setdbparms, application.kdb, application.sth, application.jks]"
 ace_replicas="2"
 echo "Current directory: $CURRENT_DIR"
 
-while getopts "n:r:i:z:ts:" opt; do
+while getopts "n:r:i:z:tc:" opt; do
   case ${opt} in
+  c)
+    config="$OPTARG"
+    ;;
   n)
     namespace="$OPTARG"
     ;;
@@ -57,16 +60,11 @@ while getopts "n:r:i:z:ts:" opt; do
   t)
     tracing_enabled=true
     ;;
-  s)
-    suffix="$OPTARG"
-    ;;
   \?)
     usage
     ;;
   esac
 done
-
-echo "INFO: Demo suffix is: $suffix"
 
 echo "INFO: Tracing support currently disabled"
 tracing_enabled=false
@@ -80,12 +78,11 @@ fi
 
 # ------------------------------------------------ SET ACE POLICY --------------------------------------------------
 
-if [[ "$suffix" == "eei" ]]; then
-  ace_policy_names="[ace-policyproject-eei]"
-elif [[ "$suffix" == "ddd" ]]; then
-  ace_policy_names="[ace-keystore, ace-policyproject-ddd, ace-serverconf, ace-setdbparms, application.kdb, application.sth, application.jks]"
+if [[ ! -z "${config// }" ]]; then
+  ace_policy_names="$config"
 fi
-echo -e "\nINFO: ACE policy configuration is set to: '$ace_policy_name'"
+
+echo -e "\nINFO: ACE policy configuration is set to: '$ace_policy_names'"
 
 # ------------------------------------------------ FIND IMAGE TAG --------------------------------------------------
 
