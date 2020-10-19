@@ -198,7 +198,7 @@ echo -e "$info Docker registry password: '$DOCKER_REGISTRY_PASS'"
 divider
 
 echo "INFO: Doing a validation check before installation..."
-if ! $CURRENT_DIR/1-click-pre-validation.sh -n $NAMESPACE -p $csDefaultAdminPassword -r $navReplicaCount -u $csDefaultAdminUser -d $demoPreparation; then
+if ! $CURRENT_DIR/1-click-pre-validation.sh -n "$NAMESPACE" -p "$csDefaultAdminPassword" -r "$navReplicaCount" -u "$csDefaultAdminUser" -d "$demoPreparation"; then
   echo -e "$cross ERROR: Validation check failed"
   divider
   exit 1

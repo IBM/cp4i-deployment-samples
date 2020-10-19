@@ -49,10 +49,10 @@ function buildConfigurationCR {
   local name=$2
   local file=$3
   if [[ "$OSTYPE" == "linux-gnu"* ]]; then
-    echo "INFO: base64 command for linux"
+    echo "INFO: Create ace config - base64 command for linux"
     COMMAND="base64 -w0 $file"
   elif [[ "$OSTYPE" == "darwin"* ]]; then
-    echo "INFO: base64 command for MAC"
+    echo "INFO: Create ace config base64 command for MAC"
     COMMAND="base64 $file"
   fi
   echo "apiVersion: appconnect.ibm.com/v1beta1" >> $CONFIG_YAML
