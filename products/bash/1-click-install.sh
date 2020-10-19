@@ -61,7 +61,6 @@ all_done="\xF0\x9F\x92\xAF"
 info="\xE2\x84\xB9"
 CURRENT_DIR=$(dirname $0)
 missingParams="false"
-demoDeploymentBranch="main"
 
 while getopts "n:r:c:u:p:d:a:f:e:h:o:m:q:" opt; do
   case ${opt} in
