@@ -133,6 +133,10 @@ spec:
     enabled: ${tracing_enabled}
     namespace: ${tracing_namespace}
 EOF
+if [[ "$?" != "0" ]]; then
+  echo -e "$cross [ERROR] Failed to apply IntegrationServer CR"
+  exit 1
+fi
 
 timer=0
 echo "[INFO] tracing is set to $tracing_enabled"
