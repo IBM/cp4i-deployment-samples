@@ -32,6 +32,8 @@ function usage {
     exit 1
 }
 
+tick="\xE2\x9C\x85"
+cross="\xE2\x9D\x8C"
 namespace="cp4i"
 release_name="mq-demo"
 qm_name="QUICKSTART"
@@ -102,6 +104,10 @@ spec:
     enabled: ${tracing_enabled}
     namespace: ${tracing_namespace}
 EOF
+if [[ "$?" != "0" ]]; then
+  echo -e "$cross [ERROR] Failed to apply QueueManager CR"
+  exit 1
+fi
 
 else
 
@@ -150,6 +156,10 @@ data:
   app.crt: $APP_CERT
 type: Opaque
 EOF
+if [[ "$?" != "0" ]]; then
+  echo -e "$cross [ERROR] Failed to apply ConfigMap/Secret for MQ TLS"
+  exit 1
+fi
 
 
 echo -e "INFO: Going ahead to apply the CR for '$release_name'"
@@ -207,6 +217,10 @@ spec:
     enabled: ${tracing_enabled}
     namespace: ${tracing_namespace}
 EOF
+if [[ "$?" != "0" ]]; then
+  echo -e "$cross [ERROR] Failed to apply QueueManager CR"
+  exit 1
+fi
 
   # -------------------------------------- Register Tracing ---------------------------------------------------------------------
 oc get secrets icp4i-od-store-cred -n ${namespace}

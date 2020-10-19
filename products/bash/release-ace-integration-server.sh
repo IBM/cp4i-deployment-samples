@@ -30,6 +30,8 @@ function usage {
   exit 1
 }
 
+tick="\xE2\x9C\x85"
+cross="\xE2\x9D\x8C"
 namespace="cp4i"
 is_release_name="ace-is"
 is_image_name=""
@@ -136,6 +138,10 @@ spec:
     namespace: ${tracing_namespace}
   configurations: $ace_policy_names
 EOF
+if [[ "$?" != "0" ]]; then
+  echo -e "$cross [ERROR] Failed to apply IntegrationServer CR"
+  exit 1
+fi
 
 timer=0
 echo "[INFO] tracing is set to $tracing_enabled"
@@ -213,7 +219,7 @@ numberOfMatchesForImageTag=0
 time=0
 
 # wait for 10 minutes for all replica pods to be deployed with new image
-while [ $numberOfMatchesForImageTag -ne $numberOfReplicas ]; do
+while [ "$numberOfMatchesForImageTag" -ne "$numberOfReplicas" ]; do
   if [ $time -gt 15 ]; then
     echo "ERROR: Timed-out trying to wait for all $is_release_name demo pods to be deployed with a new image containing the image tag '$imageTag'"
     echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
