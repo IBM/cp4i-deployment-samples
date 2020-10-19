@@ -166,8 +166,10 @@ cat $CONFIG_DIR/PostgresqlPolicy.policyxml.template |
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
 echo "[INFO]  Templating mq policy"
+QM_NAME=$([[ $SUFFIX == "ddd" ]] && echo "QUICKSTART" || echo "eei")
 QM_HOST=$([[ $SUFFIX == "ddd" ]] && echo "mq-ddd-qm-ibm-mq" || echo "mq-eei-ibm-mq")
 cat $CONFIG_DIR/MQEndpointPolicy.policyxml.template |
+  sed "s#{{QM_NAME}}#$QM_NAME#g;" |
   sed "s#{{QM_HOST}}#$QM_HOST#g;" > $CONFIG_DIR/$SUFFIX/DefaultPolicies/MQEndpointPolicy.policyxml
 
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"

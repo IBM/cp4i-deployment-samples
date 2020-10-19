@@ -2,7 +2,7 @@
 <policies>
   <policy policyType="MQEndpoint" policyName="MQEndpointPolicy" policyTemplate="MQEndpoint">
     <connection>CLIENT</connection>
-    <destinationQueueManagerName>QUICKSTART</destinationQueueManagerName>
+    <destinationQueueManagerName>{{QM_NAME}}</destinationQueueManagerName>
     <queueManagerHostname>{{QM_HOST}}</queueManagerHostname>
     <listenerPortNumber>1414</listenerPortNumber>
     <channelName>ACE_SVRCONN</channelName>
