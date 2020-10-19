@@ -13,7 +13,7 @@
 #   - Logged into cluster on the OC CLI (https://docs.openshift.com/container-platform/4.4/cli_reference/openshift_cli/getting-started-cli.html)
 #
 # PARAMETERS:
-#   -n : <NAMESPACE> (string), Namespace for the 1-click installation. Defaults to "cp4i"
+#   -n : <NAMESPACE> (string), Namespace for the 1-click install. Defaults to "cp4i"
 #   -r : <navReplicaCount> (string), Platform navigator replicas, Defaults to 3
 #   -b : <demoDeploymentBranch> (string), The demo deployment branch to be used, Defaults to 'main'
 #   -u : <csDefaultAdminUser> (string), Default common service username. Defaults to "admin"
@@ -117,52 +117,52 @@ while getopts "n:r:b:u:p:d:a:f:e:h:o:m:q:j:k:l:s:t:v:" opt; do
 done
 
 if [[ -z "${NAMESPACE// }" ]]; then
-  echo -e "$cross ERROR: 1-click installation namespace is empty. Please provide a value for '-n' parameter."
+  echo -e "$cross ERROR: 1-click install namespace is empty. Please provide a value for '-n' parameter."
   missingParams="true"
 fi
 
 if [[ -z "${navReplicaCount// }" ]]; then
-  echo -e "$cross ERROR: 1-click installation platform navigator replica count is empty. Please provide a value for '-r' parameter."
+  echo -e "$cross ERROR: 1-click install platform navigator replica count is empty. Please provide a value for '-r' parameter."
   missingParams="true"
 fi
 
 if [[ -z "${csDefaultAdminUser// }" ]]; then
-  echo -e "$cross ERROR: 1-click installation default admin username is empty. Please provide a value for '-u' parameter."
+  echo -e "$cross ERROR: 1-click install default admin username is empty. Please provide a value for '-u' parameter."
   missingParams="true"
 fi
 
 if [[ -z "${demoPreparation// }" ]]; then
-  echo -e "$cross ERROR: 1-click installation demo preparation parameter is empty. Please provide a value for '-d' parameter."
+  echo -e "$cross ERROR: 1-click install demo preparation parameter is empty. Please provide a value for '-d' parameter."
   missingParams="true"
 fi
 
 if [[ -z "${demoDeploymentBranch// }" ]]; then
-  echo -e "$cross ERROR: 1-click installation demo deployment branch is empty. Please provide a value for '-b' parameter."
+  echo -e "$cross ERROR: 1-click install demo deployment branch is empty. Please provide a value for '-b' parameter."
   missingParams="true"
 fi
 
 if [[ -z "${csDefaultAdminPassword// }" ]]; then
-  echo -e "$cross ERROR: 1-click installation default admin password is empty. Please provide a value for '-p' parameter."
+  echo -e "$cross ERROR: 1-click install default admin password is empty. Please provide a value for '-p' parameter."
   missingParams="true"
 fi
 
 if [[ -z "${eventEnabledInsuranceDemo// }" ]]; then
-  echo -e "$cross ERROR: 1-click installation event enabled insurance parameter is empty. Please provide a value for '-a' parameter."
+  echo -e "$cross ERROR: 1-click install event enabled insurance parameter is empty. Please provide a value for '-a' parameter."
   missingParams="true"
 fi
 
 if [[ -z "${drivewayDentDeletionDemo// }" ]]; then
-  echo -e "$cross ERROR: 1-click installation driveway dent deletion parameter is empty. Please provide a value for '-f' parameter."
+  echo -e "$cross ERROR: 1-click install driveway dent deletion parameter is empty. Please provide a value for '-f' parameter."
   missingParams="true"
 fi
 
 if [[ -z "${ENVIRONMENT// }" ]]; then
-  echo -e "$cross ERROR: 1-click installation environment is empty. Please provide a value for '-t' parameter."
+  echo -e "$cross ERROR: 1-click install environment is empty. Please provide a value for '-t' parameter."
   missingParams="true"
 fi
 
 if [[ -z "${useFastStorageClass// }" ]]; then
-  echo -e "$cross ERROR: 1-click installation fast storage class flag is empty. Please provide a value for '-v' parameter."
+  echo -e "$cross ERROR: 1-click install fast storage class flag is empty. Please provide a value for '-v' parameter."
   missingParams="true"
 fi
 
