@@ -39,7 +39,7 @@ tracing_namespace=""
 tracing_enabled="false"
 CURRENT_DIR=$(dirname $0)
 config=""
-ace_policy_names="[ace-keystore, ace-policyproject-ddd, ace-serverconf, ace-setdbparms, application.kdb, application.sth, application.jks]"
+ace_policy_names="[keystore, policyproject-ddd, serverconf, setdbparms-ddd, application.kdb, application.sth, application.jks]"
 ace_replicas="2"
 echo "Current directory: $CURRENT_DIR"
 
