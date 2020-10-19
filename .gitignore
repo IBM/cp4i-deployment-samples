@@ -31,4 +31,5 @@ key.pem
 keystore.p12
 setdbparms.txt
 DefaultPolicies.zip
+MQEndpointPolicy.policyxml
 PostgresqlPolicy.policyxml
