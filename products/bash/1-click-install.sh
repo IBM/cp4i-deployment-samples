@@ -189,12 +189,6 @@ echo -e "$info Dcoker registry username: '$DOCKER_REGISTRY_USER'"
 echo -e "$info Environment for installation: '$ENVIRONMENT'"
 echo -e "$info If using fast storage for the installation: '$useFastStorageClass'"
 
-# TO DO: Remove
-echo -e "$info CS Default admin password: '$csDefaultAdminPassword'"
-echo -e "$info APIC mail server password: '$demoAPICMailServerPassword'"
-echo -e "$info Docker registry password: '$DOCKER_REGISTRY_PASS'"
-# TO DO: Remove
-
 divider
 
 echo "INFO: Doing a validation check before installation..."
