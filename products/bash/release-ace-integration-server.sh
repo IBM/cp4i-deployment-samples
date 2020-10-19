@@ -10,13 +10,13 @@
 
 #******************************************************************************
 # PARAMETERS:
-#   -c : <config_name> (string), Defaults to "[]"
 #   -n : <namespace> (string), Defaults to "cp4i"
 #   -r : <is_release_name> (string), Defaults to "ace-is"
 #   -i : <is_image_name> (string), Defaults to "image-registry.openshift-image-registry.svc:5000/cp4i/ace-11.0.0.9-r2:new-1"
 #   -z : <tracing_namespace> (string), Defaults to "-n namespace"
 #   -t : <tracing_enabled> (boolean), optional flag to enable tracing, Defaults to false
 #   -c : <config> (boolean), Parameter for changing ace config
+#   -p : <pod count> (int), allow changing the number of pods (replicas), Defaults to 2
 #
 # USAGE:
 #   With defaults values
@@ -26,27 +26,25 @@
 #     ./release-ace-integration-server -n cp4i -r cp4i-bernie-ace
 
 function usage {
-  echo "Usage: $0 -c <config_names> -i <is_image_name> -n <namespace> -r <is_release_name> -t -z <tracing_namespace> "
+  echo "Usage: $0 -n <namespace> -r <is_release_name> -i <is_image_name> -t -z <tracing_namespace> -c <config> -p <pod count>"
   exit 1
 }
 
-config_names="[keystore, policyproject-ddd, serverconf, setdbparms-ddd, application.kdb, application.sth, application.jks]"
 namespace="cp4i"
-is_image_name=""
 is_release_name="ace-is"
-tracing_enabled="false"
+is_image_name=""
 tracing_namespace=""
+tracing_enabled="false"
 CURRENT_DIR=$(dirname $0)
+config=""
+ace_policy_names="[ace-keystore, ace-policyproject-ddd, ace-serverconf, ace-setdbparms, application.kdb, application.sth, application.jks]"
 ace_replicas="2"
 echo "Current directory: $CURRENT_DIR"
 
-while getopts "c:i:n:r:tz:" opt; do
+while getopts "n:r:i:z:tc:p:" opt; do
   case ${opt} in
   c)
-    config_names="$OPTARG"
-    ;;
-  i)
-    is_image_name="$OPTARG"
+    config="$OPTARG"
     ;;
   n)
     namespace="$OPTARG"
@@ -54,11 +52,17 @@ while getopts "c:i:n:r:tz:" opt; do
   r)
     is_release_name="$OPTARG"
     ;;
-  t)
-    tracing_enabled=true
+  i)
+    is_image_name="$OPTARG"
     ;;
   z)
     tracing_namespace="$OPTARG"
+    ;;
+  t)
+    tracing_enabled=true
+    ;;
+  p)
+    ace_replicas=$OPTARG
     ;;
   \?)
     usage
@@ -78,9 +82,8 @@ fi
 
 # ------------------------------------------------ SET ACE POLICY --------------------------------------------------
 
-if [[ "${config_names}" == "[]" ]]; then
-  echo "ERROR: Configuration names not set"
-  exit 1
+if [[ ! -z "${config// }" ]]; then
+  ace_policy_names="$config"
 fi
 
 echo -e "\nINFO: ACE policy configuration is set to: '$ace_policy_names'"
@@ -116,7 +119,6 @@ spec:
    containers:
      runtime:
        image: ${is_image_name}
-  configurations: ${config_names}
   designerFlowsOperationMode: disabled
   license:
     accept: true
@@ -132,11 +134,8 @@ spec:
   tracing:
     enabled: ${tracing_enabled}
     namespace: ${tracing_namespace}
+  configurations: $ace_policy_names
 EOF
-if [[ "$?" != "0" ]]; then
-  echo -e "$cross [ERROR] Failed to apply IntegrationServer CR"
-  exit 1
-fi
 
 timer=0
 echo "[INFO] tracing is set to $tracing_enabled"
