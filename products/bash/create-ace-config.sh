@@ -35,7 +35,6 @@ CONFIG_DIR=$CURRENT_DIR/ace
 CONFIG_YAML=$CONFIG_DIR/configurations.yaml
 MQ_CERT=$CURRENT_DIR/mq/createcerts
 API_USER="bruce"
-API_PASS=$(LC_ALL=C tr -dc 'A-Za-z0-9' </dev/urandom | head -c 16 ; echo)
 KEYSTORE_PASS=$(LC_ALL=C tr -dc 'A-Za-z0-9' </dev/urandom | head -c 16 ; echo)
 
 
@@ -102,8 +101,11 @@ if [[ -z "${DB_PASS// }" || -z "${NAMESPACE// }" || -z "${DB_USER// }" || -z "${
   usage
 fi
 
-# Store ace api password in secret
-cat << EOF | oc apply -f -
+EXISTING_PASS=$(oc get secret ace-api-creds-$SUFFIX -ojsonpath='.data.pass' | base64 --decode)
+if [[ -z $EXISTING_SECRET ]]; then
+  API_PASS=$(LC_ALL=C tr -dc 'A-Za-z0-9' </dev/urandom | head -c 16 ; echo)
+  # Store ace api password
+  cat << EOF | oc apply -f -
 kind: Secret
 apiVersion: v1
 metadata:
@@ -115,9 +117,12 @@ stringData:
   auth: "$API_USER:$API_PASS"
 type: Opaque
 EOF
-if [[ "$?" != "0" ]]; then
-  echo -e "$cross [ERROR] Failed to create ace-api-creds-$SUFFIX secret in $NAMESPACE namespace"
-  exit 1
+  if [[ "$?" != "0" ]]; then
+    echo -e "$cross [ERROR] Failed to create ace-api-creds-$SUFFIX secret in $NAMESPACE namespace"
+    exit 1
+  fi
+else
+  API_PASS=$EXISTING_PASS
 fi
 
 [[ -f $CONFIG_YAML ]] && echo "[INFO]  Removing existing configurations yaml" && rm -f $CONFIG_YAML
