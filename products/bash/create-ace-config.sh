@@ -107,7 +107,7 @@ cat << EOF | oc apply -f -
 kind: Secret
 apiVersion: v1
 metadata:
-  name: ace-api-creds
+  name: ace-api-creds-$SUFFIX
   namespace: $NAMESPACE
 stringData:
   user: $API_USER
@@ -116,7 +116,7 @@ stringData:
 type: Opaque
 EOF
 if [[ "$?" != "0" ]]; then
-  echo -e "$cross [ERROR] Failed to create ace-api-creds secret in $NAMESPACE namespace"
+  echo -e "$cross [ERROR] Failed to create ace-api-creds-$SUFFIX secret in $NAMESPACE namespace"
   exit 1
 fi
 
