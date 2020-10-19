@@ -110,6 +110,10 @@ stringData:
   auth: "$API_USER:$API_PASS"
 type: Opaque
 EOF
+if [[ "$?" != "0" ]]; then
+  echo -e "$cross [ERROR] Failed to create ace-api-creds secret in $NAMESPACE namespace"
+  exit 1
+fi
 
 [[ -f $CONFIG_YAML ]] && echo "[INFO]  Removing existing configurations yaml" && rm -f $CONFIG_YAML
 
@@ -182,6 +186,10 @@ echo -e "\n---------------------------------------------------------------------
 # Apply configuration yaml
 echo "[INFO]  Applying configuration yaml"
 oc apply -f $CONFIG_YAML
+if [[ "$?" != "0" ]]; then
+  echo -e "$cross [ERROR] Failed to apply $CONFIG_YAML"
+  exit 1
+fi
 
 # DEBUG: get configurations
 echo "[DEBUG] Getting configurations"
