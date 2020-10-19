@@ -30,7 +30,7 @@ function usage {
   exit 1
 }
 
-config_names="[]"
+config_names="[keystore, policyproject-ddd, serverconf, setdbparms-ddd, application.kdb, application.sth, application.jks]"
 namespace="cp4i"
 is_image_name=""
 is_release_name="ace-is"
