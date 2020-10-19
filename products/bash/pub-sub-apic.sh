@@ -147,8 +147,8 @@ done
 [[ -z $ACE_API ]] && echo -e "[ERROR] ${CROSS} ace api integration server service doesn't exit" && exit 1
 ACE_API_INT_SRV_PORT=$(oc get svc -n $NAMESPACE $ACE_API -ojson | $JQ -r '.spec.ports[] | select(.name == "https").port')
 ACE_API_INT_SRV=${ACE_API}.${NAMESPACE}.svc.cluster.local:$ACE_API_INT_SRV_PORT
-ACE_API_USER=$(oc get secret -n $NAMESPACE ace-api-creds -o json | $JQ -r '.data.user' | base64 --decode)
-ACE_API_PASS=$(oc get secret -n $NAMESPACE ace-api-creds -o json | $JQ -r '.data.pass' | base64 --decode)
+ACE_API_USER=$(oc get secret -n $NAMESPACE ace-api-creds-ddd -o json | $JQ -r '.data.user' | base64 --decode)
+ACE_API_PASS=$(oc get secret -n $NAMESPACE ace-api-creds-ddd -o json | $JQ -r '.data.pass' | base64 --decode)
 $DEBUG && echo "[DEBUG] ACE_API_INT_SRV=${ACE_API_INT_SRV}"
 echo -e "[INFO]  ${TICK} Cluster info gathered"
 
