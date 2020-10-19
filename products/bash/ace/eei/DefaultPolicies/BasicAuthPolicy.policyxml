@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<policies>
+  <policy policyType="SecurityProfiles" policyName="BasicAuthPolicy">
+    <authentication>Local</authentication>
+    <authenticationConfig>basicAuthOverride</authenticationConfig>
+  </policy>
+</policies>

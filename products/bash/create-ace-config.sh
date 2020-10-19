@@ -172,6 +172,12 @@ cat $CONFIG_DIR/MQEndpointPolicy.policyxml.template |
 
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
+echo "[INFO]  Templating server conf"
+cat $CONFIG_DIR/server.conf.yaml.template |
+  sed "s#{{KEYSTORE_NAME}}#keystore-$SUFFIX#g;" > $CONFIG_DIR/$SUFFIX/server.conf.yaml
+
+echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
+
 # Generate configuration yaml
 echo "[INFO]  Generating configuration yaml"
 for i in ${!NAMES[@]}; do
