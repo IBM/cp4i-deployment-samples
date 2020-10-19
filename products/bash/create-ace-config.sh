@@ -55,13 +55,18 @@ function buildConfigurationCR {
     echo "INFO: Create ace config base64 command for MAC"
     COMMAND="base64 $file"
   fi
+  CONTENTS="$($COMMAND)"
+  if [[ "$?" != "0" ]]; then
+    echo -e "$cross [ERROR] Failed to base64 encode file using: ${COMMAND}"
+    exit 1
+  fi
   echo "apiVersion: appconnect.ibm.com/v1beta1" >> $CONFIG_YAML
   echo "kind: Configuration" >> $CONFIG_YAML
   echo "metadata:" >> $CONFIG_YAML
   echo "  name: $name" >> $CONFIG_YAML
   echo "  namespace: $NAMESPACE" >> $CONFIG_YAML
   echo "spec:" >> $CONFIG_YAML
-  echo "  contents: $($COMMAND)" >> $CONFIG_YAML
+  echo "  contents: ${CONTENTS}" >> $CONFIG_YAML
   echo "  type: $type" >> $CONFIG_YAML
   echo "---" >> $CONFIG_YAML
 }
