@@ -180,7 +180,7 @@ spec:
         - name: releaseScript
           value: "products/bash/release-ace-integration-server.sh"
         - name: releaseParams
-          value: " -n '{{NAMESPACE}}' -r 'ace-rest-int-srv-eei' -i image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}/ace-rest-eei:latest -c {{CONFIGURATIONS}}"
+          value: " -n '{{NAMESPACE}}' -r 'ace-rest-int-srv-eei' -i image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}/ace-rest-eei:latest -c {{CONFIGURATIONS}} -p 1"
       workspaces:
         - name: git-source
           workspace: git-source
@@ -195,7 +195,7 @@ spec:
         - name: releaseScript
           value: "products/bash/release-ace-integration-server.sh"
         - name: releaseParams
-          value: " -n '{{NAMESPACE}}' -r 'ace-db-writer-int-srv-eei' -i image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}/ace-db-writer-eei:latest -c '[policyproject-eei]'"
+          value: " -n '{{NAMESPACE}}' -r 'ace-db-writer-int-srv-eei' -i image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}/ace-db-writer-eei:latest -c '[policyproject-eei]' -p 1"
       workspaces:
         - name: git-source
           workspace: git-source
