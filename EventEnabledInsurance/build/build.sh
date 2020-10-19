@@ -101,7 +101,7 @@ CONFIGURATIONS="[serverconf, keystore, application-kdb, application-sth, applica
 echo "INFO: Creating the pipeline to build and deploy the EEI apps in '$namespace' namespace"
 if cat $CURRENT_DIR/pipeline.yaml |
   sed "s#{{NAMESPACE}}#$namespace#g;" |
-  sed "s#{{CONFIGURATIONS}}#$CONFIGURATIONS#g;" |
+  sed "s#{{CONFIGURATIONS}}#'$CONFIGURATIONS'#g;" |
   sed "s#{{FORKED_REPO}}#$REPO#g;" |
   sed "s#{{BRANCH}}#$BRANCH#g;" |
   oc apply -n ${namespace} -f -; then
