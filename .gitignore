@@ -2,13 +2,12 @@
 .gradle
 .idea
 .metadata
-.project
 .settings
 .DS_Store
 api.yaml
 bin
-build
 delete.sh
+EventEnabledInsurance/ProjectionClaims/build
 gradle
 gradlew
 gradlew.bat
@@ -33,4 +32,6 @@ key.pem
 keystore.p12
 setdbparms.txt
 DefaultPolicies.zip
+MQEndpointPolicy.policyxml
 PostgresqlPolicy.policyxml
+server.conf.yaml

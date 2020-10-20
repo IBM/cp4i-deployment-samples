@@ -32,6 +32,8 @@ function usage {
     exit 1
 }
 
+tick="\xE2\x9C\x85"
+cross="\xE2\x9D\x8C"
 namespace="cp4i"
 release_name="mq-demo"
 qm_name="QUICKSTART"
@@ -106,6 +108,10 @@ spec:
     enabled: ${tracing_enabled}
     namespace: ${tracing_namespace}
 EOF
+if [[ "$?" != "0" ]]; then
+  echo -e "$cross [ERROR] Failed to apply QueueManager CR"
+  exit 1
+fi
 
 else
 
@@ -154,6 +160,10 @@ data:
   app.crt: $APP_CERT
 type: Opaque
 EOF
+if [[ "$?" != "0" ]]; then
+  echo -e "$cross [ERROR] Failed to apply ConfigMap/Secret for MQ TLS"
+  exit 1
+fi
 
 
 echo -e "INFO: Going ahead to apply the CR for '$release_name'"
@@ -211,25 +221,29 @@ spec:
     enabled: ${tracing_enabled}
     namespace: ${tracing_namespace}
 EOF
+if [[ "$?" != "0" ]]; then
+  echo -e "$cross [ERROR] Failed to apply QueueManager CR"
+  exit 1
+fi
 
   # -------------------------------------- Register Tracing ---------------------------------------------------------------------
 oc get secrets icp4i-od-store-cred -n ${namespace}
 if [ $? -ne 0 ] && [ "$tracing_enabled" == "true"  ] ; then
- echo "[INFO] secret icp4i-od-store-cred does not exist in ${namespace}, running tracing registration"
-    echo "Tracing_Namespace= ${tracing_namespace}"
-    echo "Namespace= ${namespace}"
-      if ! ${CURRENT_DIR}/register-tracing.sh -n $tracing_namespace -a ${namespace} ; then
-        echo "INFO: Running with test environment flag"
-        echo "ERROR: Failed to register tracing in project '$namespace'"
-        exit 1
-      fi
- else
-    if [ "$tracing_enabled" == "false" ]; then
-        echo "[INFO] Tracing Registration not need. Tracing set to $tracing_enabled"
-     else
-        echo "[INFO] secret icp4i-od-store-cred exist, no need to run tracing registration"
-    fi
- fi
+  echo "[INFO] secret icp4i-od-store-cred does not exist in ${namespace}, running tracing registration"
+  echo "Tracing_Namespace= ${tracing_namespace}"
+  echo "Namespace= ${namespace}"
+  if ! ${CURRENT_DIR}/register-tracing.sh -n $tracing_namespace -a ${namespace} ; then
+    echo "INFO: Running with test environment flag"
+    echo "ERROR: Failed to register tracing in project '$namespace'"
+    exit 1
+  fi
+else
+  if [ "$tracing_enabled" == "false" ]; then
+    echo "[INFO] Tracing Registration not need. Tracing set to $tracing_enabled"
+  else
+    echo "[INFO] secret icp4i-od-store-cred exist, no need to run tracing registration"
+  fi
+fi
   # -------------------------------------- INSTALL JQ ---------------------------------------------------------------------
 
   echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"

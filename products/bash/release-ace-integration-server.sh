@@ -16,6 +16,7 @@
 #   -z : <tracing_namespace> (string), Defaults to "-n namespace"
 #   -t : <tracing_enabled> (boolean), optional flag to enable tracing, Defaults to false
 #   -c : <config> (boolean), Parameter for changing ace config
+#   -p : <pod count> (int), allow changing the number of pods (replicas), Defaults to 2
 #
 # USAGE:
 #   With defaults values
@@ -25,10 +26,12 @@
 #     ./release-ace-integration-server -n cp4i -r cp4i-bernie-ace
 
 function usage {
-  echo "Usage: $0 -n <namespace> -r <is_release_name> -i <is_image_name> -t -z <tracing_namespace> -c <config>"
+  echo "Usage: $0 -n <namespace> -r <is_release_name> -i <is_image_name> -t -z <tracing_namespace> -c <config> -p <pod count>"
   exit 1
 }
 
+tick="\xE2\x9C\x85"
+cross="\xE2\x9D\x8C"
 namespace="cp4i"
 is_release_name="ace-is"
 is_image_name=""
@@ -36,11 +39,11 @@ tracing_namespace=""
 tracing_enabled="false"
 CURRENT_DIR=$(dirname $0)
 config=""
-ace_policy_names="[ace-keystore, ace-policyproject-ddd, ace-serverconf, ace-setdbparms, application.kdb, application.sth, application.jks]"
+ace_policy_names="[keystore-ddd, policyproject-ddd, serverconf-ddd, setdbparms-ddd, application.kdb, application.sth, application.jks]"
 ace_replicas="2"
 echo "Current directory: $CURRENT_DIR"
 
-while getopts "n:r:i:z:tc:" opt; do
+while getopts "n:r:i:z:tc:p:" opt; do
   case ${opt} in
   c)
     config="$OPTARG"
@@ -59,6 +62,9 @@ while getopts "n:r:i:z:tc:" opt; do
     ;;
   t)
     tracing_enabled=true
+    ;;
+  p)
+    ace_replicas=$OPTARG
     ;;
   \?)
     usage
@@ -132,6 +138,10 @@ spec:
     namespace: ${tracing_namespace}
   configurations: $ace_policy_names
 EOF
+if [[ "$?" != "0" ]]; then
+  echo -e "$cross [ERROR] Failed to apply IntegrationServer CR"
+  exit 1
+fi
 
 timer=0
 echo "[INFO] tracing is set to $tracing_enabled"
@@ -209,7 +219,7 @@ numberOfMatchesForImageTag=0
 time=0
 
 # wait for 10 minutes for all replica pods to be deployed with new image
-while [ $numberOfMatchesForImageTag -ne $numberOfReplicas ]; do
+while [ "$numberOfMatchesForImageTag" -ne "$numberOfReplicas" ]; do
   if [ $time -gt 15 ]; then
     echo "ERROR: Timed-out trying to wait for all $is_release_name demo pods to be deployed with a new image containing the image tag '$imageTag'"
     echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"

@@ -61,7 +61,6 @@ all_done="\xF0\x9F\x92\xAF"
 info="\xE2\x84\xB9"
 CURRENT_DIR=$(dirname $0)
 missingParams="false"
-demoDeploymentBranch="main"
 
 while getopts "n:r:c:u:p:d:a:f:e:h:o:m:q:" opt; do
   case ${opt} in
@@ -249,6 +248,14 @@ if [[ "${eventEnabledInsuranceDemo}" == "true" || "${demoPreparation}" == "true"
   fi
 
   divider
+
+  if ! $CURRENT_DIR/release-ace-dashboard.sh -n ${NAMESPACE}; then
+    echo "ERROR: Failed to release ace dashboard" 1>&2
+    exit 1
+  else
+    echo -e "$tick INFO: Successfully released ace dashboard"
+    divider
+  fi
 
   # call prereqs for event enabled without branch and repo params
   # branch defaults to 'main' inside the prereqs
