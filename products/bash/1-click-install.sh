@@ -192,7 +192,7 @@ echo -e "$info If using fast storage for the installation: '$useFastStorageClass
 divider
 
 echo -e "\n Print env. variables set in samples 1-click script:"
-$env
+env
 
 # echo "INFO: Doing a validation check before installation..."
 # if ! $CURRENT_DIR/1-click-pre-validation.sh -n "$NAMESPACE" -p "$csDefaultAdminPassword" -r "$navReplicaCount" -u "$csDefaultAdminUser" -d "$demoPreparation"; then
