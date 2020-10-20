@@ -12,34 +12,38 @@
 # PREREQUISITES:
 #   - Logged into cluster on the OC CLI (https://docs.openshift.com/container-platform/4.4/cli_reference/openshift_cli/getting-started-cli.html)
 #
+# PARAMETERS:
+#   -n : <JOB_NAMESPACE> (string), Namespace for the 1-click install
+#   -r : <navReplicaCount> (string), Platform navigator replicas, Defaults to 3
+#   -b : <demoDeploymentBranch> (string), The demo deployment branch to be used, Defaults to 'main'
+#   -u : <csDefaultAdminUser> (string), Default common service username. Defaults to "admin"
+#   -p : <csDefaultAdminPassword> (string), Common service defaul admin password
+#   -d : <demoPreparation> (string), If all demos are to be setup. Defaults to "false"
+#   -a : <eventEnabledInsuranceDemo> (string), If event enabled insurance demo is to be setup. Defaults to "false"
+#   -f : <drivewayDentDeletionDemo> (string),  If driveway dent deletion demo is to be setup. Defaults to "false"
+#   -e : <demoAPICEmailAddress> (string), The email address APIC uses to notify of portal configuration. Defaults to "your@email.address"
+#   -h : <demoAPICMailServerHost> (string), Host name of the mail server. Defaults to "smtp.mailtrap.io"
+#   -o : <demoAPICMailServerPort> (string), Port number of the mail server. Defaults to "2525"
+#   -m : <demoAPICMailServerUsername> (string), Username for the mail server. Defaults to "<your-username>"
+#   -q : <demoAPICMailServerPassword> (string), Password for the mail server.
+#   -j : <tempERKey> (string), IAM API key for accessing the entitled registry.
+#   -k : <tempRepo> (string), For accessing different Registry
+#   -l : <DOCKER_REGISTRY_USER> (string), Docker registry username
+#   -s : <DOCKER_REGISTRY_PASS> (string), Docker registry password
+#   -t : <ENVIRONMENT> (string), Environment for installation, 'staging' when you want to use the staging entitled registry
+#   -v : <useFastStorageClass> (string), If using fast storage class for installation. Defaults to 'false'
+#
 # USAGE:
 #   With defaults values
 #     ./1-click-install.sh
 #
 #   Overriding the namespace and release-name
-#     ./1-click-install.sh
+#     ./1-click-install.sh -n "$JOB_NAMESPACE" -r "$navReplicaCount" -b "$demoDeploymentBranch" -u "$csDefaultAdminUser" -p "$csDefaultAdminPassword" -d "$demoPreparation" -a "$eventEnabledInsuranceDemo" -f "$drivewayDentDeletionDemo" -e "$demoAPICEmailAddress" -h "$demoAPICMailServerHost" -o "$demoAPICMailServerPort" -m "$demoAPICMailServerUsername" -q "$demoAPICMailServerPassword" -j "$tempERKey" -k "$tempRepo" -l "$DOCKER_REGISTRY_USER" -s "$DOCKER_REGISTRY_PASS" -t "$ENVIRONMENT" -v "$useFastStorageClass"
 
 function divider {
   echo -e "\n-------------------------------------------------------------------------------------------------------------------\n"
 }
 
-# function usage {
-#     echo "Usage: $0"
-#     divider
-#     exit 1
-# }
-
-# JOB_NAMESPACE="cp4i"
-# navReplicaCount="3"
-# demoDeploymentBranch="main"
-# csDefaultAdminUser="admin"
-# demoPreparation="false"
-# eventEnabledInsuranceDemo="false"
-# drivewayDentDeletionDemo="false"
-# demoAPICEmailAddress="your@email.address"
-# demoAPICMailServerHost="smtp.mailtrap.io"
-# demoAPICMailServerPort="2525"
-# demoAPICMailServerUsername="<your-username>"
 tick="\xE2\x9C\x85"
 cross="\xE2\x9D\x8C"
 all_done="\xF0\x9F\x92\xAF"
@@ -48,52 +52,51 @@ CURRENT_DIR=$(dirname $0)
 missingParams="false"
 IMAGE_REPO="cp.icr.io"
 pwdChange="true"
-# useFastStorageClass="false"
 
-# while getopts "n:r:b:u:p:d:a:f:e:h:o:m:q:j:k:l:s:t:v:" opt; do
-#   case ${opt} in
-#     n ) JOB_NAMESPACE="$OPTARG"
-#       ;;
-#     r ) navReplicaCount="$OPTARG"
-#       ;;
-#     b ) demoDeploymentBranch="$OPTARG"
-#       ;;
-#     u ) csDefaultAdminUser="$OPTARG"
-#       ;;
-#     p ) csDefaultAdminPassword="$OPTARG"
-#       ;;
-#     d ) demoPreparation="$OPTARG"
-#       ;;
-#     a ) eventEnabledInsuranceDemo="$OPTARG"
-#       ;;
-#     f ) drivewayDentDeletionDemo="$OPTARG"
-#       ;;
-#     e ) demoAPICEmailAddress="$OPTARG"
-#       ;;
-#     h ) demoAPICMailServerHost="$OPTARG"
-#       ;;
-#     o ) demoAPICMailServerPort="$OPTARG"
-#       ;;
-#     m ) demoAPICMailServerUsername="$OPTARG"
-#       ;;
-#     q ) demoAPICMailServerPassword="$OPTARG"
-#       ;;
-#     j ) tempERKey="$OPTARG"
-#       ;;
-#     k ) tempRepo="$OPTARG"
-#       ;;
-#     l ) DOCKER_REGISTRY_USER="$OPTARG"
-#       ;;
-#     s ) DOCKER_REGISTRY_PASS="$OPTARG"
-#       ;;
-#     t ) ENVIRONMENT="$OPTARG"
-#       ;;
-#     v ) useFastStorageClass="$OPTARG"
-#       ;;
-#     \? ) usage;
-#       ;;
-#   esac
-# done
+while getopts "n:r:b:u:p:d:a:f:e:h:o:m:q:j:k:l:s:t:v:" opt; do
+  case ${opt} in
+    n ) JOB_NAMESPACE="$OPTARG"
+      ;;
+    r ) navReplicaCount="$OPTARG"
+      ;;
+    b ) demoDeploymentBranch="$OPTARG"
+      ;;
+    u ) csDefaultAdminUser="$OPTARG"
+      ;;
+    p ) csDefaultAdminPassword="$OPTARG"
+      ;;
+    d ) demoPreparation="$OPTARG"
+      ;;
+    a ) eventEnabledInsuranceDemo="$OPTARG"
+      ;;
+    f ) drivewayDentDeletionDemo="$OPTARG"
+      ;;
+    e ) demoAPICEmailAddress="$OPTARG"
+      ;;
+    h ) demoAPICMailServerHost="$OPTARG"
+      ;;
+    o ) demoAPICMailServerPort="$OPTARG"
+      ;;
+    m ) demoAPICMailServerUsername="$OPTARG"
+      ;;
+    q ) demoAPICMailServerPassword="$OPTARG"
+      ;;
+    j ) tempERKey="$OPTARG"
+      ;;
+    k ) tempRepo="$OPTARG"
+      ;;
+    l ) DOCKER_REGISTRY_USER="$OPTARG"
+      ;;
+    s ) DOCKER_REGISTRY_PASS="$OPTARG"
+      ;;
+    t ) ENVIRONMENT="$OPTARG"
+      ;;
+    v ) useFastStorageClass="$OPTARG"
+      ;;
+    \? ) usage;
+      ;;
+  esac
+done
 
 if [[ -z "${JOB_NAMESPACE// }" ]]; then
   echo -e "$cross ERROR: 1-click install namespace is empty. Please provide a value for '-n' parameter."
