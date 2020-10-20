@@ -92,9 +92,9 @@ done
 echo "[INFO] Current directory: $CURRENT_DIR"
 echo "[INFO] Config directory: $CONFIG_DIR"
 
-TYPES=("serverconf"                   "keystore"                 "keystore"                 "keystore"                 "truststore"               "policyproject"                       "setdbparms")
-FILES=("$CONFIG_DIR/server.conf.yaml" "$CONFIG_DIR/keystore.p12" "$MQ_CERT/application.kdb" "$MQ_CERT/application.sth" "$MQ_CERT/application.jks" "$CONFIG_DIR/$SUFFIX/DefaultPolicies" "$CONFIG_DIR/$SUFFIX/setdbparms.txt")
-NAMES=("serverconf"                   "keystore"                 "application.kdb"          "application.sth"          "application.jks"          "policyproject-$SUFFIX"               "setdbparms-$SUFFIX")
+TYPES=("serverconf"                   "keystore"         "keystore"                 "keystore"                 "truststore"               "policyproject"                       "setdbparms")
+FILES=("$CONFIG_DIR/server.conf.yaml" "$KEYSTORE"        "$MQ_CERT/application.kdb" "$MQ_CERT/application.sth" "$MQ_CERT/application.jks" "$CONFIG_DIR/$SUFFIX/DefaultPolicies" "$CONFIG_DIR/$SUFFIX/setdbparms.txt")
+NAMES=("serverconf"                   "keystore-$SUFFIX" "application.kdb"          "application.sth"          "application.jks"          "policyproject-$SUFFIX"               "setdbparms-$SUFFIX")
 
 if [[ -z "${DB_PASS// }" || -z "${NAMESPACE// }" || -z "${DB_USER// }" || -z "${DB_NAME// }" || -z "${POSTGRES_NAMESPACE// }" || -z "${SUFFIX// }" ]]; then
   echo -e "$cross [ERROR] Some mandatory parameters are empty"
