@@ -11,6 +11,7 @@
 #******************************************************************************
 # PREREQUISITES:
 #   - Logged into cluster on the OC CLI (https://docs.openshift.com/container-platform/4.4/cli_reference/openshift_cli/getting-started-cli.html)
+#   - If running without parameters, all parameters must be set as environment variables
 #
 # PARAMETERS:
 #   -n : <JOB_NAMESPACE> (string), Namespace for the 1-click install
@@ -37,7 +38,7 @@
 #   With defaults values
 #     ./1-click-install.sh
 #
-#   Overriding the namespace and release-name
+#   Overriding the params
 #     ./1-click-install.sh -n "$JOB_NAMESPACE" -r "$navReplicaCount" -b "$demoDeploymentBranch" -u "$csDefaultAdminUser" -p "$csDefaultAdminPassword" -d "$demoPreparation" -a "$eventEnabledInsuranceDemo" -f "$drivewayDentDeletionDemo" -e "$demoAPICEmailAddress" -h "$demoAPICMailServerHost" -o "$demoAPICMailServerPort" -m "$demoAPICMailServerUsername" -q "$demoAPICMailServerPassword" -j "$tempERKey" -k "$tempRepo" -l "$DOCKER_REGISTRY_USER" -s "$DOCKER_REGISTRY_PASS" -t "$ENVIRONMENT" -v "$useFastStorageClass"
 
 function divider {
