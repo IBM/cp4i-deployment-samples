@@ -36,6 +36,7 @@ CONFIG_YAML=$CONFIG_DIR/configurations.yaml
 MQ_CERT=$CURRENT_DIR/mq/createcerts
 API_USER="bruce"
 KEYSTORE_PASS=$(LC_ALL=C tr -dc 'A-Za-z0-9' </dev/urandom | head -c 16 ; echo)
+KEYSTORE=$CONFIG_DIR/keystore.p12
 
 
 function usage {
@@ -143,7 +144,6 @@ echo "[INFO]  Creating keystore"
 CERTS_KEY_BUNDLE=$CONFIG_DIR/certs-key.pem
 CERTS=$CONFIG_DIR/certs.pem
 KEY=$CONFIG_DIR/key.pem
-KEYSTORE=$CONFIG_DIR/keystore.p12
 oc get secret -n openshift-config-managed router-certs -o json | jq -r '.data | .[]' | base64 --decode > $CERTS_KEY_BUNDLE
 openssl crl2pkcs7 -nocrl -certfile $CERTS_KEY_BUNDLE | openssl pkcs7 -print_certs -out $CERTS
 openssl pkey -in $CERTS_KEY_BUNDLE -out $KEY
