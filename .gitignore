@@ -34,3 +34,4 @@ setdbparms.txt
 DefaultPolicies.zip
 MQEndpointPolicy.policyxml
 PostgresqlPolicy.policyxml
+server.conf.yaml
