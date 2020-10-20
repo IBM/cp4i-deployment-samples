@@ -93,9 +93,9 @@ done
 echo "[INFO] Current directory: $CURRENT_DIR"
 echo "[INFO] Config directory: $CONFIG_DIR"
 
-TYPES=("serverconf"                   "keystore"         "keystore"                 "keystore"                 "truststore"               "policyproject"                       "setdbparms")
-FILES=("$CONFIG_DIR/server.conf.yaml" "$KEYSTORE"        "$MQ_CERT/application.kdb" "$MQ_CERT/application.sth" "$MQ_CERT/application.jks" "$CONFIG_DIR/$SUFFIX/DefaultPolicies" "$CONFIG_DIR/$SUFFIX/setdbparms.txt")
-NAMES=("serverconf"                   "keystore-$SUFFIX" "application.kdb"          "application.sth"          "application.jks"          "policyproject-$SUFFIX"               "setdbparms-$SUFFIX")
+TYPES=("serverconf"                           "keystore"         "keystore"                 "keystore"                 "truststore"               "policyproject"                       "setdbparms")
+FILES=("$CONFIG_DIR/$SUFFIX/server.conf.yaml" "$KEYSTORE"        "$MQ_CERT/application.kdb" "$MQ_CERT/application.sth" "$MQ_CERT/application.jks" "$CONFIG_DIR/$SUFFIX/DefaultPolicies" "$CONFIG_DIR/$SUFFIX/setdbparms.txt")
+NAMES=("serverconf-$SUFFIX"                   "keystore-$SUFFIX" "application.kdb"          "application.sth"          "application.jks"          "policyproject-$SUFFIX"               "setdbparms-$SUFFIX")
 
 if [[ -z "${DB_PASS// }" || -z "${NAMESPACE// }" || -z "${DB_USER// }" || -z "${DB_NAME// }" || -z "${POSTGRES_NAMESPACE// }" || -z "${SUFFIX// }" ]]; then
   echo -e "$cross [ERROR] Some mandatory parameters are empty"
@@ -144,10 +144,17 @@ echo "[INFO]  Creating keystore"
 CERTS_KEY_BUNDLE=$CONFIG_DIR/certs-key.pem
 CERTS=$CONFIG_DIR/certs.pem
 KEY=$CONFIG_DIR/key.pem
+rm $CERTS $KEY $KEYSTORE
 oc get secret -n openshift-config-managed router-certs -o json | jq -r '.data | .[]' | base64 --decode > $CERTS_KEY_BUNDLE
 openssl crl2pkcs7 -nocrl -certfile $CERTS_KEY_BUNDLE | openssl pkcs7 -print_certs -out $CERTS
 openssl pkey -in $CERTS_KEY_BUNDLE -out $KEY
 openssl pkcs12 -export -out $KEYSTORE -inkey $KEY -in $CERTS -password pass:$KEYSTORE_PASS
+
+echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
+
+echo "[INFO]  Templating server.conf.yaml"
+cat $CONFIG_DIR/server.conf.yaml.template |
+  sed "s#{{KEYSTORE}}#keystore-$SUFFIX#g;" > $CONFIG_DIR/$SUFFIX/server.conf.yaml
 
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
