@@ -191,336 +191,339 @@ echo -e "$info If using fast storage for the installation: '$useFastStorageClass
 
 divider
 
-echo "INFO: Doing a validation check before installation..."
-if ! $CURRENT_DIR/1-click-pre-validation.sh -n "$NAMESPACE" -p "$csDefaultAdminPassword" -r "$navReplicaCount" -u "$csDefaultAdminUser" -d "$demoPreparation"; then
-  echo -e "$cross ERROR: Validation check failed"
-  divider
-  exit 1
-fi
+echo -e "\n Print env. variables set in samples 1-click script:"
+$env
 
-divider
+# echo "INFO: Doing a validation check before installation..."
+# if ! $CURRENT_DIR/1-click-pre-validation.sh -n "$NAMESPACE" -p "$csDefaultAdminPassword" -r "$navReplicaCount" -u "$csDefaultAdminUser" -d "$demoPreparation"; then
+#   echo -e "$cross ERROR: Validation check failed"
+#   divider
+#   exit 1
+# fi
 
-if [[ -z "${tempERKey}" ]]; then
-  # Use the entitlement key
-  export DOCKER_REGISTRY_USER=${DOCKER_REGISTRY_USER:-ekey}
-  export DOCKER_REGISTRY_PASS=${DOCKER_REGISTRY_PASS:-none}
-else
-  # Use the tempERKey override as an api key
-  export DOCKER_REGISTRY_USER="iamapikey"
-  export DOCKER_REGISTRY_PASS=${tempERKey}
-fi
+# divider
 
-if [[ "$ENVIRONMENT" == "STAGING" ]]; then
-  export IMAGE_REPO="cp.stg.icr.io"
-fi
+# if [[ -z "${tempERKey}" ]]; then
+#   # Use the entitlement key
+#   export DOCKER_REGISTRY_USER=${DOCKER_REGISTRY_USER:-ekey}
+#   export DOCKER_REGISTRY_PASS=${DOCKER_REGISTRY_PASS:-none}
+# else
+#   # Use the tempERKey override as an api key
+#   export DOCKER_REGISTRY_USER="iamapikey"
+#   export DOCKER_REGISTRY_PASS=${tempERKey}
+# fi
 
-export IMAGE_REPO=${tempRepo:-$IMAGE_REPO}
+# if [[ "$ENVIRONMENT" == "STAGING" ]]; then
+#   export IMAGE_REPO="cp.stg.icr.io"
+# fi
 
-if oc get namespace $NAMESPACE >/dev/null 2>&1; then
-  echo -e "$info INFO: namespace $NAMESPACE already exists"
-  divider
-else
-  echo "INFO: Creating $NAMESPACE namespace"
-  if ! oc create namespace $NAMESPACE; then
-    echo -e "$cross ERROR: Failed to create the $NAMESPACE namespace" 1>&2
-    divider
-    exit 1
-  fi
-fi
+# export IMAGE_REPO=${tempRepo:-$IMAGE_REPO}
 
-divider
+# if oc get namespace $NAMESPACE >/dev/null 2>&1; then
+#   echo -e "$info INFO: namespace $NAMESPACE already exists"
+#   divider
+# else
+#   echo "INFO: Creating $NAMESPACE namespace"
+#   if ! oc create namespace $NAMESPACE; then
+#     echo -e "$cross ERROR: Failed to create the $NAMESPACE namespace" 1>&2
+#     divider
+#     exit 1
+#   fi
+# fi
 
-# This storage class improves the pvc performance for small PVCs
-echo "INFO: Creating new cp4i-block-performance storage class"
-cat <<EOF | oc apply -n $NAMESPACE -f -
-apiVersion: storage.k8s.io/v1
-kind: StorageClass
-metadata:
- name: cp4i-block-performance
- labels:
-   kubernetes.io/cluster-service: "true"
-provisioner: ibm.io/ibmc-block
-parameters:
- billingType: "hourly"
- classVersion: "2"
- sizeIOPSRange: |-
-   "[1-39]Gi:[1000]"
-   "[40-79]Gi:[2000]"
-   "[80-99]Gi:[4000]"
-   "[100-499]Gi:[5000-6000]"
-   "[500-999]Gi:[5000-10000]"
-   "[1000-1999]Gi:[10000-20000]"
-   "[2000-2999]Gi:[20000-40000]"
-   "[3000-12000]Gi:[24000-48000]"
- type: "Performance"
-reclaimPolicy: Delete
-volumeBindingMode: Immediate
-EOF
+# divider
 
-if [[ "${useFastStorageClass}" == "true" ]]; then
-  defaultStorageClass=$(oc get sc -o json | jq -r '.items[].metadata | select(.annotations["storageclass.kubernetes.io/is-default-class"] == "true") | .name')
-  echo -e "$info INFO: Current default storage class is: $defaultStorageClass"
+# # This storage class improves the pvc performance for small PVCs
+# echo "INFO: Creating new cp4i-block-performance storage class"
+# cat <<EOF | oc apply -n $NAMESPACE -f -
+# apiVersion: storage.k8s.io/v1
+# kind: StorageClass
+# metadata:
+#  name: cp4i-block-performance
+#  labels:
+#    kubernetes.io/cluster-service: "true"
+# provisioner: ibm.io/ibmc-block
+# parameters:
+#  billingType: "hourly"
+#  classVersion: "2"
+#  sizeIOPSRange: |-
+#    "[1-39]Gi:[1000]"
+#    "[40-79]Gi:[2000]"
+#    "[80-99]Gi:[4000]"
+#    "[100-499]Gi:[5000-6000]"
+#    "[500-999]Gi:[5000-10000]"
+#    "[1000-1999]Gi:[10000-20000]"
+#    "[2000-2999]Gi:[20000-40000]"
+#    "[3000-12000]Gi:[24000-48000]"
+#  type: "Performance"
+# reclaimPolicy: Delete
+# volumeBindingMode: Immediate
+# EOF
 
-  echo -e "$info INFO: Making $defaultStorageClass non-default"
-  oc patch storageclass $defaultStorageClass -p '{"metadata": {"annotations":{"storageclass.kubernetes.io/is-default-class":"false"}}}'
+# if [[ "${useFastStorageClass}" == "true" ]]; then
+#   defaultStorageClass=$(oc get sc -o json | jq -r '.items[].metadata | select(.annotations["storageclass.kubernetes.io/is-default-class"] == "true") | .name')
+#   echo -e "$info INFO: Current default storage class is: $defaultStorageClass"
 
-  echo -e "$info INFO: Making cp4i-block-performance default"
-  oc patch storageclass cp4i-block-performance -p '{"metadata": {"annotations":{"storageclass.kubernetes.io/is-default-class":"true"}}}'
-fi
+#   echo -e "$info INFO: Making $defaultStorageClass non-default"
+#   oc patch storageclass $defaultStorageClass -p '{"metadata": {"annotations":{"storageclass.kubernetes.io/is-default-class":"false"}}}'
 
-divider
+#   echo -e "$info INFO: Making cp4i-block-performance default"
+#   oc patch storageclass cp4i-block-performance -p '{"metadata": {"annotations":{"storageclass.kubernetes.io/is-default-class":"true"}}}'
+# fi
 
-echo -e "$info INFO: Current storage classes:"
-oc get sc
+# divider
 
-divider
+# echo -e "$info INFO: Current storage classes:"
+# oc get sc
 
-# Create secret to pull images from the ER
-echo "INFO: Creating secret to pull images from the ER"
-oc -n ${NAMESPACE} create secret docker-registry ibm-entitlement-key \
-  --docker-server=${IMAGE_REPO} \
-  --docker-username=${DOCKER_REGISTRY_USER} \
-  --docker-password=${DOCKER_REGISTRY_PASS} \
-  --dry-run -o yaml | oc apply -f -
+# divider
 
-divider
+# # Create secret to pull images from the ER
+# echo "INFO: Creating secret to pull images from the ER"
+# oc -n ${NAMESPACE} create secret docker-registry ibm-entitlement-key \
+#   --docker-server=${IMAGE_REPO} \
+#   --docker-username=${DOCKER_REGISTRY_USER} \
+#   --docker-password=${DOCKER_REGISTRY_PASS} \
+#   --dry-run -o yaml | oc apply -f -
 
-echo "INFO: Checking for the platform-auth-idp-credentials secret"
-if oc get secrets platform-auth-idp-credentials -n ibm-common-services; then
-  pwdChange=false
-  echo -e "$info INFO: Secret platform-auth-idp-credentials already exist so not updating password and username in the installation with provided values"
-else
-  echo -e "$info INFO: Secret platform-auth-idp-credentials does exist so will update password and username in the installation with provided values"
-fi
+# divider
 
-divider
+# echo "INFO: Checking for the platform-auth-idp-credentials secret"
+# if oc get secrets platform-auth-idp-credentials -n ibm-common-services; then
+#   pwdChange=false
+#   echo -e "$info INFO: Secret platform-auth-idp-credentials already exist so not updating password and username in the installation with provided values"
+# else
+#   echo -e "$info INFO: Secret platform-auth-idp-credentials does exist so will update password and username in the installation with provided values"
+# fi
 
-echo "INFO: Applying catalogsources"
-cat <<EOF | oc apply -f -
----
-apiVersion: operators.coreos.com/v1alpha1
-kind: CatalogSource
-metadata:
-  name: opencloud-operators
-  namespace: openshift-marketplace
-spec:
-  displayName: IBMCS Operators
-  publisher: IBM
-  sourceType: grpc
-  image: docker.io/ibmcom/ibm-common-service-catalog:latest
-  updateStrategy:
-    registryPoll:
-      interval: 45m
+# divider
 
----
+# echo "INFO: Applying catalogsources"
+# cat <<EOF | oc apply -f -
+# ---
+# apiVersion: operators.coreos.com/v1alpha1
+# kind: CatalogSource
+# metadata:
+#   name: opencloud-operators
+#   namespace: openshift-marketplace
+# spec:
+#   displayName: IBMCS Operators
+#   publisher: IBM
+#   sourceType: grpc
+#   image: docker.io/ibmcom/ibm-common-service-catalog:latest
+#   updateStrategy:
+#     registryPoll:
+#       interval: 45m
 
-apiVersion: operators.coreos.com/v1alpha1
-kind: CatalogSource
-metadata:
-  name: ibm-operator-catalog
-  namespace: openshift-marketplace
-spec:
-  displayName: ibm-operator-catalog
-  publisher: IBM Content
-  sourceType: grpc
-  image: docker.io/ibmcom/ibm-operator-catalog
-  updateStrategy:
-    registryPoll:
-      interval: 45m
-EOF
+# ---
 
-divider
+# apiVersion: operators.coreos.com/v1alpha1
+# kind: CatalogSource
+# metadata:
+#   name: ibm-operator-catalog
+#   namespace: openshift-marketplace
+# spec:
+#   displayName: ibm-operator-catalog
+#   publisher: IBM Content
+#   sourceType: grpc
+#   image: docker.io/ibmcom/ibm-operator-catalog
+#   updateStrategy:
+#     registryPoll:
+#       interval: 45m
+# EOF
 
-if ! $CURRENT_DIR/deploy-og-sub.sh -n ${NAMESPACE}; then
-  echo -e "$cross ERROR: Failed to deploy the operator group and subscriptions" 1>&2
-  divider
-  exit 1
-else
-  echo -e "$tick INFO: Deployed the operator groups and subscriptions"
-fi
+# divider
 
-divider
+# if ! $CURRENT_DIR/deploy-og-sub.sh -n ${NAMESPACE}; then
+#   echo -e "$cross ERROR: Failed to deploy the operator group and subscriptions" 1>&2
+#   divider
+#   exit 1
+# else
+#   echo -e "$tick INFO: Deployed the operator groups and subscriptions"
+# fi
 
-if ! $CURRENT_DIR/release-navigator.sh -n ${NAMESPACE} -r ${navReplicaCount}; then
-  echo -e "$cross ERROR: Failed to release navigator" 1>&2
-  divider
-  exit 1
-else
-  echo -e "$tick INFO: Successfully released the platform navigator"
-fi
+# divider
 
-divider
+# if ! $CURRENT_DIR/release-navigator.sh -n ${NAMESPACE} -r ${navReplicaCount}; then
+#   echo -e "$cross ERROR: Failed to release navigator" 1>&2
+#   divider
+#   exit 1
+# else
+#   echo -e "$tick INFO: Successfully released the platform navigator"
+# fi
 
-# Only update common services username and password if common servies is not already installed
-if [ "${pwdChange}" == "true" ]; then
-  if ! $CURRENT_DIR/change-cs-credentials.sh -u ${csDefaultAdminUser} -p ${csDefaultAdminPassword} ; then
-    echo -e "$cross ERROR: Failed to update the common services admin username/password" 1>&2
-    divider
-    exit 1
-  else
-    echo -e "$tick INFO: Successfully updated the common services admin username/password"
-  fi
-else
-  echo -e "$info INFO: Retrieve the common service username using the command 'oc get secrets -n ibm-common-services platform-auth-idp-credentials -o jsonpath='{.data.admin_username}' | base64 --decode' "
-  echo -e "$info INFO: Retrieve the common service password using the command 'oc get secrets -n ibm-common-services platform-auth-idp-credentials -o jsonpath='{.data.admin_password}' | base64 --decode' "
-fi
+# divider
 
-divider
+# # Only update common services username and password if common servies is not already installed
+# if [ "${pwdChange}" == "true" ]; then
+#   if ! $CURRENT_DIR/change-cs-credentials.sh -u ${csDefaultAdminUser} -p ${csDefaultAdminPassword} ; then
+#     echo -e "$cross ERROR: Failed to update the common services admin username/password" 1>&2
+#     divider
+#     exit 1
+#   else
+#     echo -e "$tick INFO: Successfully updated the common services admin username/password"
+#   fi
+# else
+#   echo -e "$info INFO: Retrieve the common service username using the command 'oc get secrets -n ibm-common-services platform-auth-idp-credentials -o jsonpath='{.data.admin_username}' | base64 --decode' "
+#   echo -e "$info INFO: Retrieve the common service password using the command 'oc get secrets -n ibm-common-services platform-auth-idp-credentials -o jsonpath='{.data.admin_password}' | base64 --decode' "
+# fi
 
-# ----------------------------------------------- Postgres for ddd and eei ------------------------------------------------------------
+# divider
 
-if [[ "${demoPreparation}" == "true" || "${eventEnabledInsuranceDemo}" == "true" || "${drivewayDentDeletionDemo}" == "true" ]]; then
-  if ! $CURRENT_DIR/release-psql.sh; then
-    echo -e "$cross ERROR: Failed to release PostgreSQL" 1>&2
-    divider
-    exit 1
-  else
-    echo -e "$tick INFO: Successfully released PostgresSQL"
-    divider
-  fi
-fi #postgres
+# # ----------------------------------------------- Postgres for ddd and eei ------------------------------------------------------------
 
-# -------------------------------------------------- All other demos ----------------------------------------------------------------
+# if [[ "${demoPreparation}" == "true" || "${eventEnabledInsuranceDemo}" == "true" || "${drivewayDentDeletionDemo}" == "true" ]]; then
+#   if ! $CURRENT_DIR/release-psql.sh; then
+#     echo -e "$cross ERROR: Failed to release PostgreSQL" 1>&2
+#     divider
+#     exit 1
+#   else
+#     echo -e "$tick INFO: Successfully released PostgresSQL"
+#     divider
+#   fi
+# fi #postgres
 
-if [[ "${demoPreparation}" == "true" ]]; then
+# # -------------------------------------------------- All other demos ----------------------------------------------------------------
 
-  if ! $CURRENT_DIR/release-ar.sh -r ar-demo -n ${NAMESPACE}; then
-    echo -e "$cross ERROR: Failed to release asset repo" 1>&2
-    divider
-    exit 1
-  else
-    echo -e "$tick INFO: Successfully released asset repo"
-  fi
+# if [[ "${demoPreparation}" == "true" ]]; then
 
-  divider
+#   if ! $CURRENT_DIR/release-ar.sh -r ar-demo -n ${NAMESPACE}; then
+#     echo -e "$cross ERROR: Failed to release asset repo" 1>&2
+#     divider
+#     exit 1
+#   else
+#     echo -e "$tick INFO: Successfully released asset repo"
+#   fi
 
-  if ! $CURRENT_DIR/release-ace.sh -n ${NAMESPACE}; then
-    echo -e "$cross : Failed to release ace dashboard and ace designer" 1>&2
-    exit 1
-  else
-    echo -e "$tick INFO: Successfully released ace dashboard and ace designer"
-  fi
+#   divider
 
-  divider
+#   if ! $CURRENT_DIR/release-ace.sh -n ${NAMESPACE}; then
+#     echo -e "$cross : Failed to release ace dashboard and ace designer" 1>&2
+#     exit 1
+#   else
+#     echo -e "$tick INFO: Successfully released ace dashboard and ace designer"
+#   fi
 
-  if ! $CURRENT_DIR/release-mq.sh -n ${NAMESPACE} -t ; then
-    echo -e "$cross : Failed to release mq" 1>&2
-    divider
-    exit 1
-  else
-    echo -e "$tick INFO: Successfully released asset repo"
-    divider
-  fi
-fi #demoPreparation
+#   divider
 
-# ------------------------------------------- Event Enabled Insurance demo specific ---------------------------------------------------
+#   if ! $CURRENT_DIR/release-mq.sh -n ${NAMESPACE} -t ; then
+#     echo -e "$cross : Failed to release mq" 1>&2
+#     divider
+#     exit 1
+#   else
+#     echo -e "$tick INFO: Successfully released asset repo"
+#     divider
+#   fi
+# fi #demoPreparation
 
-if [[ "${eventEnabledInsuranceDemo}" == "true" || "${demoPreparation}" == "true" ]]; then
-  if ! $CURRENT_DIR/release-es.sh -n ${NAMESPACE}; then
-    echo "ERROR: Failed to release event streams" 1>&2
-    divider
-    exit 1
-  else
-    echo -e "$tick INFO: Successfully released event streams"
-  fi
+# # ------------------------------------------- Event Enabled Insurance demo specific ---------------------------------------------------
 
-  divider
+# if [[ "${eventEnabledInsuranceDemo}" == "true" || "${demoPreparation}" == "true" ]]; then
+#   if ! $CURRENT_DIR/release-es.sh -n ${NAMESPACE}; then
+#     echo "ERROR: Failed to release event streams" 1>&2
+#     divider
+#     exit 1
+#   else
+#     echo -e "$tick INFO: Successfully released event streams"
+#   fi
 
-  # call prereqs for event enabled without branch and repo params
-  # branch defaults to 'main' inside the prereqs
-  # repo defaults to 'https://github.com/IBM/cp4i-deployment-samples.git' inside the prereqs
-  if ! $CURRENT_DIR/../../EventEnabledInsurance/prereqs.sh -n ${NAMESPACE} -b ${demoDeploymentBranch}; then
-    echo "ERROR: Failed to run event enabled insurance prereqs script" 1>&2
-    divider
-    exit 1
-  fi
-fi #eventEnabledInsuranceDemo
+#   divider
 
-# ------------------------------------------- Driveway Dent Deletion demo specific ---------------------------------------------------
+#   # call prereqs for event enabled without branch and repo params
+#   # branch defaults to 'main' inside the prereqs
+#   # repo defaults to 'https://github.com/IBM/cp4i-deployment-samples.git' inside the prereqs
+#   if ! $CURRENT_DIR/../../EventEnabledInsurance/prereqs.sh -n ${NAMESPACE} -b ${demoDeploymentBranch}; then
+#     echo "ERROR: Failed to run event enabled insurance prereqs script" 1>&2
+#     divider
+#     exit 1
+#   fi
+# fi #eventEnabledInsuranceDemo
 
-if [[ "${drivewayDentDeletionDemo}" == "true" || "${demoPreparation}" == "true" ]]; then
+# # ------------------------------------------- Driveway Dent Deletion demo specific ---------------------------------------------------
 
-  divider
+# if [[ "${drivewayDentDeletionDemo}" == "true" || "${demoPreparation}" == "true" ]]; then
 
-  if ! $CURRENT_DIR/../../DrivewayDentDeletion/Operators/prereqs.sh -n ${NAMESPACE}; then
-    echo "ERROR: Failed to run driveway dent deletion prereqs script" 1>&2
-    divider
-    exit 1
-  fi
+#   divider
 
-  divider
+#   if ! $CURRENT_DIR/../../DrivewayDentDeletion/Operators/prereqs.sh -n ${NAMESPACE}; then
+#     echo "ERROR: Failed to run driveway dent deletion prereqs script" 1>&2
+#     divider
+#     exit 1
+#   fi
 
-  if ! $CURRENT_DIR/release-tracing.sh -n ${NAMESPACE}; then
-    echo "ERROR: Failed to release tracing" 1>&2
-    exit 1
-  else
-    echo -e "$tick INFO: Successfully released tracing"
-    divider
-  fi
+#   divider
 
-  if ! $CURRENT_DIR/release-ace-dashboard.sh -n ${NAMESPACE}; then
-    echo "ERROR: Failed to release ace dashboard" 1>&2
-    exit 1
-  else
-    echo -e "$tick INFO: Successfully released ace dashboard"
-    divider
-  fi
+#   if ! $CURRENT_DIR/release-tracing.sh -n ${NAMESPACE}; then
+#     echo "ERROR: Failed to release tracing" 1>&2
+#     exit 1
+#   else
+#     echo -e "$tick INFO: Successfully released tracing"
+#     divider
+#   fi
 
-  if ! $CURRENT_DIR/release-apic.sh -n ${NAMESPACE} -t ; then
-    echo "ERROR: Failed to release apic" 1>&2
-    exit 1
-  else
-    echo -e "$tick INFO: Successfully released apic"
-    divider
-  fi
+#   if ! $CURRENT_DIR/release-ace-dashboard.sh -n ${NAMESPACE}; then
+#     echo "ERROR: Failed to release ace dashboard" 1>&2
+#     exit 1
+#   else
+#     echo -e "$tick INFO: Successfully released ace dashboard"
+#     divider
+#   fi
 
-  if ! $CURRENT_DIR/register-tracing.sh -n ${NAMESPACE} ; then
-    echo "ERROR: Failed to register tracing. Tracing secret not created" 1>&2
-    exit 1
-  else
-    echo -e "$tick INFO: Successfully registered tracing"
-    divider
-  fi
+#   if ! $CURRENT_DIR/release-apic.sh -n ${NAMESPACE} -t ; then
+#     echo "ERROR: Failed to release apic" 1>&2
+#     exit 1
+#   else
+#     echo -e "$tick INFO: Successfully released apic"
+#     divider
+#   fi
 
-  export PORG_ADMIN_EMAIL=${demoAPICEmailAddress}
-  export MAIL_SERVER_HOST=${demoAPICMailServerHost}
-  export MAIL_SERVER_PORT=${demoAPICMailServerPort}
-  export MAIL_SERVER_USERNAME=${demoAPICMailServerUsername}
-  export MAIL_SERVER_PASSWORD=${demoAPICMailServerPassword}
+#   if ! $CURRENT_DIR/register-tracing.sh -n ${NAMESPACE} ; then
+#     echo "ERROR: Failed to register tracing. Tracing secret not created" 1>&2
+#     exit 1
+#   else
+#     echo -e "$tick INFO: Successfully registered tracing"
+#     divider
+#   fi
 
-  if ! $CURRENT_DIR/configure-apic-v10.sh -n ${NAMESPACE} ; then
-    echo "ERROR: Failed to configure apic" 1>&2
-    exit 1
-  else
-    echo -e "$tick INFO: Successfully onfigured apic"
-    divider
-  fi
-fi #drivewayDentDeletionDemo
+#   export PORG_ADMIN_EMAIL=${demoAPICEmailAddress}
+#   export MAIL_SERVER_HOST=${demoAPICMailServerHost}
+#   export MAIL_SERVER_PORT=${demoAPICMailServerPort}
+#   export MAIL_SERVER_USERNAME=${demoAPICMailServerUsername}
+#   export MAIL_SERVER_PASSWORD=${demoAPICMailServerPassword}
 
-# -------------------------------------------------- All other demos ----------------------------------------------------------------
+#   if ! $CURRENT_DIR/configure-apic-v10.sh -n ${NAMESPACE} ; then
+#     echo "ERROR: Failed to configure apic" 1>&2
+#     exit 1
+#   else
+#     echo -e "$tick INFO: Successfully onfigured apic"
+#     divider
+#   fi
+# fi #drivewayDentDeletionDemo
 
-if [[ "${demoPreparation}" == "true" ]]; then
-  export CP_USERNAME=${csDefaultAdminUser}
-  export CP_PASSWORD=${csDefaultAdminPassword}
-  export CP_CONSOLE=$(oc get routes -n ibm-common-services cp-console -o jsonpath='{.spec.host}')
-  if [ -z "$CP_CONSOLE" ]; then
-    echo "ERROR: Failed to get cp-console host" 1>&2
-    divider
-    exit 1
-  else
-    echo -e "$tick INFO: Successfully got cp-console host"
-  fi
+# # -------------------------------------------------- All other demos ----------------------------------------------------------------
 
-  divider
+# if [[ "${demoPreparation}" == "true" ]]; then
+#   export CP_USERNAME=${csDefaultAdminUser}
+#   export CP_PASSWORD=${csDefaultAdminPassword}
+#   export CP_CONSOLE=$(oc get routes -n ibm-common-services cp-console -o jsonpath='{.spec.host}')
+#   if [ -z "$CP_CONSOLE" ]; then
+#     echo "ERROR: Failed to get cp-console host" 1>&2
+#     divider
+#     exit 1
+#   else
+#     echo -e "$tick INFO: Successfully got cp-console host"
+#   fi
 
-  export CP_CONSOLE_URL="https://${CP_CONSOLE}"
-  if ! $CURRENT_DIR/ar_remote_create.sh -r ar-demo -n ${NAMESPACE} -o; then
-    echo "ERROR: Failed to create remote for Asset repo" 1>&2
-    divider
-    exit 1
-  else
-    echo -e "$tick INFO: Successfully created remote for Asset repo"
-  fi
-fi #demoPreparation
+#   divider
 
-divider
+#   export CP_CONSOLE_URL="https://${CP_CONSOLE}"
+#   if ! $CURRENT_DIR/ar_remote_create.sh -r ar-demo -n ${NAMESPACE} -o; then
+#     echo "ERROR: Failed to create remote for Asset repo" 1>&2
+#     divider
+#     exit 1
+#   else
+#     echo -e "$tick INFO: Successfully created remote for Asset repo"
+#   fi
+# fi #demoPreparation
+
+# divider
