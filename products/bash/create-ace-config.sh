@@ -38,6 +38,7 @@ API_USER="bruce"
 API_PASS=$(LC_ALL=C tr -dc 'A-Za-z0-9' </dev/urandom | head -c 16 ; echo)
 KEYSTORE_PASS=$(LC_ALL=C tr -dc 'A-Za-z0-9' </dev/urandom | head -c 16 ; echo)
 
+
 function usage {
   echo "Usage: $0 -n <NAMESPACE> -g <POSTGRES_NAMESPACE> -u <DB_USER> -d <DB_NAME> -p <DB_PASS> -s <SUFFIX>"
   exit 1
@@ -54,18 +55,13 @@ function buildConfigurationCR {
     echo "INFO: Create ace config base64 command for MAC"
     COMMAND="base64 $file"
   fi
-  CONTENTS="$($COMMAND)"
-  if [[ "$?" != "0" ]]; then
-    echo -e "$cross [ERROR] Failed to base64 encode file using: ${COMMAND}"
-    exit 1
-  fi
   echo "apiVersion: appconnect.ibm.com/v1beta1" >> $CONFIG_YAML
   echo "kind: Configuration" >> $CONFIG_YAML
   echo "metadata:" >> $CONFIG_YAML
   echo "  name: $name" >> $CONFIG_YAML
   echo "  namespace: $NAMESPACE" >> $CONFIG_YAML
   echo "spec:" >> $CONFIG_YAML
-  echo "  contents: ${CONTENTS}" >> $CONFIG_YAML
+  echo "  contents: $($COMMAND)" >> $CONFIG_YAML
   echo "  type: $type" >> $CONFIG_YAML
   echo "---" >> $CONFIG_YAML
 }
