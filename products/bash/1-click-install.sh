@@ -151,7 +151,6 @@ fi
 
 if [[ "$missingParams" == "true" ]]; then
   divider
-  # usage
   exit 1
 fi
 
@@ -172,12 +171,6 @@ echo -e "$info Temporary ER repository: '$tempRepo'"
 echo -e "$info Dcoker registry username: '$DOCKER_REGISTRY_USER'"
 echo -e "$info Environment for installation: '$ENVIRONMENT'"
 echo -e "$info If using fast storage for the installation: '$useFastStorageClass'"
-
-# TODO: REMOVE
-echo -e "$info Default cs admin pass: '$csDefaultAdminPassword'"
-echo -e "$info Demo APIC server password: '$demoAPICMailServerPassword'"
-echo -e "$info Docker password: '$DOCKER_REGISTRY_PASS'"
-# TODO: REMOVE
 
 divider
 
