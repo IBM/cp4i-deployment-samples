@@ -51,7 +51,7 @@ public class MyHttpHandler implements HttpHandler {
             contentBuilder.append
             (
                 "<tr>" +
-                    "<td><a href=\"?quoteid=" + quoteid + "\">" + quoteid + "</a></th>" +
+                    "<td><a href=\"/?quoteid=" + quoteid + "\">" + quoteid + "</a></th>" +
                     "<td>" + row.get("name").toString().replace("\"", "") + "</th>" +
                     "<td>" + row.get("email").toString().replace("\"", "") + "</th>" +
                     "<td>" + row.get("address").toString().replace("\"", "") + "</th>" +
