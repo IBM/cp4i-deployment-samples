@@ -8,6 +8,7 @@ api.yaml
 bin
 delete.sh
 EventEnabledInsurance/ProjectionClaims/build
+.project
 gradle
 gradlew
 gradlew.bat
