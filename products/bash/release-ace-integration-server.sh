@@ -266,8 +266,8 @@ while [ "$numberOfMatchesForImageTag" -ne "$numberOfReplicas" ]; do
 done
 
 GOT_SERVICE=false
-for i in `seq 1 5`; do
-  if oc get svc ${is_release_name}-is -n ${NAMESPACE}; then
+for i in `seq 1 30`; do
+  if oc get svc ${is_release_name}-is -n ${namespace}; then
     GOT_SERVICE=true
     break
   else
@@ -276,4 +276,4 @@ for i in `seq 1 5`; do
     sleep 10
   fi
 done
-[[ "$GOT_SERVICE" == "false" ]] && echo -e "[ERROR] ${CROSS} ace api integration server service doesn't exist"
+[[ "$GOT_SERVICE" == "false" ]] && echo -e "[ERROR] ${CROSS} ace api integration server service doesn't exist" && exit 1
