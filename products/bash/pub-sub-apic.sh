@@ -398,3 +398,32 @@ RES=$(curl -kLsS -X POST https://$PLATFORM_API_EP/api/apps/$ORG/$CATALOG/$C_ORG/
 }")
 handle_res "${RES}"
 echo -e "[INFO] ${TICK} Subscription created"
+
+
+echo "[INFO]  Getting client id..."
+RES=$(curl -kLsS https://$PLATFORM_API_EP/api/catalogs/$ORG/$CATALOG/credentials \
+  -H "accept: application/json" \
+  -H "authorization: Bearer ${TOKEN}")
+CLIENT_ID=$(echo "${RES}" | $JQ -r '.results[] | select(.name | contains("'${APP}'")).client_id')
+$DEBUG && echo "[DEBUG] Client id: ${CLIENT_ID}"
+[[ $CLIENT_ID == "null" ]] && echo -e "[ERROR] ${CROSS} Couldn't get client id" && exit 1
+echo -e "[INFO]  ${TICK} Got client id"
+
+echo "[INFO]  Creating secret ${DEMO_NAME}-api-endpoint-client-id"
+BASE_PATH=$(grep 'basePath:' ${CURRENT_DIR}/api.yaml | head -1 | awk '{print $2}')
+$DEBUG && echo "[DEBUG] BASE_PATH: ${BASE_PATH}"
+HOST="https://$(oc get route -n $MAIN_NAMESPACE ${RELEASE}-gw-gateway -o jsonpath='{.spec.host}')/$ORG/$CATALOG$BASE_PATH"
+$DEBUG && echo "[DEBUG] HOST: ${HOST}"
+
+# Store api endpoint & client id in secret
+cat << EOF | oc apply -n ${NAMESPACE} -f -
+apiVersion: v1
+kind: Secret
+metadata:
+  name: ${DEMO_NAME}-api-endpoint-client-id
+type: Opaque
+stringData:
+  api: ${HOST}
+  cid: ${CLIENT_ID}
+EOF
+echo -e "[INFO]  ${TICK} Secret created"
