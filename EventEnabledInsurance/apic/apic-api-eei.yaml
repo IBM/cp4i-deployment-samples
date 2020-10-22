@@ -1,77 +1,9 @@
 swagger: '2.0'
 info:
   title: EventEnabledInsurance
-  x-ibm-name: eventenabledinsurance
   version: 1.0.0
   description: EventEnabledInsurance
-schemes:
-  - https
-basePath: /eventinsurance
-securityDefinitions:
-  clientID:
-    type: apiKey
-    name: X-IBM-Client-Id
-    in: header
-x-ibm-configuration:
-  gateway: datapower-api-gateway
-  type: rest
-  phase: realized
-  enforced: true
-  testable: true
-  cors:
-    enabled: true
-  assembly:
-    execute:
-      - invoke:
-          title: invoke
-          version: 2.0.0
-          verb: keep
-          target-url: $(target-url)
-          follow-redirects: false
-          timeout: 60
-          parameter-control:
-            type: blacklist
-            values: []
-          header-control:
-            type: blacklist
-            values: []
-          inject-proxy-headers: true
-          username: {{BASIC_AUTH_USERNAME}}
-          password: {{BASIC_AUTH_PASSWORD}}
-  properties:
-    target-url:
-      value: >-
-        {{TARGET_URL}}
-      description: The URL of the target service
-      encoded: false
-  application-authentication:
-    certificate: false
-definitions:
-  Quote:
-    type: object
-    properties:
-      name:
-        type: string
-      email:
-        type: string
-      age:
-        type: integer
-      address:
-        type: string
-      usState:
-        type: string
-      licensePlate:
-        type: string
-      descriptionOfDamage:
-        type: string
-    required:
-      - name
-      - email
-      - age
-      - address
-      - usState
-      - licensePlate
-      - descriptionOfDamage
+  x-ibm-name: eventenabledinsurance
 paths:
   /quote:
     get:
@@ -107,3 +39,75 @@ paths:
             $ref: '#/definitions/Quote'
           description: The request body for the operation
           required: true
+basePath: /eventinsurance
+definitions:
+  Quote:
+    type: object
+    properties:
+      name:
+        type: string
+      email:
+        type: string
+      age:
+        type: integer
+      address:
+        type: string
+      usState:
+        type: string
+      licensePlate:
+        type: string
+      descriptionOfDamage:
+        type: string
+    required:
+      - name
+      - email
+      - age
+      - address
+      - usState
+      - licensePlate
+      - descriptionOfDamage
+host: $(catalog.host)
+schemes:
+  - https
+x-ibm-configuration:
+  cors:
+    enabled: true
+  gateway: datapower-api-gateway
+  properties:
+    target-url:
+      value: >-
+        {{TARGET_URL}}
+      description: The URL of the target service
+      encoded: false
+  assembly:
+    execute:
+      - invoke:
+          title: invoke
+          version: 2.0.0
+          verb: keep
+          target-url: $(target-url)$(request.path)
+          follow-redirects: false
+          timeout: 60
+          parameter-control:
+            type: blacklist
+            values: []
+          header-control:
+            type: blacklist
+            values:
+              - ^X-IBM-Client-Id$
+          inject-proxy-headers: true
+          username: {{BASIC_AUTH_USERNAME}}
+          password: {{BASIC_AUTH_PASSWORD}}
+  type: rest
+  phase: realized
+  enforced: true
+  testable: true
+  application-authentication:
+    certificate: false
+securityDefinitions:
+  clientID:
+    type: apiKey
+    name: X-IBM-Client-Id
+    in: header
+security:
+  - clientID: []
