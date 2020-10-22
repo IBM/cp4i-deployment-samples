@@ -53,6 +53,8 @@ DEMO_NAME="ddd"
 TARGET_URL=""
 PRODUCT_YAML_TEMPLATE="DrivewayDentDeletion/Operators/apic-resources/apic-product-ddd.yaml"
 SWAGGER_YAML_TEMPLATE="DrivewayDentDeletion/Operators/apic-resources/apic-api-ddd.yaml"
+# TODO
+DEBUG=true
 
 function usage {
   echo "Usage: $0 -e <environment> -n <namespace> -s <namespace_suffix> -r <release> -d <demo name> -t <target url> -p <product yaml> -s <swagger yaml>"
@@ -227,12 +229,13 @@ if [[ $ENVIRONMENT == "dev" ]]; then
     -H "accept: application/json" \
     -H "authorization: Bearer ${TOKEN}")
   handle_res "${RES}"
+  $DEBUG && echo -e "PRODUCT='${PRODUCT}'\nPRODUCT_VER='${PRODUCT_VER}'\nOUTPUT=${OUTPUT}"
   DRAFT_PRODUCT_URL=$(echo ${OUTPUT} | $JQ -r '.results[] | select(.name == "'$PRODUCT'" and .version == "'$PRODUCT_VER'").url')
-  if [[ $DRAFT_PRODUCT_URL == "null" ]]; then
+  if [[ $DRAFT_PRODUCT_URL == "null" ]] || [[ $DRAFT_PRODUCT_URL == "" ]]; then
     echo -e "[ERROR] ${CROSS} Couldn't get product url"
     exit 1
   fi
-  $DEBUG && echo "[DEBUG] Product url: ${DRAFT_PRODUCT_URL}"
+  $DEBUG && echo "[DEBUG] Product url: '${DRAFT_PRODUCT_URL}'"
   echo -e "[INFO]  ${TICK} Got product url"
 
   # Get gateway service url
