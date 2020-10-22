@@ -148,12 +148,12 @@ echo "[INFO] tracing is set to $tracing_enabled"
 if [ "$tracing_enabled" == "true" ]; then
   while ! oc get secrets icp4i-od-store-cred -n ${namespace}; do
     echo "Waiting for the secret icp4i-od-store-cred to get created"
-    if [ $timer -gt 5 ]; then
+    if [ $timer -gt 30 ]; then
       echo "Secret icp4i-od-store-cred didn't get created in  ${namespace}, going to create the secret next "
       break
       timer=$((timer + 1))
     fi
-    sleep 60
+    sleep 10
   done
 
   # -------------------------------------- Register Tracing ---------------------------------------------------------------------
@@ -220,7 +220,7 @@ time=0
 
 # wait for 10 minutes for all replica pods to be deployed with new image
 while [ "$numberOfMatchesForImageTag" -ne "$numberOfReplicas" ]; do
-  if [ $time -gt 15 ]; then
+  if [ $time -gt 90 ]; then
     echo "ERROR: Timed-out trying to wait for all $is_release_name demo pods to be deployed with a new image containing the image tag '$imageTag'"
     echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
     exit 1
@@ -256,7 +256,7 @@ while [ "$numberOfMatchesForImageTag" -ne "$numberOfReplicas" ]; do
   fi
   if [[ $numberOfMatchesForImageTag != "$numberOfReplicas" ]]; then
     echo -e "\nINFO: Not all $is_release_name pods have been deployed with the new image having the image tag '$imageTag', retrying for upto 10 minutes for new $is_release_name demo pods te be deployed with new image. Waited ${time} minute(s)."
-    sleep 60
+    sleep 10
   else
     echo -e "\nINFO: All $is_release_name demo pods have been deployed with the new image"
   fi
