@@ -90,7 +90,7 @@ metadata:
 rules:
 # Permission to get tasks, pipelines in tekton.dev in dev namespace - to apply pipeline and task yamls
 - apiGroups: [""]
-  resources: ["pods", "pods/exec", "configmaps", "secrets", "serviceaccounts"]
+  resources: ["pods", "pods/exec", "configmaps", "secrets", "serviceaccounts", "services"]
   verbs: ["list", "get", "create", "delete"]
 # Permissions for appconnect integration server deployment in test namespace
 - apiGroups: ["appconnect.ibm.com"]
