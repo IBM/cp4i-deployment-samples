@@ -109,8 +109,8 @@ HOST=https://$(oc get routes -n ${NAMESPACE} | grep ace-api-int-srv-https | awk 
 if [[ $APIC == true ]]; then
   # Grab bearer token
   echo "[INFO]  Getting the host and client id..."
-  HOST=$(oc get secret eei-api-endpoint-client-id -o jsonpath='{.data.api}' | base64 --decode)
-  CLIENT_ID=$(oc get secret eei-api-endpoint-client-id -o jsonpath='{.data.cid}' | base64 --decode)
+  HOST=$(oc get secret -n ${NAMESPACE} ddd-api-endpoint-client-id -o jsonpath='{.data.api}' | base64 --decode)
+  CLIENT_ID=$(oc get secret -n ${NAMESPACE} ddd-api-endpoint-client-id -o jsonpath='{.data.cid}' | base64 --decode)
   $DEBUG && echo "[DEBUG] Client id: ${CLIENT_ID}"
   [[ $CLIENT_ID == "null" ]] && echo -e "[ERROR] ${CROSS} Couldn't get client id" && exit 1
 fi
