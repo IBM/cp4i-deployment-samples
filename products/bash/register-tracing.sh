@@ -53,7 +53,7 @@ fi
 echo "Registering apps in ${apps_namespace} project for tracing"
 
 echo "Waiting for tracing registration jobs to complete..."
-for i in `seq 1 60`; do
+for i in `seq 1 360`; do
   TRACING_JOB_PODS=$(kubectl get pods -n ${apps_namespace} | grep -E '(tracing-reg|odtracing|od-registration)')
   all_completed="true"
   while IFS= read -r line; do
@@ -69,12 +69,12 @@ for i in `seq 1 60`; do
 		echo "Tracing registration jobs are complete."
 		break
 	else
-    if [[ i -eq 60 ]]; then
+    if [[ i -eq 360 ]]; then
       echo "Timed out waiting for tracing registration jobs to complete"
       exit 1
     fi
-		echo "Waiting for tracing registration jobs to complete (Attempt $i of 60)."
-		sleep 60
+		echo "Waiting for tracing registration jobs to complete (Attempt $i of 360)."
+		sleep 10
 	fi
 done
 
