@@ -92,18 +92,18 @@ spec:
 apiVersion: tekton.dev/v1beta1
 kind: Task
 metadata:
-  name: deploy-task-release-params
+  name: run-script
 spec:
   params:
-    - name: releaseParams
+    - name: script
       type: string
-      description: The release parameters
-    - name: releaseScript
+      description: The full path to the script relative to the git workspace
+    - name: params
       type: string
-      description: release name of script
+      description: The parameters to pass to the script when calling
   workspaces:
     - name: git-source
   steps:
     - name: oc
       image: quay.io/openshift/origin-cli:latest
-      script: "/workspace/git-source/$(params.releaseScript) $(params.releaseParams)"
+      script: "/workspace/git-source/$(params.script) $(params.params)"
