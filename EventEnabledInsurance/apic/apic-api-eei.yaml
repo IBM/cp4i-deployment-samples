@@ -36,9 +36,12 @@ x-ibm-configuration:
             type: blacklist
             values: []
           inject-proxy-headers: true
+          username: {{BASIC_AUTH_USERNAME}}
+          password: {{BASIC_AUTH_PASSWORD}}
   properties:
     target-url:
-      value: 'http://example.com/operation-name'
+      value: >-
+        {{TARGET_URL}}
       description: The URL of the target service
       encoded: false
   application-authentication:
