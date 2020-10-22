@@ -50,11 +50,11 @@ spec:
       runAfter:
         - build-simulator-image
       taskRef:
-        name: deploy-task-release-params
+        name: run-script
       params:
-        - name: releaseScript
+        - name: script
           value: "EventEnabledInsurance/QuoteLifecycleSimulator/deploy.sh"
-        - name: releaseParams
+        - name: params
           value: " -n {{NAMESPACE}}"
       workspaces:
         - name: git-source
@@ -84,11 +84,11 @@ spec:
       runAfter:
         - build-projection-claims-image
       taskRef:
-        name: deploy-task-release-params
+        name: run-script
       params:
-        - name: releaseScript
+        - name: script
           value: "EventEnabledInsurance/ProjectionClaims/deploy.sh"
-        - name: releaseParams
+        - name: params
           value: " -n {{NAMESPACE}}"
       workspaces:
         - name: git-source
@@ -118,11 +118,11 @@ spec:
       runAfter:
         - build-mq-image
       taskRef:
-        name: deploy-task-release-params
+        name: run-script
       params:
-        - name: releaseScript
+        - name: script
           value: "products/bash/release-mq.sh"
-        - name: releaseParams
+        - name: params
           value: " -n {{NAMESPACE}} -r mq-eei -i image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}/mq-eei:latest -q eei"
       workspaces:
         - name: git-source
@@ -175,11 +175,11 @@ spec:
       runAfter:
         - build-ace-rest
       taskRef:
-        name: deploy-task-release-params
+        name: run-script
       params:
-        - name: releaseScript
+        - name: script
           value: "products/bash/release-ace-integration-server.sh"
-        - name: releaseParams
+        - name: params
           value: " -n '{{NAMESPACE}}' -r 'ace-rest-int-srv-eei' -i image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}/ace-rest-eei:latest -c {{CONFIGURATIONS}} -p 1"
       workspaces:
         - name: git-source
@@ -190,12 +190,26 @@ spec:
       runAfter:
         - build-ace-db-writer
       taskRef:
-        name: deploy-task-release-params
+        name: run-script
       params:
-        - name: releaseScript
+        - name: script
           value: "products/bash/release-ace-integration-server.sh"
-        - name: releaseParams
+        - name: params
           value: " -n '{{NAMESPACE}}' -r 'ace-db-writer-int-srv-eei' -i image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}/ace-db-writer-eei:latest -c {{CONFIGURATIONS}} -p 1"
+      workspaces:
+        - name: git-source
+          workspace: git-source
+
+    - name: push-to-apic
+      runAfter:
+        - git-clone-eei
+      taskRef:
+        name: run-script
+      params:
+        - name: script
+          value: "products/bash/pub-sub-apic.sh"
+        - name: params
+          value: " -n '{{NAMESPACE}}' -d eei -t https://ace-rest-int-srv-eei-is:7843 -p EventEnabledInsurance/apic/apic-product-eei.yaml -s EventEnabledInsurance/apic/apic-api-eei.yaml"
       workspaces:
         - name: git-source
           workspace: git-source
