@@ -276,4 +276,8 @@ for i in `seq 1 30`; do
     sleep 10
   fi
 done
-[[ "$GOT_SERVICE" == "false" ]] && echo -e "[ERROR] ${CROSS} ace api integration server service doesn't exist" && exit 1
+echo $GOT_SERVICE
+if [[ "$GOT_SERVICE" == "false" ]]; then
+  echo -e "[ERROR] ${CROSS} ace api integration server service doesn't exist"
+  exit 1
+fi
