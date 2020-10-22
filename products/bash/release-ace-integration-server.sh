@@ -262,4 +262,18 @@ while [ "$numberOfMatchesForImageTag" -ne "$numberOfReplicas" ]; do
   fi
   time=$((time + 1))
   echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------"
+
 done
+
+GOT_SERVICE=false
+for i in `seq 1 5`; do
+  if oc get svc ${is_release_name}-is -n ${NAMESPACE}; then
+    GOT_SERVICE=true
+    break
+  else
+    echo "Waiting for ace api service named '${is_release_name}-is' (Attempt $i of 30)."
+    echo "Checking again in 10 seconds..."
+    sleep 10
+  fi
+done
+[[ "$GOT_SERVICE" == "false" ]] && echo -e "[ERROR] ${CROSS} ace api integration server service doesn't exist"
