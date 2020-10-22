@@ -127,7 +127,7 @@ echo -e "\n---------------------------------------------------------------------
 
 echo -e "INFO: Testing E2E API now..."
 
-API_AUTH=$(oc get secret -n $NAMESPACE ace-api-creds-$SUFFIX -o json | $JQ -r '.data.auth')
+API_AUTH=$(oc get secret -n $NAMESPACE ace-api-creds-ddd -o json | $JQ -r '.data.auth')
 echo "api auth: $API_AUTH"
 
 # ------- Post to the database -------
