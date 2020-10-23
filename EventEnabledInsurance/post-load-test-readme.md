@@ -2,8 +2,8 @@
 
 # Prerequisites
 - Check both of the following ACE Integrations servers are ready and running:
-    - ace-rest-int-srv-eei - Responsible for putting messages on the MQ Queue `Quote`.
-    - ace-db-writer-int-srv-eei - Responsible for Reading messages from the Queue `Quote` and adding the to the Postgres Database table `db_cp4i1_sor_eei`.<br />
+    - `ace-rest-int-srv-eei` - Responsible for putting messages on the MQ Queue `Quote`.
+    - `ace-db-writer-int-srv-eei` - Responsible for Reading messages from the Queue `Quote` and adding the to the Postgres Database table `db_cp4i1_sor_eei`.<br />
     You can do so by checking the presence and status of the mentioned `IntegrationServers` by running the following commands:
     ```
     export NAMESPACE=<NAMESPACE>
@@ -28,6 +28,7 @@
 - The MQ Queue `Quote` would initially be empty.
 
 # Running the test script:
+This script will add 60 messages to the Queue `Quote` by making Rest calls via IBM API Connect. These messages will start appearing in the MQ queue `Quotes` and the `IntegrationServer` - `ace-db-writer-int-srv-eei` will read these messages one per second and add them to the database.
 - Run the [load testing script](EventEnabledInsurance/post-load-test.sh) with `namespace` parameter `-n`:
     ```
     ./post-load-test.sh -n $NAMESPACE
@@ -36,8 +37,8 @@
     At the end of the script it will display:
     - Calls made in a second
     - Calls failed (if any) 
-    This script should add messages to the Queue `Quote` by making Rest calls via IBM API Connect.
 
 - Assuming `ace-db-writer-int-srv-eei` is running fine. You should be able to see messages disappearing from the `Quote` Queue in MQ Console. These messages are being added in the Postgres database table `db_cp4i1_sor_eei`.
 
 - To work with the database and check the data present, check [this section](https://github.com/IBM/cp4i-deployment-samples/blob/main/EventEnabledInsurance/readme.md#working-directly-with-the-system-of-record-database) in [Event Enabled Insurance Demo Readme](https://github.com/IBM/cp4i-deployment-samples/blob/main/EventEnabledInsurance/readme.md).
+- To stop the script at any point after starting, press `ctrl` + `c` before it finishes execution.
