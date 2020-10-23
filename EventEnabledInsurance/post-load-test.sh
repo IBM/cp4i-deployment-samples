@@ -81,7 +81,7 @@ for i in $(seq 1 $TARGET_POST_CALLS); do
     post_response=$(curl -s -w " %{http_code}" "${API_BASE_URL}/quote" -H "X-IBM-Client-Id: ${API_CLIENT_ID}" -k \
         -d $'{\n  "name": "Ronald McGee",\n  "email": "zarhuci@surguf.zm",\n  "age": 68221627,\n  "address": "408 Uneit Manor",\n  "usState": "CT",\n  "licensePlate": "hezihe",\n  "descriptionOfDamage": "56"\n}')
     post_response_code=$(echo "${post_response##* }")
-    echo -e "$info INFO: post response: ${post_response//200/}"
+    echo -e "$tick INFO: post response: ${post_response//200/}"
     if [ "$post_response_code" != "200" ]; then
         FAILED_POST_CALLS=$((FAILED_POST_CALLS + 1))
     fi
