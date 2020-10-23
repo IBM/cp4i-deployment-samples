@@ -1,4 +1,6 @@
-# Test POST using Load-script
+# Overview
+This load test script will add 60 messages to the MQ Queue `Quote` by making REST calls via IBM API Connect. These messages will start appearing in the MQ queue named `Quotes` and the IntegrationServer `ace-db-writer-int-srv-eei` will read from the queue, one message per second and add them to the [System Of Record database](EventEnabledInsurance/readme.md#working-directly-with-the-system-of-record-database).
+<br /><br />
 
 # Prerequisites
 - Check both of the following ACE Integrations servers are ready and running:
@@ -29,7 +31,6 @@
 <br /><br />
 
 # Running the test script
-This script will add 60 messages to the Queue `Quote` by making Rest calls via IBM API Connect. These messages will start appearing in the MQ queue `Quotes` and the IntegrationServer `ace-db-writer-int-srv-eei` will read these messages one per second and add them to the database.
 - Run the [load testing script](EventEnabledInsurance/post-load-test.sh) with `namespace` parameter `-n`:
     ```
     ./post-load-test.sh -n $NAMESPACE
@@ -53,8 +54,8 @@ This script will add 60 messages to the Queue `Quote` by making Rest calls via I
 <br />
 
 # Checking data in the System Of Record database
-- To work with the database and check the data present, check [this section](https://github.com/IBM/cp4i-deployment-samples/blob/main/EventEnabledInsurance/readme.md#working-directly-with-the-system-of-record-database) in [Event Enabled Insurance Demo Readme](https://github.com/IBM/cp4i-deployment-samples/blob/main/EventEnabledInsurance/readme.md).
+- To work with the database and check the data present, check [this section](EventEnabledInsurance/readme.md#working-directly-with-the-system-of-record-database) in [Event Enabled Insurance Demo Readme](EventEnabledInsurance/readme.md).
 <br /><br />
 
-# Stopping the script
+# Stopping the test script
 - To stop the script at any point after starting, press `ctrl` + `c` before it finishes execution.
