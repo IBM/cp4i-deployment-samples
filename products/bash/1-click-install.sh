@@ -451,6 +451,20 @@ if [[ "${eventEnabledInsuranceDemo}" == "true" || "${demoPreparation}" == "true"
     divider
   fi
 
+  export PORG_ADMIN_EMAIL=${demoAPICEmailAddress}
+  export MAIL_SERVER_HOST=${demoAPICMailServerHost}
+  export MAIL_SERVER_PORT=${demoAPICMailServerPort}
+  export MAIL_SERVER_USERNAME=${demoAPICMailServerUsername}
+  export MAIL_SERVER_PASSWORD=${demoAPICMailServerPassword}
+
+  if ! $CURRENT_DIR/configure-apic-v10.sh -n ${JOB_NAMESPACE} ; then
+    echo "ERROR: Failed to configure apic" 1>&2
+    exit 1
+  else
+    echo -e "$tick INFO: Successfully onfigured apic"
+    divider
+  fi
+
   # call prereqs for event enabled without branch and repo params
   # branch defaults to 'main' inside the prereqs
   # repo defaults to 'https://github.com/IBM/cp4i-deployment-samples.git' inside the prereqs
