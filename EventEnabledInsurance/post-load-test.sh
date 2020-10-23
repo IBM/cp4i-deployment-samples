@@ -94,5 +94,5 @@ divider
 if [[ "$FAILED_POST_CALLS" -gt 0 ]]; then
     echo -e "$cross ERROR: $FAILED_POST_CALLS POST calls via APIC have failed."
 else
-    echo -e "$tick INFO: Number of POST calls per second attempted via APIC: $(($TARGET_POST_CALLS / $FINAL_DURATION))."
+    echo -e "$tick INFO: Average number of POST calls per second attempted via APIC: $(($TARGET_POST_CALLS / $FINAL_DURATION))."
 fi
