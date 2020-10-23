@@ -11,7 +11,7 @@ This load test script will add 60 messages to the MQ Queue `Quote` by making RES
     export NAMESPACE=<NAMESPACE>
     oc get IntegrationServers -n $NAMESPACE
     ```
-    Here the `<NAMESPACE>` is the namespace where the 1-click install ran.
+    Here the `<NAMESPACE>` is the namespace where the 1-click install initially ran.
 
 - Check that the MQ queue manager is deployed and in `Running` phase:
     ```
