@@ -26,9 +26,10 @@
     ```
     You can also access the MQ console using the Platform Navigator
 - The MQ Queue `Quote` would initially be empty.
+<br /><br />
 
-# Running the test script:
-This script will add 60 messages to the Queue `Quote` by making Rest calls via IBM API Connect. These messages will start appearing in the MQ queue `Quotes` and the `IntegrationServer` - `ace-db-writer-int-srv-eei` will read these messages one per second and add them to the database.
+# Running the test script
+This script will add 60 messages to the Queue `Quote` by making Rest calls via IBM API Connect. These messages will start appearing in the MQ queue `Quotes` and the IntegrationServer `ace-db-writer-int-srv-eei` will read these messages one per second and add them to the database.
 - Run the [load testing script](EventEnabledInsurance/post-load-test.sh) with `namespace` parameter `-n`:
     ```
     ./post-load-test.sh -n $NAMESPACE
@@ -37,8 +38,23 @@ This script will add 60 messages to the Queue `Quote` by making Rest calls via I
     At the end of the script it will display:
     - Calls made in a second
     - Calls failed (if any) 
+<br /><br />
 
-- Assuming `ace-db-writer-int-srv-eei` is running fine. You should be able to see messages disappearing from the `Quote` Queue in MQ Console. These messages are being added in the Postgres database table `db_cp4i1_sor_eei`.
+# Checking the Queue
+- Assuming that the Integration server `ace-db-writer-int-srv-eei` is running fine, you should be able to see messages appearing disappearing from the `Quote` Queue in MQ Console on pressing the refresh icon. These messages are being added in the Postgres database table `db_cp4i1_sor_eei` by `ace-db-writer-int-srv-eei`.
+<br /><br />
+# Checking the logs for the Integration Server
+- To verify that the integration server is picking up messages from the MQ queue, run the following commands:
+    ```
+    DB_WRITER_POD=$(oc get pod -l app.kubernetes.io/name=ace-db-writer-int-srv-eei --output=jsonpath={.items..metadata.name})
+    echo "DB_WRITER_POD=${DB_WRITER_POD}"
+    oc logs -f $DB_WRITER_POD
+    ```
+<br />
 
+# Checking data in the System Of Record database
 - To work with the database and check the data present, check [this section](https://github.com/IBM/cp4i-deployment-samples/blob/main/EventEnabledInsurance/readme.md#working-directly-with-the-system-of-record-database) in [Event Enabled Insurance Demo Readme](https://github.com/IBM/cp4i-deployment-samples/blob/main/EventEnabledInsurance/readme.md).
+<br /><br />
+
+# Stopping the script
 - To stop the script at any point after starting, press `ctrl` + `c` before it finishes execution.
