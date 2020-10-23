@@ -35,10 +35,10 @@ cross="\xE2\x9D\x8C"
 all_done="\xF0\x9F\x92\xAF"
 info="\xE2\x84\xB9"
 CURRENT_DIR=$(dirname $0)
-missingParams="false"
 NAMESPACE="cp4i"
-REPO="https://github.com/IBM/cp4i-deployment-samples.git"
-BRANCH="main"
+TARGET_POST_CALLS=1000
+SUCCESSFUL_POST_CALLS=0
+FAILED_POST_CALLS=0
 
 while getopts "n:" opt; do
     case ${opt} in
@@ -72,10 +72,7 @@ if [[ -z "${API_BASE_URL// /}" || -z "${API_CLIENT_ID// /}" ]]; then
     exit 1
 fi
 
-echo -e "$nfo INFO: Doing 60 POST calls via APIC to perform a load test..."
-TARGET_POST_CALLS=60
-SUCCESSFUL_POST_CALLS=0
-FAILED_POST_CALLS=0
+echo -e "$nfo INFO: Doing $TARGET_POST_CALLS POST calls via APIC to perform a load test..."
 SECONDS=0
 for i in $(seq 1 $TARGET_POST_CALLS); do
     post_response=$(curl -s -w " %{http_code}" "${API_BASE_URL}/quote" -H "X-IBM-Client-Id: ${API_CLIENT_ID}" -k \
@@ -96,5 +93,5 @@ divider
 if [[ "$FAILED_POST_CALLS" -gt 0 ]]; then
     echo -e "$cross ERROR: $FAILED_POST_CALLS POST calls via APIC have failed."
 else
-    echo -e "$tick INFO: Number of POST calls per second attempted via APIC: $((60 / $FINAL_DURATION))."
+    echo -e "$tick INFO: Number of POST calls per second attempted via APIC: $(($TARGET_POST_CALLS / $FINAL_DURATION))."
 fi

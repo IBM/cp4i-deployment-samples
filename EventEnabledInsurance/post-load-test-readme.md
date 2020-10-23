@@ -1,5 +1,5 @@
 # Overview
-This load test script will add 60 messages to the MQ Queue `Quote` by making REST calls via IBM API Connect. These messages will start appearing in the MQ queue named `Quotes` and the IntegrationServer `ace-db-writer-int-srv-eei` will read from the queue, one message per second and add them to the [System Of Record database](readme.md#working-directly-with-the-system-of-record-database).
+This load test script will add 1000 messages to the MQ Queue `Quote` by making REST calls via IBM API Connect. These messages will start appearing in the MQ queue named `Quotes` and the IntegrationServer `ace-db-writer-int-srv-eei` will read from the queue, one message per second and add them to the [System Of Record database](readme.md#working-directly-with-the-system-of-record-database).
 <br /><br />
 
 # Prerequisites
