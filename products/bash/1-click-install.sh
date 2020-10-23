@@ -407,13 +407,11 @@ fi #demoPreparation
 if [[ "${eventEnabledInsuranceDemo}" == "true" || "${demoPreparation}" == "true" ]]; then
   if ! $CURRENT_DIR/release-es.sh -n ${JOB_NAMESPACE}; then
     echo "ERROR: Failed to release event streams" 1>&2
-    divider
     exit 1
   else
     echo -e "$tick INFO: Successfully released event streams"
+    divider
   fi
-
-  divider
 
   if ! $CURRENT_DIR/release-ace-dashboard.sh -n ${NAMESPACE}; then
     echo "ERROR: Failed to release ace dashboard" 1>&2
@@ -442,6 +440,14 @@ if [[ "${eventEnabledInsuranceDemo}" == "true" || "${demoPreparation}" == "true"
     exit 1
   else
     echo -e "$tick INFO: Successfully onfigured apic"
+    divider
+  fi
+
+  if ! $CURRENT_DIR/release-apic.sh -n ${JOB_NAMESPACE} -t ; then
+    echo "ERROR: Failed to release apic" 1>&2
+    exit 1
+  else
+    echo -e "$tick INFO: Successfully released apic"
     divider
   fi
 
