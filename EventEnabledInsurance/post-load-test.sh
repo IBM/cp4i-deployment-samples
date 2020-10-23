@@ -73,15 +73,28 @@ if [[ -z "${API_BASE_URL// /}" || -z "${API_CLIENT_ID// /}" ]]; then
 fi
 
 echo -e "$nfo INFO: Doing 60 POST calls via APIC to perform a load test..."
+TARGET_POST_CALLS=60
+SUCCESSFUL_POST_CALLS=0
+FAILED_POST_CALLS=0
 SECONDS=0
-for i in $(seq 1 60); do
-    curl "${API_BASE_URL}/quote" -H "X-IBM-Client-Id: ${API_CLIENT_ID}" -k \
-        -d $'{\n  "name": "Ronald McGee ${i}",\n  "email": "zarhuci@surguf.zm",\n  "age": 68221627,\n  "address": "408 Uneit Manor",\n  "usState": "CT",\n  "licensePlate": "hezihe",\n  "descriptionOfDamage": "56"\n}'
-    midDuration=$SECONDS
-    echo -e "\n$info INFO: $(($midDuration / 60)) minutes and $(($midDuration % 60)) seconds elapsed.\n"
+for i in $(seq 1 $TARGET_POST_CALLS); do
+    post_response=$(curl -s -w " %{http_code}" "${API_BASE_URL}/quote" -H "X-IBM-Client-Id: ${API_CLIENT_ID}" -k \
+        -d $'{\n  "name": "Ronald McGee",\n  "email": "zarhuci@surguf.zm",\n  "age": 68221627,\n  "address": "408 Uneit Manor",\n  "usState": "CT",\n  "licensePlate": "hezihe",\n  "descriptionOfDamage": "56"\n}')
+    post_response_code=$(echo "${post_response##* }")
+    echo -e "$info INFO: post response: ${post_response//200/}"
+    if [ "$post_response_code" != "200" ]; then
+        FAILED_POST_CALLS=$((FAILED_POST_CALLS + 1))
+    fi
+    # MID_DURATION=$SECONDS
+    echo -e "\n$info INFO: $(($SECONDS / 60)) minutes and $(($SECONDS % 60)) seconds elapsed.\n"
     divider
 done
-finalDuration=$SECONDS
-echo -e "INFO: 60 POST calls attempted via APIC took $(($finalDuration / 60)) minutes and $(($finalDuration % 60)) seconds."
+FINAL_DURATION=$SECONDS
+echo -e "$info INFO: 60 POST calls attempted via APIC took $(($FINAL_DURATION / 60)) minutes and $(($FINAL_DURATION % 60)) seconds."
 divider
-echo -e "INFO: Number of POST calls per second attempted via APIC: $((60 / $finalDuration))."
+
+if [[ "$FAILED_POST_CALLS" -gt 0 ]]; then
+    echo -e "$cross ERROR: $FAILED_POST_CALLS POST calls via APIC have failed."
+else
+    echo -e "$tick INFO: Number of POST calls per second attempted via APIC: $((60 / $FINAL_DURATION))."
+fi

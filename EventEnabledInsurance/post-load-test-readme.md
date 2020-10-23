@@ -1,0 +1,43 @@
+# Test POST using Load-script
+
+# Prerequisites
+- Check both of the following ACE Integrations servers are ready and running:
+    - ace-rest-int-srv-eei - Responsible for putting messages on the MQ Queue `Quote`.
+    - ace-db-writer-int-srv-eei - Responsible for Reading messages from the Queue `Quote` and adding the to the Postgres Database table `db_cp4i1_sor_eei`.<br />
+    You can do so by checking the presence and status of the mentioned `IntegrationServers` by running the following commands:
+    ```
+    export NAMESPACE=<NAMESPACE>
+    oc get IntegrationServers -n $NAMESPACE
+    ```
+    Here the `<NAMESPACE>` is the namespace where the 1-click install ran.
+
+- Check that the MQ queue manager is deployed and in `Running` phase:
+    ```
+    oc get QueueManager -n $NAMESPACE mq-eei
+    ```
+- Check that the MQ queue manager pod is `Ready` and in `Running` state using the following command:
+     ```
+    oc get pods -n $NAMESPACE $(oc get pods -n $NAMESPACE | grep mq-eei-ibm-mq | awk '{print $1}')
+    ```
+- Open MQ console to check the Queue called `Quote` under Queue Manager `eei`. To get the MQ console URL using the following command:
+    ```
+    HOST=https://$(oc get routes -n ${NAMESPACE} mq-eei-ibm-mq-web -o json | jq -r '.spec.host')/ibmmq/console/
+    echo $HOST
+    ```
+    You can also access the MQ console using the Platform Navigator
+- The MQ Queue `Quote` would initially be empty.
+
+# Running the test script:
+- Run the [load testing script](EventEnabledInsurance/post-load-test.sh) with `namespace` parameter `-n`:
+    ```
+    ./post-load-test.sh -n $NAMESPACE
+    ```
+    If `-n` not provided the script will default to namespace `cp4i`.
+    At the end of the script it will display:
+    - Calls made in a second
+    - Calls failed (if any) 
+    This script should add messages to the Queue `Quote` by making Rest calls via IBM API Connect.
+
+- Assuming `ace-db-writer-int-srv-eei` is running fine. You should be able to see messages disappearing from the `Quote` Queue in MQ Console. These messages are being added in the Postgres database table `db_cp4i1_sor_eei`.
+
+- To work with the database and check the data present, check [this section](https://github.com/IBM/cp4i-deployment-samples/blob/main/EventEnabledInsurance/readme.md#working-directly-with-the-system-of-record-database) in [Event Enabled Insurance Demo Readme](https://github.com/IBM/cp4i-deployment-samples/blob/main/EventEnabledInsurance/readme.md).
