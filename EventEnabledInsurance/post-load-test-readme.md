@@ -6,7 +6,7 @@ This load test script will add 60 messages to the MQ Queue `Quote` by making RES
 - Check both of the following ACE Integrations servers are ready and running:
     - `ace-rest-int-srv-eei` - Responsible for putting messages on the MQ Queue `Quote`.
     - `ace-db-writer-int-srv-eei` - Responsible for Reading messages from the Queue `Quote` and adding the to the Postgres Database table `db_cp4i1_sor_eei`.<br />
-    You can do so by checking the presence and status of the mentioned `IntegrationServers` by running the following commands:
+    You can do so by checking the presence and status of the mentioned IntegrationServers by running the following commands:
     ```
     export NAMESPACE=<NAMESPACE>
     oc get IntegrationServers -n $NAMESPACE
@@ -31,7 +31,7 @@ This load test script will add 60 messages to the MQ Queue `Quote` by making RES
 <br /><br />
 
 # Running the test script
-- Run the [load testing script](post-load-test.sh) with `namespace` parameter `-n`:
+- Run the [load testing script](post-load-test.sh) with `NAMESPACE` ([exported above](post-load-test-readme.md#prerequisites)) parameter `-n`:
     ```
     ./post-load-test.sh -n $NAMESPACE
     ```
