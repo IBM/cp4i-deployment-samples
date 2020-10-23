@@ -72,7 +72,7 @@ if [[ -z "${API_BASE_URL// /}" || -z "${API_CLIENT_ID// /}" ]]; then
     exit 1
 fi
 
-echo -e "$nfo INFO: Doing $TARGET_POST_CALLS POST calls via APIC to perform a load test..."
+echo -e "$nfo INFO: Attempting $TARGET_POST_CALLS POST calls via APIC to perform a load test..."
 SECONDS=0
 for i in $(seq 1 $TARGET_POST_CALLS); do
     post_response=$(curl -s -w " %{http_code}" "${API_BASE_URL}/quote" -H "X-IBM-Client-Id: ${API_CLIENT_ID}" -k \
@@ -81,13 +81,14 @@ for i in $(seq 1 $TARGET_POST_CALLS); do
     echo -e "$tick INFO: post response: ${post_response//200/}"
     if [ "$post_response_code" != "200" ]; then
         FAILED_POST_CALLS=$((FAILED_POST_CALLS + 1))
+    else
+        SUCCESSFUL_POST_CALLS=$((SUCCESSFUL_POST_CALLS + 1))
     fi
-    # MID_DURATION=$SECONDS
-    echo -e "\n$info INFO: $(($SECONDS / 60)) minutes and $(($SECONDS % 60)) seconds elapsed.\n"
+    echo -e "\n$info INFO: $SUCCESSFUL_POST_CALLS successfull and $FAILED_POST_CALLS failed POST calls attempted in $(($SECONDS / 60)) minutes and $(($SECONDS % 60)) seconds."
     divider
 done
 FINAL_DURATION=$SECONDS
-echo -e "$info INFO: 60 POST calls attempted via APIC took $(($FINAL_DURATION / 60)) minutes and $(($FINAL_DURATION % 60)) seconds."
+echo -e "$info INFO: $TARGET_POST_CALLS POST calls attempted via APIC and took $(($FINAL_DURATION / 60)) minutes and $(($FINAL_DURATION % 60)) seconds."
 divider
 
 if [[ "$FAILED_POST_CALLS" -gt 0 ]]; then
