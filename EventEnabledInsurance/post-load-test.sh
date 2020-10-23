@@ -54,18 +54,15 @@ while getopts "n:" opt; do
     esac
 done
 
-if [[ -z "${namespace// /}" ]]; then
+if [[ -z "${NAMESPACE// /}" ]]; then
     echo -e "$cross ERROR: Namespace parameter is empty. Please provide a value for '-n' parameter."
+    divider
     usage
 fi
 
 CURRENT_DIR=$(dirname $0)
 echo "INFO: Current directory: '$CURRENT_DIR'"
-echo "INFO: Namespace: '$namespace'"
-echo "INFO: Suffix for the postgres is: '$SUFFIX'"
-echo "INFO: Repo: '$REPO'"
-echo "INFO: Branch: '$BRANCH'"
-echo "INFO: TKN: '$TKN'"
+echo "INFO: Namespace: '$NAMESPACE'"
 
 API_BASE_URL=$(oc get secret -n $NAMESPACE eei-api-endpoint-client-id -o jsonpath='{.data.api}' | base64 --decode)
 API_CLIENT_ID=$(oc get secret -n $NAMESPACE eei-api-endpoint-client-id -o jsonpath='{.data.cid}' | base64 --decode)
@@ -83,4 +80,4 @@ for i in $(seq 1 50); do
     echo "$(($midDuration / 60)) minutes and $(($midDuration % 60)) seconds elapsed."
 done
 finalDuration=$SECONDS
-echo "$(($finalDuration / 60)) minutes and $(($finalDuration % 60)) seconds elapsed."
+echo "50 post calls via APIC took $(($finalDuration / 60)) minutes and $(($finalDuration % 60)) seconds"
