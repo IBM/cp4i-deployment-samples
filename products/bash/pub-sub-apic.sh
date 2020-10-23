@@ -13,7 +13,7 @@
 #   - Logged into cluster on the OC CLI (https://docs.openshift.com/container-platform/4.4/cli_reference/openshift_cli/getting-started-cli.html)
 #
 # PARAMETERS:
-#   -e : <environment> (string), can be either "dev" or "test", defaults to "dev". "test" currently on suitable for DDD.
+#   -e : <environment> (string), can be either "dev" or "test", defaults to "dev". "test" currently only suitable for DDD.
 #   -n : <namespace> (string), defaults to "cp4i"
 #   -a : <apic_namespace> (string), defaults to same value as $NAMESPACE
 #   -r : <apic_release> (string), defaults to "ademo"
