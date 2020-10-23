@@ -65,7 +65,12 @@ while getopts "p:r:u:d:n:" opt; do
 done
 
 if [[ -z "${csDefaultAdminPassword// }" ]]; then
-  echo -e "$cross ERROR: Default admin password is empty. Please provide a value for '-p' parameter."
+  echo -e "$cross ERROR: 1-click validation default admin password is empty. Please provide a value for '-p' parameter."
+  missingParams="true"
+fi
+
+if [[ -z "${namespace// }" ]]; then
+  echo -e "$cross ERROR: 1-click validation namespace is empty. Please provide a value for '-n' parameter."
   missingParams="true"
 fi
 
@@ -75,17 +80,17 @@ if [[ -z "${namespace// }" ]]; then
 fi
 
 if [[ -z "${navReplicaCount// }" ]]; then
-  echo -e "$cross ERROR: Platform navigator replica count is empty. Please provide a value for '-r' parameter."
+  echo -e "$cross ERROR: 1-click validation platform navigator replica count is empty. Please provide a value for '-r' parameter."
   missingParams="true"
 fi
 
 if [[ -z "${csDefaultAdminUser// }" ]]; then
-  echo -e "$cross ERROR: Default admin username is empty. Please provide a value for '-u' parameter."
+  echo -e "$cross ERROR: 1-click validation default admin username is empty. Please provide a value for '-u' parameter."
   missingParams="true"
 fi
 
 if [[ -z "${demoPreparation// }" ]]; then
-  echo -e "$cross ERROR: Demo preparation parameter is empty. Please provide a value for '-d' parameter."
+  echo -e "$cross ERROR: 1-click validation demo preparation parameter is empty. Please provide a value for '-d' parameter."
   missingParams="true"
 fi
 

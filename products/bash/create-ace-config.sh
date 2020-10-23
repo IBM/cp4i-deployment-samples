@@ -38,6 +38,7 @@ API_USER="bruce"
 KEYSTORE_PASS=$(LC_ALL=C tr -dc 'A-Za-z0-9' </dev/urandom | head -c 16 ; echo)
 KEYSTORE=$CONFIG_DIR/keystore.p12
 
+
 function usage {
   echo "Usage: $0 -n <NAMESPACE> -g <POSTGRES_NAMESPACE> -u <DB_USER> -d <DB_NAME> -p <DB_PASS> -s <SUFFIX>"
   exit 1
