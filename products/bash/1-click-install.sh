@@ -39,10 +39,16 @@
 #     ./1-click-install.sh
 #
 #   Overriding the params
-#     ./1-click-install.sh -n "$JOB_NAMESPACE" -r "$navReplicaCount" -b "$demoDeploymentBranch" -u "$csDefaultAdminUser" -p "$csDefaultAdminPassword" -d "$demoPreparation" -a "$eventEnabledInsuranceDemo" -f "$drivewayDentDeletionDemo" -e "$demoAPICEmailAddress" -h "$demoAPICMailServerHost" -o "$demoAPICMailServerPort" -m "$demoAPICMailServerUsername" -q "$demoAPICMailServerPassword" -j "$tempERKey" -k "$tempRepo" -l "$DOCKER_REGISTRY_USER" -s "$DOCKER_REGISTRY_PASS" -t "$ENVIRONMENT" -v "$useFastStorageClass"
+#     ./1-click-install.sh -n <JOB_NAMESPACE> -r <navReplicaCount> -b <demoDeploymentBranch> -u <csDefaultAdminUser> -p <csDefaultAdminPassword> -d <demoPreparation> -a <eventEnabledInsuranceDemo> -f <drivewayDentDeletionDemo> -e <demoAPICEmailAddress> -h <demoAPICMailServerHost> -o <demoAPICMailServerPort> -m <demoAPICMailServerUsername> -q <demoAPICMailServerPassword> -j <tempERKey> -k <tempRepo> -l <DOCKER_REGISTRY_USER> -s <DOCKER_REGISTRY_PASS> -t <ENVIRONMENT> -v <useFastStorageClass>
 
 function divider {
   echo -e "\n-------------------------------------------------------------------------------------------------------------------\n"
+}
+
+function usage {
+    echo "Usage: $0 -n <JOB_NAMESPACE> -r <navReplicaCount> -b <demoDeploymentBranch> -u <csDefaultAdminUser> -p <csDefaultAdminPassword> -d <demoPreparation> -a <eventEnabledInsuranceDemo> -f <drivewayDentDeletionDemo> -e <demoAPICEmailAddress> -h <demoAPICMailServerHost> -o <demoAPICMailServerPort> -m <demoAPICMailServerUsername> -q <demoAPICMailServerPassword> -j <tempERKey> -k <tempRepo> -l <DOCKER_REGISTRY_USER> -s <DOCKER_REGISTRY_PASS> -t <ENVIRONMENT> -v <useFastStorageClass>"
+    divider
+    exit 1
 }
 
 tick="\xE2\x9C\x85"
@@ -119,23 +125,8 @@ if [[ -z "${demoPreparation// }" ]]; then
   missingParams="true"
 fi
 
-if [[ -z "${demoDeploymentBranch// }" ]]; then
-  echo -e "$cross ERROR: 1-click install demo deployment branch is empty. Please provide a value for '-b' parameter."
-  missingParams="true"
-fi
-
 if [[ -z "${csDefaultAdminPassword// }" ]]; then
   echo -e "$cross ERROR: 1-click install default admin password is empty. Please provide a value for '-p' parameter."
-  missingParams="true"
-fi
-
-if [[ -z "${eventEnabledInsuranceDemo// }" ]]; then
-  echo -e "$cross ERROR: 1-click install event enabled insurance parameter is empty. Please provide a value for '-a' parameter."
-  missingParams="true"
-fi
-
-if [[ -z "${drivewayDentDeletionDemo// }" ]]; then
-  echo -e "$cross ERROR: 1-click install driveway dent deletion parameter is empty. Please provide a value for '-f' parameter."
   missingParams="true"
 fi
 
@@ -144,9 +135,24 @@ if [[ -z "${ENVIRONMENT// }" ]]; then
   missingParams="true"
 fi
 
+if [[ -z "${demoDeploymentBranch// }" ]]; then
+  echo -e "$info INFO: 1-click install demo deployment branch is empty. Setting the default value of 'main' for it."
+  demoDeploymentBranch="main"
+fi
+
+if [[ -z "${eventEnabledInsuranceDemo// }" ]]; then
+  echo -e "$info INFO: 1-click install event enabled insurance parameter is empty. Setting the default value of 'false' for it."
+  eventEnabledInsuranceDemo="false"
+fi
+
+if [[ -z "${drivewayDentDeletionDemo// }" ]]; then
+  echo -e "$info INFO: 1-click install driveway dent deletion parameter is empty. Setting the default value of 'false' for it."
+  drivewayDentDeletionDemo="false"
+fi
+
 if [[ -z "${useFastStorageClass// }" ]]; then
-  echo -e "$cross ERROR: 1-click install fast storage class flag is empty. Please provide a value for '-v' parameter."
-  missingParams="true"
+  echo -e "$info INFO: 1-click install fast storage class flag is empty. Setting the default value of 'false' for it."
+  useFastStorageClass="false"
 fi
 
 if [[ "$missingParams" == "true" ]]; then
