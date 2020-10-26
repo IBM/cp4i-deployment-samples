@@ -537,3 +537,6 @@ A successful request should return an HTTP 200 with a JSON body that contains th
   "quoteid": "89f8c116-12d8-11eb-b21c-ac1e162c0000"
 }
 ```
+# DB Writer
+
+DB_writer bar file: Responsible for Reading messages from the Queue `Quote` and adding the to the Postgres Database table `db_cp4i1_sor_eei`. The flow consists of MQ input node and Java compute node. MQ input node passes the messages to the java compute node in the flow which reads the messages from the queue after every second and adds them to the postgres table.
