@@ -496,3 +496,6 @@ To delete the topic.
 - Click `Topics` on the left hand side
 - Click the `...` menu for the `sor.public.quotes` topic
 - Choose `Delete this topic`, then `Delete`
+
+# Testing the POST calls via APIC
+Instructions to load test the POST call via APIC can be found [here](post-load-test-readme.md).
