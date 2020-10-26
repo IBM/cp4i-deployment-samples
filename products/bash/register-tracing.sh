@@ -84,7 +84,14 @@ echo "Waiting for tracing pod..."
 JAR=""
 for i in `seq 1 60`; do
   OLD_TRACING_POD=$(oc get pod -n ${namespace} -l helm.sh/chart=ibm-icp4i-tracing-prod -o jsonpath='{.items[].metadata.name}' 2>/dev/null)
+  if [ $? -ne 0 ] ; then
+    OLD_TRACING_POD=""
+  fi
   NEW_TRACING_POD=$(oc get pod -n ${namespace} -l app.kubernetes.io/name=ibm-integration-operations-dashboard,app.kubernetes.io/component=fe -o jsonpath='{.items[].metadata.name}' 2>/dev/null)
+  if [ $? -ne 0 ] ; then
+    NEW_TRACING_POD=""
+  fi
+
 	if [[ -z "$OLD_TRACING_POD" ]] && [[ -z "$NEW_TRACING_POD" ]] ; then
     echo "Waiting for tracing pod (Attempt $i of 60), checking again in 15 seconds..."
 		sleep 15
