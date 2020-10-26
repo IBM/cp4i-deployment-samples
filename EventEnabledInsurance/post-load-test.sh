@@ -12,20 +12,21 @@
 #   - Logged into cluster on the OC CLI (https://docs.openshift.com/container-platform/4.4/cli_reference/openshift_cli/getting-started-cli.html)
 #
 # PARAMETERS:
-#   -n : <NAMESPACE> (string), Defaults to 'cp4i'
+#   -n : <NAMESPACE> (string), Namespace in which the 1-click install was done in. Defaults to 'cp4i'
+#   -c : <TARGET_POST_CALLS> (string), The total number of POST calls to be done via APIC. Defaults to '100'
 #
 #   With defaults values
 #     ./post-load-test.sh
 #
 #   With overridden values
-#     ./post-load-test.sh -n <NAMESPACE>
+#     ./post-load-test.sh -n <NAMESPACE> -c <TARGET_POST_CALLS>
 
 function divider() {
     echo -e "\n-------------------------------------------------------------------------------------------------------------------\n"
 }
 
 function usage() {
-    echo "Usage: $0 -n <NAMESPACE>"
+    echo "Usage: $0 -n <NAMESPACE> -c <TARGET_POST_CALLS>"
     divider
     exit 1
 }
@@ -36,14 +37,18 @@ all_done="\xF0\x9F\x92\xAF"
 info="\xE2\x84\xB9"
 CURRENT_DIR=$(dirname $0)
 NAMESPACE="cp4i"
-TARGET_POST_CALLS=1000
+TARGET_POST_CALLS=100
 SUCCESSFUL_POST_CALLS=0
 FAILED_POST_CALLS=0
+MISSING_PARAMS="false"
 
-while getopts "n:" opt; do
+while getopts "n:c:" opt; do
     case ${opt} in
     n)
         NAMESPACE="$OPTARG"
+        ;;
+    c)
+        TARGET_POST_CALLS="$OPTARG"
         ;;
     \?)
         usage
@@ -52,14 +57,23 @@ while getopts "n:" opt; do
 done
 
 if [[ -z "${NAMESPACE// /}" ]]; then
-    echo -e "$cross ERROR: Namespace parameter is empty. Please provide a value for '-n' parameter."
-    divider
+    echo -e "\n$cross ERROR: Namespace parameter is empty. Please provide a value for '-n' parameter.\n"
+    MISSING_PARAMS="true"
+fi
+
+if [[ -z "${TARGET_POST_CALLS// /}" ]]; then
+    echo -e "\n$cross ERROR: Parameter for the total number of POST calls to be done via APIC. is empty. Please provide a value for '-c' parameter.\n"
+    MISSING_PARAMS="true"
+fi
+
+if [[ "$MISSING_PARAMS" == "true" ]]; then
     usage
 fi
 
 CURRENT_DIR=$(dirname $0)
-echo "INFO: Current directory: '$CURRENT_DIR'"
-echo "INFO: Namespace: '$NAMESPACE'"
+echo -e "\n$info INFO: Current directory: '$CURRENT_DIR'"
+echo -e "$info INFO: Namespace: '$NAMESPACE'"
+echo -e "$info INFO: Total POST calls to be done: '$TARGET_POST_CALLS'"
 
 divider
 
@@ -72,7 +86,7 @@ if [[ -z "${API_BASE_URL// /}" || -z "${API_CLIENT_ID// /}" ]]; then
     exit 1
 fi
 
-echo -e "$nfo INFO: Attempting $TARGET_POST_CALLS POST calls via APIC to perform a load test..."
+echo -e "$info INFO: Attempting $TARGET_POST_CALLS POST calls via APIC to perform a load test...\n"
 SECONDS=0
 for i in $(seq 1 $TARGET_POST_CALLS); do
     post_response=$(curl -s -w " %{http_code}" "${API_BASE_URL}/quote" -H "X-IBM-Client-Id: ${API_CLIENT_ID}" -k \

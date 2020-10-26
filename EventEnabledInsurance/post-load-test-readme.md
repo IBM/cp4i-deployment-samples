@@ -1,5 +1,5 @@
 # Overview
-This load test script will add 1000 messages to the MQ Queue `Quote` by making REST calls via IBM API Connect. These messages will start appearing in the MQ queue named `Quotes` and the IntegrationServer `ace-db-writer-int-srv-eei` will read from the queue, one message per second and add them to the [System Of Record database](readme.md#working-directly-with-the-system-of-record-database).
+This load test script will by default add 100 messages (can be increased or decreased as per requirement, check [running the script section](post-load-test-readme.md#running-the-test-script)) to the MQ Queue `Quote` by making REST calls via IBM API Connect. These messages will start appearing in the MQ queue named `Quotes` and the IntegrationServer `ace-db-writer-int-srv-eei` will read from the queue, one message per second and add them to the [System Of Record database](readme.md#working-directly-with-the-system-of-record-database).
 <br /><br />
 
 # Prerequisites
@@ -31,14 +31,16 @@ This load test script will add 1000 messages to the MQ Queue `Quote` by making R
 <br /><br />
 
 # Running the test script
-- Run the [load testing script](post-load-test.sh) with `NAMESPACE` ([exported above](post-load-test-readme.md#prerequisites)) parameter `-n`:
+- Run the [load testing script](post-load-test.sh) with `NAMESPACE` parameter ([exported above](post-load-test-readme.md#prerequisites)) and the desired number of POST calls to be made (`TARGET_POST_CALLS` - if any value other than the default is required):
     ```
-    ./post-load-test.sh -n $NAMESPACE
+    export TARGET_POST_CALLS = <TARGET_POST_CALLS>
+    ./post-load-test.sh -n $NAMESPACE -c $TARGET_POST_CALLS
     ```
-    If `-n` not provided the script will default to namespace `cp4i`.
+- If `-n` not provided the script will default to namespace `cp4i`.
     At the end of the script it will display:
     - Calls made in a second
     - Calls failed (if any) 
+- If `-c` is not specified, the number of POST calls will default to `100`.
 <br /><br />
 
 # Checking the Queue
