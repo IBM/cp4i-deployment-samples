@@ -44,12 +44,50 @@ This load test script will add 1000 messages to the MQ Queue `Quote` by making R
 # Checking the Queue
 - Assuming that the Integration server `ace-db-writer-int-srv-eei` is running fine, you should be able to see messages appearing disappearing from the `Quote` Queue in MQ Console on pressing the refresh icon. These messages are being added in the Postgres database table `db_cp4i1_sor_eei` by `ace-db-writer-int-srv-eei`.
 <br /><br />
+
 # Checking the logs for the Integration Server
 - To verify that the integration server is picking up messages from the MQ queue, run the following commands:
     ```
     DB_WRITER_POD=$(oc get pod -l app.kubernetes.io/name=ace-db-writer-int-srv-eei --output=jsonpath={.items..metadata.name})
     echo "DB_WRITER_POD=${DB_WRITER_POD}"
     oc logs -f $DB_WRITER_POD
+    ```
+- The `DB_WRITER` pod should look like the following:
+    ```
+    2020-10-23 16:05:47.103100: Integration server has finished initialization. 
+    2020-10-23T16:05:47.359Z Integration server is ready
+    2020-10-23T16:05:47.359Z Gathering Metrics...
+    2020-10-23T16:05:47.360Z Starting metrics gathering
+    2020-10-23T16:05:47.360Z Processing metrics...
+    2020-10-23T16:05:47.360Z ACE_ADMIN_SERVER_SECURITY is true
+    2020-10-23T16:05:47.360Z Using CA Certificate folder /home/aceuser/adminssl
+    2020-10-23T16:05:47.360Z Adding Certificate /home/aceuser/adminssl/ca.crt.pem to CA pool
+    2020-10-23T16:05:47.360Z Adding Certificate /home/aceuser/adminssl/tls.crt.pem to CA pool
+    2020-10-23T16:05:47.361Z Using provided cert and key for mutual auth
+    2020-10-23T16:05:47.361Z ACE_ADMIN_SERVER_NAME is ace-db-writer-int-srv-eei
+    2020-10-23T16:05:47.361Z Connecting to wss://localhost:7600/ for statistics gathering
+    2020-10-23T16:05:47.361Z Cannot find admin-users.txt file, not retrieving session cookie
+    2020-10-23 16:11:31.745     34 Rate throttling for one second
+    2020-10-23 16:11:32.750     34 Getting message from MQ queue to write in database
+    2020-10-23 16:11:33.103     34 SQL String=INSERT INTO QUOTES(Name,EMail,Age,Address,USState,LicensePlate,descriptionOfDamage,QuoteID, Source) VALUES(?, ?, ?, ?, ? ,? ,? , ?, ?) RETURNING *
+    2020-10-23 16:11:33.122     34 Rate throttling for one second
+    2020-10-23 16:11:34.124     34 Getting message from MQ queue to write in database
+    2020-10-23 16:11:34.127     34 SQL String=INSERT INTO QUOTES(Name,EMail,Age,Address,USState,LicensePlate,descriptionOfDamage,QuoteID, Source) VALUES(?, ?, ?, ?, ? ,? ,? , ?, ?) RETURNING *
+    2020-10-23 16:11:34.133     34 Rate throttling for one second
+    2020-10-23 16:11:35.134     34 Getting message from MQ queue to write in database
+    2020-10-23 16:11:35.137     34 SQL String=INSERT INTO QUOTES(Name,EMail,Age,Address,USState,LicensePlate,descriptionOfDamage,QuoteID, Source) VALUES(?, ?, ?, ?, ? ,? ,? , ?, ?) RETURNING *
+    2020-10-23 16:11:35.143     34 Rate throttling for one second
+    2020-10-23 16:11:36.144     34 Getting message from MQ queue to write in database
+    2020-10-23 16:11:36.146     34 SQL String=INSERT INTO QUOTES(Name,EMail,Age,Address,USState,LicensePlate,descriptionOfDamage,QuoteID, Source) VALUES(?, ?, ?, ?, ? ,? ,? , ?, ?) RETURNING *
+    2020-10-23 16:11:36.153     34 Rate throttling for one second
+    2020-10-23 16:11:37.155     34 Getting message from MQ queue to write in database
+    2020-10-23 16:11:37.158     34 SQL String=INSERT INTO QUOTES(Name,EMail,Age,Address,USState,LicensePlate,descriptionOfDamage,QuoteID, Source) VALUES(?, ?, ?, ?, ? ,? ,? , ?, ?) RETURNING *
+    2020-10-23 16:11:37.164     34 Rate throttling for one second
+    2020-10-23 16:11:38.166     34 Getting message from MQ queue to write in database
+    2020-10-23 16:11:38.168     34 SQL String=INSERT INTO QUOTES(Name,EMail,Age,Address,USState,LicensePlate,descriptionOfDamage,QuoteID, Source) VALUES(?, ?, ?, ?, ? ,? ,? , ?, ?) RETURNING *
+    2020-10-23 16:11:38.175     34 Rate throttling for one second
+    2020-10-23 16:11:39.176     34 Getting message from MQ queue to write in database
+    2020-10-23 16:11:39.179     34 SQL String=INSERT INTO QUOTES(Name,EMail,Age,Address,USState,LicensePlate,descriptionOfDamage,QuoteID, Source) VALUES(?, ?, ?, ?, ? ,? ,? , ?, ?) RETURNING *
     ```
 <br />
 
