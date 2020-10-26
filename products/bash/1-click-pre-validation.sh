@@ -171,7 +171,7 @@ if [[ "${demoPreparation}" == "true" ]]; then
     printf "$cross ERROR: You have %0.1f GiB of allocatable memory. Minimum memory requirement for ${demo_products} is %0.1f GiB\n" $total_mem_gi $mem_req_gi
     check=1
   else
-    echo -e "$tick INFO: You have enough allocatable cpu for the demo"
+    echo -e "$tick INFO: You have enough allocatable memory for the demo"
   fi
 fi #demoPreparation
 
