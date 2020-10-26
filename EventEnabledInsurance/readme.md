@@ -497,7 +497,16 @@ To delete the topic.
 - Click the `...` menu for the `sor.public.quotes` topic
 - Choose `Delete this topic`, then `Delete`
 
-# REST endpoint
+# REST endpoint
+
+## ACE flow
+
+### GET
+![get sub flow](./media/rest-get-flow.png)
+
+### POST
+![post sub flow](./media/rest-post-flow.png)
+
 The pipeline deploys an ACE integration server (`ace-rest-int-srv-eei`) that hosts the `/eventinsurance/quote` endpoint. The route of the integration server can be found with `oc get -n $NAMESPACE route ace-rest-int-srv-eei-https -ojsonpath='.spec.host'`. Make sure to use HTTPS.
 
 Example GET:
@@ -539,4 +548,24 @@ A successful request should return an HTTP 200 with a JSON body that contains th
 ```
 # DB Writer
 
-DB_writer bar file: Responsible for Reading messages from the Queue `Quote` and adding the to the Postgres Database table `db_cp4i1_sor_eei`. The flow consists of MQ input node and Java compute node. MQ input node passes the messages to the java compute node in the flow which reads the messages from the queue after every second and adds them to the postgres table.
+## DB Writer Flow
+
+![dbwriter flow](./media/db-writer-flow.png)
+
+DB_writer bar file: Responsible for Reading messages from the Queue `Quote` and adding to the Postgres Database table `db_cp4i1_sor_eei`. The flow consists of MQ input node and Java compute node. MQ input node passes the messages to the java compute node in the flow which reads the messages from the queue after every second and adds them to the postgres table.
+
+# E2E Testing
+
+1. Run pipeline & configure kafka connector
+2. Call REST endpoint post & get
+3. Shut down the DB Writer ACE instance and test post and get:
+
+    ```bash
+    oc -n $NAMESPACE get integrationserver ace-db-writer-int-srv-eei -o yaml > ~/dbwriter.yaml
+    oc -n $NAMESPACE delete integrationserver ace-db-writer-int-srv-eei
+    ```
+4. Restart db writer and test post and get:
+
+    ```bash
+    oc apply -f ~/dbwriter.yaml
+    ```
