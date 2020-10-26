@@ -496,3 +496,44 @@ To delete the topic.
 - Click `Topics` on the left hand side
 - Click the `...` menu for the `sor.public.quotes` topic
 - Choose `Delete this topic`, then `Delete`
+
+# REST endpoint
+The pipeline deploys an ACE integration server (`ace-rest-int-srv-eei`) that hosts the `/eventinsurance/quote` endpoint. The route of the integration server can be found with `oc get -n $NAMESPACE route ace-rest-int-srv-eei-https -ojsonpath='.spec.host'`. Make sure to use HTTPS.
+
+Example GET:
+```bash
+$ curl https://$(oc get -n $NAMESPACE route ace-rest-int-srv-eei-https -ojsonpath='.spec.host')/eventinsurance/quote?QuoteID=$QUOTE_ID \
+  --header "Accept: application/json" \
+  --header "Authorization: Basic $(oc get -n $NAMESPACE secret ace-api-creds-eei -ojsonpath='{.data.auth}')"
+```
+
+Example POST:
+```bash
+$ curl -X POST https://$(oc get -n $NAMESPACE route ace-rest-int-srv-eei-https -ojsonpath='.spec.host')/eventinsurance/quote \
+  --header "Accept: application/json" \
+  --header "Content-Type: application/json" \
+  --header "Authorization: Basic $(oc get -n $NAMESPACE secret ace-api-creds-eei -ojsonpath='{.data.auth}')" \
+  --data '{
+    "name": "Barack Obama",
+    "email": "comments@whitehouse.gov",
+    "age": "50",
+    "address": "1600 Pennsylvania Avenue",
+    "usState": "DC",
+    "licensePlate": "EK 3333",
+    "descriptionOfDamage": "420"
+  }'
+```
+
+A successful request should return an HTTP 200 with a JSON body that contains the quote object with a quote id, e.g.:
+```json
+{
+  "name": "Barack Obama",
+  "email": "comments@whitehouse.gov",
+  "age": "50",
+  "address": "1600 Pennsylvania Avenue",
+  "usState": "DC",
+  "licensePlate": "EK 3333",
+  "descriptionOfDamage": "420",
+  "quoteid": "89f8c116-12d8-11eb-b21c-ac1e162c0000"
+}
+```
