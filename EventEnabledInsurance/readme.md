@@ -509,20 +509,23 @@ To delete the topic.
 
 The pipeline deploys an ACE integration server (`ace-rest-int-srv-eei`) that hosts the `/eventinsurance/quote` endpoint. The route of the integration server can be found with `oc get -n $NAMESPACE route ace-rest-int-srv-eei-https -ojsonpath='.spec.host'`. Make sure to use HTTPS.
 
+Get api endpoint and auth:
+```bash
+export NAMESPACE=#eei namespace
+export API_BASE_URL=$(oc -n $NAMESPACE get secret eei-api-endpoint-client-id -o jsonpath='{.data.api}' | base64 --decode)
+export API_CLIENT_ID=$(oc -n $NAMESPACE get secret eei-api-endpoint-client-id -o jsonpath='{.data.cid}' | base64 --decode)
+```
+
 Example GET:
 ```bash
-$ curl https://$(oc get -n $NAMESPACE route ace-rest-int-srv-eei-https -ojsonpath='.spec.host')/eventinsurance/quote?QuoteID=$QUOTE_ID \
-  --header "Accept: application/json" \
-  --header "Authorization: Basic $(oc get -n $NAMESPACE secret ace-api-creds-eei -ojsonpath='{.data.auth}')"
+$ curl -k -H "X-IBM-Client-Id: ${API_CLIENT_ID}" "${API_BASE_URL}/quote?QuoteID=$QUOTE_ID"
 ```
 
 Example POST:
 ```bash
-$ curl -X POST https://$(oc get -n $NAMESPACE route ace-rest-int-srv-eei-https -ojsonpath='.spec.host')/eventinsurance/quote \
-  --header "Accept: application/json" \
-  --header "Content-Type: application/json" \
-  --header "Authorization: Basic $(oc get -n $NAMESPACE secret ace-api-creds-eei -ojsonpath='{.data.auth}')" \
-  --data '{
+curl -k "${API_BASE_URL}/quote" \
+  -H "X-IBM-Client-Id: ${API_CLIENT_ID}" \
+  -d '{
     "name": "Barack Obama",
     "email": "comments@whitehouse.gov",
     "age": "50",
