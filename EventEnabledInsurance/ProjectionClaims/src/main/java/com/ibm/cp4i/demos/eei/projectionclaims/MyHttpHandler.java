@@ -55,10 +55,10 @@ public class MyHttpHandler implements HttpHandler {
                     "<td>" + row.get("name").toString().replace("\"", "") + "</th>" +
                     "<td>" + row.get("email").toString().replace("\"", "") + "</th>" +
                     "<td>" + row.get("address").toString().replace("\"", "") + "</th>" +
-                    "<td>" + row.get("usState").toString().replace("\"", "") + "</th>" +
-                    "<td>" + row.get("licensePlate").toString().replace("\"", "") + "</th>" +
-                    "<td>" + row.get("descriptionOfDamage").toString().replace("\"", "") + "</th>" +
-                    "<td>" + row.get("claimStatus").toString().replace("\"", "") + "</th>" +
+                    "<td>" + row.get("usstate").toString().replace("\"", "") + "</th>" +
+                    "<td>" + row.get("licenseplate").toString().replace("\"", "") + "</th>" +
+                    "<td>" + row.get("descriptionofdamage").toString().replace("\"", "") + "</th>" +
+                    "<td>" + row.get("claimstatus").toString().replace("\"", "") + "</th>" +
                 "</tr>"
             );
         }
