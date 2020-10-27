@@ -515,16 +515,13 @@ if [[ "${drivewayDentDeletionDemo}" == "true" || "${demoPreparation}" == "true" 
     divider
   fi
 
-  # TO UNCOMMENT
-  # if [[ "${testDrivewayDentDeletionDemoE2E}" == "true" ]]; then
-  #   if ! $CURRENT_DIR/../../DrivewayDentDeletion/Operators/test-e2e.sh -n ${JOB_NAMESPACE} -b $demoDeploymentBranch; then
-  #     echo "ERROR: Failed to run an end to end test for driveway dent deletion demo" 1>&2
-  #     divider
-  #     exit 1
-  #   fi
-  # fi
-  # divider
-  # TO UNCOMMENT
+  if [[ "${testDrivewayDentDeletionDemoE2E}" == "true" ]]; then
+    if ! $CURRENT_DIR/../../DrivewayDentDeletion/Operators/test-e2e.sh -n ${JOB_NAMESPACE} -b $demoDeploymentBranch; then
+      echo "ERROR: Failed to run an end to end test for driveway dent deletion demo" 1>&2
+      divider
+    fi
+  fi
+  divider
 
 fi #drivewayDentDeletionDemo
 
@@ -553,17 +550,5 @@ if [[ "${demoPreparation}" == "true" ]]; then
     echo -e "$tick INFO: Successfully created remote for Asset repo"
   fi
 fi #demoPreparation
-
-divider
-
-# TO REMOVE
-if [[ "${testDrivewayDentDeletionDemoE2E}" == "true" ]]; then
-  if ! $CURRENT_DIR/../../DrivewayDentDeletion/Operators/test-e2e.sh -n ${JOB_NAMESPACE} -b $demoDeploymentBranch; then
-    echo "ERROR: Failed to run an end to end test for driveway dent deletion demo" 1>&2
-    divider
-    exit 1
-  fi
-fi
-# TO REMOVE
 
 divider
