@@ -45,6 +45,7 @@ public class MyHttpHandler implements HttpHandler {
 
     @SuppressWarnings("StringConcatenationInsideStringBufferAppend")
     public static void createTableForAllData(JsonNode table, StringBuilder contentBuilder) {
+        System.out.println(table.toString());
         for (int counter = 0; counter < table.size(); counter++) {
             JsonNode row = table.get(counter);
             String quoteid = row.get("quoteid").toString().replace("\"", "");
