@@ -405,6 +405,14 @@ fi #demoPreparation
 # ------------------------------------------- Event Enabled Insurance demo specific ---------------------------------------------------
 
 if [[ "${eventEnabledInsuranceDemo}" == "true" || "${demoPreparation}" == "true" ]]; then
+  if ! $CURRENT_DIR/release-tracing.sh -n ${JOB_NAMESPACE}; then
+    echo "ERROR: Failed to release tracing" 1>&2
+    exit 1
+  else
+    echo -e "$tick INFO: Successfully released tracing"
+    divider
+  fi
+  
   if ! $CURRENT_DIR/release-es.sh -n ${JOB_NAMESPACE}; then
     echo "ERROR: Failed to release event streams" 1>&2
     exit 1
@@ -429,25 +437,11 @@ if [[ "${eventEnabledInsuranceDemo}" == "true" || "${demoPreparation}" == "true"
     divider
   fi
 
-  export PORG_ADMIN_EMAIL=${demoAPICEmailAddress}
-  export MAIL_SERVER_HOST=${demoAPICMailServerHost}
-  export MAIL_SERVER_PORT=${demoAPICMailServerPort}
-  export MAIL_SERVER_USERNAME=${demoAPICMailServerUsername}
-  export MAIL_SERVER_PASSWORD=${demoAPICMailServerPassword}
-
-  if ! $CURRENT_DIR/configure-apic-v10.sh -n ${JOB_NAMESPACE} ; then
-    echo "ERROR: Failed to configure apic" 1>&2
+  if ! $CURRENT_DIR/register-tracing.sh -n ${JOB_NAMESPACE} ; then
+    echo "ERROR: Failed to register tracing. Tracing secret not created" 1>&2
     exit 1
   else
-    echo -e "$tick INFO: Successfully onfigured apic"
-    divider
-  fi
-
-  if ! $CURRENT_DIR/release-apic.sh -n ${JOB_NAMESPACE} -t ; then
-    echo "ERROR: Failed to release apic" 1>&2
-    exit 1
-  else
-    echo -e "$tick INFO: Successfully released apic"
+    echo -e "$tick INFO: Successfully registered tracing"
     divider
   fi
 
