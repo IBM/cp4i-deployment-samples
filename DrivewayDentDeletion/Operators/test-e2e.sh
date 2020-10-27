@@ -176,7 +176,7 @@ divider
 ./continuous-load.sh -n $NAMESPACE &
 PID_CONTINUOUS_LOAD_DEV=$!
 
-# wait for some continuous load output to come
+# wait for some continuous load output
 sleep 60
 
 ./DrivewayDentDeletion/Operators/cicd-apply-test-pipeline.sh -n $NAMESPACE -r $FORKED_REPO -b $BRANCH
