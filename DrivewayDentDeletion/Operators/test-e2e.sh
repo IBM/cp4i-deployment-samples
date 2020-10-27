@@ -160,7 +160,7 @@ fi
 
 divider
 
-./DrivewayDentDeletion/Operators/cicd-apply-dev-pipeline.sh -n $NAMESPACE -r $FORKED_REPO -b $BRANCH
+./Operators/cicd-apply-dev-pipeline.sh -n $NAMESPACE -r $FORKED_REPO -b $BRANCH
 
 wait_for_trigger_url
 curl $URL
@@ -179,7 +179,7 @@ PID_CONTINUOUS_LOAD_DEV=$!
 # wait for some continuous load output
 sleep 60
 
-./DrivewayDentDeletion/Operators/cicd-apply-test-pipeline.sh -n $NAMESPACE -r $FORKED_REPO -b $BRANCH
+./Operators/cicd-apply-test-pipeline.sh -n $NAMESPACE -r $FORKED_REPO -b $BRANCH
 
 divider
 
@@ -193,7 +193,7 @@ print_pipelinerun_logs
 
 divider
 
-./DrivewayDentDeletion/Operators/cicd-apply-test-apic-pipeline.sh -n $NAMESPACE -r $FORKED_REPO -b $BRANCH
+./Operators/cicd-apply-test-apic-pipeline.sh -n $NAMESPACE -r $FORKED_REPO -b $BRANCH
 
 divider
 
