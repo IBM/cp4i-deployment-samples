@@ -110,6 +110,7 @@ public class MyHttpHandler implements HttpHandler {
                                 "<th>Address</th>" +
                                 "<th>US State</th>" +
                                 "<th>License Plate</th>" +
+                                "<th>Description of Damage</th>" +
                                 "<th>Claim Status</th>" +
                             "</tr>"
                         );
@@ -140,9 +141,10 @@ public class MyHttpHandler implements HttpHandler {
                         trimmedRow.put("name", row.get("name").asText());
                         trimmedRow.put("email", row.get("email").asText());
                         trimmedRow.put("address", row.get("address").asText());
-                        trimmedRow.put("usstate", row.get("usstate").asText());
-                        trimmedRow.put("licenseplate", row.get("licenseplate").asText());
-                        trimmedRow.put("claimstatus", row.get("claimstatus").asText());
+                        trimmedRow.put("usState", row.get("usState").asText());
+                        trimmedRow.put("licensePlate", row.get("licensePlate").asText());
+                        trimmedRow.put("descriptionOfDamage", row.get("descriptionOfDamage").asText());
+                        trimmedRow.put("claimStatus", row.get("claimStatus").asText());
                         byteResponse = trimmedRow.toString(4).getBytes(StandardCharsets.UTF_8);
                         httpExchange.sendResponseHeaders(200, byteResponse.length);
                     } else {
