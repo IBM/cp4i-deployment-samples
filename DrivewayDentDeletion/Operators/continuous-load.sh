@@ -12,7 +12,7 @@
 #
 # PARAMETERS:
 #   -n : NAMESPACE (string), namespace - Default: cp4i
-#   -u : API_BASE_URL (string), base url for the api endpoints - DEFAULT: result of (oc get routes -n ace | grep ace-ddd-api-dev-http-ace | awk '{print $2}')/drivewayrepair")
+#   -u : API_BASE_URL (string), base url for the api endpoints - DEFAULT: result of (oc get routes -n $NAMESPACE | grep ace-ddd-api-dev-http-ace | awk '{print $2}')/drivewayrepair")
 #   -t : RETRY_INTERVAL (integer), time in seconds between each load of data - DEFAULT: 5 (seconds)
 #   -a : APIC (true/false), whether apic integration is enabled - DEFAULT: false
 #   -c : TABLE_CLEANUP (true/false), whether to delete all rows from the test table - DEFAULT: false
@@ -44,33 +44,33 @@ SAVE_ROW_AFTER_RUN=false
 
 while getopts "n:u:t:acdis" opt; do
   case ${opt} in
-    n )
-      NAMESPACE="$OPTARG"
-      ;;
-    u)
-      API_BASE_URL="$OPTARG"
-      ;;
-    t)
-      RETRY_INTERVAL="$OPTARG"
-      ;;
-    a)
-      APIC=true
-      ;;
-    c)
-      TABLE_CLEANUP=true
-      ;;
-    d)
-      DEBUG=true
-      ;;
-    i)
-      CONDENSED_INFO=true
-      ;;
-    s)
-      SAVE_ROW_AFTER_RUN=true
-      ;;
-    \?)
-      usage
-      ;;
+  n)
+    NAMESPACE="$OPTARG"
+    ;;
+  u)
+    API_BASE_URL="$OPTARG"
+    ;;
+  t)
+    RETRY_INTERVAL="$OPTARG"
+    ;;
+  a)
+    APIC=true
+    ;;
+  c)
+    TABLE_CLEANUP=true
+    ;;
+  d)
+    DEBUG=true
+    ;;
+  i)
+    CONDENSED_INFO=true
+    ;;
+  s)
+    SAVE_ROW_AFTER_RUN=true
+    ;;
+  \?)
+    usage
+    ;;
   esac
 done
 
@@ -81,10 +81,10 @@ DB_POD=$(oc get pod -n postgres -l name=postgresql -o jsonpath='{.items[].metada
 echo "[INFO]  Username name is: '${DB_USER}'"
 echo "[INFO]  Database name is: '${DB_NAME}'"
 
-CURL_OPTS=( -s -L -S )
+CURL_OPTS=(-s -L -S)
 if [[ $APIC == true ]]; then
   $DEBUG && echo "[DEBUG] apic integration enabled"
-  CURL_OPTS+=( -k )
+  CURL_OPTS+=(-k)
   API_BASE_URL=$(oc get secret -n $NAMESPACE ddd-api-endpoint-client-id -o jsonpath='{.data.api}' | base64 --decode)
   API_CLIENT_ID=$(oc get secret -n $NAMESPACE ddd-api-endpoint-client-id -o jsonpath='{.data.cid}' | base64 --decode)
   echo -e "[INFO]  api base url: ${API_BASE_URL}\n[INFO]  client id: ${API_CLIENT_ID}"
@@ -111,7 +111,6 @@ function cleanup_table() {
 if [ "$TABLE_CLEANUP" = true ]; then
   trap "cleanup_table" EXIT
 fi
-
 
 API_AUTH=$(oc get secret -n $NAMESPACE ace-api-creds -o json | jq -r '.data.auth')
 
@@ -154,7 +153,6 @@ while true; do
     else
       echo ${post_response} | jq '.' | sed $os_sed_flag '$ d'
     fi
-
 
     # - GET ---
     echo -e "\nGET request..."
