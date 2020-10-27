@@ -45,7 +45,6 @@ public class MyHttpHandler implements HttpHandler {
 
     @SuppressWarnings("StringConcatenationInsideStringBufferAppend")
     public static void createTableForAllData(JsonNode table, StringBuilder contentBuilder) {
-        System.out.println(table.toString());
         for (int counter = 0; counter < table.size(); counter++) {
             JsonNode row = table.get(counter);
             String quoteid = row.get("quoteid").toString().replace("\"", "");
@@ -142,10 +141,10 @@ public class MyHttpHandler implements HttpHandler {
                         trimmedRow.put("name", row.get("name").asText());
                         trimmedRow.put("email", row.get("email").asText());
                         trimmedRow.put("address", row.get("address").asText());
-                        trimmedRow.put("usState", row.get("usState").asText());
-                        trimmedRow.put("licensePlate", row.get("licensePlate").asText());
-                        trimmedRow.put("descriptionOfDamage", row.get("descriptionOfDamage").asText());
-                        trimmedRow.put("claimStatus", row.get("claimStatus").asText());
+                        trimmedRow.put("usState", row.get("usstate").asText());
+                        trimmedRow.put("licensePlate", row.get("licenseplate").asText());
+                        trimmedRow.put("descriptionOfDamage", row.get("descriptionofdamage").asText());
+                        trimmedRow.put("claimStatus", row.get("claimstatus").asText());
                         byteResponse = trimmedRow.toString(4).getBytes(StandardCharsets.UTF_8);
                         httpExchange.sendResponseHeaders(200, byteResponse.length);
                     } else {
