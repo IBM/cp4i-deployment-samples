@@ -79,13 +79,15 @@ function run_continous_load_script_for_100_calls() {
     # call continuous load script with defaults and get process id for it and log output to a file
     if [ ! -z $apic ]; then
         echo "[INFO] Running the continuous-load.sh with -a for apic"
-        if ! $CURRENT_DIR/continuous-load.sh -n $ns -a | add_date_for_log >continuous-load-script-log.txt 2>&1
+        echo "$CURRENT_DIR/continuous-load.sh -n $ns -a" | add_date_for_log >> continuous-load-script-log.txt 2>&1
+        if ! $CURRENT_DIR/continuous-load.sh -n $ns -a | add_date_for_log >> continuous-load-script-log.txt 2>&1
         then
             echo -e "$CROSS ERROR: Could not start or finish the continuous load testing, check the log file 'continuous-load-script-log.txt'."
             exit 1
         fi
     else
-        if ! $CURRENT_DIR/continuous-load.sh -n $ns | add_date_for_log >continuous-load-script-log.txt 2>&1
+        echo "$CURRENT_DIR/continuous-load.sh -n $ns" | add_date_for_log >> continuous-load-script-log.txt 2>&1
+        if ! $CURRENT_DIR/continuous-load.sh -n $ns | add_date_for_log >> continuous-load-script-log.txt 2>&1
         then
             echo -e "$CROSS ERROR: Could not start or finish the continuous load testing, check the log file 'continuous-load-script-log.txt'."
             exit 1
