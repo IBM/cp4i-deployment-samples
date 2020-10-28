@@ -72,29 +72,30 @@ function wait_and_trigger_pipeline() {
     divider
 }
 
-function run_continous_load_script_for_100_calls() {
+function run_continous_load_script() {
     divider
-    ns=$1 #namespace
+    ns=$1   #namespace
     apic=$2 # apic enabled
     # call continuous load script with defaults and get process id for it and log output to a file
     if [ ! -z $apic ]; then
-        echo "[INFO] Running the continuous-load.sh with -a for apic"
-        echo "$CURRENT_DIR/continuous-load.sh -n $ns -a" | add_date_for_log >> continuous-load-script-log.txt 2>&1
-        if ! $CURRENT_DIR/continuous-load.sh -n $ns -a | add_date_for_log >> continuous-load-script-log.txt 2>&1
-        then
+        echo -e "$INFO INFO Running the continuous-load.sh with -a for apic in the '$ns' namespace..."
+        echo "$CURRENT_DIR/continuous-load.sh -n $ns -a \n" | add_date_for_log >>continuous-load-script-log.txt 2>&1
+        if ! $CURRENT_DIR/continuous-load.sh -n $ns -a | add_date_for_log >>continuous-load-script-log.txt 2>&1; then
             echo -e "$CROSS ERROR: Could not start or finish the continuous load testing, check the log file 'continuous-load-script-log.txt'."
+            divider
             exit 1
         fi
     else
-        echo "$CURRENT_DIR/continuous-load.sh -n $ns" | add_date_for_log >> continuous-load-script-log.txt 2>&1
-        if ! $CURRENT_DIR/continuous-load.sh -n $ns | add_date_for_log >> continuous-load-script-log.txt 2>&1
-        then
+        echo -e "$INFO INFO Running the continuous-load.sh without -a for apic in the '$ns' namespace..."
+        echo -e "$CURRENT_DIR/continuous-load.sh -n $ns \n" | add_date_for_log >>continuous-load-script-log.txt 2>&1
+        if ! $CURRENT_DIR/continuous-load.sh -n $ns | add_date_for_log >>continuous-load-script-log.txt 2>&1; then
             echo -e "$CROSS ERROR: Could not start or finish the continuous load testing, check the log file 'continuous-load-script-log.txt'."
+            divider
             exit 1
         fi
     fi
+    divider
 }
-
 
 NAMESPACE="cp4i"
 CURRENT_DIR=$(dirname $0)
@@ -202,10 +203,7 @@ fi
 
 wait_and_trigger_pipeline "dev"
 
-# running continous load script in dev namespace
-run_continous_load_script_for_100_calls "$NAMESPACE"
-
-divider
+run_continous_load_script "$NAMESPACE"
 
 echo -e "$INFO INFO: Applying the test pipeline resources...\n"
 if ! $CURRENT_DIR/cicd-apply-test-pipeline.sh -n $NAMESPACE -r $FORKED_REPO -b $BRANCH; then
@@ -213,16 +211,13 @@ if ! $CURRENT_DIR/cicd-apply-test-pipeline.sh -n $NAMESPACE -r $FORKED_REPO -b $
     exit 1
 fi
 
-
 divider
 
 wait_and_trigger_pipeline "test"
 
-run_continous_load_script_for_100_calls "$NAMESPACE"
-sleep 60
-run_continous_load_script_for_100_calls "$NAMESPACE-ddd-test"
+run_continous_load_script "$NAMESPACE"
 
-divider
+run_continous_load_script "$NAMESPACE-ddd-test"
 
 echo -e "$INFO INFO: Applying the test pipeline resources...\n"
 if ! $CURRENT_DIR/cicd-apply-test-apic-pipeline.sh -n $NAMESPACE -r $FORKED_REPO -b $BRANCH; then
@@ -232,13 +227,9 @@ fi
 
 wait_and_trigger_pipeline "test-apic"
 
-divider
+run_continous_load_script "$NAMESPACE" "apic"
 
-run_continous_load_script_for_100_calls "$NAMESPACE" "apic"
-sleep 60
-run_continous_load_script_for_100_calls "$NAMESPACE-ddd-test" "apic"
-
-divider
+run_continous_load_script "$NAMESPACE-ddd-test" "apic"
 
 echo -e "$TICK $ALL_DONE INFO: The DDD E2E test ran successfully $ALL_DONE $TICK"
 

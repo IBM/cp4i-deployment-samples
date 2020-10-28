@@ -44,7 +44,6 @@ CONDENSED_INFO=false
 SAVE_ROW_AFTER_RUN=false
 ERROR=0
 
-
 while getopts "n:u:t:acdisz" opt; do
   case ${opt} in
   n)
@@ -72,7 +71,7 @@ while getopts "n:u:t:acdisz" opt; do
     SAVE_ROW_AFTER_RUN=true
     ;;
   z)
-    NUMBER_OF_CALLS=100
+    NUMBER_OF_CALLS=50
     ;;
   \?)
     usage
@@ -194,16 +193,16 @@ while true; do
     ERROR=1
   fi
 
-  if [ ! -z  $NUMBER_OF_CALLS ]; then
-    count=$(( $count + 1 ))
+  if [ ! -z $NUMBER_OF_CALLS ]; then
+    count=$(($count + 1))
     if [ $NUMBER_OF_CALLS -eq $count ]; then
-        if [ $ERROR -eq 1 ]; then
-            exit 1
-        else
-            exit 0
-        fi
+      if [ $ERROR -eq 1 ]; then
+        exit 1
+      else
+        exit 0
+      fi
     else
-        echo "[INFO] POST and GET calls made: ${count}"
+      echo "[INFO] POST and GET calls made: ${count}"
     fi
   fi
 
