@@ -19,6 +19,7 @@
 #   -d : DEBUG (true/false), whether to enable debug output - DEFAULT: false
 #   -i : CONDENSED_INFO (true/false), whether to show the full post response or a condensed version - DEFAULT: false
 #   -s : SAVE_ROW_AFTER_RUN (true/false), whether to save each row in the database after a run or delete it - DEFAULT: false
+#   -z : NUMBER_OF_CALLS (integer), run continous load calls fixed number of times.
 #
 # USAGE:
 #   CAUTION - running without TABLE_CLEANUP enabled can result in data leftover in the postgres table
@@ -30,7 +31,7 @@
 #     ./continuous-load.sh -t 2 -c
 
 function usage() {
-  echo "Usage: $0 [-n NAMESPACE] [-u API_BASE_URL] [-t RETRY_INTERVAL] [-acdis]"
+  echo "Usage: $0 [-n NAMESPACE] [-u API_BASE_URL] [-t RETRY_INTERVAL] [-acdisz]"
   exit 1
 }
 
@@ -41,8 +42,10 @@ TABLE_CLEANUP=false
 DEBUG=false
 CONDENSED_INFO=false
 SAVE_ROW_AFTER_RUN=false
+ERROR=0
 
-while getopts "n:u:t:acdis" opt; do
+
+while getopts "n:u:t:acdisz" opt; do
   case ${opt} in
   n)
     NAMESPACE="$OPTARG"
@@ -67,6 +70,9 @@ while getopts "n:u:t:acdis" opt; do
     ;;
   s)
     SAVE_ROW_AFTER_RUN=true
+    ;;
+  z)
+    NUMBER_OF_CALLS=100
     ;;
   \?)
     usage
@@ -173,6 +179,7 @@ while true; do
       fi
     else
       echo "FAILED - Error code: ${get_response_code}"
+      ERROR=1
     fi
 
     # - DELETE ---
@@ -184,6 +191,20 @@ while true; do
     fi
   else
     echo "FAILED - Error code: ${post_response_code}" # Failure catch during POST
+    ERROR=1
+  fi
+
+  if [ ! -z  $NUMBER_OF_CALLS ]; then
+    count=$(( $count + 1 ))
+    if [ $NUMBER_OF_CALLS -eq $count ]; then
+        if [ $ERROR -eq 1 ]; then
+            exit 1
+        else
+            exit 0
+        fi
+    else
+        echo "[INFO] POST and GET calls made: ${count}"
+    fi
   fi
 
   echo -e "\n--------------------------------------------------------------------\n"
