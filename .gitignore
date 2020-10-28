@@ -36,3 +36,6 @@ DefaultPolicies.zip
 MQEndpointPolicy.policyxml
 PostgresqlPolicy.policyxml
 server.conf.yaml
+
+# log file
+*continuous-load-script-log*
