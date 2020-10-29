@@ -1,0 +1,17 @@
+apiVersion: integration.ibm.com/v1beta1
+kind: Demo
+metadata:
+  name: demos
+  namespace: cp4i
+spec:
+  version: 2020.3.1
+  general:
+    storage:
+      block:
+        class: cp4i-block-performance
+      file:
+        class: ibmc-file-gold-gid
+    samplesRepoBranch: main
+  demos:
+    eventEnabledInsurance:
+      enabled: true
