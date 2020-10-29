@@ -544,9 +544,9 @@ fi #demoPreparation
 
 divider
 
-if [[ ("${demoPreparation}" == "true" || "${drivewayDentDeletionDemo}" == "true") && "${testDrivewayDentDeletionDemoE2E}" == "true" ]]; then
+if [[ ("${demoPreparation}" == "true" || "${drivewayDentDeletionDemo}" == "true") && ("${testDrivewayDentDeletionDemoE2E}" == "true") ]]; then
   if ! $CURRENT_DIR/../../DrivewayDentDeletion/Operators/test-ddd.sh -n ${JOB_NAMESPACE} -b $demoDeploymentBranch; then
-    echo "ERROR: Failed to run an end to end test for driveway dent deletion demo" 1>&2
+    echo "ERROR: Failed to run automated test for driveway dent deletion demo" 1>&2
     divider
   fi
 fi

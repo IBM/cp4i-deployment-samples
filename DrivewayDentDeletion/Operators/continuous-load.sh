@@ -205,17 +205,16 @@ while true; do
     POST_ERROR=$(($POST_ERROR + 1))
   fi
 
-  if [[ $NUMBER_OF_CALLS && "$NUMBER_OF_CALLS" -eq "$CALLS_DONE" ]]; then
-    if [[ "$GET_ERROR" -eq 0 && "$POST_ERROR" -eq 0 ]]; then
+  if [[ ($NUMBER_OF_CALLS) && ("$NUMBER_OF_CALLS" -eq "$CALLS_DONE") ]]; then
+    if [[ ("$GET_ERROR" -eq 0) && ("$POST_ERROR" -eq 0) ]]; then
       divider
-      echo -e "$INFO INFO: Continous load testing successfully completed with $NUMBER_OF_CALLS call."
+      echo -e "$INFO INFO: Continous load testing successfully completed with $NUMBER_OF_CALLS call(s) and zero errors."
       divider
-      # exit 0
-      exit 1
+      exit 0
     fi
   fi
 
-  if [[ "$GET_ERROR" -gt 0 || "$POST_ERROR" -gt 0 ]]; then
+  if [[ ("$GET_ERROR" -gt 0) || ("$POST_ERROR" -gt 0) ]]; then
     divider
     echo -e "$INFO INFO: POST and GET calls made: ${CALLS_DONE}, POST errors: $POST_ERROR, GET errors: $GET_ERROR"
     echo -e "$CROSS ERROR: Continous load testing failed. Exiting now.."
