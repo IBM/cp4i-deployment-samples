@@ -207,9 +207,11 @@ while true; do
 
   if [[ $NUMBER_OF_CALLS && "$NUMBER_OF_CALLS" -eq "$CALLS_DONE" ]]; then
     if [[ "$GET_ERROR" -eq 0 && "$POST_ERROR" -eq 0 ]]; then
+      divider
       echo -e "$INFO INFO: Continous load testing successfully completed with $NUMBER_OF_CALLS call."
       divider
-      exit 0
+      # exit 0
+      exit 1
     fi
   fi
 

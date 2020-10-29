@@ -26,7 +26,7 @@
 #
 
 function divider() {
-    echo -e "\n-------------------------------------------------------------------------------------------------------------------\n"
+    echo -e "\n-------------------------------------------------------------------------------------------------------------------\n" | add_date_for_log
 }
 
 function usage() {
@@ -51,6 +51,7 @@ MISSING_PARAMS="false"
 BRANCH="main"
 FORKED_REPO="https://github.com/IBM/cp4i-deployment-samples.git"
 TKN_INSTALLED=false
+JQ_INSTALLED=false
 
 while getopts "n:r:b:" opt; do
     case ${opt} in
@@ -88,7 +89,18 @@ if [[ "$missingParams" == "true" ]]; then
     usage
 fi
 
+function print_pipelineruns_taskruns() {
+    divider
+    echo -e "$INFO INFO: Printing the pipelineruns in the '$NAMESPACE' namesapce...\n" | add_date_for_log
+    $TKN pipelinerun list -n $NAMESPACE
+    divider
+    echo -e "$INFO INFO: Printing all the taskruns in the '$NAMESPACE' namesapce...'n" | add_date_for_log
+    $TKN taskrun list -n $NAMESPACE
+    divider
+}
+
 function wait_and_trigger_pipeline() {
+    divider
     PIPELINE_TYPE=${1}
     URL=$(oc get route -n $NAMESPACE el-main-trigger-route --template='http://{{.spec.host}}')
 
@@ -104,8 +116,8 @@ function wait_and_trigger_pipeline() {
         time=$((time + 1))
         sleep 60
     done
-
-    echo -e "\n$INFO INFO: The event listener pod:\n" | add_date_for_log
+    divider
+    echo -e "$INFO INFO: The event listener pod:\n" | add_date_for_log
     oc get pod -n $NAMESPACE | grep el-$PIPELINE_TYPE-event-listener | grep 1/1 | grep Running
     echo -e "\n$INFO INFO: The event listener pod is now in Running, going ahead to trigger the '$PIPELINE_TYPE' pipeline...\n" | add_date_for_log
     curl $URL
@@ -117,6 +129,14 @@ function wait_and_trigger_pipeline() {
         exit 1
     fi
     divider
+    PIPELINE_RUN_END_STATUS=$($TKN pipelinerun describe -n $NAMESPACE $($TKN pipelinerun list -n $NAMESPACE --limit 1 | sed -n 2p | awk '{print $1}') -o json | $JQ -r '.status.conditions[0].type')
+    if [[ "$PIPELINE_RUN_END_STATUS" != "Succeeded" ]]; then
+        echo -e "$CROSS ERROR: The '$PIPELINE_TYPE' pipeline run did not complete successfully.$CROSS"
+        print_pipelineruns_taskruns
+        exit 1
+    else
+        echo -e "$TICK INFO: The '$PIPELINE_TYPE' pipeline completed successfully."
+    fi
 }
 
 function run_continous_load_script() {
@@ -152,6 +172,36 @@ divider
 oc project $NAMESPACE
 
 divider
+
+# -------------------------------------- INSTALL JQ ---------------------------------------------------------------------
+
+echo -e "\nINFO: Checking if jq is pre-installed..." | add_date_for_log
+jqVersionCheck=$(jq --version)
+
+if [ $? -eq 0 ]; then
+    JQ_INSTALLED=true
+fi
+
+JQ=jq
+if [[ "$JQ_INSTALLED" == "false" ]]; then
+    echo "INFO: JQ is not installed, installing jq..." | add_date_for_log
+    if [[ "$OSTYPE" == "linux-gnu"* ]]; then
+        echo "INFO: Installing on linux" | add_date_for_log
+        wget -O jq https://github.com/stedolan/jq/releases/download/jq-1.6/jq-linux64
+        chmod +x ./jq
+        JQ=./jq
+    elif [[ "$OSTYPE" == "darwin"* ]]; then
+        echo "INFO: Installing on MAC" | add_date_for_log
+        /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)"
+        brew install jq
+    fi
+fi
+
+echo -e "\n$TICK INFO: Installed JQ version is $($JQ --version)" | add_date_for_log
+
+divider
+
+# -------------------------------------- INSTALL TKN ---------------------------------------------------------------------
 
 echo -e "$INFO INFO: Checking if tekton-cli is pre-installed...\n" | add_date_for_log
 TKN=tkn
@@ -193,15 +243,24 @@ fi
 
 divider
 
+# -------------------------------------------- DEV PIPELINE RUN -----------------------------------------------------------
+
 echo -e "$INFO INFO: Applying the dev pipeline resources...\n" | add_date_for_log
 if ! $CURRENT_DIR/cicd-apply-dev-pipeline.sh -n $NAMESPACE -r $FORKED_REPO -b $BRANCH; then
     echo -e "$CROSS ERROR: Could not apply the dev pipeline and related resources." | add_date_for_log
     exit 1
 fi
 
-wait_and_trigger_pipeline "dev"
+if ! wait_and_trigger_pipeline "dev"; then
+    echo -e "$CROSS ERROR: Exited during the 'dev' pipelinerun testing phase." | add_date_for_log
+    exit 1
+fi
 
-run_continous_load_script "$NAMESPACE" "false" "dev"
+if ! run_continous_load_script "$NAMESPACE" "false" "dev"; then
+    echo -e "$CROSS ERROR: Continuous load script did not run successfully in the '$NAMESPACE' namespace for 'dev' pipeline without apic" | add_date_for_log
+fi
+
+# -------------------------------------------- TEST PIPELINE RUN ----------------------------------------------------------
 
 echo -e "$INFO INFO: Applying the test pipeline resources...\n" | add_date_for_log
 if ! $CURRENT_DIR/cicd-apply-test-pipeline.sh -n $NAMESPACE -r $FORKED_REPO -b $BRANCH; then
@@ -209,13 +268,20 @@ if ! $CURRENT_DIR/cicd-apply-test-pipeline.sh -n $NAMESPACE -r $FORKED_REPO -b $
     exit 1
 fi
 
-divider
+if ! wait_and_trigger_pipeline "test"; then
+    echo -e "$CROSS ERROR: Exited during the 'test' pipelinerun testing phase." | add_date_for_log
+    exit 1
+fi
 
-wait_and_trigger_pipeline "test"
+if ! run_continous_load_script "$NAMESPACE" "false" "test"; then
+    echo -e "$CROSS ERROR: Continuous load script did not run successfully in the '$NAMESPACE' namespace for 'test' pipeline without apic" | add_date_for_log
+fi
 
-run_continous_load_script "$NAMESPACE" "false" "test"
+if ! run_continous_load_script "$NAMESPACE-ddd-test" "false" "test"; then
+    echo -e "$CROSS ERROR: Continuous load script did not run successfully in the '$NAMESPACE' namespace for 'test' pipeline without apic" | add_date_for_log
+fi
 
-run_continous_load_script "$NAMESPACE-ddd-test" "false" "test"
+# -------------------------------------------- TEST APIC PIPELINE RUN -----------------------------------------------------
 
 echo -e "$INFO INFO: Applying the test pipeline resources...\n" | add_date_for_log
 if ! $CURRENT_DIR/cicd-apply-test-apic-pipeline.sh -n $NAMESPACE -r $FORKED_REPO -b $BRANCH; then
@@ -223,19 +289,21 @@ if ! $CURRENT_DIR/cicd-apply-test-apic-pipeline.sh -n $NAMESPACE -r $FORKED_REPO
     exit 1
 fi
 
-wait_and_trigger_pipeline "test-apic"
+if ! wait_and_trigger_pipeline "test-apic"; then
+    echo -e "$CROSS ERROR: Exited during the 'test-apic' pipelinerun testing phase." | add_date_for_log
+    exit 1
+fi
 
-run_continous_load_script "$NAMESPACE" "true" "test-apic"
+if ! run_continous_load_script "$NAMESPACE" "true" "test-apic"; then
+    echo -e "$CROSS ERROR: Continuous load script did not run successfully in the '$NAMESPACE' namespace for 'test-apic' pipeline with apic" | add_date_for_log
+fi
 
-run_continous_load_script "$NAMESPACE-ddd-test" "true" "test-apic"
+if ! run_continous_load_script "$NAMESPACE-ddd-test" "true" "test-apic"; then
+    echo -e "$CROSS ERROR: Continuous load script did not run successfully in the '$NAMESPACE' namespace for 'test-apic' pipeline with apic" | add_date_for_log
+fi
 
-echo -e "$INFO INFO: Printing the pipelineruns in the '$NAMESPACE' namesapce..."
-$TKN pipelinerun list -n $NAMESPACE
-divider
-
-echo -e "$INFO INFO: Printing all the taskruns in the '$NAMESPACE' namesapce..."
-$TKN taskrun list -n $NAMESPACE
-divider
+# -------------------------------------------PRINT PIPELINERUN, TASKRUN, EXIT ---------------------------------------------
+print_pipelineruns_taskruns
 
 echo -e "$TICK $ALL_DONE INFO: The DDD E2E test ran successfully $ALL_DONE $TICK" | add_date_for_log
 
