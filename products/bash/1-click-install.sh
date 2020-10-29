@@ -514,15 +514,6 @@ if [[ "${drivewayDentDeletionDemo}" == "true" || "${demoPreparation}" == "true" 
     echo -e "$tick INFO: Successfully onfigured apic"
     divider
   fi
-
-  if [[ "${testDrivewayDentDeletionDemoE2E}" == "true" ]]; then
-    if ! $CURRENT_DIR/../../DrivewayDentDeletion/Operators/test-e2e.sh -n ${JOB_NAMESPACE} -b $demoDeploymentBranch; then
-      echo "ERROR: Failed to run an end to end test for driveway dent deletion demo" 1>&2
-      divider
-    fi
-  fi
-  divider
-
 fi #drivewayDentDeletionDemo
 
 # -------------------------------------------------- All other demos ----------------------------------------------------------------
@@ -551,4 +542,12 @@ if [[ "${demoPreparation}" == "true" ]]; then
   fi
 fi #demoPreparation
 
+divider
+
+if [[ ("${demoPreparation}" == "true" || "${drivewayDentDeletionDemo}" == "true") && "${testDrivewayDentDeletionDemoE2E}" == "true" ]]; then
+  if ! $CURRENT_DIR/../../DrivewayDentDeletion/Operators/test-ddd.sh -n ${JOB_NAMESPACE} -b $demoDeploymentBranch; then
+    echo "ERROR: Failed to run an end to end test for driveway dent deletion demo" 1>&2
+    divider
+  fi
+fi
 divider

@@ -81,7 +81,7 @@ while getopts "n:u:t:acdisz" opt; do
     SAVE_ROW_AFTER_RUN=true
     ;;
   z)
-    NUMBER_OF_CALLS=50
+    NUMBER_OF_CALLS=1
     ;;
   \?)
     usage
@@ -157,6 +157,8 @@ while true; do
   post_response_code=$(echo "${post_response##* }")
   $DEBUG && echo "[DEBUG] post response: ${post_response}"
 
+  CALLS_DONE=$(($CALLS_DONE + 1))
+
   if [ "$post_response_code" == "200" ]; then
     # The usage of sed here is to prevent an error caused between the -w flag of curl and jq not interacting well
     quote_id=$(echo "$post_response" | jq '.' | sed $os_sed_flag '$ d' | jq '.QuoteID')
@@ -203,30 +205,20 @@ while true; do
     POST_ERROR=$(($POST_ERROR + 1))
   fi
 
-  if [ $NUMBER_OF_CALLS ]; then
+  if [[ $NUMBER_OF_CALLS && "$NUMBER_OF_CALLS" -eq "$CALLS_DONE" ]]; then
+    if [[ "$GET_ERROR" -eq 0 && "$POST_ERROR" -eq 0 ]]; then
+      echo -e "$INFO INFO: Continous load testing successfully completed with $NUMBER_OF_CALLS call."
+      divider
+      exit 0
+    fi
+  fi
+
+  if [[ "$GET_ERROR" -gt 0 || "$POST_ERROR" -gt 0 ]]; then
     divider
-    echo -e "$INFO INFO: Number of calls is defined, running for testing DDD E2E...calls done $CALLS_DONE and total calls to be done is $NUMBER_OF_CALLS"
-    CALLS_DONE=$(($CALLS_DONE + 1))
-    if [[ "$GET_ERROR" -gt 0 || "$POST_ERROR" -gt 0 ]]; then
-      divider
-      echo -e "$CROSS ERROR: Continous load testing failed.Exiting now.."
-      divider
-      exit 1
-    fi
-    if [[ "$NUMBER_OF_CALLS" -eq "$CALLS_DONE" ]]; then
-      divider
-      echo -e "$INFO INFO: Calls done matches target number of calls..."
-      echo -e "$INFO INFO: $POST_ERROR POST errors and $GET_ERROR GET errors are present."
-      if [[ "$GET_ERROR" -eq 0 && "$POST_ERROR" -eq 0 ]]; then
-        echo -e "$INFO INFO: Continous load testing successfully completed."
-        divider
-        exit 0
-      fi
-    else
-      divider
-      echo -e "$INFO INFO: POST and GET calls made: ${CALLS_DONE}, POST errors: $POST_ERROR, GET errors: $GET_ERROR"
-      divider
-    fi
+    echo -e "$INFO INFO: POST and GET calls made: ${CALLS_DONE}, POST errors: $POST_ERROR, GET errors: $GET_ERROR"
+    echo -e "$CROSS ERROR: Continous load testing failed. Exiting now.."
+    divider
+    exit 1
   fi
 
   echo -e "\n--------------------------------------------------------------------\n"
