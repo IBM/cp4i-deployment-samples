@@ -35,6 +35,10 @@ function usage() {
   exit 1
 }
 
+function divider() {
+  echo -e "\n-------------------------------------------------------------------------------------------------------------------\n"
+}
+
 NAMESPACE="cp4i"
 RETRY_INTERVAL=5
 APIC=false
@@ -42,7 +46,13 @@ TABLE_CLEANUP=false
 DEBUG=false
 CONDENSED_INFO=false
 SAVE_ROW_AFTER_RUN=false
-ERROR=0
+GET_ERROR=0
+POST_ERROR=0
+CALLS_DONE=0
+TICK="\xE2\x9C\x85"
+CROSS="\xE2\x9D\x8C"
+ALL_DONE="\xF0\x9F\x92\xAF"
+INFO="\xE2\x84\xB9"
 
 while getopts "n:u:t:acdisz" opt; do
   case ${opt} in
@@ -178,7 +188,7 @@ while true; do
       fi
     else
       echo "FAILED - Error code: ${get_response_code}"
-      ERROR=1
+      GET_ERROR=$(($GET_ERROR + 1))
     fi
 
     # - DELETE ---
@@ -190,19 +200,32 @@ while true; do
     fi
   else
     echo "FAILED - Error code: ${post_response_code}" # Failure catch during POST
-    ERROR=1
+    POST_ERROR=$(($POST_ERROR + 1))
   fi
 
-  if [ ! -z $NUMBER_OF_CALLS ]; then
-    count=$(($count + 1))
-    if [ $NUMBER_OF_CALLS -eq $count ]; then
-      if [ $ERROR -eq 1 ]; then
-        exit 1
-      else
+  if [ $NUMBER_OF_CALLS ]; then
+    divider
+    echo -e "$INFO INFO: Number of calls is defined, running for testing DDD E2E...calls done $CALLS_DONE and total calls to be done is $NUMBER_OF_CALLS"
+    CALLS_DONE=$(($CALLS_DONE + 1))
+    if [[ "$GET_ERROR" -gt 0 || "$POST_ERROR" -gt 0 ]]; then
+      divider
+      echo -e "$CROSS ERROR: Continous load testing failed.Exiting now.."
+      divider
+      exit 1
+    fi
+    if [[ "$NUMBER_OF_CALLS" -eq "$CALLS_DONE" ]]; then
+      divider
+      echo -e "$INFO INFO: Calls done matches target number of calls..."
+      echo -e "$INFO INFO: $POST_ERROR POST errors and $GET_ERROR GET errors are present."
+      if [[ "$GET_ERROR" -eq 0 && "$POST_ERROR" -eq 0 ]]; then
+        echo -e "$INFO INFO: Continous load testing successfully completed."
+        divider
         exit 0
       fi
     else
-      echo "[INFO] POST and GET calls made: ${count}"
+      divider
+      echo -e "$INFO INFO: POST and GET calls made: ${CALLS_DONE}, POST errors: $POST_ERROR, GET errors: $GET_ERROR"
+      divider
     fi
   fi
 

@@ -53,7 +53,7 @@ function wait_and_trigger_pipeline() {
             oc get pods -n $NAMESPACE
             exit 1
         fi
-        echo -e "$INFO INFO: Wait for upto 5 minutes for the event listener pod to be running. Waited ${time} minute(s)."
+        echo -e "$INFO INFO: Wait for upto 5 minutes for the event listener pod to be running to start the '$PIPELINE_TYPE' pipeline. Waited ${time} minute(s)."
         time=$((time + 1))
         sleep 60
     done
@@ -74,21 +74,23 @@ function wait_and_trigger_pipeline() {
 
 function run_continous_load_script() {
     divider
-    ns=$1   #namespace
-    apic=$2 # apic enabled
-    # call continuous load script with defaults and get process id for it and log output to a file
-    if [ ! -z $apic ]; then
-        echo -e "$INFO INFO Running the continuous-load.sh with -a for apic in the '$ns' namespace..."
-        echo "$CURRENT_DIR/continuous-load.sh -n $ns -a \n" | add_date_for_log >>continuous-load-script-log.txt 2>&1
-        if ! $CURRENT_DIR/continuous-load.sh -n $ns -a | add_date_for_log >>continuous-load-script-log.txt 2>&1; then
+    CONTINUOUS_LOAD_NAMESPACE=$1 #namespace
+    APIC_ENABLED=$2              # apic enabled
+    PIPELINE_TYPE=$3             # pipeline type
+    if [ $APIC_ENABLED ]; then
+        LOG_FILE_NAME=continuous-load-script-log-$CONTINUOUS_LOAD_NAMESPACE-$PIPELINE_TYPE-apic.txt
+        echo -e "$INFO INFO Running the continuous-load.sh after '$PIPELINE_TYPE' pipeine with -a for apic in the '$CONTINUOUS_LOAD_NAMESPACE' namespace..."
+        echo "$CURRENT_DIR/continuous-load.sh -n $CONTINUOUS_LOAD_NAMESPACE -a -z \n" | add_date_for_log >$LOG_FILE_NAME 2>&1
+        if ! $CURRENT_DIR/continuous-load.sh -n $CONTINUOUS_LOAD_NAMESPACE -a -z | add_date_for_log >$LOG_FILE_NAME 2>&1; then
             echo -e "$CROSS ERROR: Could not start or finish the continuous load testing, check the log file 'continuous-load-script-log.txt'."
             divider
             exit 1
         fi
     else
-        echo -e "$INFO INFO Running the continuous-load.sh without -a for apic in the '$ns' namespace..."
-        echo -e "$CURRENT_DIR/continuous-load.sh -n $ns \n" | add_date_for_log >>continuous-load-script-log.txt 2>&1
-        if ! $CURRENT_DIR/continuous-load.sh -n $ns | add_date_for_log >>continuous-load-script-log.txt 2>&1; then
+        LOG_FILE_NAME=continuous-load-script-log-$CONTINUOUS_LOAD_NAMESPACE-$PIPELINE_TYPE-no-apic.txt
+        echo -e "$INFO INFO Running the continuous-load.sh  after '$PIPELINE_TYPE' pipeine without -a for apic in the '$CONTINUOUS_LOAD_NAMESPACE' namespace..."
+        echo -e "$CURRENT_DIR/continuous-load.sh -n $CONTINUOUS_LOAD_NAMESPACE -z \n" | add_date_for_log >$LOG_FILE_NAME 2>&1
+        if ! $CURRENT_DIR/continuous-load.sh -n $CONTINUOUS_LOAD_NAMESPACE -z | add_date_for_log >$LOG_FILE_NAME 2>&1; then
             echo -e "$CROSS ERROR: Could not start or finish the continuous load testing, check the log file 'continuous-load-script-log.txt'."
             divider
             exit 1
@@ -203,7 +205,7 @@ fi
 
 wait_and_trigger_pipeline "dev"
 
-run_continous_load_script "$NAMESPACE"
+run_continous_load_script "$NAMESPACE" "false" "dev"
 
 echo -e "$INFO INFO: Applying the test pipeline resources...\n"
 if ! $CURRENT_DIR/cicd-apply-test-pipeline.sh -n $NAMESPACE -r $FORKED_REPO -b $BRANCH; then
@@ -215,9 +217,9 @@ divider
 
 wait_and_trigger_pipeline "test"
 
-run_continous_load_script "$NAMESPACE"
+run_continous_load_script "$NAMESPACE" "false" "test"
 
-run_continous_load_script "$NAMESPACE-ddd-test"
+run_continous_load_script "$NAMESPACE-ddd-test" "false" "test"
 
 echo -e "$INFO INFO: Applying the test pipeline resources...\n"
 if ! $CURRENT_DIR/cicd-apply-test-apic-pipeline.sh -n $NAMESPACE -r $FORKED_REPO -b $BRANCH; then
@@ -227,9 +229,9 @@ fi
 
 wait_and_trigger_pipeline "test-apic"
 
-run_continous_load_script "$NAMESPACE" "apic"
+run_continous_load_script "$NAMESPACE" "true" "test-apic"
 
-run_continous_load_script "$NAMESPACE-ddd-test" "apic"
+run_continous_load_script "$NAMESPACE-ddd-test" "true" "test-apic"
 
 echo -e "$TICK $ALL_DONE INFO: The DDD E2E test ran successfully $ALL_DONE $TICK"
 
