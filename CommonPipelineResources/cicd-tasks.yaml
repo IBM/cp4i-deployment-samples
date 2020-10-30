@@ -74,9 +74,6 @@ spec:
     - name: namespace
       type: string
       description: release namespace
-    - name: suffix
-      type: string
-      description: Suffix for the demo
   workspaces:
     - name: git-source
   steps:
