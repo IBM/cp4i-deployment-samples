@@ -79,6 +79,11 @@ if [[ -z "${namespace// }" ]]; then
   missingParams="true"
 fi
 
+if [[ -z "${namespace// }" ]]; then
+  echo -e "$cross ERROR: 1-click validation namespace is empty. Please provide a value for '-n' parameter."
+  missingParams="true"
+fi
+
 if [[ -z "${navReplicaCount// }" ]]; then
   echo -e "$cross ERROR: 1-click validation platform navigator replica count is empty. Please provide a value for '-r' parameter."
   missingParams="true"

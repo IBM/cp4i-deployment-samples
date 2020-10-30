@@ -14,24 +14,24 @@
 #   - If running without parameters, all parameters must be set as environment variables
 #
 # PARAMETERS:
-#   -n : <JOB_NAMESPACE> (string), Namespace for the 1-click install
-#   -r : <navReplicaCount> (string), Platform navigator replicas, Defaults to 3
-#   -b : <demoDeploymentBranch> (string), The demo deployment branch to be used, Defaults to 'main'
-#   -u : <csDefaultAdminUser> (string), Default common service username. Defaults to "admin"
-#   -p : <csDefaultAdminPassword> (string), Common service defaul admin password
-#   -d : <demoPreparation> (string), If all demos are to be setup. Defaults to "false"
 #   -a : <eventEnabledInsuranceDemo> (string), If event enabled insurance demo is to be setup. Defaults to "false"
-#   -f : <drivewayDentDeletionDemo> (string),  If driveway dent deletion demo is to be setup. Defaults to "false"
+#   -b : <demoDeploymentBranch> (string), The demo deployment branch to be used, Defaults to 'main'
+#   -d : <demoPreparation> (string), If all demos are to be setup. Defaults to "false"
 #   -e : <demoAPICEmailAddress> (string), The email address APIC uses to notify of portal configuration. Defaults to "your@email.address"
+#   -f : <drivewayDentDeletionDemo> (string),  If driveway dent deletion demo is to be setup. Defaults to "false"
 #   -h : <demoAPICMailServerHost> (string), Host name of the mail server. Defaults to "smtp.mailtrap.io"
-#   -o : <demoAPICMailServerPort> (string), Port number of the mail server. Defaults to "2525"
-#   -m : <demoAPICMailServerUsername> (string), Username for the mail server. Defaults to "<your-username>"
-#   -q : <demoAPICMailServerPassword> (string), Password for the mail server.
 #   -j : <tempERKey> (string), IAM API key for accessing the entitled registry.
 #   -k : <tempRepo> (string), For accessing different Registry
 #   -l : <DOCKER_REGISTRY_USER> (string), Docker registry username
+#   -m : <demoAPICMailServerUsername> (string), Username for the mail server. Defaults to "<your-username>"
+#   -n : <JOB_NAMESPACE> (string), Namespace for the 1-click install
+#   -o : <demoAPICMailServerPort> (string), Port number of the mail server. Defaults to "2525"
+#   -p : <csDefaultAdminPassword> (string), Common service defaul admin password
+#   -q : <demoAPICMailServerPassword> (string), Password for the mail server.
+#   -r : <navReplicaCount> (string), Platform navigator replicas, Defaults to 3
 #   -s : <DOCKER_REGISTRY_PASS> (string), Docker registry password
 #   -t : <ENVIRONMENT> (string), Environment for installation, 'staging' when you want to use the staging entitled registry
+#   -u : <csDefaultAdminUser> (string), Default common service username. Defaults to "admin"
 #   -v : <useFastStorageClass> (string), If using fast storage class for installation. Defaults to 'false'
 #
 # USAGE:
@@ -39,14 +39,14 @@
 #     ./1-click-install.sh
 #
 #   Overriding the params
-#     ./1-click-install.sh -n <JOB_NAMESPACE> -r <navReplicaCount> -b <demoDeploymentBranch> -u <csDefaultAdminUser> -p <csDefaultAdminPassword> -d <demoPreparation> -a <eventEnabledInsuranceDemo> -f <drivewayDentDeletionDemo> -e <demoAPICEmailAddress> -h <demoAPICMailServerHost> -o <demoAPICMailServerPort> -m <demoAPICMailServerUsername> -q <demoAPICMailServerPassword> -j <tempERKey> -k <tempRepo> -l <DOCKER_REGISTRY_USER> -s <DOCKER_REGISTRY_PASS> -t <ENVIRONMENT> -v <useFastStorageClass>
+#     ./1-click-install.sh -a <eventEnabledInsuranceDemo> -b <demoDeploymentBranch> -d <demoPreparation> -e <demoAPICEmailAddress> -f <drivewayDentDeletionDemo> -h <demoAPICMailServerHost> -j <tempERKey> -k <tempRepo> -l <DOCKER_REGISTRY_USER> -m <demoAPICMailServerUsername> -n <JOB_NAMESPACE> -o <demoAPICMailServerPort> -p <csDefaultAdminPassword> -q <demoAPICMailServerPassword> -r <navReplicaCount> -s <DOCKER_REGISTRY_PASS> -t <ENVIRONMENT> -u <csDefaultAdminUser> -v <useFastStorageClass>
 
 function divider {
   echo -e "\n-------------------------------------------------------------------------------------------------------------------\n"
 }
 
 function usage {
-    echo "Usage: $0 -n <JOB_NAMESPACE> -r <navReplicaCount> -b <demoDeploymentBranch> -u <csDefaultAdminUser> -p <csDefaultAdminPassword> -d <demoPreparation> -a <eventEnabledInsuranceDemo> -f <drivewayDentDeletionDemo> -e <demoAPICEmailAddress> -h <demoAPICMailServerHost> -o <demoAPICMailServerPort> -m <demoAPICMailServerUsername> -q <demoAPICMailServerPassword> -j <tempERKey> -k <tempRepo> -l <DOCKER_REGISTRY_USER> -s <DOCKER_REGISTRY_PASS> -t <ENVIRONMENT> -v <useFastStorageClass>"
+    echo "Usage: $0 -a <eventEnabledInsuranceDemo> -b <demoDeploymentBranch> -d <demoPreparation> -e <demoAPICEmailAddress> -f <drivewayDentDeletionDemo> -h <demoAPICMailServerHost> -j <tempERKey> -k <tempRepo> -l <DOCKER_REGISTRY_USER> -m <demoAPICMailServerUsername> -n <JOB_NAMESPACE> -o <demoAPICMailServerPort> -p <csDefaultAdminPassword> -q <demoAPICMailServerPassword> -r <navReplicaCount> -s <DOCKER_REGISTRY_PASS> -t <ENVIRONMENT> -u <csDefaultAdminUser> -v <useFastStorageClass>"
     divider
     exit 1
 }
@@ -60,33 +60,19 @@ missingParams="false"
 IMAGE_REPO="cp.icr.io"
 pwdChange="true"
 
-while getopts "n:r:b:u:p:d:a:f:e:h:o:m:q:j:k:l:s:t:v:" opt; do
+while getopts "a:b:d:e:f:h:j:k:l:m:n:o:p:q:r:s:t:u:v:" opt; do
   case ${opt} in
-    n ) JOB_NAMESPACE="$OPTARG"
-      ;;
-    r ) navReplicaCount="$OPTARG"
+    a ) eventEnabledInsuranceDemo="$OPTARG"
       ;;
     b ) demoDeploymentBranch="$OPTARG"
       ;;
-    u ) csDefaultAdminUser="$OPTARG"
-      ;;
-    p ) csDefaultAdminPassword="$OPTARG"
-      ;;
     d ) demoPreparation="$OPTARG"
-      ;;
-    a ) eventEnabledInsuranceDemo="$OPTARG"
-      ;;
-    f ) drivewayDentDeletionDemo="$OPTARG"
       ;;
     e ) demoAPICEmailAddress="$OPTARG"
       ;;
+    f ) drivewayDentDeletionDemo="$OPTARG"
+      ;;
     h ) demoAPICMailServerHost="$OPTARG"
-      ;;
-    o ) demoAPICMailServerPort="$OPTARG"
-      ;;
-    m ) demoAPICMailServerUsername="$OPTARG"
-      ;;
-    q ) demoAPICMailServerPassword="$OPTARG"
       ;;
     j ) tempERKey="$OPTARG"
       ;;
@@ -94,9 +80,23 @@ while getopts "n:r:b:u:p:d:a:f:e:h:o:m:q:j:k:l:s:t:v:" opt; do
       ;;
     l ) DOCKER_REGISTRY_USER="$OPTARG"
       ;;
+    m ) demoAPICMailServerUsername="$OPTARG"
+      ;;
+    n ) JOB_NAMESPACE="$OPTARG"
+      ;;
+    o ) demoAPICMailServerPort="$OPTARG"
+      ;;
+    p ) csDefaultAdminPassword="$OPTARG"
+      ;;
+    q ) demoAPICMailServerPassword="$OPTARG"
+      ;;
+    r ) navReplicaCount="$OPTARG"
+      ;;
     s ) DOCKER_REGISTRY_PASS="$OPTARG"
       ;;
     t ) ENVIRONMENT="$OPTARG"
+      ;;
+    u ) csDefaultAdminUser="$OPTARG"
       ;;
     v ) useFastStorageClass="$OPTARG"
       ;;
@@ -405,15 +405,21 @@ fi #demoPreparation
 # ------------------------------------------- Event Enabled Insurance demo specific ---------------------------------------------------
 
 if [[ "${eventEnabledInsuranceDemo}" == "true" || "${demoPreparation}" == "true" ]]; then
+  if ! $CURRENT_DIR/release-tracing.sh -n ${JOB_NAMESPACE}; then
+    echo "ERROR: Failed to release tracing" 1>&2
+    exit 1
+  else
+    echo -e "$tick INFO: Successfully released tracing"
+    divider
+  fi
+  
   if ! $CURRENT_DIR/release-es.sh -n ${JOB_NAMESPACE}; then
     echo "ERROR: Failed to release event streams" 1>&2
-    divider
     exit 1
   else
     echo -e "$tick INFO: Successfully released event streams"
+    divider
   fi
-
-  divider
 
   if ! $CURRENT_DIR/release-ace-dashboard.sh -n ${NAMESPACE}; then
     echo "ERROR: Failed to release ace dashboard" 1>&2
@@ -428,6 +434,14 @@ if [[ "${eventEnabledInsuranceDemo}" == "true" || "${demoPreparation}" == "true"
     exit 1
   else
     echo -e "$tick INFO: Successfully released apic"
+    divider
+  fi
+
+  if ! $CURRENT_DIR/register-tracing.sh -n ${JOB_NAMESPACE} ; then
+    echo "ERROR: Failed to register tracing. Tracing secret not created" 1>&2
+    exit 1
+  else
+    echo -e "$tick INFO: Successfully registered tracing"
     divider
   fi
 
