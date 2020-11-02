@@ -19,24 +19,27 @@
 # USAGE:
 #   ./setup-demos.sh -i input.yaml -o output.yaml
 
-function divider {
+function divider() {
   echo -e "\n-------------------------------------------------------------------------------------------------------------------\n"
 }
 
-function usage {
-    echo "Usage: $0 -i input.yaml -o output.yaml"
-    divider
-    exit 1
+function usage() {
+  echo "Usage: $0 -i input.yaml -o output.yaml"
+  divider
+  exit 1
 }
 
 while getopts "i:o:" opt; do
   case ${opt} in
-    i ) INPUT_YAML_FILE="$OPTARG"
-      ;;
-    o ) OUTPUT_YAML_FILE="$OPTARG"
-      ;;
-    \? ) usage;
-      ;;
+  i)
+    INPUT_YAML_FILE="$OPTARG"
+    ;;
+  o)
+    OUTPUT_YAML_FILE="$OPTARG"
+    ;;
+  \?)
+    usage
+    ;;
   esac
 done
 
@@ -47,23 +50,22 @@ info="\xE2\x84\xB9"
 SCRIPT_DIR=$(dirname $0)
 DEBUG=true
 
-
-function product_set_defaults {
+function product_set_defaults() {
   PRODUCT_JSON=${1}
   PRODUCT_TYPE=$(echo ${PRODUCT_JSON} | jq -r '.type')
   case ${PRODUCT_TYPE} in
-    aceDashboard) DEFAULTS='{"name":"ace-dashboard-demo"}' ;;
-    aceDesigner)  DEFAULTS='{"name":"ace-designer-demo"}' ;;
-    apic)         DEFAULTS='{"name":"ademo","emailAddress":"your@email.address","mailServerHost":"smtp.mailtrap.io","mailServerPassword":"<your-password>","mailServerPort":2525,"mailServerUsername":"<your-username>"}' ;;
-    assetRepo)    DEFAULTS='{"name":"ar-demo"}' ;;
-    eventStreams) DEFAULTS='{"name":"es-demo"}' ;;
-    mq)           DEFAULTS='{"name":"mq-demo"}' ;;
-    navigator)    DEFAULTS='{"name":"navigator"}' ;;
-    tracing)      DEFAULTS='{"name":"tracing-demo"}' ;;
-    *)
-      echo -e "$cross ERROR: Unknown product type: ${PRODUCT_TYPE}" 1>&2
-      exit 1
-      ;;
+  aceDashboard) DEFAULTS='{"name":"ace-dashboard-demo"}' ;;
+  aceDesigner) DEFAULTS='{"name":"ace-designer-demo"}' ;;
+  apic) DEFAULTS='{"name":"ademo","emailAddress":"your@email.address","mailServerHost":"smtp.mailtrap.io","mailServerPassword":"<your-password>","mailServerPort":2525,"mailServerUsername":"<your-username>"}' ;;
+  assetRepo) DEFAULTS='{"name":"ar-demo"}' ;;
+  eventStreams) DEFAULTS='{"name":"es-demo"}' ;;
+  mq) DEFAULTS='{"name":"mq-demo"}' ;;
+  navigator) DEFAULTS='{"name":"navigator"}' ;;
+  tracing) DEFAULTS='{"name":"tracing-demo"}' ;;
+  *)
+    echo -e "$cross ERROR: Unknown product type: ${PRODUCT_TYPE}" 1>&2
+    exit 1
+    ;;
   esac
 
   for row in $(echo "${DEFAULTS}" | jq -r 'to_entries[] | @base64'); do
@@ -77,7 +79,7 @@ function product_set_defaults {
   echo "${PRODUCT_JSON}"
 }
 
-function product_fixup_namespace {
+function product_fixup_namespace() {
   PRODUCT_JSON=${1}
   PRODUCT_NAMESPACE=$(echo ${PRODUCT_JSON} | jq -r '.namespace')
   PRODUCT_NAMESPACE_SUFFIX=$(echo ${PRODUCT_JSON} | jq -r '.namespaceSuffix')
@@ -98,7 +100,7 @@ function product_fixup_namespace {
   echo "${PRODUCT_JSON}"
 }
 
-function merge_product {
+function merge_product() {
   PRODUCT_JSON=${1}
   PRODUCT_ARRAY_JSON=${2}
 
@@ -129,7 +131,7 @@ function merge_product {
   echo ${PRODUCT_ARRAY_JSON}
 }
 
-function merge_addon {
+function merge_addon() {
   ADDON_JSON=${1}
   ADDON_ARRAY_JSON=${2}
 
@@ -156,15 +158,15 @@ function merge_addon {
 }
 
 #-------------------------------------------------------------------------------------------------------------------
-# Validate the paramaters passed in
+# Validate the parameters passed in
 #-------------------------------------------------------------------------------------------------------------------
 missingParams="false"
-if [[ -z "${INPUT_YAML_FILE// }" ]]; then
+if [[ -z "${INPUT_YAML_FILE// /}" ]]; then
   echo -e "$cross ERROR: INPUT_YAML_FILE is empty. Please provide a value for '-i' parameter." 1>&2
   missingParams="true"
 fi
 
-if [[ -z "${OUTPUT_YAML_FILE// }" ]]; then
+if [[ -z "${OUTPUT_YAML_FILE// /}" ]]; then
   echo -e "$cross ERROR: OUTPUT_YAML_FILE is empty. Please provide a value for '-o' parameter." 1>&2
   missingParams="true"
 fi
@@ -259,47 +261,47 @@ for DEMO in $(echo $REQUIRED_DEMOS_JSON | jq -r 'to_entries[] | select( .value.e
   PRODUCTS_FOR_DEMO=""
   ADDONS_FOR_DEMO=""
   case ${DEMO} in
-    cognitiveCarRepair)
-      PRODUCTS_FOR_DEMO='
+  cognitiveCarRepair)
+    PRODUCTS_FOR_DEMO='
       {"enabled":true,"type":"aceDashboard"}
       {"enabled":true,"type":"aceDesigner"}
       {"enabled":true,"type":"apic"}
       {"enabled":true,"type":"assetRepo"}
       {"enabled":true,"type":"tracing"}
       '
-      ADDONS_FOR_DEMO=''
-      ;;
-    drivewayDentDeletion)
-      PRODUCTS_FOR_DEMO='
+    ADDONS_FOR_DEMO=''
+    ;;
+  drivewayDentDeletion)
+    PRODUCTS_FOR_DEMO='
       {"enabled":true,"type":"aceDashboard"}
       {"enabled":true,"namespaceSuffix":"-ddd-test","type":"aceDashboard"}
       {"enabled":true,"type":"apic"}
       {"enabled":true,"namespaceSuffix":"-ddd-test","type":"navigator"}
       {"enabled":true,"type":"tracing"}
       '
-      ADDONS_FOR_DEMO='
+    ADDONS_FOR_DEMO='
       {"enabled":true,"type":"postgres"}
       {"enabled":true,"type":"ocpPipelines"}
       '
-      ;;
-    eventEnabledInsurance)
-      PRODUCTS_FOR_DEMO='
+    ;;
+  eventEnabledInsurance)
+    PRODUCTS_FOR_DEMO='
       {"enabled":true,"type":"aceDashboard"}
       {"enabled":true,"type":"apic"}
       {"enabled":true,"type":"eventStreams"}
       {"enabled":true,"type":"tracing"}
       '
-      ADDONS_FOR_DEMO='
+    ADDONS_FOR_DEMO='
       {"enabled":true,"type":"postgres"}
       {"enabled":true,"type":"elasticSearch"}
       {"enabled":true,"type":"ocpPipelines"}
       '
-      ;;
+    ;;
 
-    *)
-      echo -e "$cross ERROR: Unknown demo: ${DEMO}" 1>&2
-      exit 1
-      ;;
+  *)
+    echo -e "$cross ERROR: Unknown demo: ${DEMO}" 1>&2
+    exit 1
+    ;;
   esac
 
   for PRODUCT_JSON in $PRODUCTS_FOR_DEMO; do
