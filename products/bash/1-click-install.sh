@@ -33,6 +33,7 @@
 #   -t : <ENVIRONMENT> (string), Environment for installation, 'staging' when you want to use the staging entitled registry
 #   -u : <csDefaultAdminUser> (string), Default common service username. Defaults to "admin"
 #   -v : <useFastStorageClass> (string), If using fast storage class for installation. Defaults to 'false'
+#   -w : <testDrivewayDentDeletionDemoE2E> (string), If testing the Driveway dent deletion demo E2E. Defaults to 'false'
 #
 # USAGE:
 #   With defaults values
@@ -41,7 +42,7 @@
 #   Overriding the params
 #     ./1-click-install.sh -a <eventEnabledInsuranceDemo> -b <demoDeploymentBranch> -d <demoPreparation> -e <demoAPICEmailAddress> -f <drivewayDentDeletionDemo> -h <demoAPICMailServerHost> -j <tempERKey> -k <tempRepo> -l <DOCKER_REGISTRY_USER> -m <demoAPICMailServerUsername> -n <JOB_NAMESPACE> -o <demoAPICMailServerPort> -p <csDefaultAdminPassword> -q <demoAPICMailServerPassword> -r <navReplicaCount> -s <DOCKER_REGISTRY_PASS> -t <ENVIRONMENT> -u <csDefaultAdminUser> -v <useFastStorageClass>
 
-function divider {
+function divider() {
   echo -e "\n-------------------------------------------------------------------------------------------------------------------\n"
 }
 
@@ -60,7 +61,7 @@ missingParams="false"
 IMAGE_REPO="cp.icr.io"
 pwdChange="true"
 
-while getopts "a:b:d:e:f:h:j:k:l:m:n:o:p:q:r:s:t:u:v:" opt; do
+while getopts "a:b:d:e:f:h:j:k:l:m:n:o:p:q:r:s:t:u:v:w:" opt; do
   case ${opt} in
     a ) eventEnabledInsuranceDemo="$OPTARG"
       ;;
@@ -100,59 +101,66 @@ while getopts "a:b:d:e:f:h:j:k:l:m:n:o:p:q:r:s:t:u:v:" opt; do
       ;;
     v ) useFastStorageClass="$OPTARG"
       ;;
+    w ) testDrivewayDentDeletionDemoE2E="$OPTARG"
+      ;;
     \? ) usage;
       ;;
   esac
 done
 
-if [[ -z "${JOB_NAMESPACE// }" ]]; then
+if [[ -z "${JOB_NAMESPACE// /}" ]]; then
   echo -e "$cross ERROR: 1-click install namespace is empty. Please provide a value for '-n' parameter."
   missingParams="true"
 fi
 
-if [[ -z "${navReplicaCount// }" ]]; then
+if [[ -z "${navReplicaCount// /}" ]]; then
   echo -e "$cross ERROR: 1-click install platform navigator replica count is empty. Please provide a value for '-r' parameter."
   missingParams="true"
 fi
 
-if [[ -z "${csDefaultAdminUser// }" ]]; then
+if [[ -z "${csDefaultAdminUser// /}" ]]; then
   echo -e "$cross ERROR: 1-click install default admin username is empty. Please provide a value for '-u' parameter."
   missingParams="true"
 fi
 
-if [[ -z "${demoPreparation// }" ]]; then
+if [[ -z "${demoPreparation// /}" ]]; then
   echo -e "$cross ERROR: 1-click install demo preparation parameter is empty. Please provide a value for '-d' parameter."
   missingParams="true"
 fi
 
-if [[ -z "${csDefaultAdminPassword// }" ]]; then
+if [[ -z "${csDefaultAdminPassword// /}" ]]; then
   echo -e "$cross ERROR: 1-click install default admin password is empty. Please provide a value for '-p' parameter."
   missingParams="true"
 fi
 
-if [[ -z "${ENVIRONMENT// }" ]]; then
+if [[ -z "${ENVIRONMENT// /}" ]]; then
   echo -e "$cross ERROR: 1-click install environment is empty. Please provide a value for '-t' parameter."
   missingParams="true"
 fi
 
-if [[ -z "${demoDeploymentBranch// }" ]]; then
+if [[ -z "${demoDeploymentBranch// /}" ]]; then
   echo -e "$info INFO: 1-click install demo deployment branch is empty. Setting the default value of 'main' for it."
   demoDeploymentBranch="main"
 fi
 
-if [[ -z "${eventEnabledInsuranceDemo// }" ]]; then
+if [[ -z "${eventEnabledInsuranceDemo// /}" ]]; then
   echo -e "$info INFO: 1-click install event enabled insurance parameter is empty. Setting the default value of 'false' for it."
   eventEnabledInsuranceDemo="false"
 fi
 
-if [[ -z "${drivewayDentDeletionDemo// }" ]]; then
+if [[ -z "${drivewayDentDeletionDemo// /}" ]]; then
   echo -e "$info INFO: 1-click install driveway dent deletion parameter is empty. Setting the default value of 'false' for it."
   drivewayDentDeletionDemo="false"
 fi
 
-if [[ -z "${useFastStorageClass// }" ]]; then
+if [[ -z "${useFastStorageClass// /}" ]]; then
   echo -e "$info INFO: 1-click install fast storage class flag is empty. Setting the default value of 'false' for it."
   useFastStorageClass="false"
+fi
+
+if [[ -z "${testDrivewayDentDeletionDemoE2E// /}" ]]; then
+  echo -e "$info INFO: 1-click install test driveway dent deletion demo parameter is empty. Setting the default value of 'false' for it."
+  testDrivewayDentDeletionDemoE2E="false"
 fi
 
 if [[ "$missingParams" == "true" ]]; then
@@ -177,6 +185,7 @@ echo -e "$info Temporary ER repository: '$tempRepo'"
 echo -e "$info Dcoker registry username: '$DOCKER_REGISTRY_USER'"
 echo -e "$info Environment for installation: '$ENVIRONMENT'"
 echo -e "$info If using fast storage for the installation: '$useFastStorageClass'"
+echo -e "$info If testing the driveway dent deletion demo E2E: '$testDrivewayDentDeletionDemoE2E'"
 
 divider
 
@@ -342,7 +351,7 @@ divider
 
 # Only update common services username and password if common servies is not already installed
 if [ "${pwdChange}" == "true" ]; then
-  if ! $CURRENT_DIR/change-cs-credentials.sh -u ${csDefaultAdminUser} -p ${csDefaultAdminPassword} ; then
+  if ! $CURRENT_DIR/change-cs-credentials.sh -u ${csDefaultAdminUser} -p ${csDefaultAdminPassword}; then
     echo -e "$cross ERROR: Failed to update the common services admin username/password" 1>&2
     divider
     exit 1
@@ -392,7 +401,7 @@ if [[ "${demoPreparation}" == "true" ]]; then
 
   divider
 
-  if ! $CURRENT_DIR/release-mq.sh -n ${JOB_NAMESPACE} -t ; then
+  if ! $CURRENT_DIR/release-mq.sh -n ${JOB_NAMESPACE} -t; then
     echo -e "$cross : Failed to release mq" 1>&2
     divider
     exit 1
@@ -412,7 +421,7 @@ if [[ "${eventEnabledInsuranceDemo}" == "true" || "${demoPreparation}" == "true"
     echo -e "$tick INFO: Successfully released tracing"
     divider
   fi
-  
+
   if ! $CURRENT_DIR/release-es.sh -n ${JOB_NAMESPACE}; then
     echo "ERROR: Failed to release event streams" 1>&2
     exit 1
@@ -499,7 +508,7 @@ if [[ "${drivewayDentDeletionDemo}" == "true" || "${demoPreparation}" == "true" 
     divider
   fi
 
-  if ! $CURRENT_DIR/release-apic.sh -n ${JOB_NAMESPACE} -t ; then
+  if ! $CURRENT_DIR/release-apic.sh -n ${JOB_NAMESPACE} -t; then
     echo "ERROR: Failed to release apic" 1>&2
     exit 1
   else
@@ -507,7 +516,7 @@ if [[ "${drivewayDentDeletionDemo}" == "true" || "${demoPreparation}" == "true" 
     divider
   fi
 
-  if ! $CURRENT_DIR/register-tracing.sh -n ${JOB_NAMESPACE} ; then
+  if ! $CURRENT_DIR/register-tracing.sh -n ${JOB_NAMESPACE}; then
     echo "ERROR: Failed to register tracing. Tracing secret not created" 1>&2
     exit 1
   else
@@ -521,7 +530,7 @@ if [[ "${drivewayDentDeletionDemo}" == "true" || "${demoPreparation}" == "true" 
   export MAIL_SERVER_USERNAME=${demoAPICMailServerUsername}
   export MAIL_SERVER_PASSWORD=${demoAPICMailServerPassword}
 
-  if ! $CURRENT_DIR/configure-apic-v10.sh -n ${JOB_NAMESPACE} ; then
+  if ! $CURRENT_DIR/configure-apic-v10.sh -n ${JOB_NAMESPACE}; then
     echo "ERROR: Failed to configure apic" 1>&2
     exit 1
   else
@@ -556,4 +565,12 @@ if [[ "${demoPreparation}" == "true" ]]; then
   fi
 fi #demoPreparation
 
+divider
+
+if [[ ("${demoPreparation}" == "true" || "${drivewayDentDeletionDemo}" == "true") && ("${testDrivewayDentDeletionDemoE2E}" == "true") ]]; then
+  if ! $CURRENT_DIR/../../DrivewayDentDeletion/Operators/test-ddd.sh -n ${JOB_NAMESPACE} -b $demoDeploymentBranch; then
+    echo "ERROR: Failed to run automated test for driveway dent deletion demo" 1>&2
+    divider
+  fi
+fi
 divider
