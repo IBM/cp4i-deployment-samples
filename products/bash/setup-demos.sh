@@ -315,27 +315,41 @@ done
 #-------------------------------------------------------------------------------------------------------------------
 # Add the required addons
 #-------------------------------------------------------------------------------------------------------------------
-$DEBUG && divider
-$DEBUG && echo "Addons:"
-for row in $(echo "${REQUIRED_ADDONS_JSON}" | jq -r '.[] | select(.enabled == true ) | @base64'); do
-  ADDON_JSON=$(echo ${row} | base64 --decode)
-  $DEBUG && echo $ADDON_JSON | jq .
-done
+$DEBUG && divider && echo "Addons:"
+if [[ $(echo $REQUIRED_ADDONS_JSON | jq -r '.' | jq length) -eq 0 ]]; then
+  ADDON_JSON=[]
+else
+  for row in $(echo "${REQUIRED_ADDONS_JSON}" | jq -r '.[] | select(.enabled == true ) | @base64'); do
+    ADDON_JSON=$(echo ${row} | base64 --decode)
+  done
+fi
+$DEBUG && echo $ADDON_JSON | jq .
 
 #-------------------------------------------------------------------------------------------------------------------
-# Add the required namespaces
+# Display the required namespaces and create additional ones if does not exist
 #-------------------------------------------------------------------------------------------------------------------
-$DEBUG && divider
-$DEBUG && echo "Namespaces:"
+$DEBUG && divider && echo "Namespaces:"
 for namespace in $(echo "${REQUIRED_PRODUCTS_JSON}" | jq -r '[ .[] | select(.enabled == true ) | .namespace ] | unique | .[]'); do
-  $DEBUG && echo $namespace
+  $DEBUG && echo "$namespace"
+  if [[ "$namespace" != "$NAMESPACE" ]]; then
+    # Create namespace if does not already exists
+    oc get projects | grep $namespace >/dev/null
+    if [ $? -eq 1 ]; then
+      oc create namespace $namespace
+    fi
+
+    # Create ibm-entitlement-key secret in the new namespace
+    kubectl get secret ibm-entitlement-key \
+      --namespace=$NAMESPACE \
+      --export -o yaml |
+      kubectl apply --namespace=$namespace -f - >/dev/null
+  fi
 done
 
 #-------------------------------------------------------------------------------------------------------------------
 # Add the required products
 #-------------------------------------------------------------------------------------------------------------------
-$DEBUG && divider
-$DEBUG && echo "Products:"
+$DEBUG && divider && echo "Products:"
 for row in $(echo "${REQUIRED_PRODUCTS_JSON}" | jq -r '.[] | select(.enabled == true ) | @base64'); do
   PRODUCT_JSON=$(echo ${row} | base64 --decode)
   $DEBUG && echo $PRODUCT_JSON | jq .
@@ -344,8 +358,7 @@ done
 #-------------------------------------------------------------------------------------------------------------------
 # Add the required demos
 #-------------------------------------------------------------------------------------------------------------------
-$DEBUG && divider
-$DEBUG && echo "Demos:"
+$DEBUG && divider && echo "Demos:"
 for DEMO in $(echo $REQUIRED_DEMOS_JSON | jq -r 'to_entries[] | select( .value.enabled == true ) | .key'); do
   $DEBUG && echo $DEMO
 done
