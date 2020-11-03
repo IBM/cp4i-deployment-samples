@@ -31,7 +31,7 @@
 
 - Setup certs,keys,keystores,truststores for MQ
     
-    We have used this [products\bash\mq\createcerts\generate-test-cert.sh] to create the certs.
+    We have used this [script](./createcerts/generate-test-cert.sh) to create the certs.
     When creating application.kdb we need to add the `aceclient` label so that ACE Integration Servers can recognize it
 
     I used the following command to add the label:
