@@ -3,12 +3,12 @@
 .idea
 .metadata
 .settings
+.project
 .DS_Store
 api.yaml
 bin
 delete.sh
 EventEnabledInsurance/ProjectionClaims/build
-.project
 gradle
 gradlew
 gradlew.bat
