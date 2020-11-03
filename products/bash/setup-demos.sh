@@ -49,6 +49,8 @@ all_done="\xF0\x9F\x92\xAF"
 info="\xE2\x84\xB9"
 SCRIPT_DIR=$(dirname $0)
 DEBUG=true
+FAILURE_CODE=1
+SUCCESS_CODE=0
 
 function product_set_defaults() {
   PRODUCT_JSON=${1}
@@ -155,6 +157,37 @@ function merge_addon() {
   fi
 
   echo ${ADDON_ARRAY_JSON}
+}
+
+function update_status() {
+  ERROR_MESSAGE=${1}
+  TYPE=${2}
+  RESULT_CODE=${3}
+
+  $DEBUG && echo -e "$info [INFO] In update status: $ERROR_MESSAGE - $TYPE - $RESULT_CODE"
+}
+
+function run_command() {
+  COMMAND=${1}
+  TYPE=${2}
+  UPDATE_STATUS=${3}
+
+  ERROR_MESSAGE="Could not run the command '$COMMAND'"
+  SUCCESS_MESSAGE="Successfully run the command '$COMMAND'"
+
+  # $DEBUG && echo -e "Command: $COMMAND"
+  # $DEBUG && echo "Command type: $TYPE"
+  # $DEBUG && echo "Update status: $UPDATE_STATUS"
+
+  if ! $COMMAND >/dev/null; then
+    $DEBUG && echo -e "$cross [ERROR] $ERROR_MESSAGE"
+    $UPDATE_STATUS && update_status "$SUCCESS_MESSAGE" "$TYPE" "$SUCCESS_CODE"
+    echo $FAILURE_CODE
+  else
+    $DEBUG && echo -e "$tick [SUCCESS] $SUCCESS_MESSAGE"
+    $UPDATE_STATUS && update_status "$SUCCESS_MESSAGE" "$TYPE" "$SUCCESS_CODE"
+    echo $SUCCESS_CODE
+  fi
 }
 
 #-------------------------------------------------------------------------------------------------------------------
@@ -333,16 +366,25 @@ for namespace in $(echo "${REQUIRED_PRODUCTS_JSON}" | jq -r '[ .[] | select(.ena
   $DEBUG && echo "$namespace"
   if [[ "$namespace" != "$NAMESPACE" ]]; then
     # Create namespace if does not already exists
-    oc get projects | grep $namespace >/dev/null
-    if [ $? -eq 1 ]; then
-      oc create namespace $namespace
+    RESULT=$(run_command "oc get project $namespace" "namespace" "false")
+    $DEBUG && echo -e "namespace result: $RESULT\n"
+    if [[ "$RESULT" == "1" ]]; then
+      run_command "oc create namespace $namespace" "namespace" "true"
     fi
 
-    # Create ibm-entitlement-key secret in the new namespace
-    kubectl get secret ibm-entitlement-key \
-      --namespace=$NAMESPACE \
-      --export -o yaml |
-      kubectl apply --namespace=$namespace -f - >/dev/null
+    # # Create ibm-entitlement-key secret in the new namespace if does not exist
+    # RESULT_CHECK_NAMESPACE_1=$(run_command "oc get secret -n $NAMESPACE ibm-entitlement-key" "secret" "false")
+    # RESULT_CHECK_NAMESPACE_2=$(run_command "oc get secret -n $namespace ibm-entitlement-key" "secret" "false")
+    # # $DEBUG && echo -e "secret result: $RESULT\n"
+    # if [[ "$RESULT_CHECK_NAMESPACE_1" == "0" ]]; then
+    #   if [[ "$RESULT_CHECK_NAMESPACE_2" == "1" ]]; then
+    #     run_command "oc get secret ibm-entitlement-key --namespace=$NAMESPACE --export -o yaml | oc apply --namespace=$namespace -f -" "secret" "true"
+    #   else
+    #     update_status "[ERROR] Could not create 'ibm-entitlement-key' in the '$namespace' namespace" "secret" "$RESULT_CHECK_NAMESPACE_2"
+    #   fi
+    # else
+    #   update_status "[ERROR] The 'ibm-entitlement-key' does not exist in the '$NAMESPACE' namespace" "secret" "$RESULT_CHECK_NAMESPACE_1"
+    # fi
   fi
 done
 

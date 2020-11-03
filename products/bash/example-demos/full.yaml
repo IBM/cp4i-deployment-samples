@@ -117,3 +117,6 @@ status:
     - type: elasticSearch
       namespace: elasticsearch
     - type: ocpPipelines
+  namespaces:
+    - name: cp4i
+    - name: cp4i-ddd-test
