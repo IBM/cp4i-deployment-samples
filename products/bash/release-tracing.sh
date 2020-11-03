@@ -25,8 +25,6 @@
 #   Overriding the namespace and release-name
 #     ./release-tracing -n cp4i-prod -r prod
 
-
-
 function usage {
     echo "Usage: $0 -n <namespace> -r <release-name>"
 }
@@ -37,9 +35,7 @@ block_storage="ibmc-block-gold"
 file_storage="ibmc-file-gold-gid"
 production="false"
 
-echo "INFO: Tracing support currently disabled"
-exit 0
-while getopts "n:r:b:d:fp" opt; do
+while getopts "n:r:b:d:f:p" opt; do
   case ${opt} in
     n ) namespace="$OPTARG"
       ;;
@@ -62,7 +58,6 @@ done
 if [[ "$production" == "true" ]]
 then
 echo "Production Mode Enabled"
-
 cat << EOF | oc apply -f -
 apiVersion: integration.ibm.com/v1beta2
 kind: OperationsDashboard
@@ -98,7 +93,7 @@ spec:
       size: 150Gi
   version: 2020.3.1-0
 EOF
-else 
+else
 cat << EOF | oc apply -f -
 apiVersion: integration.ibm.com/v1beta2
 kind: OperationsDashboard
@@ -122,4 +117,3 @@ spec:
   version: 2020.3.1-0
 EOF
 fi
-
