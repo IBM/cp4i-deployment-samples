@@ -175,18 +175,19 @@ function run_command() {
   ERROR_MESSAGE="Could not run the command '$COMMAND'"
   SUCCESS_MESSAGE="Successfully run the command '$COMMAND'"
 
-  # $DEBUG && echo -e "Command: $COMMAND"
+  $DEBUG && echo -e "Command: $COMMAND\n"
   # $DEBUG && echo "Command type: $TYPE"
   # $DEBUG && echo "Update status: $UPDATE_STATUS"
 
-  if ! $COMMAND >/dev/null; then
-    $DEBUG && echo -e "$cross [ERROR] $ERROR_MESSAGE"
-    $UPDATE_STATUS && update_status "$SUCCESS_MESSAGE" "$TYPE" "$SUCCESS_CODE"
-    echo $FAILURE_CODE
-  else
+  ERROR_OUTPUT=$($COMMAND 2>&1 >/dev/null)
+
+  if [[ -z "${ERROR_OUTPUT// /}" ]]; then
+    # if ! $COMMAND >/dev/null; then
     $DEBUG && echo -e "$tick [SUCCESS] $SUCCESS_MESSAGE"
     $UPDATE_STATUS && update_status "$SUCCESS_MESSAGE" "$TYPE" "$SUCCESS_CODE"
-    echo $SUCCESS_CODE
+  else
+    $DEBUG && echo -e "$cross [ERROR] $ERROR_MESSAGE with error: $ERROR_OUTPUT"
+    $UPDATE_STATUS && update_status "$ERROR_OUTPUT" "$TYPE" "$FAILURE_CODE"
   fi
 }
 
@@ -238,6 +239,9 @@ if [[ "$missingPrereqs" == "true" ]]; then
   divider
   exit 1
 fi
+
+# run_command "oc create namespace cp4i1" "namespace" "true"
+# exit 0
 
 #-------------------------------------------------------------------------------------------------------------------
 # Read in the input yaml and convert to json
@@ -362,29 +366,26 @@ $DEBUG && echo $ADDON_JSON | jq .
 # Display the required namespaces and create additional ones if does not exist
 #-------------------------------------------------------------------------------------------------------------------
 $DEBUG && divider && echo "Namespaces:"
-for namespace in $(echo "${REQUIRED_PRODUCTS_JSON}" | jq -r '[ .[] | select(.enabled == true ) | .namespace ] | unique | .[]'); do
-  $DEBUG && echo "$namespace"
-  if [[ "$namespace" != "$NAMESPACE" ]]; then
-    # Create namespace if does not already exists
-    RESULT=$(run_command "oc get project $namespace" "namespace" "false")
-    $DEBUG && echo -e "namespace result: $RESULT\n"
-    if [[ "$RESULT" == "1" ]]; then
-      run_command "oc create namespace $namespace" "namespace" "true"
+
+RESULT_CHECK_NAMESPACE=$(run_command "oc get secret -n $NAMESPACE ibm-entitlement-key" "secret" "false")
+if [[ "$RESULT_CHECK_NAMESPACE_1" =~ "[ERROR]" ]]; then
+  update_status "[ERROR] The 'ibm-entitlement-key' does not exist in the '$NAMESPACE' namespace" "secret" "$RESULT_CHECK_NAMESPACE"
+  exit 1
+fi
+
+for eachNamespace in $(echo "${REQUIRED_PRODUCTS_JSON}" | jq -r '[ .[] | select(.enabled == true ) | .namespace ] | unique | .[]'); do
+  $DEBUG && echo "$eachNamespace"
+  if [[ "$eachNamespace" != "$NAMESPACE" ]]; then
+    RESULT=$(run_command "oc get project $eachNamespace" "namespace" "false")
+    if [[ "$RESULT" =~ "[ERROR]" ]]; then
+      run_command "oc create namespace $eachNamespace" "namespace" "true"
     fi
 
-    # # Create ibm-entitlement-key secret in the new namespace if does not exist
-    # RESULT_CHECK_NAMESPACE_1=$(run_command "oc get secret -n $NAMESPACE ibm-entitlement-key" "secret" "false")
-    # RESULT_CHECK_NAMESPACE_2=$(run_command "oc get secret -n $namespace ibm-entitlement-key" "secret" "false")
-    # # $DEBUG && echo -e "secret result: $RESULT\n"
-    # if [[ "$RESULT_CHECK_NAMESPACE_1" == "0" ]]; then
-    #   if [[ "$RESULT_CHECK_NAMESPACE_2" == "1" ]]; then
-    #     run_command "oc get secret ibm-entitlement-key --namespace=$NAMESPACE --export -o yaml | oc apply --namespace=$namespace -f -" "secret" "true"
-    #   else
-    #     update_status "[ERROR] Could not create 'ibm-entitlement-key' in the '$namespace' namespace" "secret" "$RESULT_CHECK_NAMESPACE_2"
-    #   fi
-    # else
-    #   update_status "[ERROR] The 'ibm-entitlement-key' does not exist in the '$NAMESPACE' namespace" "secret" "$RESULT_CHECK_NAMESPACE_1"
-    # fi
+    if ! oc get secret ibm-entitlement-key --namespace=$NAMESPACE --export -o yaml | oc apply --namespace=$eachNamespace -f -; then
+      update_status "[ERROR] Could not create 'ibm-entitlement-key' in the '$eachNamespace' namespace" "secret" "$ERROR_CODE"
+    else
+      update_status "[SUCCESS] Created the secret 'ibm-entitlement-key' in the '$eachNamespace' namespace" "secret" "$SUCCESS_CODE"
+    fi
   fi
 done
 
