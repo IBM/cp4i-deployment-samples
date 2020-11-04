@@ -127,7 +127,8 @@ if [ "$TABLE_CLEANUP" = true ]; then
   trap "cleanup_table" EXIT
 fi
 
-API_AUTH=$(oc get secret -n $NAMESPACE ace-api-creds -o json | jq -r '.data.auth')
+
+API_AUTH=$(oc get secret -n $NAMESPACE ace-api-creds-ddd -o json | jq -r '.data.auth')
 
 echo "api auth: $API_AUTH"
 

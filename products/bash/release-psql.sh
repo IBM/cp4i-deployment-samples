@@ -30,7 +30,7 @@ while getopts "n:u:d:p:" opt; do
   case ${opt} in
     n ) POSTGRES_NAMESPACE="$OPTARG"
       ;;
-    \? ) usage; exit
+    \? ) usage;
       ;;
   esac
 done

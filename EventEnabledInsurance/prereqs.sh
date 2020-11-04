@@ -36,6 +36,8 @@ POSTGRES_NAMESPACE="postgres"
 REPO="https://github.com/IBM/cp4i-deployment-samples.git"
 BRANCH="main"
 ELASTIC_NAMESPACE="elasticsearch"
+info="\xE2\x84\xB9"
+missingParams="false"
 
 while getopts "n:r:b:" opt; do
   case ${opt} in
@@ -54,17 +56,32 @@ while getopts "n:r:b:" opt; do
   esac
 done
 
-if [[ -z "${namespace// }" || -z "${REPO// }" || -z "${BRANCH// }" ]]; then
-  echo -e "$cross ERROR: Mandatory parameters are empty"
+if [[ -z "${namespace// }" ]]; then
+  echo -e "$cross ERROR: Namespace for EEI is empty. Please provide a value for '-n' parameter."
+  missingParams="true"
+fi
+
+if [[ -z "${REPO// }" ]]; then
+  echo -e "$cross ERROR: Repository name is empty. Please provide a value for '-r' parameter."
+  missingParams="true"
+fi
+
+if [[ -z "${BRANCH// }" ]]; then
+  echo -e "$cross ERROR: Branch for the repository is empty. Please provide a value for '-b' parameter."
+  missingParams="true"
+fi
+
+if [[ "$missingParams" == "true" ]]; then
+  echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
   usage
 fi
 
 CURRENT_DIR=$(dirname $0)
-echo "INFO: Current directory: '$CURRENT_DIR'"
-echo "INFO: Namespace: '$namespace'"
-echo "INFO: Suffix for the postgres is: '$SUFFIX'"
-echo "INFO: Repo: '$REPO'"
-echo "INFO: Branch: '$BRANCH'"
+echo -e "$info INFO: Current directory: '$CURRENT_DIR'"
+echo -e "$info INFO: Namespace: '$namespace'"
+echo -e "$info INFO: Suffix for the postgres is: '$SUFFIX'"
+echo -e "$info INFO: Repo: '$REPO'"
+echo -e "$info INFO: Branch: '$BRANCH'"
 
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
@@ -211,18 +228,18 @@ echo -e "$tick $all_done INFO: All prerequisites for the event enabled insurance
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
 time=0
-echo "INFO: Waiting for upto 10 minutes for git-clone cluster task to be available before creating the pipeline and the pipelinerun..."
+echo "INFO: Waiting for upto 120 minutes for git-clone cluster task to be available before creating the pipeline and the pipelinerun..."
 GIT_CLONE_CLUSTER_TASK=$(oc get clustertask git-clone)
 RESULT_GIT_CLONE_CLUSTER_TASK=$(echo $?)
 while [ "$RESULT_GIT_CLONE_CLUSTER_TASK" -ne "0" ]; do
-  if [ $time -gt 10 ]; then
+  if [ $time -gt 120 ]; then
     echo "ERROR: Timed-out waiting for 'git-clone' cluster task to be available"
     echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
     exit 1
   fi
 
   $TKN clustertask ls | grep git-clone
-  echo -e "\nINFO: The cluster task 'git-clone' is not yet available, waiting for upto 10 minutes. Waited ${time} minute(s)."
+  echo -e "\nINFO: The cluster task 'git-clone' is not yet available, waiting for upto 120 minutes. Waited ${time} minute(s)."
   time=$((time + 1))
   sleep 60
   GIT_CLONE_CLUSTER_TASK=$(oc get clustertask git-clone)

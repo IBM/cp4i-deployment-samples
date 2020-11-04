@@ -35,9 +35,8 @@ CONFIG_DIR=$CURRENT_DIR/ace
 CONFIG_YAML=$CONFIG_DIR/configurations.yaml
 MQ_CERT=$CURRENT_DIR/mq/createcerts
 API_USER="bruce"
-API_PASS=$(LC_ALL=C tr -dc 'A-Za-z0-9' </dev/urandom | head -c 16 ; echo)
 KEYSTORE_PASS=$(LC_ALL=C tr -dc 'A-Za-z0-9' </dev/urandom | head -c 16 ; echo)
-
+KEYSTORE=$CONFIG_DIR/keystore.p12
 
 function usage {
   echo "Usage: $0 -n <NAMESPACE> -g <POSTGRES_NAMESPACE> -u <DB_USER> -d <DB_NAME> -p <DB_PASS> -s <SUFFIX>"
@@ -55,13 +54,18 @@ function buildConfigurationCR {
     echo "INFO: Create ace config base64 command for MAC"
     COMMAND="base64 $file"
   fi
+  CONTENTS="$($COMMAND)"
+  if [[ "$?" != "0" ]]; then
+    echo -e "$cross [ERROR] Failed to base64 encode file using: ${COMMAND}"
+    exit 1
+  fi
   echo "apiVersion: appconnect.ibm.com/v1beta1" >> $CONFIG_YAML
   echo "kind: Configuration" >> $CONFIG_YAML
   echo "metadata:" >> $CONFIG_YAML
   echo "  name: $name" >> $CONFIG_YAML
   echo "  namespace: $NAMESPACE" >> $CONFIG_YAML
   echo "spec:" >> $CONFIG_YAML
-  echo "  contents: $($COMMAND)" >> $CONFIG_YAML
+  echo "  contents: ${CONTENTS}" >> $CONFIG_YAML
   echo "  type: $type" >> $CONFIG_YAML
   echo "---" >> $CONFIG_YAML
 }
@@ -80,34 +84,32 @@ while getopts "n:g:u:d:p:s:" opt; do
       ;;
     s ) SUFFIX="$OPTARG"
       ;;
-    \? ) usage; exit
+    \? ) usage;
       ;;
   esac
 done
 
-echo "[DEBUG] Current directory: $CURRENT_DIR"
+echo "[INFO] Current directory: $CURRENT_DIR"
+echo "[INFO] Config directory: $CONFIG_DIR"
 
-if [[ $SUFFIX == "ddd" ]]; then
-  TYPES=("serverconf"                   "keystore"                 "keystore"                    "keystore"                         "truststore"                   "policyproject"                           "setdbparms"               )
-  FILES=("$CONFIG_DIR/server.conf.yaml" "$CONFIG_DIR/keystore.p12" "$MQ_CERT/application.kdb"    "$MQ_CERT/application.sth"          "$MQ_CERT/application.jks"    "$CONFIG_DIR/$SUFFIX/DefaultPolicies"     "$CONFIG_DIR/setdbparms.txt")
-  NAMES=("ace-serverconf"               "ace-keystore"             "application.kdb"             "application.sth"                   "application.jks"             "ace-policyproject-$SUFFIX"               "ace-setdbparms")
-else
-  TYPES=("policyproject")
-  FILES=("$CONFIG_DIR/$SUFFIX/DefaultPolicies")
-  NAMES=("ace-policyproject-$SUFFIX")
-fi
+TYPES=("serverconf"                           "keystore"         "keystore"                 "keystore"                 "truststore"               "policyproject"                       "setdbparms")
+FILES=("$CONFIG_DIR/$SUFFIX/server.conf.yaml" "$KEYSTORE"        "$MQ_CERT/application.kdb" "$MQ_CERT/application.sth" "$MQ_CERT/application.jks" "$CONFIG_DIR/$SUFFIX/DefaultPolicies" "$CONFIG_DIR/$SUFFIX/setdbparms.txt")
+NAMES=("serverconf-$SUFFIX"                   "keystore-$SUFFIX" "application.kdb"          "application.sth"          "application.jks"          "policyproject-$SUFFIX"               "setdbparms-$SUFFIX")
 
 if [[ -z "${DB_PASS// }" || -z "${NAMESPACE// }" || -z "${DB_USER// }" || -z "${DB_NAME// }" || -z "${POSTGRES_NAMESPACE// }" || -z "${SUFFIX// }" ]]; then
-  echo -e "$cross ERROR: Some mandatory parameters are empty"
+  echo -e "$cross [ERROR] Some mandatory parameters are empty"
   usage
 fi
 
-# Store ace api password in secret
-cat << EOF | oc apply -f -
+EXISTING_PASS=$(oc get secret ace-api-creds-$SUFFIX -ojsonpath='.data.pass' | base64 --decode)
+if [[ -z $EXISTING_SECRET ]]; then
+  API_PASS=$(LC_ALL=C tr -dc 'A-Za-z0-9' </dev/urandom | head -c 16 ; echo)
+  # Store ace api password
+  cat << EOF | oc apply -f -
 kind: Secret
 apiVersion: v1
 metadata:
-  name: ace-api-creds
+  name: ace-api-creds-$SUFFIX
   namespace: $NAMESPACE
 stringData:
   user: $API_USER
@@ -115,6 +117,13 @@ stringData:
   auth: "$API_USER:$API_PASS"
 type: Opaque
 EOF
+  if [[ "$?" != "0" ]]; then
+    echo -e "$cross [ERROR] Failed to create ace-api-creds-$SUFFIX secret in $NAMESPACE namespace"
+    exit 1
+  fi
+else
+  API_PASS=$EXISTING_PASS
+fi
 
 [[ -f $CONFIG_YAML ]] && echo "[INFO]  Removing existing configurations yaml" && rm -f $CONFIG_YAML
 
@@ -128,27 +137,31 @@ echo "[INFO]  Database name: '$DB_NAME'"
 echo "[INFO]  Postgres pod name in the '$POSTGRES_NAMESPACE' namespace: '$DB_POD'"
 echo "[INFO]  Postgres svc name: '$DB_SVC'"
 
-if [[ $SUFFIX == "ddd" ]]; then
-  echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
+echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
-  echo "[INFO]  Creating keystore"
-  CERTS_KEY_BUNDLE=$CONFIG_DIR/certs-key.pem
-  CERTS=$CONFIG_DIR/certs.pem
-  KEY=$CONFIG_DIR/key.pem
-  KEYSTORE=$CONFIG_DIR/keystore.p12
-  oc get secret -n openshift-config-managed router-certs -o json | jq -r '.data | .[]' | base64 --decode > $CERTS_KEY_BUNDLE
-  openssl crl2pkcs7 -nocrl -certfile $CERTS_KEY_BUNDLE | openssl pkcs7 -print_certs -out $CERTS
-  openssl pkey -in $CERTS_KEY_BUNDLE -out $KEY
-  openssl pkcs12 -export -out $KEYSTORE -inkey $KEY -in $CERTS -password pass:$KEYSTORE_PASS
+echo "[INFO]  Creating keystore"
+CERTS_KEY_BUNDLE=$CONFIG_DIR/certs-key.pem
+CERTS=$CONFIG_DIR/certs.pem
+KEY=$CONFIG_DIR/key.pem
+rm $CERTS $KEY $KEYSTORE
+oc get secret -n openshift-config-managed router-certs -o json | jq -r '.data | .[]' | base64 --decode > $CERTS_KEY_BUNDLE
+openssl crl2pkcs7 -nocrl -certfile $CERTS_KEY_BUNDLE | openssl pkcs7 -print_certs -out $CERTS
+openssl pkey -in $CERTS_KEY_BUNDLE -out $KEY
+openssl pkcs12 -export -out $KEYSTORE -inkey $KEY -in $CERTS -password pass:$KEYSTORE_PASS
 
-  echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
+echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
-  echo "[INFO]  Templating setdbparms.txt"
-  cat $CONFIG_DIR/setdbparms.txt.template |
-    sed "s#{{API_USER}}#$API_USER#g;" |
-    sed "s#{{API_PASS}}#$API_PASS#g;" |
-    sed "s#{{KEYSTORE_PASS}}#$KEYSTORE_PASS#g;" > $CONFIG_DIR/setdbparms.txt
-fi
+echo "[INFO]  Templating server.conf.yaml"
+cat $CONFIG_DIR/server.conf.yaml.template |
+  sed "s#{{KEYSTORE}}#keystore-$SUFFIX#g;" > $CONFIG_DIR/$SUFFIX/server.conf.yaml
+
+echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
+
+echo "[INFO]  Templating setdbparms.txt"
+cat $CONFIG_DIR/setdbparms.txt.template |
+  sed "s#{{API_USER}}#$API_USER#g;" |
+  sed "s#{{API_PASS}}#$API_PASS#g;" |
+  sed "s#{{KEYSTORE_PASS}}#$KEYSTORE_PASS#g;" > $CONFIG_DIR/$SUFFIX/setdbparms.txt
 
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
@@ -156,10 +169,19 @@ echo -e "\n---------------------------------------------------------------------
 
 echo "[INFO]  Templating postgresql policy"
 cat $CONFIG_DIR/PostgresqlPolicy.policyxml.template |
+  sed "s#{{DB_SVC}}#$DB_SVC#g;" |
   sed "s#{{DB_NAME}}#$DB_NAME#g;" |
   sed "s#{{DB_USER}}#$DB_USER#g;" |
-  sed "s#{{DB_PASS}}#$DB_PASS#g;" |
-  sed "s#{{DB_SVC}}#$DB_SVC#g;" > $CONFIG_DIR/$SUFFIX/DefaultPolicies/PostgresqlPolicy.policyxml
+  sed "s#{{DB_PASS}}#$DB_PASS#g;" > $CONFIG_DIR/$SUFFIX/DefaultPolicies/PostgresqlPolicy.policyxml
+
+echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
+
+echo "[INFO]  Templating mq policy"
+QM_NAME=$([[ $SUFFIX == "ddd" ]] && echo "QUICKSTART" || echo "eei")
+QM_HOST=$([[ $SUFFIX == "ddd" ]] && echo "mq-ddd-qm-ibm-mq" || echo "mq-eei-ibm-mq")
+cat $CONFIG_DIR/MQEndpointPolicy.policyxml.template |
+  sed "s#{{QM_NAME}}#$QM_NAME#g;" |
+  sed "s#{{QM_HOST}}#$QM_HOST#g;" > $CONFIG_DIR/$SUFFIX/DefaultPolicies/MQEndpointPolicy.policyxml
 
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
@@ -182,6 +204,10 @@ echo -e "\n---------------------------------------------------------------------
 # Apply configuration yaml
 echo "[INFO]  Applying configuration yaml"
 oc apply -f $CONFIG_YAML
+if [[ "$?" != "0" ]]; then
+  echo -e "$cross [ERROR] Failed to apply $CONFIG_YAML"
+  exit 1
+fi
 
 # DEBUG: get configurations
 echo "[DEBUG] Getting configurations"
