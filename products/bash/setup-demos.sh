@@ -164,32 +164,36 @@ function update_status() {
   TYPE=${2}
   RESULT_CODE=${3}
 
-  $DEBUG && echo -e "$info [INFO] In update status: $ERROR_MESSAGE - $TYPE - $RESULT_CODE"
-}
+  $DEBUG && divider && echo -e "$info update_status(): message($ERROR_MESSAGE) - type($TYPE) - result code($RESULT_CODE)"
 
-function run_command() {
-  COMMAND=${1}
-  TYPE=${2}
-  UPDATE_STATUS=${3}
-
-  ERROR_MESSAGE="Could not run the command '$COMMAND'"
-  SUCCESS_MESSAGE="Successfully run the command '$COMMAND'"
-
-  $DEBUG && echo -e "Command: $COMMAND\n"
-  # $DEBUG && echo "Command type: $TYPE"
-  # $DEBUG && echo "Update status: $UPDATE_STATUS"
-
-  ERROR_OUTPUT=$($COMMAND 2>&1 >/dev/null)
-
-  if [[ -z "${ERROR_OUTPUT// /}" ]]; then
-    # if ! $COMMAND >/dev/null; then
-    $DEBUG && echo -e "$tick [SUCCESS] $SUCCESS_MESSAGE"
-    $UPDATE_STATUS && update_status "$SUCCESS_MESSAGE" "$TYPE" "$SUCCESS_CODE"
-  else
-    $DEBUG && echo -e "$cross [ERROR] $ERROR_MESSAGE with error: $ERROR_OUTPUT"
-    $UPDATE_STATUS && update_status "$ERROR_OUTPUT" "$TYPE" "$FAILURE_CODE"
+  if [[ $RESULT_CODE -eq 1 ]]; then
+    divider
+    exit 1
   fi
 }
+
+# function run_command() {
+#   COMMAND=${1}
+#   TYPE=${2}
+#   UPDATE_STATUS=${3}
+
+#   ERROR_MESSAGE="Could not run the command '$COMMAND'"
+#   SUCCESS_MESSAGE="Successfully ran the command '$COMMAND'"
+
+#   # $DEBUG && echo -e "Command: $COMMAND\n"
+#   # $DEBUG && echo "Command type: $TYPE"
+#   # $DEBUG && echo "Update status: $UPDATE_STATUS"
+
+#   ERROR_OUTPUT=$($COMMAND 2>&1 >/dev/null)
+
+#   if [[ -z "${ERROR_OUTPUT// /}" ]]; then
+#     $DEBUG && echo -e "$tick [SUCCESS] $SUCCESS_MESSAGE"
+#     $UPDATE_STATUS && update_status "$SUCCESS_MESSAGE" "$TYPE" "$SUCCESS_CODE"
+#   else
+#     $DEBUG && echo -e "$cross [ERROR] $ERROR_MESSAGE" && echo -e "$cross [ERROR] $ERROR_OUTPUT"
+#     $UPDATE_STATUS && update_status "$ERROR_OUTPUT" "$TYPE" "$FAILURE_CODE"
+#   fi
+# }
 
 #-------------------------------------------------------------------------------------------------------------------
 # Validate the parameters passed in
@@ -239,9 +243,6 @@ if [[ "$missingPrereqs" == "true" ]]; then
   divider
   exit 1
 fi
-
-# run_command "oc create namespace cp4i1" "namespace" "true"
-# exit 0
 
 #-------------------------------------------------------------------------------------------------------------------
 # Read in the input yaml and convert to json
@@ -367,25 +368,41 @@ $DEBUG && echo $ADDON_JSON | jq .
 #-------------------------------------------------------------------------------------------------------------------
 $DEBUG && divider && echo "Namespaces:"
 
-RESULT_CHECK_NAMESPACE=$(run_command "oc get secret -n $NAMESPACE ibm-entitlement-key" "secret" "false")
-if [[ "$RESULT_CHECK_NAMESPACE_1" =~ "[ERROR]" ]]; then
-  update_status "[ERROR] The 'ibm-entitlement-key' does not exist in the '$NAMESPACE' namespace" "secret" "$RESULT_CHECK_NAMESPACE"
-  exit 1
+oc get secret -n $NAMESPACE ibm-entitlement-key 2>&1 >/dev/null
+if [ $? -ne 0 ]; then
+  update_status "Secret 'ibm-entitlement-key' not found in '$NAMESPACE' namespace" "secret" "$FAILURE_CODE"
 fi
 
 for eachNamespace in $(echo "${REQUIRED_PRODUCTS_JSON}" | jq -r '[ .[] | select(.enabled == true ) | .namespace ] | unique | .[]'); do
   $DEBUG && echo "$eachNamespace"
   if [[ "$eachNamespace" != "$NAMESPACE" ]]; then
-    RESULT=$(run_command "oc get project $eachNamespace" "namespace" "false")
-    if [[ "$RESULT" =~ "[ERROR]" ]]; then
-      run_command "oc create namespace $eachNamespace" "namespace" "true"
+    oc get project $eachNamespace 2>&1 >/dev/null
+    if [ $? -ne 0 ]; then
+      COMMAND_OUTPUT=$(oc create namespace $eachNamespace 2>&1 >/dev/null)
+      echo $COMMAND_OUTPUT
+      if [[ -z "${COMMAND_OUTPUT// /}" ]]; then
+        $DEBUG && echo -e "\n$tick [SUCCESS] Namespace '$eachNamespace' created"
+        $UPDATE_STATUS && update_status "'$eachNamespace' namespace created" "namespace" "$SUCCESS_CODE"
+      else
+        $DEBUG && echo -e "\n$cross [ERROR] Namespace - Create" && echo "$COMMAND_OUTPUT"
+        $UPDATE_STATUS && update_status "$COMMAND_OUTPUT" "namespace" "$FAILURE_CODE"
+      fi
     fi
 
-    if ! oc get secret ibm-entitlement-key --namespace=$NAMESPACE --export -o yaml | oc apply --namespace=$eachNamespace -f -; then
-      update_status "[ERROR] Could not create 'ibm-entitlement-key' in the '$eachNamespace' namespace" "secret" "$ERROR_CODE"
+    COMMAND_OUTPUT=$(oc get secret ibm-entitlement-key -o json --namespace $NAMESPACE | jq -r 'del(.metadata) | .metadata.namespace="'${eachNamespace}'" | .metadata.name="ibm-entitlement-key"' | oc apply --namespace ${eachNamespace} -f - 2>&1 >/dev/null)
+    if [[ -z "${COMMAND_OUTPUT// /}" ]]; then
+      $DEBUG && echo -e "\n$tick [SUCCESS] Secret 'ibm-entitlement-key' created in '$eachNamespace' namespace"
+      $UPDATE_STATUS && update_status "Secret 'ibm-entitlement-key' created in '$eachNamespace' namespace" "secret" "$SUCCESS_CODE"
     else
-      update_status "[SUCCESS] Created the secret 'ibm-entitlement-key' in the '$eachNamespace' namespace" "secret" "$SUCCESS_CODE"
+      $DEBUG && echo -e "\n$cross [ERROR] Secret - Create - $COMMAND_OUTPUT"
+      $UPDATE_STATUS && update_status "$COMMAND_OUTPUT" "secret" "$FAILURE_CODE"
     fi
+
+    # if ! oc get secret ibm-entitlement-key -o json --namespace $NAMESPACE | jq -r 'del(.metadata) | .metadata.namespace="'${eachNamespace}'" | .metadata.name="ibm-entitlement-key"' | oc apply --namespace ${eachNamespace} -f - ; then
+    #   update_status "[ERROR] Could not create 'ibm-entitlement-key' in the '$eachNamespace' namespace" "secret" "$ERROR_CODE"
+    # else
+    #   update_status "[SUCCESS] Created the secret 'ibm-entitlement-key' in the '$eachNamespace' namespace" "secret" "$SUCCESS_CODE"
+    # fi
   fi
 done
 
