@@ -90,7 +90,7 @@ for i in `seq 1 120`; do
 
     ${CURRENT_DIR}/fix-cs-dependencies.sh
 
-    kubectl get apic,pods -n $NAMESPACE
+    kubectl get apic,pods,pvc -n $NAMESPACE
     echo "Checking again in one minute..."
     sleep 60
   fi
