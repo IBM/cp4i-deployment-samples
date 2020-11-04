@@ -44,7 +44,7 @@ This load test script will by default add 100 messages (can be increased or decr
 <br /><br />
 
 # Checking the Queue
-- Assuming that the Integration server `ace-db-writer-int-srv-eei` is running fine, you should be able to see messages appearing disappearing from the `Quote` Queue in MQ Console on pressing the refresh icon. These messages are being added in the Postgres database table `db_cp4i1_sor_eei` by `ace-db-writer-int-srv-eei`.
+- Assuming that the Integration server `ace-db-writer-int-srv-eei` is running fine, you should be able to see messages appearing and disappearing from the `Quote` Queue in MQ Console on pressing the refresh icon. These messages are being added in the Postgres database table `db_cp4i1_sor_eei` by `ace-db-writer-int-srv-eei`.
 <br /><br />
 
 # Checking the logs for the Integration Server
