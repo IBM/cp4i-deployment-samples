@@ -71,9 +71,6 @@ while getopts "c:i:n:p:r:tz:" opt; do
   esac
 done
 
-echo "INFO: Tracing support currently disabled"
-tracing_enabled=false
-
 if [ "$tracing_enabled" == "true" ] ; then
    if [ -z "$tracing_namespace" ]; then tracing_namespace=${namespace} ; fi
 else
