@@ -25,7 +25,7 @@
 #   Overriding the namespace and release-name
 #     ./release-ace-integration-server -n cp4i -r cp4i-bernie-ace
 
-function usage {
+function usage() {
   echo "Usage: $0 -c <ace_policy_names> -i <is_image_name> -n <namespace> -p <ace_replicas> -r <is_release_name> -t -z <tracing_namespace>"
   exit 1
 }
@@ -71,11 +71,11 @@ while getopts "c:i:n:p:r:tz:" opt; do
   esac
 done
 
-if [ "$tracing_enabled" == "true" ] ; then
-   if [ -z "$tracing_namespace" ]; then tracing_namespace=${namespace} ; fi
+if [ "$tracing_enabled" == "true" ]; then
+  if [ -z "$tracing_namespace" ]; then tracing_namespace=${namespace}; fi
 else
-    # assgining value to tracing_namespace b/c empty values causes CR to throw an error
-    tracing_namespace=${namespace}
+  # assigning value to tracing_namespace b/c empty values causes CR to throw an error
+  tracing_namespace=${namespace}
 fi
 
 echo -e "\nINFO: ACE policy configurations: '$ace_policy_names'"
@@ -92,7 +92,6 @@ if [[ -z "$imageTag" ]]; then
   echo "ERROR: Failed to extract image tag from the end of '$is_image_name'"
   exit 1
 fi
-
 
 echo "[INFO] tracing is set to $tracing_enabled"
 
@@ -147,11 +146,11 @@ if [ "$tracing_enabled" == "true" ]; then
   done
 
   # -------------------------------------- Register Tracing ---------------------------------------------------------------------
-  if  ! oc get secrets icp4i-od-store-cred -n ${namespace} ; then
+  if ! oc get secrets icp4i-od-store-cred -n ${namespace}; then
     echo "[INFO] secret icp4i-od-store-cred does not exist in ${namespace}, running tracing registration"
     echo "Tracing_Namespace= ${tracing_namespace}"
     echo "Namespace= ${namespace}"
-    if ! ${CURRENT_DIR}/register-tracing.sh -n $tracing_namespace -a ${namespace} ; then
+    if ! ${CURRENT_DIR}/register-tracing.sh -n $tracing_namespace -a ${namespace}; then
       echo "INFO: Running with test environment flag"
       echo "ERROR: Failed to register tracing in project '$namespace'"
       exit 1
@@ -245,7 +244,7 @@ while [ "$numberOfMatchesForImageTag" -ne "$numberOfReplicas" ]; do
     echo -e "No Ready and Running pods found for $is_release_name yet"
   fi
   if [[ $numberOfMatchesForImageTag != "$numberOfReplicas" ]]; then
-    echo -e "\nINFO: Not all $is_release_name pods have been deployed with the new image having the image tag '$imageTag', retrying for upto 10 minutes for new $is_release_name demo pods te be deployed with new image. Waited ${time} minute(s)."
+    echo -e "\nINFO: Not all $is_release_name pods have been deployed with the new image having the image tag '$imageTag', retrying for upto 10 minutes for new $is_release_name demo pods to be deployed with new image. Waited ${time} minute(s)."
     sleep 10
   else
     echo -e "\nINFO: All $is_release_name demo pods have been deployed with the new image"
@@ -256,7 +255,7 @@ while [ "$numberOfMatchesForImageTag" -ne "$numberOfReplicas" ]; do
 done
 
 GOT_SERVICE=false
-for i in `seq 1 30`; do
+for i in $(seq 1 30); do
   if oc get svc ${is_release_name}-is -n ${namespace}; then
     GOT_SERVICE=true
     break

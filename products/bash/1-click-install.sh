@@ -46,10 +46,10 @@ function divider() {
   echo -e "\n-------------------------------------------------------------------------------------------------------------------\n"
 }
 
-function usage {
-    echo "Usage: $0 -a <eventEnabledInsuranceDemo> -b <demoDeploymentBranch> -d <demoPreparation> -e <demoAPICEmailAddress> -f <drivewayDentDeletionDemo> -h <demoAPICMailServerHost> -j <tempERKey> -k <tempRepo> -l <DOCKER_REGISTRY_USER> -m <demoAPICMailServerUsername> -n <JOB_NAMESPACE> -o <demoAPICMailServerPort> -p <csDefaultAdminPassword> -q <demoAPICMailServerPassword> -r <navReplicaCount> -s <DOCKER_REGISTRY_PASS> -t <ENVIRONMENT> -u <csDefaultAdminUser> -v <useFastStorageClass>"
-    divider
-    exit 1
+function usage() {
+  echo "Usage: $0 -a <eventEnabledInsuranceDemo> -b <demoDeploymentBranch> -d <demoPreparation> -e <demoAPICEmailAddress> -f <drivewayDentDeletionDemo> -h <demoAPICMailServerHost> -j <tempERKey> -k <tempRepo> -l <DOCKER_REGISTRY_USER> -m <demoAPICMailServerUsername> -n <JOB_NAMESPACE> -o <demoAPICMailServerPort> -p <csDefaultAdminPassword> -q <demoAPICMailServerPassword> -r <navReplicaCount> -s <DOCKER_REGISTRY_PASS> -t <ENVIRONMENT> -u <csDefaultAdminUser> -v <useFastStorageClass>"
+  divider
+  exit 1
 }
 
 tick="\xE2\x9C\x85"
@@ -63,48 +63,69 @@ pwdChange="true"
 
 while getopts "a:b:d:e:f:h:j:k:l:m:n:o:p:q:r:s:t:u:v:w:" opt; do
   case ${opt} in
-    a ) eventEnabledInsuranceDemo="$OPTARG"
-      ;;
-    b ) demoDeploymentBranch="$OPTARG"
-      ;;
-    d ) demoPreparation="$OPTARG"
-      ;;
-    e ) demoAPICEmailAddress="$OPTARG"
-      ;;
-    f ) drivewayDentDeletionDemo="$OPTARG"
-      ;;
-    h ) demoAPICMailServerHost="$OPTARG"
-      ;;
-    j ) tempERKey="$OPTARG"
-      ;;
-    k ) tempRepo="$OPTARG"
-      ;;
-    l ) DOCKER_REGISTRY_USER="$OPTARG"
-      ;;
-    m ) demoAPICMailServerUsername="$OPTARG"
-      ;;
-    n ) JOB_NAMESPACE="$OPTARG"
-      ;;
-    o ) demoAPICMailServerPort="$OPTARG"
-      ;;
-    p ) csDefaultAdminPassword="$OPTARG"
-      ;;
-    q ) demoAPICMailServerPassword="$OPTARG"
-      ;;
-    r ) navReplicaCount="$OPTARG"
-      ;;
-    s ) DOCKER_REGISTRY_PASS="$OPTARG"
-      ;;
-    t ) ENVIRONMENT="$OPTARG"
-      ;;
-    u ) csDefaultAdminUser="$OPTARG"
-      ;;
-    v ) useFastStorageClass="$OPTARG"
-      ;;
-    w ) testDrivewayDentDeletionDemoE2E="$OPTARG"
-      ;;
-    \? ) usage;
-      ;;
+  a)
+    eventEnabledInsuranceDemo="$OPTARG"
+    ;;
+  b)
+    demoDeploymentBranch="$OPTARG"
+    ;;
+  d)
+    demoPreparation="$OPTARG"
+    ;;
+  e)
+    demoAPICEmailAddress="$OPTARG"
+    ;;
+  f)
+    drivewayDentDeletionDemo="$OPTARG"
+    ;;
+  h)
+    demoAPICMailServerHost="$OPTARG"
+    ;;
+  j)
+    tempERKey="$OPTARG"
+    ;;
+  k)
+    tempRepo="$OPTARG"
+    ;;
+  l)
+    DOCKER_REGISTRY_USER="$OPTARG"
+    ;;
+  m)
+    demoAPICMailServerUsername="$OPTARG"
+    ;;
+  n)
+    JOB_NAMESPACE="$OPTARG"
+    ;;
+  o)
+    demoAPICMailServerPort="$OPTARG"
+    ;;
+  p)
+    csDefaultAdminPassword="$OPTARG"
+    ;;
+  q)
+    demoAPICMailServerPassword="$OPTARG"
+    ;;
+  r)
+    navReplicaCount="$OPTARG"
+    ;;
+  s)
+    DOCKER_REGISTRY_PASS="$OPTARG"
+    ;;
+  t)
+    ENVIRONMENT="$OPTARG"
+    ;;
+  u)
+    csDefaultAdminUser="$OPTARG"
+    ;;
+  v)
+    useFastStorageClass="$OPTARG"
+    ;;
+  w)
+    testDrivewayDentDeletionDemoE2E="$OPTARG"
+    ;;
+  \?)
+    usage
+    ;;
   esac
 done
 
@@ -438,7 +459,7 @@ if [[ "${eventEnabledInsuranceDemo}" == "true" || "${demoPreparation}" == "true"
     divider
   fi
 
-  if ! $CURRENT_DIR/release-apic.sh -n ${JOB_NAMESPACE} -t ; then
+  if ! $CURRENT_DIR/release-apic.sh -n ${JOB_NAMESPACE} -t; then
     echo "ERROR: Failed to release apic" 1>&2
     exit 1
   else
@@ -446,7 +467,7 @@ if [[ "${eventEnabledInsuranceDemo}" == "true" || "${demoPreparation}" == "true"
     divider
   fi
 
-  if ! $CURRENT_DIR/register-tracing.sh -n ${JOB_NAMESPACE} ; then
+  if ! $CURRENT_DIR/register-tracing.sh -n ${JOB_NAMESPACE}; then
     echo "ERROR: Failed to register tracing. Tracing secret not created" 1>&2
     exit 1
   else
@@ -460,11 +481,11 @@ if [[ "${eventEnabledInsuranceDemo}" == "true" || "${demoPreparation}" == "true"
   export MAIL_SERVER_USERNAME=${demoAPICMailServerUsername}
   export MAIL_SERVER_PASSWORD=${demoAPICMailServerPassword}
 
-  if ! $CURRENT_DIR/configure-apic-v10.sh -n ${JOB_NAMESPACE} ; then
+  if ! $CURRENT_DIR/configure-apic-v10.sh -n ${JOB_NAMESPACE}; then
     echo "ERROR: Failed to configure apic" 1>&2
     exit 1
   else
-    echo -e "$tick INFO: Successfully onfigured apic"
+    echo -e "$tick INFO: Successfully configured apic"
     divider
   fi
 

@@ -35,9 +35,9 @@ SUFFIX="eei"
 POSTGRES_NAMESPACE="postgres"
 REPO="https://github.com/IBM/cp4i-deployment-samples.git"
 BRANCH="main"
-ELASTIC_NAMESPACE="elasticsearch"
 info="\xE2\x84\xB9"
 missingParams="false"
+ELASTIC_NAMESPACE="elasticsearch"
 
 while getopts "n:r:b:" opt; do
   case ${opt} in
@@ -56,17 +56,17 @@ while getopts "n:r:b:" opt; do
   esac
 done
 
-if [[ -z "${namespace// }" ]]; then
+if [[ -z "${namespace// /}" ]]; then
   echo -e "$cross ERROR: Namespace for EEI is empty. Please provide a value for '-n' parameter."
   missingParams="true"
 fi
 
-if [[ -z "${REPO// }" ]]; then
+if [[ -z "${REPO// /}" ]]; then
   echo -e "$cross ERROR: Repository name is empty. Please provide a value for '-r' parameter."
   missingParams="true"
 fi
 
-if [[ -z "${BRANCH// }" ]]; then
+if [[ -z "${BRANCH// /}" ]]; then
   echo -e "$cross ERROR: Branch for the repository is empty. Please provide a value for '-b' parameter."
   missingParams="true"
 fi
@@ -165,7 +165,7 @@ PASSWORD_ENCODED=$(echo -n ${DB_PASS} | base64)
 
 echo "INFO: Creating a secret for the lifecycle simulator app to connect to postgres"
 # everything inside 'data' must be in the base64 encoded form
-cat << EOF | oc apply -f -
+cat <<EOF | oc apply -f -
 apiVersion: v1
 kind: Secret
 metadata:
@@ -189,19 +189,22 @@ fi #configure-postgres-db.sh
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
 REPLICATION_USER=$(echo ${namespace}_sor_replication_${SUFFIX} | sed 's/-/_/g')
-REPLICATION_PASSWORD=$(LC_ALL=C tr -dc 'A-Za-z0-9' </dev/urandom | head -c 32 ; echo)
+REPLICATION_PASSWORD=$(
+  LC_ALL=C tr -dc 'A-Za-z0-9' </dev/urandom | head -c 32
+  echo
+)
 REPLICATION_PASSWORD_ENCODED=$(echo -n ${REPLICATION_PASSWORD} | base64)
 
 echo "INFO: Creating replication user"
-oc exec -n ${POSTGRES_NAMESPACE} -i $DB_POD -- psql -d $DB_NAME << EOF
-CREATE ROLE $REPLICATION_USER REPLICATION LOGIN PASSWORD `echo "'${REPLICATION_PASSWORD}'"`;
-ALTER USER $REPLICATION_USER WITH PASSWORD `echo "'${REPLICATION_PASSWORD}'"`;
+oc exec -n ${POSTGRES_NAMESPACE} -i $DB_POD -- psql -d $DB_NAME <<EOF
+CREATE ROLE $REPLICATION_USER REPLICATION LOGIN PASSWORD $(echo "'${REPLICATION_PASSWORD}'");
+ALTER USER $REPLICATION_USER WITH PASSWORD $(echo "'${REPLICATION_PASSWORD}'");
 GRANT ALL PRIVILEGES ON TABLE quotes TO $REPLICATION_USER;
 CREATE PUBLICATION db_eei_quotes FOR TABLE quotes;
 EOF
 
 echo -e "\nINFO: Creating secret for replication user"
-cat << EOF | oc apply -f -
+cat <<EOF | oc apply -f -
 apiVersion: v1
 kind: Secret
 metadata:

@@ -556,3 +556,6 @@ A successful request should return an HTTP 200 with a JSON body that contains th
 ![dbwriter flow](./media/db-writer-flow.png)
 
 DB_writer bar file: Responsible for Reading messages from the Queue `Quote` and adding to the Postgres Database table `db_cp4i1_sor_eei`. The flow consists of MQ input node and Java compute node. MQ input node passes the messages to the java compute node in the flow which reads the messages from the queue after every second and adds them to the postgres table.
+
+# Testing the POST calls via APIC
+Instructions to load test the POST call via APIC can be found [here](post-load-test-readme.md).
