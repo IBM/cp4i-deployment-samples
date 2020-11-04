@@ -464,15 +464,7 @@ if [[ "${eventEnabledInsuranceDemo}" == "true" || "${demoPreparation}" == "true"
     echo "ERROR: Failed to configure apic" 1>&2
     exit 1
   else
-    echo -e "$tick INFO: Successfully onfigured apic"
-    divider
-  fi
-
-  if ! $CURRENT_DIR/release-ace-dashboard.sh -n ${NAMESPACE}; then
-    echo "ERROR: Failed to release ace dashboard" 1>&2
-    exit 1
-  else
-    echo -e "$tick INFO: Successfully released ace dashboard"
+    echo -e "$tick INFO: Successfully configured apic"
     divider
   fi
 

@@ -62,6 +62,7 @@ function buildConfigurationCR() {
     echo -e "$cross [ERROR] Failed to base64 encode file using: ${COMMAND}"
     exit 1
   fi
+
   echo "apiVersion: appconnect.ibm.com/v1beta1" >>$CONFIG_YAML
   echo "kind: Configuration" >>$CONFIG_YAML
   echo "metadata:" >>$CONFIG_YAML
