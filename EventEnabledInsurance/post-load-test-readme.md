@@ -36,7 +36,7 @@ This load test script will by default add 100 messages (can be increased or decr
     export TARGET_POST_CALLS = <TARGET_POST_CALLS>
     ./post-load-test.sh -n $NAMESPACE -c $TARGET_POST_CALLS
     ```
-- If `-n` not provided the script will default to namespace `cp4i`.
+- If `-n` is not provided the script will default to namespace `cp4i`.
     At the end of the script it will display:
     - Calls made in a second
     - Calls failed (if any) 
