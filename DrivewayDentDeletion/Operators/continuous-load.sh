@@ -14,12 +14,12 @@
 #   -n : NAMESPACE (string), namespace - Default: cp4i
 #   -u : API_BASE_URL (string), base url for the api endpoints - DEFAULT: result of (oc get routes -n $NAMESPACE | grep ace-ddd-api-dev-http-ace | awk '{print $2}')/drivewayrepair")
 #   -t : RETRY_INTERVAL (integer), time in seconds between each load of data - DEFAULT: 5 (seconds)
-#   -a : APIC (true/false), whether apic integration is enabled - DEFAULT: false
+#   -a : APIC (true/false), whether apic integration is enabled - DEFAULT: false
 #   -c : TABLE_CLEANUP (true/false), whether to delete all rows from the test table - DEFAULT: false
 #   -d : DEBUG (true/false), whether to enable debug output - DEFAULT: false
 #   -i : CONDENSED_INFO (true/false), whether to show the full post response or a condensed version - DEFAULT: false
 #   -s : SAVE_ROW_AFTER_RUN (true/false), whether to save each row in the database after a run or delete it - DEFAULT: false
-#   -z : NUMBER_OF_CALLS (integer), run continous load calls fixed number of times.
+#   -z : NUMBER_OF_CALLS (integer), run continuous load calls fixed number of times.
 #
 # USAGE:
 #   CAUTION - running without TABLE_CLEANUP enabled can result in data leftover in the postgres table
@@ -208,7 +208,7 @@ while true; do
   if [[ ($NUMBER_OF_CALLS) && ("$NUMBER_OF_CALLS" -eq "$CALLS_DONE") ]]; then
     if [[ ("$GET_ERROR" -eq 0) && ("$POST_ERROR" -eq 0) ]]; then
       divider
-      echo -e "$INFO INFO: Continous load testing successfully completed with $NUMBER_OF_CALLS call(s) and zero errors."
+      echo -e "$INFO INFO: Continuous load testing successfully completed with $NUMBER_OF_CALLS call(s) and zero errors."
       divider
       exit 0
     fi
@@ -217,7 +217,7 @@ while true; do
   if [[ ("$GET_ERROR" -gt 0) || ("$POST_ERROR" -gt 0) ]]; then
     divider
     echo -e "$INFO INFO: POST and GET calls made: ${CALLS_DONE}, POST errors: $POST_ERROR, GET errors: $GET_ERROR"
-    echo -e "$CROSS ERROR: Continous load testing failed. Exiting now.."
+    echo -e "$CROSS ERROR: Continuous load testing failed. Exiting now.."
     divider
     exit 1
   fi

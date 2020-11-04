@@ -2,10 +2,10 @@ package com.ibm.cp4i.demos.eei.projectionclaims;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.sun.net.httpserver.HttpExchange;
-import org.json.JSONObject;
 import com.sun.net.httpserver.HttpHandler;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
+import org.json.JSONObject;
 
 public class MyHttpHandler implements HttpHandler {
     SystemOfRecordMonitor monitor;
@@ -30,12 +30,11 @@ public class MyHttpHandler implements HttpHandler {
         if (httpExchange.getRequestURI().toString().equalsIgnoreCase("/getalldata")) {
             quoteId = "all";
             System.out.println("Set the request param to 'all'");
-        } else if (httpExchange.getRequestURI().toString().contains("/quoteid=")) {
+        } else if (httpExchange.getRequestURI().toString().contains("/?quoteid=")) {
             quoteId = httpExchange.
                     getRequestURI()
                     .toString()
-                    .split("quoteid")[1]
-                    .split("=")[1];
+                    .split("\\?quoteid=")[1];
             System.out.println("Set the request param to " + quoteId);
         } else {
             quoteId = "";
@@ -52,12 +51,13 @@ public class MyHttpHandler implements HttpHandler {
             contentBuilder.append
             (
                 "<tr>" +
-                    "<td><a href=\"quoteid=" + quoteid + "\">" + quoteid + "</a></th>" +
+                    "<td><a href=\"/?quoteid=" + quoteid + "\">" + quoteid + "</a></th>" +
                     "<td>" + row.get("name").toString().replace("\"", "") + "</th>" +
                     "<td>" + row.get("email").toString().replace("\"", "") + "</th>" +
                     "<td>" + row.get("address").toString().replace("\"", "") + "</th>" +
                     "<td>" + row.get("usstate").toString().replace("\"", "") + "</th>" +
                     "<td>" + row.get("licenseplate").toString().replace("\"", "") + "</th>" +
+                    "<td>" + row.get("descriptionofdamage").toString().replace("\"", "") + "</th>" +
                     "<td>" + row.get("claimstatus").toString().replace("\"", "") + "</th>" +
                 "</tr>"
             );
@@ -110,6 +110,7 @@ public class MyHttpHandler implements HttpHandler {
                                 "<th>Address</th>" +
                                 "<th>US State</th>" +
                                 "<th>License Plate</th>" +
+                                "<th>Description of Damage</th>" +
                                 "<th>Claim Status</th>" +
                             "</tr>"
                         );
@@ -140,9 +141,10 @@ public class MyHttpHandler implements HttpHandler {
                         trimmedRow.put("name", row.get("name").asText());
                         trimmedRow.put("email", row.get("email").asText());
                         trimmedRow.put("address", row.get("address").asText());
-                        trimmedRow.put("usstate", row.get("usstate").asText());
-                        trimmedRow.put("licenseplate", row.get("licenseplate").asText());
-                        trimmedRow.put("claimstatus", row.get("claimstatus").asText());
+                        trimmedRow.put("usState", row.get("usstate").asText());
+                        trimmedRow.put("licensePlate", row.get("licenseplate").asText());
+                        trimmedRow.put("descriptionOfDamage", row.get("descriptionofdamage").asText());
+                        trimmedRow.put("claimStatus", row.get("claimstatus").asText());
                         byteResponse = trimmedRow.toString(4).getBytes(StandardCharsets.UTF_8);
                         httpExchange.sendResponseHeaders(200, byteResponse.length);
                     } else {

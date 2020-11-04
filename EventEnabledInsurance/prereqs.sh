@@ -38,6 +38,8 @@ BRANCH="main"
 info="\xE2\x84\xB9"
 missingParams="false"
 ELASTIC_NAMESPACE="elasticsearch"
+info="\xE2\x84\xB9"
+missingParams="false"
 
 while getopts "n:r:b:" opt; do
   case ${opt} in
