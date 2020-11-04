@@ -95,7 +95,24 @@ while ! oc get secrets platform-auth-idp-credentials -n ibm-common-services; do
 done
 echo "INFO: Found the secret platform-auth-idp-credentials in the namespace 'ibm-common-services'"
 
+echo "INFO: Waiting for Common Services console route"
+time=0
+wait_time=5
 export CP_CONSOLE=$(oc get routes -n ibm-common-services cp-console -o jsonpath='{.spec.host}')
+while [ -z $CP_CONSOLE ] ; do
+  if [ $time -gt 3600 ]; then
+    echo "ERROR: Exiting as the Common Services console route has still not been created"
+    exit 1
+  fi
+
+  echo "INFO: Waiting up to 60 minutes for Common Services console route to appear. Waited for $(output_time $time)."
+  ((time=time+$wait_time))
+  sleep $wait_time
+
+  export CP_CONSOLE=$(oc get routes -n ibm-common-services cp-console -o jsonpath='{.spec.host}')
+done
+
+
 export CP_USERNAME=$(oc get secrets -n ibm-common-services platform-auth-idp-credentials -o jsonpath='{.data.admin_username}' | base64 --decode)
 export CP_PASSWORD=$(oc get secrets -n ibm-common-services platform-auth-idp-credentials -o jsonpath='{.data.admin_password}' | base64 --decode)
 echo "INFO: CP_USERNAME: ${CP_USERNAME}"
@@ -113,7 +130,7 @@ export PATH=${CURRENT_DIR}/bin:${PATH}
 
 
 echo "INFO: Doing the cloudctl login"
-cloudctl_login ${CP_CONSOLE} ${CP_USERNAME} ${CP_PASSWORD}
+cloudctl_login "${CP_CONSOLE}" "${CP_USERNAME}" "${CP_PASSWORD}"
 
 
 if [[ "$CP_PASSWORD" == "$NEW_PASSWORD" ]]; then

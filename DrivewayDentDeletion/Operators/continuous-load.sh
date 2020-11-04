@@ -12,13 +12,14 @@
 #
 # PARAMETERS:
 #   -n : NAMESPACE (string), namespace - Default: cp4i
-#   -u : API_BASE_URL (string), base url for the api endpoints - DEFAULT: result of (oc get routes -n ace | grep ace-ddd-api-dev-http-ace | awk '{print $2}')/drivewayrepair")
+#   -u : API_BASE_URL (string), base url for the api endpoints - DEFAULT: result of (oc get routes -n $NAMESPACE | grep ace-ddd-api-dev-http-ace | awk '{print $2}')/drivewayrepair")
 #   -t : RETRY_INTERVAL (integer), time in seconds between each load of data - DEFAULT: 5 (seconds)
 #   -a : APIC (true/false), whether apic integration is enabled - DEFAULT: false
 #   -c : TABLE_CLEANUP (true/false), whether to delete all rows from the test table - DEFAULT: false
 #   -d : DEBUG (true/false), whether to enable debug output - DEFAULT: false
 #   -i : CONDENSED_INFO (true/false), whether to show the full post response or a condensed version - DEFAULT: false
 #   -s : SAVE_ROW_AFTER_RUN (true/false), whether to save each row in the database after a run or delete it - DEFAULT: false
+#   -z : NUMBER_OF_CALLS (integer), run continous load calls fixed number of times.
 #
 # USAGE:
 #   CAUTION - running without TABLE_CLEANUP enabled can result in data leftover in the postgres table
@@ -30,8 +31,12 @@
 #     ./continuous-load.sh -t 2 -c
 
 function usage() {
-  echo "Usage: $0 [-n NAMESPACE] [-u API_BASE_URL] [-t RETRY_INTERVAL] [-acdis]"
+  echo "Usage: $0 [-n NAMESPACE] [-u API_BASE_URL] [-t RETRY_INTERVAL] [-acdisz]"
   exit 1
+}
+
+function divider() {
+  echo -e "\n-------------------------------------------------------------------------------------------------------------------\n"
 }
 
 NAMESPACE="cp4i"
@@ -41,36 +46,46 @@ TABLE_CLEANUP=false
 DEBUG=false
 CONDENSED_INFO=false
 SAVE_ROW_AFTER_RUN=false
+GET_ERROR=0
+POST_ERROR=0
+CALLS_DONE=0
+TICK="\xE2\x9C\x85"
+CROSS="\xE2\x9D\x8C"
+ALL_DONE="\xF0\x9F\x92\xAF"
+INFO="\xE2\x84\xB9"
 
-while getopts "n:u:t:acdis" opt; do
+while getopts "n:u:t:acdisz" opt; do
   case ${opt} in
-    n )
-      NAMESPACE="$OPTARG"
-      ;;
-    u)
-      API_BASE_URL="$OPTARG"
-      ;;
-    t)
-      RETRY_INTERVAL="$OPTARG"
-      ;;
-    a)
-      APIC=true
-      ;;
-    c)
-      TABLE_CLEANUP=true
-      ;;
-    d)
-      DEBUG=true
-      ;;
-    i)
-      CONDENSED_INFO=true
-      ;;
-    s)
-      SAVE_ROW_AFTER_RUN=true
-      ;;
-    \?)
-      usage
-      ;;
+  n)
+    NAMESPACE="$OPTARG"
+    ;;
+  u)
+    API_BASE_URL="$OPTARG"
+    ;;
+  t)
+    RETRY_INTERVAL="$OPTARG"
+    ;;
+  a)
+    APIC=true
+    ;;
+  c)
+    TABLE_CLEANUP=true
+    ;;
+  d)
+    DEBUG=true
+    ;;
+  i)
+    CONDENSED_INFO=true
+    ;;
+  s)
+    SAVE_ROW_AFTER_RUN=true
+    ;;
+  z)
+    NUMBER_OF_CALLS=1
+    ;;
+  \?)
+    usage
+    ;;
   esac
 done
 
@@ -81,10 +96,10 @@ DB_POD=$(oc get pod -n postgres -l name=postgresql -o jsonpath='{.items[].metada
 echo "[INFO]  Username name is: '${DB_USER}'"
 echo "[INFO]  Database name is: '${DB_NAME}'"
 
-CURL_OPTS=( -s -L -S )
+CURL_OPTS=(-s -L -S)
 if [[ $APIC == true ]]; then
   $DEBUG && echo "[DEBUG] apic integration enabled"
-  CURL_OPTS+=( -k )
+  CURL_OPTS+=(-k)
   API_BASE_URL=$(oc get secret -n $NAMESPACE ddd-api-endpoint-client-id -o jsonpath='{.data.api}' | base64 --decode)
   API_CLIENT_ID=$(oc get secret -n $NAMESPACE ddd-api-endpoint-client-id -o jsonpath='{.data.cid}' | base64 --decode)
   echo -e "[INFO]  api base url: ${API_BASE_URL}\n[INFO]  client id: ${API_CLIENT_ID}"
@@ -111,7 +126,6 @@ function cleanup_table() {
 if [ "$TABLE_CLEANUP" = true ]; then
   trap "cleanup_table" EXIT
 fi
-
 
 API_AUTH=$(oc get secret -n $NAMESPACE ace-api-creds -o json | jq -r '.data.auth')
 
@@ -143,6 +157,8 @@ while true; do
   post_response_code=$(echo "${post_response##* }")
   $DEBUG && echo "[DEBUG] post response: ${post_response}"
 
+  CALLS_DONE=$(($CALLS_DONE + 1))
+
   if [ "$post_response_code" == "200" ]; then
     # The usage of sed here is to prevent an error caused between the -w flag of curl and jq not interacting well
     quote_id=$(echo "$post_response" | jq '.' | sed $os_sed_flag '$ d' | jq '.QuoteID')
@@ -154,7 +170,6 @@ while true; do
     else
       echo ${post_response} | jq '.' | sed $os_sed_flag '$ d'
     fi
-
 
     # - GET ---
     echo -e "\nGET request..."
@@ -175,6 +190,7 @@ while true; do
       fi
     else
       echo "FAILED - Error code: ${get_response_code}"
+      GET_ERROR=$(($GET_ERROR + 1))
     fi
 
     # - DELETE ---
@@ -186,6 +202,24 @@ while true; do
     fi
   else
     echo "FAILED - Error code: ${post_response_code}" # Failure catch during POST
+    POST_ERROR=$(($POST_ERROR + 1))
+  fi
+
+  if [[ ($NUMBER_OF_CALLS) && ("$NUMBER_OF_CALLS" -eq "$CALLS_DONE") ]]; then
+    if [[ ("$GET_ERROR" -eq 0) && ("$POST_ERROR" -eq 0) ]]; then
+      divider
+      echo -e "$INFO INFO: Continous load testing successfully completed with $NUMBER_OF_CALLS call(s) and zero errors."
+      divider
+      exit 0
+    fi
+  fi
+
+  if [[ ("$GET_ERROR" -gt 0) || ("$POST_ERROR" -gt 0) ]]; then
+    divider
+    echo -e "$INFO INFO: POST and GET calls made: ${CALLS_DONE}, POST errors: $POST_ERROR, GET errors: $GET_ERROR"
+    echo -e "$CROSS ERROR: Continous load testing failed. Exiting now.."
+    divider
+    exit 1
   fi
 
   echo -e "\n--------------------------------------------------------------------\n"

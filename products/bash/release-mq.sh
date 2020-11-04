@@ -60,10 +60,6 @@ while getopts "n:r:i:q:z:t" opt; do
   esac
 done
 
-echo "INFO: Tracing support currently disabled"
-tracing_enabled=false
-
-
 # when called from install.sh
 if [ "$tracing_enabled" == "true" ] ; then
    if [ -z "$tracing_namespace" ]; then tracing_namespace=${namespace} ; fi

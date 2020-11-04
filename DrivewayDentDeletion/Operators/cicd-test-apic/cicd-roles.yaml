@@ -177,8 +177,8 @@ rules:
   verbs: ["get", "list"]
 # Permissions for test task to list services in dev namespace
 - apiGroups: [""]
-  resources: ["services"]
-  verbs: ["get", "list"]
+  resources: ["services", "secrets"]
+  verbs: ["get", "list", "patch"]
 # Permission to get secrets for test script in test namespace
 - apiGroups: [""]
   resources: ["secrets"]
@@ -203,8 +203,8 @@ rules:
   verbs: ["get", "list"]
 # Permissions for test task to list services in test namespace
 - apiGroups: [""]
-  resources: ["services"]
-  verbs: ["get", "list"]
+  resources: ["services", "secrets"]
+  verbs: ["get", "list", "patch"]
 # Permission to get secrets for test script in test namespace
 - apiGroups: [""]
   resources: ["secrets"]
