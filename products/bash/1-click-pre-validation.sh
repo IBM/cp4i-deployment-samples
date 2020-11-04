@@ -94,7 +94,6 @@ if [[ "$missingParams" == "true" ]]; then
   usage
 fi
 
-
 divider
 echo -e "$info Current directory: $CURRENT_DIR"
 echo -e "$info Project name: $namespace"
