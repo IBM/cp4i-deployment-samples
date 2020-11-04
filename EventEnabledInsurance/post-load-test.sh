@@ -98,7 +98,7 @@ for i in $(seq 1 $TARGET_POST_CALLS); do
     else
         SUCCESSFUL_POST_CALLS=$((SUCCESSFUL_POST_CALLS + 1))
     fi
-    echo -e "\n$info INFO: $SUCCESSFUL_POST_CALLS successfull and $FAILED_POST_CALLS failed POST calls attempted in $(($SECONDS / 60)) minutes and $(($SECONDS % 60)) seconds."
+    echo -e "\n$info INFO: $SUCCESSFUL_POST_CALLS successful and $FAILED_POST_CALLS failed POST calls attempted in $(($SECONDS / 60)) minutes and $(($SECONDS % 60)) seconds."
     divider
 done
 FINAL_DURATION=$SECONDS
