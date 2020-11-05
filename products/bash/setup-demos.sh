@@ -167,9 +167,9 @@ function update_status() {
   TYPE=${2}        # resource type
   RESULT_CODE=${3} # 0 or 1
   TIMESTAMP=${4}
-  REASON=${5} # command type
-  PHASE=${6}  # Pending, Running or Failed
-  RESOURCE_NAME=${7}
+  REASON=${5}        # command type
+  PHASE=${6}         # Pending, Running or Failed
+  RESOURCE_NAME=${7} # name of the resource
 
   $DEBUG && divider && echo -e "$info update_status(): message($ERROR_MESSAGE) - type($TYPE) - resultcode($RESULT_CODE) - timestamp($TIMESTAMP) - reason($REASON) - phase($PHASE) - resourceName($RESOURCE_NAME)"
 
@@ -178,6 +178,7 @@ function update_status() {
     CONDITION_TO_ADD=$(echo $CONDITION_ELEMENT_OBJECT | jq -r '.message="'"$TYPE - $ERROR_MESSAGE"'" | .status="True" | .type="Error" | .lastTransitionTime="'$TIMESTAMP'" | .reason="'$REASON'" ')
     # add condition to condition array
     STATUS=$(echo $STATUS | jq -c '.conditions += ['"${CONDITION_TO_ADD}"']')
+  # if creation or get of namespace passed, add the namespace to status namespace array
   elif [[ "$TYPE" == "namespace" && ("$REASON" == "Getting" || "$REASON" == "Creating") && "$PHASE" == "Running" ]]; then
     $DEBUG && echo -e "\n$tick [SUCCESS] '$RESOURCE_NAME' namespace exists or created"
     NAMESPACE_TO_ADD=$(echo $NAMESPACE_OBJECT | jq -r '.name="'$RESOURCE_NAME'" ')
@@ -188,10 +189,10 @@ function update_status() {
   STATUS=$(echo $STATUS | jq -c '.phase="'$PHASE'"')
   $DEBUG && echo -e "\n$info [INFO] Printing the conditions array and Phase" && echo $STATUS | jq -r '.conditions,.phase' && divider
 
-  # if the phase is failed, then exit status (ignored case while checking)
+  # if the phase is failed, then exit status (case insensitive checking)
   if echo $PHASE | grep -iqF failed; then
     divider
-    # exit 1
+    exit 1
   fi
 }
 
@@ -270,21 +271,6 @@ echo -e "$info Block storage class: '$BLOCK_STORAGE_CLASS'"
 echo -e "$info File storage class: '$FILE_STORAGE_CLASS'"
 echo -e "$info Samples repo branch: '$SAMPLES_REPO_BRANCH'"
 echo -e "$info Namespace: '$NAMESPACE'"
-
-# TODO REMOVE >>
-# update_status "Secret 'ibm-entitlement-key' created in 'cp4i-ddd-test' namespace" "secret" "$SUCCESS_CODE" "$($GET_UTC_TIME)" "Creating" "Running" "ibm-entitlement-key"
-
-# update_status "Secret 'ibm-entitlement-key' not found in 'cp4i' namespace" "secret" "$FAILURE_CODE" "$($GET_UTC_TIME)" "Getting" "Failed" "ibm-entitlement-key"
-
-update_status "'cp4i' namespace exists" "namespace" "$SUCCESS_CODE" "$($GET_UTC_TIME)" "Getting" "Running" "cp4i"
-update_status "[ERROR] 'cp4i' namespace does not exist" "namespace" "$FAILURE_CODE" "$($GET_UTC_TIME)" "Getting" "Failed" "cp4i"
-update_status "'cp4i-ddd-test' namespace created" "namespace" "$SUCCESS_CODE" "$($GET_UTC_TIME)" "Creating" "Running" "cp4i-ddd-test"
-update_status "[ERROR] Could not create 'cp4i-ddd-test' namespace" "namespace" "$FAILURE_CODE" "$($GET_UTC_TIME)" "Creating" "Failed" "cp4i-ddd-test"
-update_status "'cp4i1-ddd-test' namespace created" "namespace" "$SUCCESS_CODE" "$($GET_UTC_TIME)" "Creating" "Running" "cp4i1-ddd-test"
-update_status "'cp4i2-ddd-test' namespace created" "namespace" "$SUCCESS_CODE" "$($GET_UTC_TIME)" "Creating" "Running" "cp4i2-ddd-test"
-echo $STATUS | jq '.namespaces'
-exit 0
-# TODO REMOVE <<
 
 #-------------------------------------------------------------------------------------------------------------------
 # If all demos enabled then add all demos
@@ -383,28 +369,41 @@ $DEBUG && echo $ADDON_JSON | jq .
 #-------------------------------------------------------------------------------------------------------------------
 $DEBUG && divider && echo "Namespaces:"
 
-# check if the main namespace exists
-CHECK_NS_EXIST=$(oc get project $NAMESPACE 2>&1 >/dev/null)
-if [[ -z "${CHECK_NS_EXIST// /}" ]]; then
-  $DEBUG && echo -e "\n$tick [SUCCESS] Namespace '$NAMESPACE' exists"
-  update_status "'$NAMESPACE' namespace exists" "namespace" "$SUCCESS_CODE" "$($GET_UTC_TIME)" "Getting" "Running" "$NAMESPACE"
+# update status to pending
+update_status "[INFO] Checking if the namespace '$NAMESPACE' exists" "namespace" "$SUCCESS_CODE" "$($GET_UTC_TIME)" "Getting" "Pending" "$NAMESPACE"
+# add main namespace to status if exists
+oc get project $NAMESPACE 2>&1 >/dev/null
+if [ $? -ne 0 ]; then
+  $DEBUG && echo -e "\n$cross [ERROR] Namespace '$NAMESPACE' does not exist"
+  update_status "[ERROR] Namespace '$NAMESPACE' does not exist" "namespace" "$FAILURE_CODE" "$($GET_UTC_TIME)" "Getting" "Failed" "$NAMESPACE"
 else
-  $DEBUG && echo -e "\n$cross [ERROR] Namespace '$NAMESPACE' does not exist" && echo "$CHECK_NS_EXIST"
-  update_status "$CHECK_NS_EXIST" "namespace" "$FAILURE_CODE" "$($GET_UTC_TIME)" "Getting" "Failed" "$NAMESPACE"
+  $DEBUG && echo -e "\n$tick [SUCCESS] Namespace '$NAMESPACE' exists"
+  update_status "Namespace '$NAMESPACE' exists" "namespace" "$SUCCESS_CODE" "$($GET_UTC_TIME)" "Getting" "Running" "$NAMESPACE"
 fi
 
+# update status to pending
+update_status "[INFO] Checking if the secret 'ibm-entitlement-key' exists in the '$NAMESPACE' namespace" "secret" "$SUCCESS_CODE" "$($GET_UTC_TIME)" "Getting" "Pending" "ibm-entitlement-key"
+# check if the secret exists in the main namespace
 oc get secret -n $NAMESPACE ibm-entitlement-key 2>&1 >/dev/null
 if [ $? -ne 0 ]; then
   update_status "Secret 'ibm-entitlement-key' not found in '$NAMESPACE' namespace" "secret" "$FAILURE_CODE" "$($GET_UTC_TIME)" "Getting" "Failed" "ibm-entitlement-key"
 fi
 
+# loop over all namespaces in the required products, create namespace and secret if does not exist for all but main namespace
 for eachNamespace in $(echo "${REQUIRED_PRODUCTS_JSON}" | jq -r '[ .[] | select(.enabled == true ) | .namespace ] | unique | .[]'); do
   $DEBUG && echo "$eachNamespace"
+
+  # check if it is not the main namespace
   if [[ "$eachNamespace" != "$NAMESPACE" ]]; then
+
+    # update status to pending
+    update_status "[INFO] Checking if '$NAMESPACE' namespace exists" "namespace" "$SUCCESS_CODE" "$($GET_UTC_TIME)" "Getting" "Pending" "$NAMESPACE"
+    # if the other namespace does not exist, create it
     oc get project $eachNamespace 2>&1 >/dev/null
     if [ $? -ne 0 ]; then
+      # update status to pending
+      update_status "[INFO] Creating the '$eachNamespace' namespace" "namespace" "$SUCCESS_CODE" "$($GET_UTC_TIME)" "Getting" "Pending" "$eachNamespace"
       COMMAND_OUTPUT=$(oc create namespace $eachNamespace 2>&1 >/dev/null)
-      echo $COMMAND_OUTPUT
       if [[ -z "${COMMAND_OUTPUT// /}" ]]; then
         $DEBUG && echo -e "\n$tick [SUCCESS] Namespace '$eachNamespace' created"
         update_status "'$eachNamespace' namespace created" "namespace" "$SUCCESS_CODE" "$($GET_UTC_TIME)" "Creating" "Running" "$eachNamespace"
@@ -412,8 +411,13 @@ for eachNamespace in $(echo "${REQUIRED_PRODUCTS_JSON}" | jq -r '[ .[] | select(
         $DEBUG && echo -e "\n$cross [ERROR] Namespace - Create" && echo "$COMMAND_OUTPUT"
         update_status "$COMMAND_OUTPUT" "namespace" "$FAILURE_CODE" "$($GET_UTC_TIME)" "Creating" "Failed" "$eachNamespace"
       fi
+    else
+      update_status "'$eachNamespace' namespace exists" "namespace" "$SUCCESS_CODE" "$($GET_UTC_TIME)" "Getting" "Running" "$eachNamespace"
     fi
 
+    # update status to pending
+    update_status "[INFO] Creating the secret 'ibm-entitlement-key' in the '$eachNamespace' namespace using the secret present in the '$NAMESPACE' namespace" "namespace" "$SUCCESS_CODE" "$($GET_UTC_TIME)" "Getting" "Pending" "ibm-entitlement-key"
+    # if the secret does not exist in the other namespace, create it
     COMMAND_OUTPUT=$(oc get secret ibm-entitlement-key -o json --namespace $NAMESPACE | jq -r 'del(.metadata) | .metadata.namespace="'${eachNamespace}'" | .metadata.name="ibm-entitlement-key"' | oc apply --namespace ${eachNamespace} -f - 2>&1 >/dev/null)
     if [[ -z "${COMMAND_OUTPUT// /}" ]]; then
       $DEBUG && echo -e "\n$tick [SUCCESS] Secret 'ibm-entitlement-key' created in '$eachNamespace' namespace"
@@ -445,4 +449,5 @@ done
 #-------------------------------------------------------------------------------------------------------------------
 # Print the overall status
 #-------------------------------------------------------------------------------------------------------------------
-$DEBUG && divider && echo -e "Status:\n" && echo $STATUS | jq . && divider
+# $DEBUG && divider && echo -e "Status:\n" && echo $STATUS | jq . && divider
+divider && echo -e "Status:\n" && echo $STATUS | jq . && divider
