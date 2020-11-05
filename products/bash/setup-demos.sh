@@ -51,6 +51,8 @@ SCRIPT_DIR=$(dirname $0)
 DEBUG=true
 FAILURE_CODE=1
 SUCCESS_CODE=0
+CONDITION_ELEMENT_OBJECT="{\"lastTransitionTime\":\"\",\"message\":\"\",\"reason\":\"\",\"status\":\"\",\"type\":\"\"}"
+GET_UTC_TIME="date -u +%FT%T.%3N%Z"
 
 function product_set_defaults() {
   PRODUCT_JSON=${1}
@@ -163,37 +165,29 @@ function update_status() {
   ERROR_MESSAGE=${1}
   TYPE=${2}
   RESULT_CODE=${3}
+  TIMESTAMP=${4}
+  REASON=${5}
+  PHASE=${6}
 
-  $DEBUG && divider && echo -e "$info update_status(): message($ERROR_MESSAGE) - type($TYPE) - result code($RESULT_CODE)"
+  $DEBUG && divider && echo -e "$info update_status(): message($ERROR_MESSAGE) - type($TYPE) - resultcode($RESULT_CODE) - timestamp($TIMESTAMP) - reason($REASON) - phase($PHASE)"
 
   if [[ $RESULT_CODE -eq 1 ]]; then
+    # update condition array if error occurred
+    CONDITION_TO_ADD=$(echo $CONDITION_ELEMENT_OBJECT | jq -r '.message="'"$TYPE - $ERROR_MESSAGE"'" | .status="True" | .type="Error" | .lastTransitionTime="'$TIMESTAMP'" | .reason="'$REASON'" ')
+    # add condition to condition array and update phase
+    STATUS=$(echo $STATUS | jq -c '.conditions += ['"${CONDITION_TO_ADD}"']')
+  fi
+
+  # update the phase
+  STATUS=$(echo $STATUS | jq -c '.phase="'$PHASE'"')
+  $DEBUG && echo -e "\n$info [INFO] Printing the conditions array and Phase" && echo $STATUS | jq -r '.conditions,.phase' && divider
+
+  # if the phase is failed, then exit status (ignored case while checking)
+  if echo $PHASE | grep -iqF failed; then
     divider
     exit 1
   fi
 }
-
-# function run_command() {
-#   COMMAND=${1}
-#   TYPE=${2}
-#   UPDATE_STATUS=${3}
-
-#   ERROR_MESSAGE="Could not run the command '$COMMAND'"
-#   SUCCESS_MESSAGE="Successfully ran the command '$COMMAND'"
-
-#   # $DEBUG && echo -e "Command: $COMMAND\n"
-#   # $DEBUG && echo "Command type: $TYPE"
-#   # $DEBUG && echo "Update status: $UPDATE_STATUS"
-
-#   ERROR_OUTPUT=$($COMMAND 2>&1 >/dev/null)
-
-#   if [[ -z "${ERROR_OUTPUT// /}" ]]; then
-#     $DEBUG && echo -e "$tick [SUCCESS] $SUCCESS_MESSAGE"
-#     $UPDATE_STATUS && update_status "$SUCCESS_MESSAGE" "$TYPE" "$SUCCESS_CODE"
-#   else
-#     $DEBUG && echo -e "$cross [ERROR] $ERROR_MESSAGE" && echo -e "$cross [ERROR] $ERROR_OUTPUT"
-#     $UPDATE_STATUS && update_status "$ERROR_OUTPUT" "$TYPE" "$FAILURE_CODE"
-#   fi
-# }
 
 #-------------------------------------------------------------------------------------------------------------------
 # Validate the parameters passed in
@@ -270,6 +264,13 @@ echo -e "$info Block storage class: '$BLOCK_STORAGE_CLASS'"
 echo -e "$info File storage class: '$FILE_STORAGE_CLASS'"
 echo -e "$info Samples repo branch: '$SAMPLES_REPO_BRANCH'"
 echo -e "$info Namespace: '$NAMESPACE'"
+
+# TODO REMOVE >>
+# update_status "Secret 'ibm-entitlement-key' created in 'cp4i-ddd-test' namespace" "secret" "$SUCCESS_CODE" "$($GET_UTC_TIME)" "Creating" "Running"
+
+# update_status "Secret 'ibm-entitlement-key' not found in 'cp4i' namespace" "secret" "$FAILURE_CODE" "$($GET_UTC_TIME)" "Getting" "Failed"
+# exit 0
+# TODO REMOVE <<
 
 #-------------------------------------------------------------------------------------------------------------------
 # If all demos enabled then add all demos
@@ -370,7 +371,7 @@ $DEBUG && divider && echo "Namespaces:"
 
 oc get secret -n $NAMESPACE ibm-entitlement-key 2>&1 >/dev/null
 if [ $? -ne 0 ]; then
-  update_status "Secret 'ibm-entitlement-key' not found in '$NAMESPACE' namespace" "secret" "$FAILURE_CODE"
+  update_status "Secret 'ibm-entitlement-key' not found in '$NAMESPACE' namespace" "secret" "$FAILURE_CODE" "$($GET_UTC_TIME)" "Getting" "Failed"
 fi
 
 for eachNamespace in $(echo "${REQUIRED_PRODUCTS_JSON}" | jq -r '[ .[] | select(.enabled == true ) | .namespace ] | unique | .[]'); do
@@ -382,27 +383,21 @@ for eachNamespace in $(echo "${REQUIRED_PRODUCTS_JSON}" | jq -r '[ .[] | select(
       echo $COMMAND_OUTPUT
       if [[ -z "${COMMAND_OUTPUT// /}" ]]; then
         $DEBUG && echo -e "\n$tick [SUCCESS] Namespace '$eachNamespace' created"
-        $UPDATE_STATUS && update_status "'$eachNamespace' namespace created" "namespace" "$SUCCESS_CODE"
+        update_status "'$eachNamespace' namespace created" "namespace" "$SUCCESS_CODE" "$($GET_UTC_TIME)" "Creating" "Running"
       else
         $DEBUG && echo -e "\n$cross [ERROR] Namespace - Create" && echo "$COMMAND_OUTPUT"
-        $UPDATE_STATUS && update_status "$COMMAND_OUTPUT" "namespace" "$FAILURE_CODE"
+        update_status "$COMMAND_OUTPUT" "namespace" "$FAILURE_CODE" "$($GET_UTC_TIME)" "Creating" "Failed"
       fi
     fi
 
     COMMAND_OUTPUT=$(oc get secret ibm-entitlement-key -o json --namespace $NAMESPACE | jq -r 'del(.metadata) | .metadata.namespace="'${eachNamespace}'" | .metadata.name="ibm-entitlement-key"' | oc apply --namespace ${eachNamespace} -f - 2>&1 >/dev/null)
     if [[ -z "${COMMAND_OUTPUT// /}" ]]; then
       $DEBUG && echo -e "\n$tick [SUCCESS] Secret 'ibm-entitlement-key' created in '$eachNamespace' namespace"
-      $UPDATE_STATUS && update_status "Secret 'ibm-entitlement-key' created in '$eachNamespace' namespace" "secret" "$SUCCESS_CODE"
+      update_status "Secret 'ibm-entitlement-key' created in '$eachNamespace' namespace" "secret" "$SUCCESS_CODE" "$($GET_UTC_TIME)" "Creating" "Running"
     else
       $DEBUG && echo -e "\n$cross [ERROR] Secret - Create - $COMMAND_OUTPUT"
-      $UPDATE_STATUS && update_status "$COMMAND_OUTPUT" "secret" "$FAILURE_CODE"
+      update_status "$COMMAND_OUTPUT" "secret" "$FAILURE_CODE" "$($GET_UTC_TIME)" "Creating" "Failed"
     fi
-
-    # if ! oc get secret ibm-entitlement-key -o json --namespace $NAMESPACE | jq -r 'del(.metadata) | .metadata.namespace="'${eachNamespace}'" | .metadata.name="ibm-entitlement-key"' | oc apply --namespace ${eachNamespace} -f - ; then
-    #   update_status "[ERROR] Could not create 'ibm-entitlement-key' in the '$eachNamespace' namespace" "secret" "$ERROR_CODE"
-    # else
-    #   update_status "[SUCCESS] Created the secret 'ibm-entitlement-key' in the '$eachNamespace' namespace" "secret" "$SUCCESS_CODE"
-    # fi
   fi
 done
 
@@ -422,3 +417,8 @@ $DEBUG && divider && echo "Demos:"
 for DEMO in $(echo $REQUIRED_DEMOS_JSON | jq -r 'to_entries[] | select( .value.enabled == true ) | .key'); do
   $DEBUG && echo $DEMO
 done
+
+#-------------------------------------------------------------------------------------------------------------------
+# Print the overall status
+#-------------------------------------------------------------------------------------------------------------------
+$DEBUG && divider && echo -e "Status:\n" && echo $STATUS | jq . && divider
