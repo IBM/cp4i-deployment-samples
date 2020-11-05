@@ -363,14 +363,10 @@ done
 # Add the required addons
 #-------------------------------------------------------------------------------------------------------------------
 $DEBUG && divider && echo "Addons:"
-if [[ $(echo $REQUIRED_ADDONS_JSON | jq -r '.' | jq length) -eq 0 ]]; then
-  ADDON_JSON=[]
-else
-  for row in $(echo "${REQUIRED_ADDONS_JSON}" | jq -r '.[] | select(.enabled == true ) | @base64'); do
-    ADDON_JSON=$(echo ${row} | base64 --decode)
-  done
-fi
-$DEBUG && echo $ADDON_JSON | jq .
+for row in $(echo "${REQUIRED_ADDONS_JSON}" | jq -r '.[] | select(.enabled == true ) | @base64'); do
+  ADDON_JSON=$(echo ${row} | base64 --decode)
+  $DEBUG && echo $ADDON_JSON | jq .
+done
 
 #-------------------------------------------------------------------------------------------------------------------
 # Display the required namespaces and create secrets and additional namespaces if does not exist
