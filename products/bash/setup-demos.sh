@@ -377,7 +377,7 @@ $DEBUG && divider && echo "Namespaces:"
 oc get project $NAMESPACE 2>&1 >/dev/null
 if [ $? -ne 0 ]; then
   $DEBUG && echo -e "\n$cross [ERROR] Namespace '$NAMESPACE' does not exist"
-  update_status "[ERROR] Namespace '$NAMESPACE' does not exist" "namespace" "$FAILURE_CODE" "$($GET_UTC_TIME)" "Getting" "Failed" "$NAMESPACE"
+  update_status "Namespace '$NAMESPACE' does not exist" "namespace" "$FAILURE_CODE" "$($GET_UTC_TIME)" "Getting" "Failed" "$NAMESPACE"
 else
   $DEBUG && echo -e "\n$tick [SUCCESS] Namespace '$NAMESPACE' already exists"
   update_status "Namespace '$NAMESPACE' already exists" "namespace" "$SUCCESS_CODE" "$($GET_UTC_TIME)" "Getting" "Pending" "$NAMESPACE"
