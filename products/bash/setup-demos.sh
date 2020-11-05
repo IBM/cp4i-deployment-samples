@@ -163,24 +163,32 @@ function merge_addon() {
 }
 
 function update_status() {
-  ERROR_MESSAGE=${1}
+  MESSAGE=${1}
   TYPE=${2}        # resource type
-  RESULT_CODE=${3} # 0 or 1
+  RESULT_CODE=${3} # success(0), error(1)
   TIMESTAMP=${4}
   REASON=${5}        # command type
   PHASE=${6}         # Pending, Running or Failed
   RESOURCE_NAME=${7} # name of the resource
+  CONDITION_TYPE=""  # for the type in conditions
 
-  $DEBUG && divider && echo -e "$info update_status(): message($ERROR_MESSAGE) - type($TYPE) - resultcode($RESULT_CODE) - timestamp($TIMESTAMP) - reason($REASON) - phase($PHASE) - resourceName($RESOURCE_NAME)"
+  $DEBUG && divider && echo -e "$info update_status(): message($MESSAGE) - type($TYPE) - resultcode($RESULT_CODE) - timestamp($TIMESTAMP) - reason($REASON) - phase($PHASE) - resourceName($RESOURCE_NAME)"
 
   if [[ $RESULT_CODE -eq 1 ]]; then
-    # update condition array if error occurred
-    CONDITION_TO_ADD=$(echo $CONDITION_ELEMENT_OBJECT | jq -r '.message="'"$TYPE - $ERROR_MESSAGE"'" | .status="True" | .type="Error" | .lastTransitionTime="'$TIMESTAMP'" | .reason="'$REASON'" ')
-    # add condition to condition array
-    STATUS=$(echo $STATUS | jq -c '.conditions += ['"${CONDITION_TO_ADD}"']')
-  # if creation or get of namespace passed, add the namespace to status namespace array
-  elif [[ "$TYPE" == "namespace" && ("$REASON" == "Getting" || "$REASON" == "Creating") && "$PHASE" == "Pending" ]]; then
-    $DEBUG && echo -e "\n$tick [SUCCESS] '$RESOURCE_NAME' namespace exists or created"
+    CONDITION_TYPE="Error"
+  elif [[ $RESULT_CODE -eq 0 ]]; then
+    CONDITION_TYPE="Success"
+  else
+    CONDITION_TYPE="Pending"
+  fi
+
+  # update condition array if error occurred
+  CONDITION_TO_ADD=$(echo $CONDITION_ELEMENT_OBJECT | jq -r '.message="'"$TYPE - $MESSAGE"'" | .status="True" | .type="'$CONDITION_TYPE'" | .lastTransitionTime="'$TIMESTAMP'" | .reason="'$REASON'" ')
+  # add condition to condition array
+  STATUS=$(echo $STATUS | jq -c '.conditions += ['"${CONDITION_TO_ADD}"']')
+
+  if [[ ("$TYPE" == "namespace") && ("$REASON" == "Getting" || "$REASON" == "Creating") && ($RESULT_CODE -eq 0) ]]; then
+    $DEBUG && echo -e "\n$tick [SUCCESS] Namespace '$RESOURCE_NAME' already exists or is created successfully"
     NAMESPACE_TO_ADD=$(echo $NAMESPACE_OBJECT | jq -r '.name="'$RESOURCE_NAME'" ')
     STATUS=$(echo $STATUS | jq -c '.namespaces += ['"${NAMESPACE_TO_ADD}"']')
   fi
@@ -375,8 +383,8 @@ if [ $? -ne 0 ]; then
   $DEBUG && echo -e "\n$cross [ERROR] Namespace '$NAMESPACE' does not exist"
   update_status "[ERROR] Namespace '$NAMESPACE' does not exist" "namespace" "$FAILURE_CODE" "$($GET_UTC_TIME)" "Getting" "Failed" "$NAMESPACE"
 else
-  $DEBUG && echo -e "\n$tick [SUCCESS] Namespace '$NAMESPACE' exists"
-  update_status "Namespace '$NAMESPACE' exists" "namespace" "$SUCCESS_CODE" "$($GET_UTC_TIME)" "Getting" "Pending" "$NAMESPACE"
+  $DEBUG && echo -e "\n$tick [SUCCESS] Namespace '$NAMESPACE' already exists"
+  update_status "Namespace '$NAMESPACE' already exists" "namespace" "$SUCCESS_CODE" "$($GET_UTC_TIME)" "Getting" "Pending" "$NAMESPACE"
 fi
 
 # check if the secret exists in the main namespace
@@ -404,7 +412,7 @@ for eachNamespace in $(echo "${REQUIRED_PRODUCTS_JSON}" | jq -r '[ .[] | select(
         update_status "$COMMAND_OUTPUT" "namespace" "$FAILURE_CODE" "$($GET_UTC_TIME)" "Creating" "Failed" "$eachNamespace"
       fi
     else
-      update_status "'$eachNamespace' namespace exists" "namespace" "$SUCCESS_CODE" "$($GET_UTC_TIME)" "Getting" "Pending" "$eachNamespace"
+      update_status "Namespace '$eachNamespace' already exists" "namespace" "$SUCCESS_CODE" "$($GET_UTC_TIME)" "Getting" "Pending" "$eachNamespace"
     fi
 
     # if the secret does not exist in the other namespace, create it
