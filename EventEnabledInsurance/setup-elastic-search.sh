@@ -16,10 +16,10 @@
 #   -n : <NAMESPACE> (string), Defaults to 'cp4i'
 #
 #   With defaults values
-#     ./create-elastic-search.sh
+#     ./setup-elastic-search.sh
 #
 #   With overridden values
-#     ./create-elastic-search.sh -n <NAMESPACE> -e <ELASTIC_NAMESPACE>
+#     ./setup-elastic-search.sh -n <NAMESPACE> -e <ELASTIC_NAMESPACE>
 
 function usage() {
   echo "Usage: $0 -n <NAMESPACE> -e <ELASTIC_NAMESPACE>"
@@ -33,7 +33,7 @@ SUFFIX="eei"
 ELASTIC_CR_NAME="elasticsearch-$SUFFIX"
 NAMESPACE="cp4i"
 ELASTIC_NAMESPACE="elasticsearch"
-ELASTIC_SUBCRIPTION_NAME="elastic-cloud-eck"
+ELASTIC_SUBSCRIPTION_NAME="elastic-cloud-eck"
 
 while getopts "n:e:" opt; do
   case ${opt} in
@@ -49,7 +49,7 @@ while getopts "n:e:" opt; do
   esac
 done
 
-if [[ -z "${NAMESPACE// }" || -z "${ELASTIC_NAMESPACE// }" ]]; then
+if [[ -z "${NAMESPACE// /}" || -z "${ELASTIC_NAMESPACE// /}" ]]; then
   echo -e "$cross ERROR: Mandatory parameters are missing"
   usage
 fi
@@ -61,7 +61,7 @@ echo "INFO: Current directory: '$CURRENT_DIR'"
 echo "INFO: Elastic Namespace: '$ELASTIC_NAMESPACE'"
 echo "INFO: Elastic search CR name: '$ELASTIC_CR_NAME'"
 echo "INFO: Namespace: $NAMESPACE"
-echo "INFO: Elastic search subscription: '$ELASTIC_SUBCRIPTION_NAME'"
+echo "INFO: Elastic search subscription: '$ELASTIC_SUBSCRIPTION_NAME'"
 echo "INFO: Suffix is: '$SUFFIX'"
 
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
@@ -70,16 +70,16 @@ oc create namespace $ELASTIC_NAMESPACE
 
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
-function output_time {
+function output_time() {
   SECONDS=${1}
-  if((SECONDS>59));then
-    printf "%d minutes, %d seconds" $((SECONDS/60)) $((SECONDS%60))
+  if ((SECONDS > 59)); then
+    printf "%d minutes, %d seconds" $((SECONDS / 60)) $((SECONDS % 60))
   else
     printf "%d seconds" $SECONDS
   fi
 }
 
-function wait_for_subscription {
+function wait_for_subscription() {
   ELASTIC_NAMESPACE=${1}
   NAME=${2}
   phase=""
@@ -100,7 +100,7 @@ function wait_for_subscription {
     fi
 
     if [[ "$wait" == "1" ]]; then
-      ((time=time+$wait_time))
+      ((time = time + $wait_time))
       if [ $time -gt 1200 ]; then
         echo "ERROR: Failed after waiting for 20 minutes for $NAME"
         exit 1
@@ -127,7 +127,7 @@ cat <<EOF | oc apply -f -
 apiVersion: operators.coreos.com/v1alpha1
 kind: Subscription
 metadata:
-  name: $ELASTIC_SUBCRIPTION_NAME
+  name: $ELASTIC_SUBSCRIPTION_NAME
   namespace: $ELASTIC_NAMESPACE
 spec:
   channel: stable
@@ -140,7 +140,7 @@ EOF
 
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
-wait_for_subscription $ELASTIC_NAMESPACE $ELASTIC_SUBCRIPTION_NAME
+wait_for_subscription $ELASTIC_NAMESPACE $ELASTIC_SUBSCRIPTION_NAME
 
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
@@ -221,10 +221,13 @@ ELASTIC_USER="elastic"
 echo -e "INFO: Got the password for elastic search..."
 
 echo -e "\nINFO: Creating secret for elastic search connector"
-oc get secret -n ${ELASTIC_NAMESPACE} $ELASTIC_CR_NAME-es-http-certs-public -o json | jq -r '.data["ca.crt"]' | base64 --decode > ca.crt
+oc get secret -n ${ELASTIC_NAMESPACE} $ELASTIC_CR_NAME-es-http-certs-public -o json | jq -r '.data["ca.crt"]' | base64 --decode >ca.crt
 rm elastic-ts.jks
 
-TRUSTSTORE_PASSWORD=$(LC_ALL=C tr -dc 'A-Za-z0-9' </dev/urandom | head -c 32 ; echo)
+TRUSTSTORE_PASSWORD=$(
+  LC_ALL=C tr -dc 'A-Za-z0-9' </dev/urandom | head -c 32
+  echo
+)
 keytool -import -file ca.crt -alias elasticCA -keystore elastic-ts.jks -storepass "$TRUSTSTORE_PASSWORD" -noprompt
 
 if [[ "$OSTYPE" == "linux-gnu"* ]]; then
@@ -235,7 +238,7 @@ elif [[ "$OSTYPE" == "darwin"* ]]; then
   BASE64_TS="$(base64 elastic-ts.jks)"
 fi
 
-cat << EOF | oc apply -f -
+cat <<EOF | oc apply -f -
 apiVersion: v1
 kind: Secret
 metadata:

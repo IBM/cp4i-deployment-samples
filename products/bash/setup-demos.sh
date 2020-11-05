@@ -172,7 +172,7 @@ function update_status() {
   RESOURCE_NAME=${7} # name of the resource
   CONDITION_TYPE=""  # for the type in conditions
 
-  $DEBUG && divider && echo -e "$info update_status(): message($MESSAGE) - type($TYPE) - resultcode($RESULT_CODE) - timestamp($TIMESTAMP) - reason($REASON) - phase($PHASE) - resourceName($RESOURCE_NAME)"
+  $DEBUG && echo -e "$info update_status(): message($MESSAGE) - type($TYPE) - resultcode($RESULT_CODE) - timestamp($TIMESTAMP) - reason($REASON) - phase($PHASE) - resourceName($RESOURCE_NAME)"
 
   if [[ $RESULT_CODE -eq 1 ]]; then
     CONDITION_TYPE="Error"
@@ -195,7 +195,7 @@ function update_status() {
 
   # update the phase
   STATUS=$(echo $STATUS | jq -c '.phase="'$PHASE'"')
-  $DEBUG && echo -e "\n$info [INFO] Printing the conditions array and Phase" && echo $STATUS | jq -r '.conditions,.phase' && divider
+  $DEBUG && echo -e "\n$info [INFO] Printing the conditions array and Phase" && echo $STATUS | jq -r '.conditions,.phase'
 
   # if the phase is failed, then exit status (case insensitive checking)
   if echo $PHASE | grep -iqF failed; then
@@ -365,8 +365,57 @@ done
 $DEBUG && divider && echo "Addons:"
 for row in $(echo "${REQUIRED_ADDONS_JSON}" | jq -r '.[] | select(.enabled == true ) | @base64'); do
   ADDON_JSON=$(echo ${row} | base64 --decode)
-  $DEBUG && echo $ADDON_JSON | jq .
+  $DEBUG && echo ${ADDON_JSON} | jq .
+  ADDON_TYPE=$(echo ${ADDON_JSON} | jq -r '.type')
+  case ${ADDON_TYPE} in
+  postgres)
+    echo -e "$info [INFO] Releasing postgres..."
+    if ! $SCRIPT_DIR/release-psql.sh; then
+      $DEBUG && echo -e "\n$cross [ERROR] Failed to release PostgreSQL"
+      update_status "Failed to release PostgreSQL" "postgres" "$FAILURE_CODE" "$($GET_UTC_TIME)" "Releasing" "Failed" "postgres"
+    else
+      $DEBUG && echo -e "\n$tick [SUCCESS] Successfully released PostgresSQL"
+      update_status "Successfully released PostgresSQL" "postgres" "$SUCCESS_CODE" "$($GET_UTC_TIME)" "Releasing" "Running" "postgres"
+    fi # release-psql.sh
+    ;;
+  elasticSearch)
+    echo -e "$info [INFO] Setting up elastic search operator and elastic search instance in the 'elasticsearch' namespace.."
+    if ! $SCRIPT_DIR/../../EventEnabledInsurance/setup-elastic-search.sh -n ${NAMESPACE}; then
+      $DEBUG && echo -e "\n$cross [ERROR] Failed to install elastic search in the 'elasticsearch' namespace and configure it in the '$NAMESPACE' namespace"
+      update_status "Failed to install elastic search in the 'elasticsearch' namespace and configure it in the '$NAMESPACE' namespace" "elasticSearch" "$FAILURE_CODE" "$($GET_UTC_TIME)" "Releasing" "Failed" "elasticSearch"
+    else
+      $DEBUG && echo -e "\n$tick [INFO] Successfully installed elastic search in the 'elasticsearch' namespace and configured it in the '$NAMESPACE' namespace"
+      update_status "Successfully installed elastic search in the 'elasticsearch' namespace and configured it in the '$NAMESPACE' namespace" "elasticSearch" "$FAILURE_CODE" "$($GET_UTC_TIME)" "Releasing" "Running" "elasticSearch"
+    fi #setup-elastic-search.sh
+    ;;
+  ocpPipelines)
+    echo -e "$info [INFO] Installing OCP pipelines..."
+    if ! ${SCRIPT_DIR}/install-ocp-pipeline.sh; then
+      $DEBUG && echo -e "\n$cross [ERROR] Failed to install OCP pipelines\n"
+      update_status "Failed to install OCP pipelines" "ocpPipelines" "$FAILURE_CODE" "$($GET_UTC_TIME)" "Releasing" "Failed" "ocpPipelines"
+    else
+      $DEBUG && echo -e "\n$tick [SUCCESS] Successfully installed OCP pipelines"
+      update_status "Successfully installed OCP pipelines" "ocpPipelines" "$FAILURE_CODE" "$($GET_UTC_TIME)" "Releasing" "Running" "ocpPipelines"
+    fi #install-ocp-pipeline.sh
+
+    echo -e "$info [INFO] Configuring secrets and permissions related to ocp pipelines in the '$NAMESPACE' namespace"
+    if ! ${SCRIPT_DIR}/configure-ocp-pipeline.sh -n ${NAMESPACE}; then
+      $DEBUG && echo -e "\n$cross [ERROR] Failed to create secrets and permissions related to ocp pipelines in the '$namespace' namespace\n"
+      update_status "Failed to create secrets and permissions related to ocp pipelines in the '$namespace' namespace" "ocpPipelines" "$FAILURE_CODE" "$($GET_UTC_TIME)" "Releasing" "Failed" "ocpPipelines"
+    else
+      $DEBUG && echo -e "\n$tick [SUCCESS] Successfully configured secrets and permissions related to ocp pipelines in the '$namespace' namespace"
+      update_status "Successfully configured secrets and permissions related to ocp pipelines in the '$namespace' namespace" "ocpPipelines" "$FAILURE_CODE" "$($GET_UTC_TIME)" "Releasing" "Running" "ocpPipelines"
+    fi #configure-ocp-pipeline.sh
+    ;;
+
+  *)
+    echo -e "$cross ERROR: Unknown addon: ${ADDON_TYPE}" 1>&2
+    exit 1
+    ;;
+  esac
 done
+
+exit 0
 
 #-------------------------------------------------------------------------------------------------------------------
 # Display the required namespaces and create secrets and additional namespaces if does not exist
@@ -377,7 +426,7 @@ $DEBUG && divider && echo "Namespaces:"
 oc get project $NAMESPACE 2>&1 >/dev/null
 if [ $? -ne 0 ]; then
   $DEBUG && echo -e "\n$cross [ERROR] Namespace '$NAMESPACE' does not exist"
-  update_status "[ERROR] Namespace '$NAMESPACE' does not exist" "namespace" "$FAILURE_CODE" "$($GET_UTC_TIME)" "Getting" "Failed" "$NAMESPACE"
+  update_status "Namespace '$NAMESPACE' does not exist" "namespace" "$FAILURE_CODE" "$($GET_UTC_TIME)" "Getting" "Failed" "$NAMESPACE"
 else
   $DEBUG && echo -e "\n$tick [SUCCESS] Namespace '$NAMESPACE' already exists"
   update_status "Namespace '$NAMESPACE' already exists" "namespace" "$SUCCESS_CODE" "$($GET_UTC_TIME)" "Getting" "Pending" "$NAMESPACE"
