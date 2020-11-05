@@ -179,7 +179,7 @@ function update_status() {
     # add condition to condition array
     STATUS=$(echo $STATUS | jq -c '.conditions += ['"${CONDITION_TO_ADD}"']')
   # if creation or get of namespace passed, add the namespace to status namespace array
-  elif [[ "$TYPE" == "namespace" && ("$REASON" == "Getting" || "$REASON" == "Creating") && "$PHASE" == "Running" ]]; then
+  elif [[ "$TYPE" == "namespace" && ("$REASON" == "Getting" || "$REASON" == "Creating") && "$PHASE" == "Pending" ]]; then
     $DEBUG && echo -e "\n$tick [SUCCESS] '$RESOURCE_NAME' namespace exists or created"
     NAMESPACE_TO_ADD=$(echo $NAMESPACE_OBJECT | jq -r '.name="'$RESOURCE_NAME'" ')
     STATUS=$(echo $STATUS | jq -c '.namespaces += ['"${NAMESPACE_TO_ADD}"']')
@@ -369,8 +369,6 @@ $DEBUG && echo $ADDON_JSON | jq .
 #-------------------------------------------------------------------------------------------------------------------
 $DEBUG && divider && echo "Namespaces:"
 
-# update status to pending
-update_status "[INFO] Checking if the namespace '$NAMESPACE' exists" "namespace" "$SUCCESS_CODE" "$($GET_UTC_TIME)" "Getting" "Pending" "$NAMESPACE"
 # add main namespace to status if exists
 oc get project $NAMESPACE 2>&1 >/dev/null
 if [ $? -ne 0 ]; then
@@ -378,11 +376,9 @@ if [ $? -ne 0 ]; then
   update_status "[ERROR] Namespace '$NAMESPACE' does not exist" "namespace" "$FAILURE_CODE" "$($GET_UTC_TIME)" "Getting" "Failed" "$NAMESPACE"
 else
   $DEBUG && echo -e "\n$tick [SUCCESS] Namespace '$NAMESPACE' exists"
-  update_status "Namespace '$NAMESPACE' exists" "namespace" "$SUCCESS_CODE" "$($GET_UTC_TIME)" "Getting" "Running" "$NAMESPACE"
+  update_status "Namespace '$NAMESPACE' exists" "namespace" "$SUCCESS_CODE" "$($GET_UTC_TIME)" "Getting" "Pending" "$NAMESPACE"
 fi
 
-# update status to pending
-update_status "[INFO] Checking if the secret 'ibm-entitlement-key' exists in the '$NAMESPACE' namespace" "secret" "$SUCCESS_CODE" "$($GET_UTC_TIME)" "Getting" "Pending" "ibm-entitlement-key"
 # check if the secret exists in the main namespace
 oc get secret -n $NAMESPACE ibm-entitlement-key 2>&1 >/dev/null
 if [ $? -ne 0 ]; then
@@ -393,35 +389,29 @@ fi
 for eachNamespace in $(echo "${REQUIRED_PRODUCTS_JSON}" | jq -r '[ .[] | select(.enabled == true ) | .namespace ] | unique | .[]'); do
   $DEBUG && echo "$eachNamespace"
 
-  # check if it is not the main namespace
+  # check if current namespace is not the main namespace
   if [[ "$eachNamespace" != "$NAMESPACE" ]]; then
 
-    # update status to pending
-    update_status "[INFO] Checking if '$NAMESPACE' namespace exists" "namespace" "$SUCCESS_CODE" "$($GET_UTC_TIME)" "Getting" "Pending" "$NAMESPACE"
     # if the other namespace does not exist, create it
     oc get project $eachNamespace 2>&1 >/dev/null
     if [ $? -ne 0 ]; then
-      # update status to pending
-      update_status "[INFO] Creating the '$eachNamespace' namespace" "namespace" "$SUCCESS_CODE" "$($GET_UTC_TIME)" "Getting" "Pending" "$eachNamespace"
       COMMAND_OUTPUT=$(oc create namespace $eachNamespace 2>&1 >/dev/null)
       if [[ -z "${COMMAND_OUTPUT// /}" ]]; then
         $DEBUG && echo -e "\n$tick [SUCCESS] Namespace '$eachNamespace' created"
-        update_status "'$eachNamespace' namespace created" "namespace" "$SUCCESS_CODE" "$($GET_UTC_TIME)" "Creating" "Running" "$eachNamespace"
+        update_status "'$eachNamespace' namespace created" "namespace" "$SUCCESS_CODE" "$($GET_UTC_TIME)" "Creating" "Pending" "$eachNamespace"
       else
         $DEBUG && echo -e "\n$cross [ERROR] Namespace - Create" && echo "$COMMAND_OUTPUT"
         update_status "$COMMAND_OUTPUT" "namespace" "$FAILURE_CODE" "$($GET_UTC_TIME)" "Creating" "Failed" "$eachNamespace"
       fi
     else
-      update_status "'$eachNamespace' namespace exists" "namespace" "$SUCCESS_CODE" "$($GET_UTC_TIME)" "Getting" "Running" "$eachNamespace"
+      update_status "'$eachNamespace' namespace exists" "namespace" "$SUCCESS_CODE" "$($GET_UTC_TIME)" "Getting" "Pending" "$eachNamespace"
     fi
 
-    # update status to pending
-    update_status "[INFO] Creating the secret 'ibm-entitlement-key' in the '$eachNamespace' namespace using the secret present in the '$NAMESPACE' namespace" "namespace" "$SUCCESS_CODE" "$($GET_UTC_TIME)" "Getting" "Pending" "ibm-entitlement-key"
     # if the secret does not exist in the other namespace, create it
     COMMAND_OUTPUT=$(oc get secret ibm-entitlement-key -o json --namespace $NAMESPACE | jq -r 'del(.metadata) | .metadata.namespace="'${eachNamespace}'" | .metadata.name="ibm-entitlement-key"' | oc apply --namespace ${eachNamespace} -f - 2>&1 >/dev/null)
     if [[ -z "${COMMAND_OUTPUT// /}" ]]; then
       $DEBUG && echo -e "\n$tick [SUCCESS] Secret 'ibm-entitlement-key' created in '$eachNamespace' namespace"
-      update_status "Secret 'ibm-entitlement-key' created in '$eachNamespace' namespace" "secret" "$SUCCESS_CODE" "$($GET_UTC_TIME)" "Creating" "Running" "ibm-entitlement-key"
+      update_status "Secret 'ibm-entitlement-key' created in '$eachNamespace' namespace" "secret" "$SUCCESS_CODE" "$($GET_UTC_TIME)" "Creating" "Pending" "ibm-entitlement-key"
     else
       $DEBUG && echo -e "\n$cross [ERROR] Secret - Create - $COMMAND_OUTPUT"
       update_status "$COMMAND_OUTPUT" "secret" "$FAILURE_CODE" "$($GET_UTC_TIME)" "Creating" "Failed" "ibm-entitlement-key"
