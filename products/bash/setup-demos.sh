@@ -373,7 +373,7 @@ fi
 $DEBUG && echo $ADDON_JSON | jq .
 
 #-------------------------------------------------------------------------------------------------------------------
-# Display the required namespaces and create additional ones if does not exist
+# Display the required namespaces and create secrets and additional namespaces if does not exist
 #-------------------------------------------------------------------------------------------------------------------
 $DEBUG && divider && echo "Namespaces:"
 
