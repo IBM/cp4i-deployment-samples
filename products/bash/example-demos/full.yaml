@@ -61,7 +61,6 @@ spec:
       enabled: true
     - type: elasticSearch
       enabled: true
-    # Installs the pipelines operator cluster scoped
     - type: ocpPipelines
       enabled: true
 status:

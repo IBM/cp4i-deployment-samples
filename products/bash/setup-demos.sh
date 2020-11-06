@@ -180,7 +180,7 @@ function update_conditions() {
 function update_phase() {
   PHASE=${1} # Pending, Running or Failed
 
-  $DEBUG && echo -e "$info update_phase(): phase($PHASE)"
+  $DEBUG && echo -e "$info [INFO] update_phase(): phase($PHASE)"
 
   STATUS=$(echo $STATUS | jq -c '.phase="'$PHASE'"')
 
@@ -308,11 +308,13 @@ for DEMO in $(echo $REQUIRED_DEMOS_JSON | jq -r 'to_entries[] | select( .value.e
   drivewayDentDeletion)
     PRODUCTS_FOR_DEMO='
       {"enabled":true,"type":"aceDashboard"}
-      {"enabled":true,"namespaceSuffix":"-ddd-test","type":"aceDashboard"}
       {"enabled":true,"type":"apic"}
-      {"enabled":true,"namespaceSuffix":"-ddd-test","type":"navigator"}
       {"enabled":true,"type":"tracing"}
       '
+    # Disabled as we no longer want a separate namespace for test. The following is an example
+    # of how this could work if we want to re-add this support later.
+    # {"enabled":true,"namespaceSuffix":"-ddd-test","type":"aceDashboard"}
+    # {"enabled":true,"namespaceSuffix":"-ddd-test","type":"navigator"}
     ADDONS_FOR_DEMO='
       {"enabled":true,"type":"postgres"}
       {"enabled":true,"type":"ocpPipelines"}
@@ -347,69 +349,72 @@ for DEMO in $(echo $REQUIRED_DEMOS_JSON | jq -r 'to_entries[] | select( .value.e
 done
 
 #-------------------------------------------------------------------------------------------------------------------
+# Change status phase to Pending as installation starting
+#-------------------------------------------------------------------------------------------------------------------
+$DEBUG && divider && echo -e "$info [INFO] Changing the status to 'Pending' as installation is starting..."
+update_phase "Pending"
+
+#-------------------------------------------------------------------------------------------------------------------
 # Add the required addons
 #-------------------------------------------------------------------------------------------------------------------
-$DEBUG && divider && echo "Addons:"
+$DEBUG && divider && echo -e "$info [INFO] Installing and setting up addons:"
 for row in $(echo "${REQUIRED_ADDONS_JSON}" | jq -r '.[] | select(.enabled == true ) | @base64'); do
+  divider
   ADDON_JSON=$(echo ${row} | base64 --decode)
-  $DEBUG && echo ${ADDON_JSON} | jq .
+  $DEBUG && echo ${ADDON_JSON} | jq . && echo ""
   ADDON_TYPE=$(echo ${ADDON_JSON} | jq -r '.type')
   case ${ADDON_TYPE} in
-
   postgres)
-    echo -e "$info [INFO] Releasing postgres..."
+    echo -e "$info [INFO] Releasing postgres...\n"
     if ! $SCRIPT_DIR/release-psql.sh -n $NAMESPACE; then
       $DEBUG && echo -e "\n$cross [ERROR] Failed to release PostgreSQL in the '$NAMESPACE' namespace"
       update_conditions "Failed to release PostgreSQL in the '$NAMESPACE' namespace" "Releasing"
       update_phase "Failed"
     else
       $DEBUG && echo -e "\n$tick [SUCCESS] Successfully released PostgresSQL in the '$NAMESPACE' namespace"
-      update_phase "Running"
     fi # release-psql.sh
     ;;
 
   elasticSearch)
-    echo -e "$info [INFO] Setting up elastic search operator and elastic search instance in the '$NAMESPACE' namespace.."
+    echo -e "$info [INFO] Setting up elastic search operator and elastic search instance in the '$NAMESPACE' namespace..."
     if ! $SCRIPT_DIR/../../EventEnabledInsurance/setup-elastic-search.sh -n ${NAMESPACE} -e ${NAMESPACE}; then
       $DEBUG && echo -e "\n$cross [ERROR] Failed to install and configure elastic search in the '$NAMESPACE' namespace"
       update_conditions "Failed to install and configure elastic search in the '$NAMESPACE' namespace" "Releasing"
       update_phase "Failed"
     else
       $DEBUG && echo -e "\n$tick [INFO] Successfully installed and configured elastic search in the '$NAMESPACE' namespace"
-      update_phase "Running"
     fi #setup-elastic-search.sh
     ;;
 
   ocpPipelines)
-    echo -e "$info [INFO] Installing OCP pipelines..."
+    echo -e "$info [INFO] Installing OCP pipelines...\n"
     if ! ${SCRIPT_DIR}/install-ocp-pipeline.sh; then
-      $DEBUG && echo -e "\n$cross [ERROR] Failed to install OCP pipelines\n"
-      update_conditions "Failed to install OCP pipelines" "ocpPipelines" "Releasing"
+      $DEBUG && echo -e "$cross [ERROR] Failed to install OCP pipelines\n"
+      update_conditions "Failed to install OCP pipelines" "Releasing"
       update_phase "Failed"
     else
-      $DEBUG && echo -e "\n$tick [SUCCESS] Successfully installed OCP pipelines"
-      update_phase "Running"
+      $DEBUG && echo -e "$tick [SUCCESS] Successfully installed OCP pipelines"
     fi #install-ocp-pipeline.sh
 
     echo -e "$info [INFO] Configuring secrets and permissions related to ocp pipelines in the '$NAMESPACE' namespace"
     if ! ${SCRIPT_DIR}/configure-ocp-pipeline.sh -n ${NAMESPACE}; then
-      $DEBUG && echo -e "\n$cross [ERROR] Failed to create secrets and permissions related to ocp pipelines in the '$NAMESPACE' namespace\n"
+      $DEBUG && echo -e "\n$cross [ERROR] Failed to create secrets and permissions related to ocp pipelines in the '$NAMESPACE' namespace"
       update_conditions "Failed to create secrets and permissions related to ocp pipelines in the '$NAMESPACE' namespace" "Releasing"
       update_phase "Failed"
     else
-      $DEBUG && echo -e "\n$tick [SUCCESS] Successfully configured secrets and permissions related to ocp pipelines in the '$NAMESPACE' namespace"
-      update_phase "Running"
+      $DEBUG && echo -e "$tick [SUCCESS] Successfully configured secrets and permissions related to ocp pipelines in the '$NAMESPACE' namespace"
     fi #configure-ocp-pipeline.sh
     ;;
 
   *)
     echo -e "$cross ERROR: Unknown addon type: ${ADDON_TYPE}" 1>&2
+    divider
     exit 1
     ;;
   esac
 done
 
-exit 0
+# exit 0
 
 #-------------------------------------------------------------------------------------------------------------------
 # Display the required namespaces and check if secret and that namespace exists
@@ -437,7 +442,6 @@ oc get secret -n $NAMESPACE ibm-entitlement-key 2>&1 >/dev/null
 if [ $? -ne 0 ]; then
   update_conditions "Secret 'ibm-entitlement-key' not found in '$NAMESPACE' namespace" "Getting"
   update_phase "Failed"
-else
 fi
 
 #-------------------------------------------------------------------------------------------------------------------
@@ -461,4 +465,10 @@ done
 # Print the overall status
 #-------------------------------------------------------------------------------------------------------------------
 # $DEBUG && divider && echo -e "Status:\n" && echo $STATUS | jq . && divider
-divider && echo -e "Status:\n" && echo $STATUS | jq . && divider
+$DEBUG && divider && echo -e "Status:\n" && echo $STATUS | jq .
+
+#-------------------------------------------------------------------------------------------------------------------
+# Change final status to Running at end of installation
+#-------------------------------------------------------------------------------------------------------------------
+$DEBUG && divider && echo -e "$tick [SUCCESS] Successfully installed all selected products and demos, changing the status to 'Running'..."
+update_phase "Running"
