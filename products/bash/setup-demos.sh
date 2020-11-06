@@ -48,12 +48,11 @@ cross="\xE2\x9D\x8C"
 all_done="\xF0\x9F\x92\xAF"
 info="\xE2\x84\xB9"
 SCRIPT_DIR=$(dirname $0)
-DEBUG=true
+DEBUG=false
 FAILURE_CODE=1
 SUCCESS_CODE=0
 CONDITION_ELEMENT_OBJECT='{"lastTransitionTime":"","message":"","reason":"","status":"","type":""}'
 NAMESPACE_OBJECT='{"name":""}'
-GET_UTC_TIME="date -u +%FT%T.%Z"
 
 function product_set_defaults() {
   PRODUCT_JSON=${1}
@@ -166,21 +165,21 @@ function update_conditions() {
   MESSAGE=${1}
   REASON=${2}            # command type
   CONDITION_TYPE="Error" # for the type in conditions
-  TIMESTAMP="$GET_UTC_TIME"
+  TIMESTAMP=$(date -u +%FT%T.%Z)
 
-  $DEBUG && echo -e "$info update_status(): message($MESSAGE) - reason($REASON) - conditionType($CONDITION_TYPE) - timestamp($TIMESTAMP)"
+  $DEBUG && echo -e "$info update_conditions(): message($MESSAGE) - reason($REASON) - conditionType($CONDITION_TYPE) - timestamp($TIMESTAMP)"
 
   # update condition array
-  CONDITION_TO_ADD=$(echo $CONDITION_ELEMENT_OBJECT | jq -r '.message="'$MESSAGE'" | .status="True" | .type="'$CONDITION_TYPE'" | .lastTransitionTime="'$TIMESTAMP'" | .reason="'$REASON'" ')
+  CONDITION_TO_ADD=$(echo $CONDITION_ELEMENT_OBJECT | jq -r '.message="'"$MESSAGE"'" | .status="True" | .type="'$CONDITION_TYPE'" | .lastTransitionTime="'$TIMESTAMP'" | .reason="'$REASON'" ')
   # add condition to condition array
   STATUS=$(echo $STATUS | jq -c '.conditions += ['"${CONDITION_TO_ADD}"']')
-  $DEBUG && echo -e "\n$info [INFO] Printing the conditions array" && echo $STATUS | jq -r '.conditions,'
+  $DEBUG && echo -e "\n$info [INFO] Printing the conditions array" && echo $STATUS | jq -r '.conditions'
 }
 
 function update_phase() {
   PHASE=${1} # Pending, Running or Failed
 
-  $DEBUG && echo -e "$info [INFO] update_phase(): phase($PHASE)"
+  $DEBUG && divider && echo -e "$info [INFO] update_phase(): phase($PHASE)"
 
   STATUS=$(echo $STATUS | jq -c '.phase="'$PHASE'"')
 
@@ -265,7 +264,7 @@ STATUS=$(echo $JSON | jq -r .status)
 echo -e "$info Block storage class: '$BLOCK_STORAGE_CLASS'"
 echo -e "$info File storage class: '$FILE_STORAGE_CLASS'"
 echo -e "$info Samples repo branch: '$SAMPLES_REPO_BRANCH'"
-echo -e "$info Namespace: '$NAMESPACE'"
+echo -e "$info Namespace: '$NAMESPACE'\n"
 
 #-------------------------------------------------------------------------------------------------------------------
 # If all demos enabled then add all demos
@@ -355,9 +354,35 @@ $DEBUG && divider && echo -e "$info [INFO] Changing the status to 'Pending' as i
 update_phase "Pending"
 
 #-------------------------------------------------------------------------------------------------------------------
+# Check if the namespace  and the secret exists
+#-------------------------------------------------------------------------------------------------------------------
+
+$DEBUG && divider && echo -e "$info [INFO] Check if the '$NAMESPACE' namespace and the secret 'ibm-entitlement-key' exists...\n"
+
+# add namespace to status if exists
+oc get project $NAMESPACE 2>&1 >/dev/null
+if [ $? -ne 0 ]; then
+  $DEBUG && echo -e "\n$cross [ERROR] Namespace '$NAMESPACE' does not exist" && divider
+  update_conditions "Namespace '$NAMESPACE' does not exist" "Getting"
+  update_phase "Failed"
+else
+  $DEBUG && echo -e "$tick [SUCCESS] Namespace '$NAMESPACE' already exists" && divider
+  NAMESPACE_TO_ADD=$(echo $NAMESPACE_OBJECT | jq -r '.name="'$NAMESPACE'" ')
+  STATUS=$(echo $STATUS | jq -c '.namespaces += ['"${NAMESPACE_TO_ADD}"']')
+fi
+
+# check if the secret exists in the namespace
+oc get secret -n $NAMESPACE ibm-entitlement-key 2>&1 >/dev/null
+if [ $? -ne 0 ]; then
+  $DEBUG && echo -e "\n$cross [ERROR] Secret 'ibm-entitlement-key' not found in '$NAMESPACE' namespace" && divider
+  update_conditions "Secret 'ibm-entitlement-key' not found in '$NAMESPACE' namespace" "Getting"
+  update_phase "Failed"
+fi
+
+#-------------------------------------------------------------------------------------------------------------------
 # Add the required addons
 #-------------------------------------------------------------------------------------------------------------------
-$DEBUG && divider && echo -e "$info [INFO] Installing and setting up addons:"
+$DEBUG && echo -e "$info [INFO] Installing and setting up addons:"
 for row in $(echo "${REQUIRED_ADDONS_JSON}" | jq -r '.[] | select(.enabled == true ) | @base64'); do
   divider
   ADDON_JSON=$(echo ${row} | base64 --decode)
@@ -424,25 +449,6 @@ $DEBUG && divider && echo "Namespaces:"
 for eachNamespace in $(echo "${REQUIRED_PRODUCTS_JSON}" | jq -r '[ .[] | select(.enabled == true ) | .namespace ] | unique | .[]'); do
   $DEBUG && echo "$eachNamespace"
 done
-
-# add namespace to status if exists
-oc get project $NAMESPACE 2>&1 >/dev/null
-if [ $? -ne 0 ]; then
-  $DEBUG && echo -e "\n$cross [ERROR] Namespace '$NAMESPACE' does not exist"
-  update_conditions "Namespace '$NAMESPACE' does not exist" "Getting"
-  update_phase "Failed"
-else
-  $DEBUG && echo -e "\n$tick [SUCCESS] Namespace '$NAMESPACE' already exists"
-  NAMESPACE_TO_ADD=$(echo $NAMESPACE_OBJECT | jq -r '.name="'$NAMESPACE'" ')
-  STATUS=$(echo $STATUS | jq -c '.namespaces += ['"${NAMESPACE_TO_ADD}"']')
-fi
-
-# check if the secret exists in the namespace
-oc get secret -n $NAMESPACE ibm-entitlement-key 2>&1 >/dev/null
-if [ $? -ne 0 ]; then
-  update_conditions "Secret 'ibm-entitlement-key' not found in '$NAMESPACE' namespace" "Getting"
-  update_phase "Failed"
-fi
 
 #-------------------------------------------------------------------------------------------------------------------
 # Add the required products
