@@ -613,9 +613,10 @@ Prereqs:
     REVOKE ALL PRIVILEGES ON QUOTES FROM cp4i_sor_eei;
     REVOKE ALL PRIVILEGES ON QUOTES FROM cp4i_sor_replication_eei;
     ```
-4. Post requests will succeed, however the new claim will not show up on the sor db or the projection claims db. Existing claims should still accessible with the get request but everything else will result in a 404.
-5. To restart postgres, make sure you're execed into the database and run the following commands:
+4. Post requests will succeed, however the new claim will not show up in the sor db or the projection claims db. Existing claims should still accessible with the get request but everything else will result in a 404.
+5. To restart postgres, make sure you're exec'd into the database and run the following commands:
     ```sql
     GRANT ALL PRIVILEGES ON TABLE quotes TO cp4i_sor_eei;
     GRANT ALL PRIVILEGES ON TABLE quotes TO cp4i_sor_replication_eei;
     ```
+6. Once the permissions have been restored, the new claim should show up in the psql db as well as the projection claims app.
