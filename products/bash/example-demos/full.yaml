@@ -26,15 +26,16 @@ spec:
       enabled: true
     eventEnabledInsurance:
       enabled: true
+    mappingAssist:
+      enabled: true
+    weatherChatbot:
+      enabled: true
 
   # Allow products to be enabled independently. Enabling a demo will automatically
   # enable required products.
   products:
     - type: aceDashboard
       enabled: true
-    - type: aceDashboard
-      enabled: false
-      namespaceSuffix: -ddd-test
     - type: aceDesigner
       enabled: true
     - type: apic
@@ -50,19 +51,14 @@ spec:
       enabled: true
     - type: mq
       enabled: true
-    - type: navigator
-      enabled: true
-      namespaceSuffix: -ddd-test
     - type: tracing
       enabled: true
 
   # Allow additional addon applications to be enabled independently. Enabling a
   # demo will automatically enable required addons.
   addons:
-    # Installs to the postgres namespace
     - type: postgres
       enabled: true
-    # Installs to the elasticsearch namespace
     - type: elasticSearch
       enabled: true
     # Installs the pipelines operator cluster scoped
@@ -77,44 +73,31 @@ status:
       enabled: true
     drivewayDentDeletion:
       enabled: true
-      testNamespace: cp4i-ddd-test
     eventEnabledInsurance:
+      enabled: true
+    mappingAssist:
+      enabled: true
+    weatherChatbot:
       enabled: true
   products:
     - type: aceDashboard
-      namespace: cp4i
-      name: ace-dashboard-demo
-    - type: aceDashboard
-      namespace: cp4i-ddd-test
       name: ace-dashboard-demo
     - type: aceDesigner
-      namespace: cp4i
       name: ace-designer-demo
     - type: apic
-      namespace: cp4i
       name: ademo
     - type: assetRepo
-      namespace: cp4i
       name: ar-demo
     - type: eventStreams
-      namespace: cp4i
       name: es-demo
     - type: mq
-      namespace: cp4i
       name: mq-demo
     - type: navigator
-      namespace: cp4i
       name: cp4i-navigator
-    - type: navigator
-      namespace: cp4i-ddd-test
-      name: cp4i-ddd-test-navigator
     - type: tracing
-      namespace: cp4i
       name: tracing-demo
   addons:
     - type: postgres
-      namespace: postgres
     - type: elasticSearch
-      namespace: elasticsearch
     - type: ocpPipelines
   namespaces:

@@ -53,7 +53,7 @@ FAILURE_CODE=1
 SUCCESS_CODE=0
 CONDITION_ELEMENT_OBJECT='{"lastTransitionTime":"","message":"","reason":"","status":"","type":""}'
 NAMESPACE_OBJECT='{"name":""}'
-GET_UTC_TIME="date -u +%FT%T.%3N%Z"
+GET_UTC_TIME="date -u +%FT%T.%Z"
 
 function product_set_defaults() {
   PRODUCT_JSON=${1}
@@ -162,40 +162,27 @@ function merge_addon() {
   echo ${ADDON_ARRAY_JSON}
 }
 
-function update_status() {
+function update_conditions() {
   MESSAGE=${1}
-  TYPE=${2}        # resource type
-  RESULT_CODE=${3} # success(0), error(1)
-  TIMESTAMP=${4}
-  REASON=${5}        # command type
-  PHASE=${6}         # Pending, Running or Failed
-  RESOURCE_NAME=${7} # name of the resource
-  CONDITION_TYPE=""  # for the type in conditions
+  REASON=${2}            # command type
+  CONDITION_TYPE="Error" # for the type in conditions
+  TIMESTAMP="$GET_UTC_TIME"
 
-  $DEBUG && echo -e "$info update_status(): message($MESSAGE) - type($TYPE) - resultcode($RESULT_CODE) - timestamp($TIMESTAMP) - reason($REASON) - phase($PHASE) - resourceName($RESOURCE_NAME)"
+  $DEBUG && echo -e "$info update_status(): message($MESSAGE) - reason($REASON) - conditionType($CONDITION_TYPE) - timestamp($TIMESTAMP)"
 
-  if [[ $RESULT_CODE -eq 1 ]]; then
-    CONDITION_TYPE="Error"
-  elif [[ $RESULT_CODE -eq 0 ]]; then
-    CONDITION_TYPE="Success"
-  else
-    CONDITION_TYPE="Pending"
-  fi
-
-  # update condition array if error occurred
-  CONDITION_TO_ADD=$(echo $CONDITION_ELEMENT_OBJECT | jq -r '.message="'"$TYPE - $MESSAGE"'" | .status="True" | .type="'$CONDITION_TYPE'" | .lastTransitionTime="'$TIMESTAMP'" | .reason="'$REASON'" ')
+  # update condition array
+  CONDITION_TO_ADD=$(echo $CONDITION_ELEMENT_OBJECT | jq -r '.message="'$MESSAGE'" | .status="True" | .type="'$CONDITION_TYPE'" | .lastTransitionTime="'$TIMESTAMP'" | .reason="'$REASON'" ')
   # add condition to condition array
   STATUS=$(echo $STATUS | jq -c '.conditions += ['"${CONDITION_TO_ADD}"']')
+  $DEBUG && echo -e "\n$info [INFO] Printing the conditions array" && echo $STATUS | jq -r '.conditions,'
+}
 
-  if [[ ("$TYPE" == "namespace") && ("$REASON" == "Getting" || "$REASON" == "Creating") && ($RESULT_CODE -eq 0) ]]; then
-    $DEBUG && echo -e "\n$tick [SUCCESS] Namespace '$RESOURCE_NAME' already exists or is created successfully"
-    NAMESPACE_TO_ADD=$(echo $NAMESPACE_OBJECT | jq -r '.name="'$RESOURCE_NAME'" ')
-    STATUS=$(echo $STATUS | jq -c '.namespaces += ['"${NAMESPACE_TO_ADD}"']')
-  fi
+function update_phase() {
+  PHASE=${1} # Pending, Running or Failed
 
-  # update the phase
+  $DEBUG && echo -e "$info update_phase(): phase($PHASE)"
+
   STATUS=$(echo $STATUS | jq -c '.phase="'$PHASE'"')
-  $DEBUG && echo -e "\n$info [INFO] Printing the conditions array and Phase" && echo $STATUS | jq -r '.conditions,.phase'
 
   # if the phase is failed, then exit status (case insensitive checking)
   if echo $PHASE | grep -iqF failed; then
@@ -371,23 +358,25 @@ for row in $(echo "${REQUIRED_ADDONS_JSON}" | jq -r '.[] | select(.enabled == tr
 
   postgres)
     echo -e "$info [INFO] Releasing postgres..."
-    if ! $SCRIPT_DIR/release-psql.sh; then
-      $DEBUG && echo -e "\n$cross [ERROR] Failed to release PostgreSQL"
-      update_status "Failed to release PostgreSQL" "postgres" "$FAILURE_CODE" "$($GET_UTC_TIME)" "Releasing" "Failed" "postgres"
+    if ! $SCRIPT_DIR/release-psql.sh -n $NAMESPACE; then
+      $DEBUG && echo -e "\n$cross [ERROR] Failed to release PostgreSQL in the '$NAMESPACE' namespace"
+      update_conditions "Failed to release PostgreSQL in the '$NAMESPACE' namespace" "Releasing"
+      update_phase "Failed"
     else
-      $DEBUG && echo -e "\n$tick [SUCCESS] Successfully released PostgresSQL"
-      update_status "Successfully released PostgresSQL" "postgres" "$SUCCESS_CODE" "$($GET_UTC_TIME)" "Releasing" "Running" "postgres"
+      $DEBUG && echo -e "\n$tick [SUCCESS] Successfully released PostgresSQL in the '$NAMESPACE' namespace"
+      update_phase "Running"
     fi # release-psql.sh
     ;;
 
   elasticSearch)
-    echo -e "$info [INFO] Setting up elastic search operator and elastic search instance in the 'elasticsearch' namespace.."
-    if ! $SCRIPT_DIR/../../EventEnabledInsurance/setup-elastic-search.sh -n ${NAMESPACE}; then
-      $DEBUG && echo -e "\n$cross [ERROR] Failed to install elastic search in the 'elasticsearch' namespace and configure it in the '$NAMESPACE' namespace"
-      update_status "Failed to install elastic search in the 'elasticsearch' namespace and configure it in the '$NAMESPACE' namespace" "elasticSearch" "$FAILURE_CODE" "$($GET_UTC_TIME)" "Releasing" "Failed" "elasticSearch"
+    echo -e "$info [INFO] Setting up elastic search operator and elastic search instance in the '$NAMESPACE' namespace.."
+    if ! $SCRIPT_DIR/../../EventEnabledInsurance/setup-elastic-search.sh -n ${NAMESPACE} -e ${NAMESPACE}; then
+      $DEBUG && echo -e "\n$cross [ERROR] Failed to install and configure elastic search in the '$NAMESPACE' namespace"
+      update_conditions "Failed to install and configure elastic search in the '$NAMESPACE' namespace" "Releasing"
+      update_phase "Failed"
     else
-      $DEBUG && echo -e "\n$tick [INFO] Successfully installed elastic search in the 'elasticsearch' namespace and configured it in the '$NAMESPACE' namespace"
-      update_status "Successfully installed elastic search in the 'elasticsearch' namespace and configured it in the '$NAMESPACE' namespace" "elasticSearch" "$FAILURE_CODE" "$($GET_UTC_TIME)" "Releasing" "Running" "elasticSearch"
+      $DEBUG && echo -e "\n$tick [INFO] Successfully installed and configured elastic search in the '$NAMESPACE' namespace"
+      update_phase "Running"
     fi #setup-elastic-search.sh
     ;;
 
@@ -395,19 +384,21 @@ for row in $(echo "${REQUIRED_ADDONS_JSON}" | jq -r '.[] | select(.enabled == tr
     echo -e "$info [INFO] Installing OCP pipelines..."
     if ! ${SCRIPT_DIR}/install-ocp-pipeline.sh; then
       $DEBUG && echo -e "\n$cross [ERROR] Failed to install OCP pipelines\n"
-      update_status "Failed to install OCP pipelines" "ocpPipelines" "$FAILURE_CODE" "$($GET_UTC_TIME)" "Releasing" "Failed" "ocpPipelines"
+      update_conditions "Failed to install OCP pipelines" "ocpPipelines" "Releasing"
+      update_phase "Failed"
     else
       $DEBUG && echo -e "\n$tick [SUCCESS] Successfully installed OCP pipelines"
-      update_status "Successfully installed OCP pipelines" "ocpPipelines" "$FAILURE_CODE" "$($GET_UTC_TIME)" "Releasing" "Running" "ocpPipelines"
+      update_phase "Running"
     fi #install-ocp-pipeline.sh
 
     echo -e "$info [INFO] Configuring secrets and permissions related to ocp pipelines in the '$NAMESPACE' namespace"
     if ! ${SCRIPT_DIR}/configure-ocp-pipeline.sh -n ${NAMESPACE}; then
-      $DEBUG && echo -e "\n$cross [ERROR] Failed to create secrets and permissions related to ocp pipelines in the '$namespace' namespace\n"
-      update_status "Failed to create secrets and permissions related to ocp pipelines in the '$namespace' namespace" "ocpPipelines" "$FAILURE_CODE" "$($GET_UTC_TIME)" "Releasing" "Failed" "ocpPipelines"
+      $DEBUG && echo -e "\n$cross [ERROR] Failed to create secrets and permissions related to ocp pipelines in the '$NAMESPACE' namespace\n"
+      update_conditions "Failed to create secrets and permissions related to ocp pipelines in the '$NAMESPACE' namespace" "Releasing"
+      update_phase "Failed"
     else
-      $DEBUG && echo -e "\n$tick [SUCCESS] Successfully configured secrets and permissions related to ocp pipelines in the '$namespace' namespace"
-      update_status "Successfully configured secrets and permissions related to ocp pipelines in the '$namespace' namespace" "ocpPipelines" "$FAILURE_CODE" "$($GET_UTC_TIME)" "Releasing" "Running" "ocpPipelines"
+      $DEBUG && echo -e "\n$tick [SUCCESS] Successfully configured secrets and permissions related to ocp pipelines in the '$NAMESPACE' namespace"
+      update_phase "Running"
     fi #configure-ocp-pipeline.sh
     ;;
 
@@ -421,59 +412,33 @@ done
 exit 0
 
 #-------------------------------------------------------------------------------------------------------------------
-# Display the required namespaces and create secrets and additional namespaces if does not exist
+# Display the required namespaces and check if secret and that namespace exists
 #-------------------------------------------------------------------------------------------------------------------
 $DEBUG && divider && echo "Namespaces:"
-
-# add main namespace to status if exists
-oc get project $NAMESPACE 2>&1 >/dev/null
-if [ $? -ne 0 ]; then
-  $DEBUG && echo -e "\n$cross [ERROR] Namespace '$NAMESPACE' does not exist"
-  update_status "Namespace '$NAMESPACE' does not exist" "namespace" "$FAILURE_CODE" "$($GET_UTC_TIME)" "Getting" "Failed" "$NAMESPACE"
-else
-  $DEBUG && echo -e "\n$tick [SUCCESS] Namespace '$NAMESPACE' already exists"
-  update_status "Namespace '$NAMESPACE' already exists" "namespace" "$SUCCESS_CODE" "$($GET_UTC_TIME)" "Getting" "Pending" "$NAMESPACE"
-fi
-
-# check if the secret exists in the main namespace
-oc get secret -n $NAMESPACE ibm-entitlement-key 2>&1 >/dev/null
-if [ $? -ne 0 ]; then
-  update_status "Secret 'ibm-entitlement-key' not found in '$NAMESPACE' namespace" "secret" "$FAILURE_CODE" "$($GET_UTC_TIME)" "Getting" "Failed" "ibm-entitlement-key"
-fi
-
 # loop over all namespaces in the required products, create namespace and secret if does not exist for all but main namespace
 for eachNamespace in $(echo "${REQUIRED_PRODUCTS_JSON}" | jq -r '[ .[] | select(.enabled == true ) | .namespace ] | unique | .[]'); do
   $DEBUG && echo "$eachNamespace"
-
-  # check if current namespace is not the main namespace
-  if [[ "$eachNamespace" != "$NAMESPACE" ]]; then
-
-    # if the other namespace does not exist, create it
-    oc get project $eachNamespace 2>&1 >/dev/null
-    if [ $? -ne 0 ]; then
-      COMMAND_OUTPUT=$(oc create namespace $eachNamespace 2>&1 >/dev/null)
-      if [[ -z "${COMMAND_OUTPUT// /}" ]]; then
-        $DEBUG && echo -e "\n$tick [SUCCESS] Namespace '$eachNamespace' created"
-        update_status "'$eachNamespace' namespace created" "namespace" "$SUCCESS_CODE" "$($GET_UTC_TIME)" "Creating" "Pending" "$eachNamespace"
-      else
-        $DEBUG && echo -e "\n$cross [ERROR] Namespace - Create" && echo "$COMMAND_OUTPUT"
-        update_status "$COMMAND_OUTPUT" "namespace" "$FAILURE_CODE" "$($GET_UTC_TIME)" "Creating" "Failed" "$eachNamespace"
-      fi
-    else
-      update_status "Namespace '$eachNamespace' already exists" "namespace" "$SUCCESS_CODE" "$($GET_UTC_TIME)" "Getting" "Pending" "$eachNamespace"
-    fi
-
-    # if the secret does not exist in the other namespace, create it
-    COMMAND_OUTPUT=$(oc get secret ibm-entitlement-key -o json --namespace $NAMESPACE | jq -r 'del(.metadata) | .metadata.namespace="'${eachNamespace}'" | .metadata.name="ibm-entitlement-key"' | oc apply --namespace ${eachNamespace} -f - 2>&1 >/dev/null)
-    if [[ -z "${COMMAND_OUTPUT// /}" ]]; then
-      $DEBUG && echo -e "\n$tick [SUCCESS] Secret 'ibm-entitlement-key' created in '$eachNamespace' namespace"
-      update_status "Secret 'ibm-entitlement-key' created in '$eachNamespace' namespace" "secret" "$SUCCESS_CODE" "$($GET_UTC_TIME)" "Creating" "Pending" "ibm-entitlement-key"
-    else
-      $DEBUG && echo -e "\n$cross [ERROR] Secret - Create - $COMMAND_OUTPUT"
-      update_status "$COMMAND_OUTPUT" "secret" "$FAILURE_CODE" "$($GET_UTC_TIME)" "Creating" "Failed" "ibm-entitlement-key"
-    fi
-  fi
 done
+
+# add namespace to status if exists
+oc get project $NAMESPACE 2>&1 >/dev/null
+if [ $? -ne 0 ]; then
+  $DEBUG && echo -e "\n$cross [ERROR] Namespace '$NAMESPACE' does not exist"
+  update_conditions "Namespace '$NAMESPACE' does not exist" "Getting"
+  update_phase "Failed"
+else
+  $DEBUG && echo -e "\n$tick [SUCCESS] Namespace '$NAMESPACE' already exists"
+  NAMESPACE_TO_ADD=$(echo $NAMESPACE_OBJECT | jq -r '.name="'$NAMESPACE'" ')
+  STATUS=$(echo $STATUS | jq -c '.namespaces += ['"${NAMESPACE_TO_ADD}"']')
+fi
+
+# check if the secret exists in the namespace
+oc get secret -n $NAMESPACE ibm-entitlement-key 2>&1 >/dev/null
+if [ $? -ne 0 ]; then
+  update_conditions "Secret 'ibm-entitlement-key' not found in '$NAMESPACE' namespace" "Getting"
+  update_phase "Failed"
+else
+fi
 
 #-------------------------------------------------------------------------------------------------------------------
 # Add the required products
