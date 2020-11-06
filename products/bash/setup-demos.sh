@@ -51,8 +51,8 @@ SCRIPT_DIR=$(dirname $0)
 DEBUG=true
 FAILURE_CODE=1
 SUCCESS_CODE=0
-CONDITION_ELEMENT_OBJECT="{\"lastTransitionTime\":\"\",\"message\":\"\",\"reason\":\"\",\"status\":\"\",\"type\":\"\"}"
-NAMESPACE_OBJECT="{\"name\":\"\"}"
+CONDITION_ELEMENT_OBJECT='{"lastTransitionTime":"","message":"","reason":"","status":"","type":""}'
+NAMESPACE_OBJECT='{"name":""}'
 GET_UTC_TIME="date -u +%FT%T.%3N%Z"
 
 function product_set_defaults() {
@@ -368,6 +368,7 @@ for row in $(echo "${REQUIRED_ADDONS_JSON}" | jq -r '.[] | select(.enabled == tr
   $DEBUG && echo ${ADDON_JSON} | jq .
   ADDON_TYPE=$(echo ${ADDON_JSON} | jq -r '.type')
   case ${ADDON_TYPE} in
+
   postgres)
     echo -e "$info [INFO] Releasing postgres..."
     if ! $SCRIPT_DIR/release-psql.sh; then
@@ -378,6 +379,7 @@ for row in $(echo "${REQUIRED_ADDONS_JSON}" | jq -r '.[] | select(.enabled == tr
       update_status "Successfully released PostgresSQL" "postgres" "$SUCCESS_CODE" "$($GET_UTC_TIME)" "Releasing" "Running" "postgres"
     fi # release-psql.sh
     ;;
+
   elasticSearch)
     echo -e "$info [INFO] Setting up elastic search operator and elastic search instance in the 'elasticsearch' namespace.."
     if ! $SCRIPT_DIR/../../EventEnabledInsurance/setup-elastic-search.sh -n ${NAMESPACE}; then
@@ -388,6 +390,7 @@ for row in $(echo "${REQUIRED_ADDONS_JSON}" | jq -r '.[] | select(.enabled == tr
       update_status "Successfully installed elastic search in the 'elasticsearch' namespace and configured it in the '$NAMESPACE' namespace" "elasticSearch" "$FAILURE_CODE" "$($GET_UTC_TIME)" "Releasing" "Running" "elasticSearch"
     fi #setup-elastic-search.sh
     ;;
+
   ocpPipelines)
     echo -e "$info [INFO] Installing OCP pipelines..."
     if ! ${SCRIPT_DIR}/install-ocp-pipeline.sh; then
@@ -409,7 +412,7 @@ for row in $(echo "${REQUIRED_ADDONS_JSON}" | jq -r '.[] | select(.enabled == tr
     ;;
 
   *)
-    echo -e "$cross ERROR: Unknown addon: ${ADDON_TYPE}" 1>&2
+    echo -e "$cross ERROR: Unknown addon type: ${ADDON_TYPE}" 1>&2
     exit 1
     ;;
   esac
