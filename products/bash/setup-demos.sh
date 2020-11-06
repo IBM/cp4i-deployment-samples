@@ -439,8 +439,6 @@ for row in $(echo "${REQUIRED_ADDONS_JSON}" | jq -r '.[] | select(.enabled == tr
   esac
 done
 
-# exit 0
-
 #-------------------------------------------------------------------------------------------------------------------
 # Display the required namespaces and check if secret and that namespace exists
 #-------------------------------------------------------------------------------------------------------------------
