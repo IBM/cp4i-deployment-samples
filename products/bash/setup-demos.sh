@@ -440,7 +440,7 @@ for row in $(echo "${REQUIRED_ADDONS_JSON}" | jq -r '.[] | select(.enabled == tr
 done
 
 #-------------------------------------------------------------------------------------------------------------------
-# Display the required namespaces and check if secret and that namespace exists
+# Display the namespaces
 #-------------------------------------------------------------------------------------------------------------------
 $DEBUG && divider && echo "Namespaces:"
 # loop over all namespaces in the required products, create namespace and secret if does not exist for all but main namespace
