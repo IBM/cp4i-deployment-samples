@@ -272,11 +272,13 @@ for DEMO in $(echo $REQUIRED_DEMOS_JSON | jq -r 'to_entries[] | select( .value.e
     drivewayDentDeletion)
       PRODUCTS_FOR_DEMO='
       {"enabled":true,"type":"aceDashboard"}
-      {"enabled":true,"namespaceSuffix":"-ddd-test","type":"aceDashboard"}
       {"enabled":true,"type":"apic"}
-      {"enabled":true,"namespaceSuffix":"-ddd-test","type":"navigator"}
       {"enabled":true,"type":"tracing"}
       '
+      # Disabled as we no longer want a separate namespace for test. The following is an example
+      # of how this could work if we want to re-add this support later.
+      # {"enabled":true,"namespaceSuffix":"-ddd-test","type":"aceDashboard"}
+      # {"enabled":true,"namespaceSuffix":"-ddd-test","type":"navigator"}
       ADDONS_FOR_DEMO='
       {"enabled":true,"type":"postgres"}
       {"enabled":true,"type":"ocpPipelines"}
