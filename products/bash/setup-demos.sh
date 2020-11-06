@@ -443,7 +443,6 @@ done
 # Display the namespaces
 #-------------------------------------------------------------------------------------------------------------------
 $DEBUG && divider && echo "Namespaces:"
-# loop over all namespaces in the required products, create namespace and secret if does not exist for all but main namespace
 for eachNamespace in $(echo "${REQUIRED_PRODUCTS_JSON}" | jq -r '[ .[] | select(.enabled == true ) | .namespace ] | unique | .[]'); do
   $DEBUG && echo "$eachNamespace"
 done
