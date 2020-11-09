@@ -52,9 +52,11 @@ DEBUG=true
 FAILURE_CODE=1
 SUCCESS_CODE=0
 CONDITION_ELEMENT_OBJECT='{"lastTransitionTime":"","message":"","reason":"","status":"","type":""}'
-NAMESPACE_OBJECT='{"name":""}'
+NAMESPACE_OBJECT_FOR_STATUS='{"name":""}'
 TRACING_ENABLED=false
 APIC_ENABLED=false
+ADDON_OBJECT_FOR_STATUS='{"type":""}'
+PRODUCT_OBJECT_FOR_STATUS='{"name":"","type":""}'
 
 declare -a ARRAY_FOR_FAILED_INSTALL_PRODUCTS
 declare -a ARRAY_FOR_FAILED_INSTALL_ADDONS
@@ -201,6 +203,21 @@ function check_phase_and_exit_on_failed() {
   else
     $DEBUG && divider && echo -e "$info [INFO] Current installation phase is '$CURRENT_PHASE', continuing the installation..."
   fi
+}
+
+function update_addon_status() {
+  PRODUCT_TYPE=${1} # type of Addons for demos
+  $DEBUG && echo -e "\n$info [INFO] productType($PRODUCT_TYPE)"
+  ADDON_TO_ADD_TO_STATUS=$(echo $ADDON_OBJECT_FOR_STATUS | jq -r '.type="'$PRODUCT_TYPE'" ')
+  STATUS=$(echo $STATUS | jq -c '.addons += ['"${ADDON_TO_ADD_TO_STATUS}"']')
+}
+
+function update_product_status() {
+  PRODUCT_NAME=${1}
+  PRODUCT_TYPE=${2}
+  $DEBUG && echo -e "\n$info [INFO] productName($PRODUCT_NAME) - productType($PRODUCT_TYPE)"
+  PRODUCT_TO_ADD_TO_STATUS=$(echo $PRODUCT_OBJECT_FOR_STATUS | jq -r '.name="'$PRODUCT_NAME'" | .type="'$PRODUCT_TYPE'" ')
+  STATUS=$(echo $STATUS | jq -c '.products += ['"${PRODUCT_TO_ADD_TO_STATUS}"']')
 }
 
 #-------------------------------------------------------------------------------------------------------------------
@@ -379,7 +396,7 @@ if [ $? -ne 0 ]; then
   update_phase "Failed"
 else
   echo -e "$tick [SUCCESS] Namespace '$NAMESPACE' exists"
-  NAMESPACE_TO_ADD=$(echo $NAMESPACE_OBJECT | jq -r '.name="'$NAMESPACE'" ')
+  NAMESPACE_TO_ADD=$(echo $NAMESPACE_OBJECT_FOR_STATUS | jq -r '.name="'$NAMESPACE'" ')
   STATUS=$(echo $STATUS | jq -c '.namespaces += ['"${NAMESPACE_TO_ADD}"']')
 fi
 
@@ -418,6 +435,7 @@ for row in $(echo "${REQUIRED_ADDONS_JSON}" | jq -r '.[] | select(.enabled == tr
       ARRAY_FOR_FAILED_INSTALL_ADDONS+=($ADDON_TYPE)
     else
       echo -e "\n$tick [SUCCESS] Successfully released PostgresSQL in the '$NAMESPACE' namespace"
+      update_addon_status $ADDON_TYPE
     fi # release-psql.sh
     ;;
 
@@ -429,6 +447,7 @@ for row in $(echo "${REQUIRED_ADDONS_JSON}" | jq -r '.[] | select(.enabled == tr
       ARRAY_FOR_FAILED_INSTALL_ADDONS+=($ADDON_TYPE)
     else
       echo -e "\n$tick [INFO] Successfully installed and configured elastic search in the '$NAMESPACE' namespace"
+      update_addon_status $ADDON_TYPE
     fi # setup-elastic-search.sh
     ;;
 
@@ -440,6 +459,7 @@ for row in $(echo "${REQUIRED_ADDONS_JSON}" | jq -r '.[] | select(.enabled == tr
       ARRAY_FOR_FAILED_INSTALL_ADDONS+=($ADDON_TYPE)
     else
       echo -e "$tick [SUCCESS] Successfully installed OCP pipelines" && divider
+      update_addon_status $ADDON_TYPE
     fi # install-ocp-pipeline.sh
 
     echo -e "$info [INFO] Configuring secrets and permissions related to ocp pipelines in the '$NAMESPACE' namespace\n"
@@ -497,6 +517,8 @@ for eachProduct in $(echo "${REQUIRED_PRODUCTS_JSON}" | jq -r '.[] | select(.ena
 
   mq)
     echo -e "$info [INFO] Releasing MQ $ECHO_LINE...\n"
+
+    # if to enable or disable tracing while releasing MQ
     if [[ "$TRACING_ENABLED" == "true" ]]; then
       RELEASE_MQ_PARAMS="-n $NAMESPACE -z $NAMESPACE -r $EACH_PRODUCT_NAME -t"
     else
@@ -509,6 +531,7 @@ for eachProduct in $(echo "${REQUIRED_PRODUCTS_JSON}" | jq -r '.[] | select(.ena
       ARRAY_FOR_FAILED_INSTALL_PRODUCTS+=($EACH_PRODUCT_TYPE)
     else
       echo -e "\n$tick [SUCCESS] Successfully released MQ $ECHO_LINE"
+      update_product_status $EACH_PRODUCT_NAME $EACH_PRODUCT_TYPE
     fi # release-mq.sh
     divider
     ;;
@@ -521,6 +544,7 @@ for eachProduct in $(echo "${REQUIRED_PRODUCTS_JSON}" | jq -r '.[] | select(.ena
       ARRAY_FOR_FAILED_INSTALL_PRODUCTS+=($EACH_PRODUCT_TYPE)
     else
       echo -e "\n$tick [INFO] Successfully released ACE Designer $ECHO_LINE"
+      update_product_status $EACH_PRODUCT_NAME $EACH_PRODUCT_TYPE
     fi # release-ace-designer.sh
     divider
     ;;
@@ -535,6 +559,7 @@ for eachProduct in $(echo "${REQUIRED_PRODUCTS_JSON}" | jq -r '.[] | select(.ena
       ARRAY_FOR_FAILED_INSTALL_PRODUCTS+=($EACH_PRODUCT_TYPE)
     else
       echo -e "$tick [SUCCESS] Successfully released Asset Repository $ECHO_LINE" && divider
+      update_product_status $EACH_PRODUCT_NAME $EACH_PRODUCT_TYPE
     fi # release-ar.sh
     divider
     ;;
@@ -547,6 +572,7 @@ for eachProduct in $(echo "${REQUIRED_PRODUCTS_JSON}" | jq -r '.[] | select(.ena
       ARRAY_FOR_FAILED_INSTALL_PRODUCTS+=($EACH_PRODUCT_TYPE)
     else
       echo -e "$tick [SUCCESS] Successfully released ACE dashboard $ECHO_LINE" && divider
+      update_product_status $EACH_PRODUCT_NAME $EACH_PRODUCT_TYPE
     fi # release-ace-dashboard.sh
     divider
     ;;
@@ -562,6 +588,7 @@ for eachProduct in $(echo "${REQUIRED_PRODUCTS_JSON}" | jq -r '.[] | select(.ena
     export MAIL_SERVER_USERNAME=$(echo ${EACH_PRODUCT_JSON} | jq -r '.mailServerUsername')
     export MAIL_SERVER_PASSWORD=$(echo ${EACH_PRODUCT_JSON} | jq -r '.mailServerPassword')
 
+    # if to enable or disable tracing while releasing APIC
     if [[ "$TRACING_ENABLED" == "true" ]]; then
       RELEASE_APIC_PARAMS="-n $NAMESPACE -r $EACH_PRODUCT_NAME -t"
     else
@@ -574,6 +601,7 @@ for eachProduct in $(echo "${REQUIRED_PRODUCTS_JSON}" | jq -r '.[] | select(.ena
       ARRAY_FOR_FAILED_INSTALL_PRODUCTS+=($EACH_PRODUCT_TYPE)
     else
       echo -e "$tick [SUCCESS] Successfully released APIC $ECHO_LINE" && divider
+      update_product_status $EACH_PRODUCT_NAME $EACH_PRODUCT_TYPE
     fi # release-apic.sh
     divider
     ;;
@@ -586,6 +614,7 @@ for eachProduct in $(echo "${REQUIRED_PRODUCTS_JSON}" | jq -r '.[] | select(.ena
       ARRAY_FOR_FAILED_INSTALL_PRODUCTS+=($EACH_PRODUCT_TYPE)
     else
       echo -e "$tick [SUCCESS] Successfully release $ECHO_LINE" && divider
+      update_product_status $EACH_PRODUCT_NAME $EACH_PRODUCT_TYPE
     fi # release-es.sh
     divider
     ;;
@@ -598,6 +627,7 @@ for eachProduct in $(echo "${REQUIRED_PRODUCTS_JSON}" | jq -r '.[] | select(.ena
       ARRAY_FOR_FAILED_INSTALL_PRODUCTS+=($EACH_PRODUCT_TYPE)
     else
       echo -e "$tick [SUCCESS] Successfully released Tracing $ECHO_LINE" && divider
+      update_product_status $EACH_PRODUCT_NAME $EACH_PRODUCT_TYPE
     fi # release-tracing.sh
 
     echo -e "$info [INFO] Registering tracing $ECHO_LINE...\n"
