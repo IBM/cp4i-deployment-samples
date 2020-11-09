@@ -268,17 +268,17 @@ echo -e "$info Output yaml file : '$OUTPUT_YAML_FILE'\n"
 missingPrereqs="false"
 yq --version
 if [ $? -ne 0 ]; then
-  echo -e "$cross ERROR: yq needs to be installed before running this script" 1>&2
+  echo -e "$cross [ERROR] 'yq' needs to be installed before running this script" 1>&2
   missingPrereqs="true"
 fi
 jq --version
 if [ $? -ne 0 ]; then
-  echo -e "$cross ERROR: jq needs to be installed before running this script" 1>&2
+  echo -e "$cross [ERROR] 'jq' needs to be installed before running this script" 1>&2
   missingPrereqs="true"
 fi
 oc version --client
 if [ $? -ne 0 ]; then
-  echo -e "$cross ERROR: oc needs to be installed before running this script" 1>&2
+  echo -e "$cross [ERROR] 'oc' needs to be installed before running this script" 1>&2
   missingPrereqs="true"
 fi
 if [[ "$missingPrereqs" == "true" ]]; then
@@ -419,7 +419,6 @@ else
 fi
 
 check_phase_and_exit_on_failed
-
 divider
 
 # check if the secret exists in the namespace
@@ -445,7 +444,6 @@ for eachAddon in $(echo "${REQUIRED_ADDONS_JSON}" | jq -r '.[] | select(.enabled
   ADDON_TYPE=$(echo ${ADDON_JSON} | jq -r '.type')
 
   case ${ADDON_TYPE} in
-
   postgres)
     echo -e "$info [INFO] Releasing postgres...\n"
     if ! $SCRIPT_DIR/release-psql.sh -n $NAMESPACE; then
@@ -532,7 +530,6 @@ for eachProduct in $(echo "${REQUIRED_PRODUCTS_JSON}" | jq -r '.[] | select(.ena
   ECHO_LINE="in the '$NAMESPACE' namespace with the name '$EACH_PRODUCT_NAME'"
 
   case ${EACH_PRODUCT_TYPE} in
-
   mq)
     echo -e "$info [INFO] Releasing MQ $ECHO_LINE...\n"
 
