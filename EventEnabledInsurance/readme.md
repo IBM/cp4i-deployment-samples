@@ -576,7 +576,7 @@ Prereqs:
     The post call will succeed but the message won't be taken off the queue and won't be processed
 2. Recreate integration server:
     ```sh
-    bash oc apply -f ~/dbwriter.yaml
+    oc apply -f ~/dbwriter.yaml
     ```
 3. Test post and get (they should work now)
 
