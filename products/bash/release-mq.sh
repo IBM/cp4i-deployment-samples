@@ -64,11 +64,12 @@ done
 if [ "$tracing_enabled" == "true" ] ; then
    if [ -z "$tracing_namespace" ]; then tracing_namespace=${namespace} ; fi
 else
-    # assgining value to tracing_namespace b/c empty values causes CR to throw an error
+    # assigning value to tracing_namespace b/c empty values causes CR to throw an error
     tracing_namespace=${namespace}
 fi
 
-echo "[INFO] tracing is set to $tracing_enabled"
+echo "[INFO] tracing is set to $tracing_enabled\n"
+echo "[INFO] Tracing namespace: $tracing_namespace"
 
 if [ -z $image_name ]; then
 
