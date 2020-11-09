@@ -54,6 +54,7 @@ SUCCESS_CODE=0
 CONDITION_ELEMENT_OBJECT='{"lastTransitionTime":"","message":"","reason":"","status":"","type":""}'
 NAMESPACE_OBJECT='{"name":""}'
 TRACING_ENABLED=false
+APIC_ENABLED=false
 
 declare -a ARRAY_FOR_FAILED_INSTALL_PRODUCTS
 declare -a ARRAY_FOR_FAILED_INSTALL_ADDONS
@@ -262,7 +263,7 @@ $DEBUG && echo $JSON | jq .
 #-------------------------------------------------------------------------------------------------------------------
 # Extract information from the yaml
 #-------------------------------------------------------------------------------------------------------------------
-$DEBUG && echo "[DEBUG] Get storage classes and branch from $INPUT_YAML_FILE"
+$DEBUG && echo "\n[DEBUG] Get storage classes and branch from $INPUT_YAML_FILE"
 GENERAL=$(echo $JSON | jq -r .spec.general)
 BLOCK_STORAGE_CLASS=$(echo $GENERAL | jq -r '.storage.block | if has("class") then .class else "cp4i-block-performance" end')
 FILE_STORAGE_CLASS=$(echo $GENERAL | jq -r '.storage.file | if has("class") then .class else "ibmc-file-gold-gid" end')
@@ -407,62 +408,62 @@ for row in $(echo "${REQUIRED_ADDONS_JSON}" | jq -r '.[] | select(.enabled == tr
   $DEBUG && echo ${ADDON_JSON} | jq . && echo ""
   ADDON_TYPE=$(echo ${ADDON_JSON} | jq -r '.type')
 
-  case ${ADDON_TYPE} in
+  # case ${ADDON_TYPE} in
 
-  postgres)
-    echo -e "$info [INFO] Releasing postgres...\n"
-    if ! $SCRIPT_DIR/release-psql.sh -n $NAMESPACE; then
-      update_conditions "Failed to release PostgreSQL in the '$NAMESPACE' namespace" "Releasing"
-      update_phase "Failed"
-      ARRAY_FOR_FAILED_INSTALL_ADDONS+=($ADDON_TYPE)
-    else
-      echo -e "\n$tick [SUCCESS] Successfully released PostgresSQL in the '$NAMESPACE' namespace"
-    fi # release-psql.sh
-    ;;
+  # postgres)
+  #   echo -e "$info [INFO] Releasing postgres...\n"
+  #   if ! $SCRIPT_DIR/release-psql.sh -n $NAMESPACE; then
+  #     update_conditions "Failed to release PostgreSQL in the '$NAMESPACE' namespace" "Releasing"
+  #     update_phase "Failed"
+  #     ARRAY_FOR_FAILED_INSTALL_ADDONS+=($ADDON_TYPE)
+  #   else
+  #     echo -e "\n$tick [SUCCESS] Successfully released PostgresSQL in the '$NAMESPACE' namespace"
+  #   fi # release-psql.sh
+  #   ;;
 
-  elasticSearch)
-    echo -e "$info [INFO] Setting up elastic search operator and elastic search instance in the '$NAMESPACE' namespace..."
-    if ! $SCRIPT_DIR/../../EventEnabledInsurance/setup-elastic-search.sh -n ${NAMESPACE} -e ${NAMESPACE}; then
-      update_conditions "Failed to install and configure elastic search in the '$NAMESPACE' namespace" "Releasing"
-      update_phase "Failed"
-      ARRAY_FOR_FAILED_INSTALL_ADDONS+=($ADDON_TYPE)
-    else
-      echo -e "\n$tick [INFO] Successfully installed and configured elastic search in the '$NAMESPACE' namespace"
-    fi # setup-elastic-search.sh
-    ;;
+  # elasticSearch)
+  #   echo -e "$info [INFO] Setting up elastic search operator and elastic search instance in the '$NAMESPACE' namespace..."
+  #   if ! $SCRIPT_DIR/../../EventEnabledInsurance/setup-elastic-search.sh -n ${NAMESPACE} -e ${NAMESPACE}; then
+  #     update_conditions "Failed to install and configure elastic search in the '$NAMESPACE' namespace" "Releasing"
+  #     update_phase "Failed"
+  #     ARRAY_FOR_FAILED_INSTALL_ADDONS+=($ADDON_TYPE)
+  #   else
+  #     echo -e "\n$tick [INFO] Successfully installed and configured elastic search in the '$NAMESPACE' namespace"
+  #   fi # setup-elastic-search.sh
+  #   ;;
 
-  ocpPipelines)
-    echo -e "$info [INFO] Installing OCP pipelines...\n"
-    if ! ${SCRIPT_DIR}/install-ocp-pipeline.sh; then
-      update_conditions "Failed to install OCP pipelines" "Releasing"
-      update_phase "Failed"
-      ARRAY_FOR_FAILED_INSTALL_ADDONS+=($ADDON_TYPE)
-    else
-      echo -e "$tick [SUCCESS] Successfully installed OCP pipelines" && divider
-    fi # install-ocp-pipeline.sh
+  # ocpPipelines)
+  #   echo -e "$info [INFO] Installing OCP pipelines...\n"
+  #   if ! ${SCRIPT_DIR}/install-ocp-pipeline.sh; then
+  #     update_conditions "Failed to install OCP pipelines" "Releasing"
+  #     update_phase "Failed"
+  #     ARRAY_FOR_FAILED_INSTALL_ADDONS+=($ADDON_TYPE)
+  #   else
+  #     echo -e "$tick [SUCCESS] Successfully installed OCP pipelines" && divider
+  #   fi # install-ocp-pipeline.sh
 
-    echo -e "$info [INFO] Configuring secrets and permissions related to ocp pipelines in the '$NAMESPACE' namespace\n"
-    if ! ${SCRIPT_DIR}/configure-ocp-pipeline.sh -n ${NAMESPACE}; then
-      update_conditions "Failed to create secrets and permissions related to ocp pipelines in the '$NAMESPACE' namespace" "Releasing"
-      update_phase "Failed"
-      ARRAY_FOR_FAILED_INSTALL_ADDONS+=($ADDON_TYPE)
-    else
-      echo -e "$tick [SUCCESS] Successfully configured secrets and permissions related to ocp pipelines in the '$NAMESPACE' namespace"
-    fi # configure-ocp-pipeline.sh
-    ;;
+  #   echo -e "$info [INFO] Configuring secrets and permissions related to ocp pipelines in the '$NAMESPACE' namespace\n"
+  #   if ! ${SCRIPT_DIR}/configure-ocp-pipeline.sh -n ${NAMESPACE}; then
+  #     update_conditions "Failed to create secrets and permissions related to ocp pipelines in the '$NAMESPACE' namespace" "Releasing"
+  #     update_phase "Failed"
+  #     ARRAY_FOR_FAILED_INSTALL_ADDONS+=($ADDON_TYPE)
+  #   else
+  #     echo -e "$tick [SUCCESS] Successfully configured secrets and permissions related to ocp pipelines in the '$NAMESPACE' namespace"
+  #   fi # configure-ocp-pipeline.sh
+  #   ;;
 
-  *)
-    echo -e "$cross ERROR: Unknown addon type: ${ADDON_TYPE}" 1>&2
-    divider
-    exit 1
-    ;;
-  esac
+  # *)
+  #   echo -e "$cross ERROR: Unknown addon type: ${ADDON_TYPE}" 1>&2
+  #   divider
+  #   exit 1
+  #   ;;
+  # esac
 done
 
 #-------------------------------------------------------------------------------------------------------------------
-# Display the namespaces
+# Display all the namespaces
 #-------------------------------------------------------------------------------------------------------------------
-$DEBUG && divider && echo "Namespaces:"
+$DEBUG && divider && echo -e "$info Namespaces:"
 for eachNamespace in $(echo "${REQUIRED_PRODUCTS_JSON}" | jq -r '[ .[] | select(.enabled == true ) | .namespace ] | unique | .[]'); do
   $DEBUG && echo "$eachNamespace"
 done
@@ -471,7 +472,7 @@ done
 # Check if tracing is enabled in the selected/required products
 #-------------------------------------------------------------------------------------------------------------------
 
-divider && echo -e "$info [INFO] Checking if tracing is enabled...\n"
+divider && echo -e "$info [INFO] Checking if Tracing is enabled...\n"
 
 if [[ ! "$(echo "${REQUIRED_PRODUCTS_JSON}" | jq -r '.[] | select(.enabled == true and .type == "tracing")')" == "" ]]; then
   TRACING_ENABLED=true
@@ -513,7 +514,7 @@ for eachProduct in $(echo "${REQUIRED_PRODUCTS_JSON}" | jq -r '.[] | select(.ena
     ;;
 
   aceDesigner)
-    echo -e "$info [INFO] Releasing ACE Designer $ECHO_LINE..."
+    echo -e "\n$info [INFO] Releasing ACE Designer $ECHO_LINE..."
     if ! $SCRIPT_DIR/release-ace-designer.sh -n $NAMESPACE -r $EACH_PRODUCT_NAME; then
       update_conditions "Failed to release ACE Designer $ECHO_LINE" "Releasing"
       update_phase "Failed"
@@ -525,8 +526,10 @@ for eachProduct in $(echo "${REQUIRED_PRODUCTS_JSON}" | jq -r '.[] | select(.ena
     ;;
 
   assetRepo)
-    echo -e "$info [INFO] Releasing Asset Repository $ECHO_LINE...\n"
-    if ! ${SCRIPT_DIR}/release-ar.sh -n $NAMESPACE -r $EACH_PRODUCT_NAME; then
+    # Get APIC release name for configuring APIC
+    AR_REMOTE_NAME=$EACH_PRODUCT_NAME
+    echo -e "\n$info [INFO] Releasing Asset Repository $ECHO_LINE...\n"
+    if ! $SCRIPT_DIR/release-ar.sh -n $NAMESPACE -r $EACH_PRODUCT_NAME; then
       update_conditions "Failed to release Asset Repository $ECHO_LINE" "Releasing"
       update_phase "Failed"
       ARRAY_FOR_FAILED_INSTALL_PRODUCTS+=($EACH_PRODUCT_TYPE)
@@ -537,8 +540,8 @@ for eachProduct in $(echo "${REQUIRED_PRODUCTS_JSON}" | jq -r '.[] | select(.ena
     ;;
 
   aceDashboard)
-    echo -e "$info [INFO] Releasing ACE dashboard $ECHO_LINE...\n"
-    if ! ${SCRIPT_DIR}/release-ace-dashboard.sh -n $NAMESPACE -r $EACH_PRODUCT_NAME; then
+    echo -e "\n$info [INFO] Releasing ACE dashboard $ECHO_LINE...\n"
+    if ! $SCRIPT_DIR/release-ace-dashboard.sh -n $NAMESPACE -r $EACH_PRODUCT_NAME; then
       update_conditions "Failed to release ACE dashboard $ECHO_LINE" "Releasing"
       update_phase "Failed"
       ARRAY_FOR_FAILED_INSTALL_PRODUCTS+=($EACH_PRODUCT_TYPE)
@@ -549,7 +552,15 @@ for eachProduct in $(echo "${REQUIRED_PRODUCTS_JSON}" | jq -r '.[] | select(.ena
     ;;
 
   apic)
-    echo -e "$info [INFO] Releasing APIC $ECHO_LINE...\n"
+    echo -e "\n$info [INFO] Releasing APIC $ECHO_LINE...\n"
+
+    APIC_RELEASE_NAME=$EACH_PRODUCT_NAME
+
+    export PORG_ADMIN_EMAIL=$(echo ${EACH_PRODUCT_JSON} | jq -r '.emailAddress')
+    export MAIL_SERVER_HOST=$(echo ${EACH_PRODUCT_JSON} | jq -r '.mailServerHost')
+    export MAIL_SERVER_PORT=$(echo ${EACH_PRODUCT_JSON} | jq -r '.mailServerPort')
+    export MAIL_SERVER_USERNAME=$(echo ${EACH_PRODUCT_JSON} | jq -r '.mailServerUsername')
+    export MAIL_SERVER_PASSWORD=$(echo ${EACH_PRODUCT_JSON} | jq -r '.mailServerPassword')
 
     if [[ "$TRACING_ENABLED" == "true" ]]; then
       RELEASE_APIC_PARAMS="-n $NAMESPACE -r $EACH_PRODUCT_NAME -t"
@@ -557,7 +568,7 @@ for eachProduct in $(echo "${REQUIRED_PRODUCTS_JSON}" | jq -r '.[] | select(.ena
       RELEASE_APIC_PARAMS="-n $NAMESPACE -r $EACH_PRODUCT_NAME"
     fi
 
-    if ! ${SCRIPT_DIR}/release-apic.sh $RELEASE_APIC_PARAMS; then
+    if ! $SCRIPT_DIR/release-apic.sh $RELEASE_APIC_PARAMS; then
       update_conditions "Failed to release APIC $ECHO_LINE" "Releasing"
       update_phase "Failed"
       ARRAY_FOR_FAILED_INSTALL_PRODUCTS+=($EACH_PRODUCT_TYPE)
@@ -568,8 +579,8 @@ for eachProduct in $(echo "${REQUIRED_PRODUCTS_JSON}" | jq -r '.[] | select(.ena
     ;;
 
   eventStreams)
-    echo -e "$info [INFO] Releasing Event Streams $ECHO_LINE...\n"
-    if ! ${SCRIPT_DIR}/release-es.sh -n $NAMESPACE -r $EACH_PRODUCT_NAME; then
+    echo -e "\n$info [INFO] Releasing Event Streams $ECHO_LINE...\n"
+    if ! $SCRIPT_DIR/release-es.sh -n $NAMESPACE -r $EACH_PRODUCT_NAME; then
       update_conditions "Failed to release $ECHO_LINE" "Releasing"
       update_phase "Failed"
       ARRAY_FOR_FAILED_INSTALL_PRODUCTS+=($EACH_PRODUCT_TYPE)
@@ -580,8 +591,8 @@ for eachProduct in $(echo "${REQUIRED_PRODUCTS_JSON}" | jq -r '.[] | select(.ena
     ;;
 
   tracing)
-    echo -e "$info [INFO] Releasing tracing $ECHO_LINE...\n"
-    if ! ${SCRIPT_DIR}/release-tracing.sh -n $NAMESPACE -r $EACH_PRODUCT_NAME; then
+    echo -e "\n$info [INFO] Releasing tracing $ECHO_LINE...\n"
+    if ! $SCRIPT_DIR/release-tracing.sh -n $NAMESPACE -r $EACH_PRODUCT_NAME; then
       update_conditions "Failed to release Tracing $ECHO_LINE" "Releasing"
       update_phase "Failed"
       ARRAY_FOR_FAILED_INSTALL_PRODUCTS+=($EACH_PRODUCT_TYPE)
@@ -590,7 +601,7 @@ for eachProduct in $(echo "${REQUIRED_PRODUCTS_JSON}" | jq -r '.[] | select(.ena
     fi # release-tracing.sh
 
     echo -e "$info [INFO] Registering tracing $ECHO_LINE...\n"
-    if ! ${SCRIPT_DIR}/register-tracing.sh -n $NAMESPACE; then
+    if ! $SCRIPT_DIR/register-tracing.sh -n $NAMESPACE; then
       update_conditions "Failed to register Tracing $ECHO_LINE" "Releasing"
       update_phase "Failed"
       ARRAY_FOR_FAILED_INSTALL_PRODUCTS+=($EACH_PRODUCT_TYPE)
@@ -608,8 +619,25 @@ for eachProduct in $(echo "${REQUIRED_PRODUCTS_JSON}" | jq -r '.[] | select(.ena
 done
 
 #-------------------------------------------------------------------------------------------------------------------
+# Configure APIC if APIC is amongst selected product
+#-------------------------------------------------------------------------------------------------------------------
+
+if [[ ! "$(echo "${REQUIRED_PRODUCTS_JSON}" | jq -r '.[] | select(.enabled == true and .type == "apic")')" == "" ]]; then
+  divider && echo -e "$info [INFO] Configuring APIC in the '$NAMESPACE' namespace...\n"
+  if ! $SCRIPT_DIR/configure-apic-v10.sh -n $NAMESPACE -r $APIC_RELEASE_NAME; then
+    update_conditions "Failed to configure APIC in the '$NAMESPACE' namespace" "Releasing"
+    update_phase "Failed"
+    ARRAY_FOR_FAILED_INSTALL_PRODUCTS+=(apic)
+  else
+    echo -e "$tick [SUCCESS] Successfully configured APIC in the '$NAMESPACE' namespace"
+    divider
+  fi
+fi
+
+#-------------------------------------------------------------------------------------------------------------------
 # Add the required demos
 #-------------------------------------------------------------------------------------------------------------------
+
 $DEBUG && divider && echo "Demos:"
 for DEMO in $(echo $REQUIRED_DEMOS_JSON | jq -r 'to_entries[] | select( .value.enabled == true ) | .key'); do
   $DEBUG && echo $DEMO
@@ -619,15 +647,14 @@ done
 # Print the names of the addons that failed to install
 #-------------------------------------------------------------------------------------------------------------------
 
-# Get only unique values
-ARRAY_FOR_FAILED_INSTALL_ADDONS=$(echo ${ARRAY_FOR_FAILED_INSTALL_ADDONS[@]} | tr ' ' '\n' | sort -u | tr '\n' ' ')
-
 # print all failed addon names
 if [[ ${#ARRAY_FOR_FAILED_INSTALL_ADDONS[@]} -ne 0 ]]; then
+  # Get only unique values
+  ARRAY_FOR_FAILED_INSTALL_ADDONS=$(echo ${ARRAY_FOR_FAILED_INSTALL_ADDONS[@]} | tr ' ' '\n' | sort -u | tr '\n' ' ')
   divider && echo -e "$info [INFO] The following addons failed to install and/or setup successfully:\n"
   listCounter=1
-  for eachFailedProducts in ${ARRAY_FOR_FAILED_INSTALL_ADDONS[@]}; do
-    echo "$listCounter. $eachFailedProducts"
+  for eachFailedAddon in ${ARRAY_FOR_FAILED_INSTALL_ADDONS[@]}; do
+    echo "$listCounter. $eachFailedAddon"
     listCounter=$((listCounter + 1))
   done
 fi
@@ -636,11 +663,10 @@ fi
 # Print the names of the products that failed to install
 #-------------------------------------------------------------------------------------------------------------------
 
-# Get only unique values
-ARRAY_FOR_FAILED_INSTALL_PRODUCTS=$(echo ${ARRAY_FOR_FAILED_INSTALL_PRODUCTS[@]} | tr ' ' '\n' | sort -u | tr '\n' ' ')
-
 # print all failed product names
 if [[ ${#ARRAY_FOR_FAILED_INSTALL_PRODUCTS[@]} -ne 0 ]]; then
+  # Get only unique values
+  ARRAY_FOR_FAILED_INSTALL_PRODUCTS=$(echo ${ARRAY_FOR_FAILED_INSTALL_PRODUCTS[@]} | tr ' ' '\n' | sort -u | tr '\n' ' ')
   divider && echo -e "$info [INFO] The following products failed to install successfully:\n"
   listCounter=1
   for eachFailedProducts in ${ARRAY_FOR_FAILED_INSTALL_PRODUCTS[@]}; do
@@ -656,7 +682,7 @@ fi
 $DEBUG && divider && echo -e "Status:\n" && echo $STATUS | jq .
 
 #-------------------------------------------------------------------------------------------------------------------
-# Exit if one of the previous steps (addons/products/demos) changed the phase to Failed
+# Exit only if any one of the previous step(s) (addons/products/demos) changed the phase to Failed
 #-------------------------------------------------------------------------------------------------------------------
 
 check_phase_and_exit_on_failed
