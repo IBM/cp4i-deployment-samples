@@ -54,7 +54,6 @@ SUCCESS_CODE=0
 CONDITION_ELEMENT_OBJECT='{"lastTransitionTime":"","message":"","reason":"","status":"","type":""}'
 NAMESPACE_OBJECT_FOR_STATUS='{"name":""}'
 TRACING_ENABLED=false
-APIC_ENABLED=false
 ADDON_OBJECT_FOR_STATUS='{"type":""}'
 PRODUCT_OBJECT_FOR_STATUS='{"name":"","type":""}'
 
