@@ -468,7 +468,7 @@ for eachNamespace in $(echo "${REQUIRED_PRODUCTS_JSON}" | jq -r '[ .[] | select(
 done
 
 #-------------------------------------------------------------------------------------------------------------------
-# Check if tracing is enabled in the selected products
+# Check if tracing is enabled in the selected/required products
 #-------------------------------------------------------------------------------------------------------------------
 
 divider && echo -e "$info [INFO] Checking if tracing is enabled...\n"
@@ -480,7 +480,7 @@ fi
 echo -e "$info [INFO] Tracing enabled: '$TRACING_ENABLED'..."
 
 #-------------------------------------------------------------------------------------------------------------------
-# Install the required products
+# Install the selected/required products
 #-------------------------------------------------------------------------------------------------------------------
 
 $DEBUG && divider && echo -e "$info Starting selected products' installation..."
