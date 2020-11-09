@@ -48,7 +48,7 @@ cross="\xE2\x9D\x8C"
 all_done="\xF0\x9F\x92\xAF"
 info="\xE2\x84\xB9"
 SCRIPT_DIR=$(dirname $0)
-DEBUG=false
+DEBUG=true
 FAILURE_CODE=1
 SUCCESS_CODE=0
 CONDITION_ELEMENT_OBJECT='{"lastTransitionTime":"","message":"","reason":"","status":"","type":""}'
@@ -167,13 +167,14 @@ function update_conditions() {
   CONDITION_TYPE="Error" # for the type in conditions
   TIMESTAMP=$(date -u +%FT%T.%Z)
 
-  $DEBUG && echo -e "$info update_conditions(): message($MESSAGE) - reason($REASON) - conditionType($CONDITION_TYPE) - timestamp($TIMESTAMP)"
+  echo -e "\n$cross [ERROR] $MESSAGE"
+  $DEBUG && echo -e "\n$info update_conditions(): reason($REASON) - conditionType($CONDITION_TYPE) - timestamp($TIMESTAMP)"
 
   # update condition array
   CONDITION_TO_ADD=$(echo $CONDITION_ELEMENT_OBJECT | jq -r '.message="'"$MESSAGE"'" | .status="True" | .type="'$CONDITION_TYPE'" | .lastTransitionTime="'$TIMESTAMP'" | .reason="'$REASON'" ')
   # add condition to condition array
   STATUS=$(echo $STATUS | jq -c '.conditions += ['"${CONDITION_TO_ADD}"']')
-  $DEBUG && echo -e "\n$info [INFO] Printing the conditions array" && echo $STATUS | jq -r '.conditions'
+  $DEBUG && echo -e "\n$info [INFO] Printing the status conditions array" && echo $STATUS | jq -r '.conditions'
 }
 
 function update_phase() {
@@ -182,11 +183,18 @@ function update_phase() {
   $DEBUG && divider && echo -e "$info [INFO] update_phase(): phase($PHASE)"
 
   STATUS=$(echo $STATUS | jq -c '.phase="'$PHASE'"')
+}
 
-  # if the phase is failed, then exit status (case insensitive checking)
-  if echo $PHASE | grep -iqF failed; then
-    divider
+function check_phase_and_exit_on_failed() {
+
+  CURRENT_PHASE=$(echo $STATUS | jq -r '.phase')
+
+  # if the current phase is failed, then exit status (case insensitive checking)
+  if echo $CURRENT_PHASE | grep -iqF failed; then
+    divider && echo -e "$info [INFO] Current installation phase is '$CURRENT_PHASE', exiting now." && divider
     exit 1
+  else
+    $DEBUG && divider && echo -e "$info [INFO] Current installation phase is '$CURRENT_PHASE', continuing the installation..."
   fi
 }
 
@@ -211,9 +219,9 @@ fi
 #-------------------------------------------------------------------------------------------------------------------
 # Output the parameters
 #-------------------------------------------------------------------------------------------------------------------
-echo -e "$info Script directory: '$SCRIPT_DIR'"
+divider && echo -e "$info Script directory: '$SCRIPT_DIR'"
 echo -e "$info Input yaml file: '$INPUT_YAML_FILE'"
-echo -e "$info Output yaml file : '$OUTPUT_YAML_FILE'"
+echo -e "$info Output yaml file : '$OUTPUT_YAML_FILE'\n"
 
 #-------------------------------------------------------------------------------------------------------------------
 # Validate the prereqs
@@ -261,10 +269,10 @@ REQUIRED_PRODUCTS_JSON=$(echo $JSON | jq -c '.spec | if has("products") then .pr
 REQUIRED_ADDONS_JSON=$(echo $JSON | jq -c '.spec | if has("addons") then .addons else [] end')
 STATUS=$(echo $JSON | jq -r .status)
 
-echo -e "$info Block storage class: '$BLOCK_STORAGE_CLASS'"
+echo -e "\n$info Block storage class: '$BLOCK_STORAGE_CLASS'"
 echo -e "$info File storage class: '$FILE_STORAGE_CLASS'"
 echo -e "$info Samples repo branch: '$SAMPLES_REPO_BRANCH'"
-echo -e "$info Namespace: '$NAMESPACE'\n"
+echo -e "$info Namespace: '$NAMESPACE'" && divider
 
 #-------------------------------------------------------------------------------------------------------------------
 # If all demos enabled then add all demos
@@ -362,27 +370,33 @@ $DEBUG && divider && echo -e "$info [INFO] Check if the '$NAMESPACE' namespace a
 # add namespace to status if exists
 oc get project $NAMESPACE 2>&1 >/dev/null
 if [ $? -ne 0 ]; then
-  $DEBUG && echo -e "\n$cross [ERROR] Namespace '$NAMESPACE' does not exist" && divider
   update_conditions "Namespace '$NAMESPACE' does not exist" "Getting"
   update_phase "Failed"
 else
-  $DEBUG && echo -e "$tick [SUCCESS] Namespace '$NAMESPACE' already exists" && divider
+  echo -e "$tick [SUCCESS] Namespace '$NAMESPACE' exists"
   NAMESPACE_TO_ADD=$(echo $NAMESPACE_OBJECT | jq -r '.name="'$NAMESPACE'" ')
   STATUS=$(echo $STATUS | jq -c '.namespaces += ['"${NAMESPACE_TO_ADD}"']')
 fi
 
+check_phase_and_exit_on_failed
+
+divider
+
 # check if the secret exists in the namespace
 oc get secret -n $NAMESPACE ibm-entitlement-key 2>&1 >/dev/null
 if [ $? -ne 0 ]; then
-  $DEBUG && echo -e "\n$cross [ERROR] Secret 'ibm-entitlement-key' not found in '$NAMESPACE' namespace" && divider
   update_conditions "Secret 'ibm-entitlement-key' not found in '$NAMESPACE' namespace" "Getting"
   update_phase "Failed"
+else
+  echo -e "$tick [SUCCESS] Secret 'ibm-entitlement-key' exists in the '$NAMESPACE' namespace"
 fi
+
+check_phase_and_exit_on_failed
 
 #-------------------------------------------------------------------------------------------------------------------
 # Add the required addons
 #-------------------------------------------------------------------------------------------------------------------
-$DEBUG && echo -e "$info [INFO] Installing and setting up addons:"
+divider && echo -e "$info [INFO] Installing and setting up addons:"
 for row in $(echo "${REQUIRED_ADDONS_JSON}" | jq -r '.[] | select(.enabled == true ) | @base64'); do
   divider
   ADDON_JSON=$(echo ${row} | base64 --decode)
@@ -392,43 +406,45 @@ for row in $(echo "${REQUIRED_ADDONS_JSON}" | jq -r '.[] | select(.enabled == tr
   postgres)
     echo -e "$info [INFO] Releasing postgres...\n"
     if ! $SCRIPT_DIR/release-psql.sh -n $NAMESPACE; then
-      $DEBUG && echo -e "\n$cross [ERROR] Failed to release PostgreSQL in the '$NAMESPACE' namespace"
       update_conditions "Failed to release PostgreSQL in the '$NAMESPACE' namespace" "Releasing"
       update_phase "Failed"
     else
-      $DEBUG && echo -e "\n$tick [SUCCESS] Successfully released PostgresSQL in the '$NAMESPACE' namespace"
+      echo -e "\n$tick [SUCCESS] Successfully released PostgresSQL in the '$NAMESPACE' namespace"
     fi # release-psql.sh
+
+    check_phase_and_exit_on_failed
     ;;
 
   elasticSearch)
     echo -e "$info [INFO] Setting up elastic search operator and elastic search instance in the '$NAMESPACE' namespace..."
     if ! $SCRIPT_DIR/../../EventEnabledInsurance/setup-elastic-search.sh -n ${NAMESPACE} -e ${NAMESPACE}; then
-      $DEBUG && echo -e "\n$cross [ERROR] Failed to install and configure elastic search in the '$NAMESPACE' namespace"
       update_conditions "Failed to install and configure elastic search in the '$NAMESPACE' namespace" "Releasing"
       update_phase "Failed"
     else
-      $DEBUG && echo -e "\n$tick [INFO] Successfully installed and configured elastic search in the '$NAMESPACE' namespace"
+      echo -e "\n$tick [INFO] Successfully installed and configured elastic search in the '$NAMESPACE' namespace"
     fi #setup-elastic-search.sh
+
+    check_phase_and_exit_on_failed
     ;;
 
   ocpPipelines)
     echo -e "$info [INFO] Installing OCP pipelines...\n"
     if ! ${SCRIPT_DIR}/install-ocp-pipeline.sh; then
-      $DEBUG && echo -e "$cross [ERROR] Failed to install OCP pipelines\n"
       update_conditions "Failed to install OCP pipelines" "Releasing"
       update_phase "Failed"
     else
-      $DEBUG && echo -e "$tick [SUCCESS] Successfully installed OCP pipelines"
+      echo -e "$tick [SUCCESS] Successfully installed OCP pipelines" && divider
     fi #install-ocp-pipeline.sh
 
-    echo -e "$info [INFO] Configuring secrets and permissions related to ocp pipelines in the '$NAMESPACE' namespace"
+    echo -e "$info [INFO] Configuring secrets and permissions related to ocp pipelines in the '$NAMESPACE' namespace\n"
     if ! ${SCRIPT_DIR}/configure-ocp-pipeline.sh -n ${NAMESPACE}; then
-      $DEBUG && echo -e "\n$cross [ERROR] Failed to create secrets and permissions related to ocp pipelines in the '$NAMESPACE' namespace"
       update_conditions "Failed to create secrets and permissions related to ocp pipelines in the '$NAMESPACE' namespace" "Releasing"
       update_phase "Failed"
     else
-      $DEBUG && echo -e "$tick [SUCCESS] Successfully configured secrets and permissions related to ocp pipelines in the '$NAMESPACE' namespace"
+      echo -e "$tick [SUCCESS] Successfully configured secrets and permissions related to ocp pipelines in the '$NAMESPACE' namespace"
     fi #configure-ocp-pipeline.sh
+
+    check_phase_and_exit_on_failed
     ;;
 
   *)
@@ -475,3 +491,4 @@ $DEBUG && divider && echo -e "Status:\n" && echo $STATUS | jq .
 #-------------------------------------------------------------------------------------------------------------------
 $DEBUG && divider && echo -e "$tick [SUCCESS] Successfully installed all selected products and demos, changing the status to 'Running'..."
 update_phase "Running"
+divider
