@@ -60,6 +60,10 @@ PRODUCT_OBJECT_FOR_STATUS='{"name":"","type":""}'
 declare -a ARRAY_FOR_FAILED_INSTALL_PRODUCTS
 declare -a ARRAY_FOR_FAILED_INSTALL_ADDONS
 
+#-------------------------------------------------------------------------------------------------------------------
+# Functions
+#-------------------------------------------------------------------------------------------------------------------
+
 function product_set_defaults() {
   PRODUCT_JSON=${1}
   PRODUCT_TYPE=$(echo ${PRODUCT_JSON} | jq -r '.type')
@@ -89,6 +93,8 @@ function product_set_defaults() {
   echo "${PRODUCT_JSON}"
 }
 
+#----------------------------------------------------
+
 function product_fixup_namespace() {
   PRODUCT_JSON=${1}
   PRODUCT_NAMESPACE=$(echo ${PRODUCT_JSON} | jq -r '.namespace')
@@ -109,6 +115,8 @@ function product_fixup_namespace() {
 
   echo "${PRODUCT_JSON}"
 }
+
+#----------------------------------------------------
 
 function merge_product() {
   PRODUCT_JSON=${1}
@@ -137,9 +145,10 @@ function merge_product() {
       PRODUCT_ARRAY_JSON=$(echo $PRODUCT_ARRAY_JSON | jq -c '. += ['${MATCH}']')
     fi
   fi
-
   echo ${PRODUCT_ARRAY_JSON}
 }
+
+#----------------------------------------------------
 
 function merge_addon() {
   ADDON_JSON=${1}
@@ -167,6 +176,8 @@ function merge_addon() {
   echo ${ADDON_ARRAY_JSON}
 }
 
+#----------------------------------------------------
+
 function update_conditions() {
   MESSAGE=${1}
   REASON=${2}            # command type
@@ -183,18 +194,18 @@ function update_conditions() {
   $DEBUG && echo -e "\n$info [INFO] Printing the status conditions array" && echo $STATUS | jq -r '.conditions'
 }
 
+#----------------------------------------------------
+
 function update_phase() {
   PHASE=${1} # Pending, Running or Failed
-
   $DEBUG && divider && echo -e "$info [INFO] update_phase(): phase($PHASE)"
-
   STATUS=$(echo $STATUS | jq -c '.phase="'$PHASE'"')
 }
 
+#----------------------------------------------------
+
 function check_phase_and_exit_on_failed() {
-
   CURRENT_PHASE=$(echo $STATUS | jq -r '.phase')
-
   # if the current phase is failed, then exit status (case insensitive checking)
   if echo $CURRENT_PHASE | grep -iqF failed; then
     divider && echo -e "$info [INFO] Current installation phase is '$CURRENT_PHASE', exiting now." && divider
@@ -204,12 +215,16 @@ function check_phase_and_exit_on_failed() {
   fi
 }
 
+#----------------------------------------------------
+
 function update_addon_status() {
   PRODUCT_TYPE=${1} # type of Addons for demos
   $DEBUG && echo -e "\n$info [INFO] productType($PRODUCT_TYPE)"
   ADDON_TO_ADD_TO_STATUS=$(echo $ADDON_OBJECT_FOR_STATUS | jq -r '.type="'$PRODUCT_TYPE'" ')
   STATUS=$(echo $STATUS | jq -c '.addons += ['"${ADDON_TO_ADD_TO_STATUS}"']')
 }
+
+#----------------------------------------------------
 
 function update_product_status() {
   PRODUCT_NAME=${1}
@@ -222,6 +237,7 @@ function update_product_status() {
 #-------------------------------------------------------------------------------------------------------------------
 # Validate the parameters passed in
 #-------------------------------------------------------------------------------------------------------------------
+
 missingParams="false"
 if [[ -z "${INPUT_YAML_FILE// /}" ]]; then
   echo -e "$cross ERROR: INPUT_YAML_FILE is empty. Please provide a value for '-i' parameter." 1>&2
@@ -240,6 +256,7 @@ fi
 #-------------------------------------------------------------------------------------------------------------------
 # Output the parameters
 #-------------------------------------------------------------------------------------------------------------------
+
 divider && echo -e "$info Script directory: '$SCRIPT_DIR'"
 echo -e "$info Input yaml file: '$INPUT_YAML_FILE'"
 echo -e "$info Output yaml file : '$OUTPUT_YAML_FILE'\n"
@@ -247,6 +264,7 @@ echo -e "$info Output yaml file : '$OUTPUT_YAML_FILE'\n"
 #-------------------------------------------------------------------------------------------------------------------
 # Validate the prereqs
 #-------------------------------------------------------------------------------------------------------------------
+
 missingPrereqs="false"
 yq --version
 if [ $? -ne 0 ]; then
@@ -271,6 +289,7 @@ fi
 #-------------------------------------------------------------------------------------------------------------------
 # Read in the input yaml and convert to json
 #-------------------------------------------------------------------------------------------------------------------
+
 $DEBUG && echo "[DEBUG] Converting $INPUT_YAML_FILE into json"
 JSON=$(yq r -j $INPUT_YAML_FILE)
 $DEBUG && echo "[DEBUG] Got the following JSON for $INPUT_YAML_FILE:"
@@ -383,7 +402,7 @@ $DEBUG && divider && echo -e "$info [INFO] Changing the status to 'Pending' as i
 update_phase "Pending"
 
 #-------------------------------------------------------------------------------------------------------------------
-# Check if the namespace  and the secret exists
+# Check if the namespace and the secret exists
 #-------------------------------------------------------------------------------------------------------------------
 
 $DEBUG && divider && echo -e "$info [INFO] Check if the '$NAMESPACE' namespace and the secret 'ibm-entitlement-key' exists...\n"
@@ -417,10 +436,11 @@ check_phase_and_exit_on_failed
 #-------------------------------------------------------------------------------------------------------------------
 # Add the required addons
 #-------------------------------------------------------------------------------------------------------------------
+
 divider && echo -e "$info [INFO] Installing and setting up addons:"
-for row in $(echo "${REQUIRED_ADDONS_JSON}" | jq -r '.[] | select(.enabled == true ) | @base64'); do
+for eachAddon in $(echo "${REQUIRED_ADDONS_JSON}" | jq -r '.[] | select(.enabled == true ) | @base64'); do
   divider
-  ADDON_JSON=$(echo ${row} | base64 --decode)
+  ADDON_JSON=$(echo ${eachAddon} | base64 --decode)
   $DEBUG && echo ${ADDON_JSON} | jq . && echo ""
   ADDON_TYPE=$(echo ${ADDON_JSON} | jq -r '.type')
 
@@ -482,6 +502,7 @@ done
 #-------------------------------------------------------------------------------------------------------------------
 # Display all the namespaces
 #-------------------------------------------------------------------------------------------------------------------
+
 $DEBUG && divider && echo -e "$info [INFO] Namespaces:"
 for eachNamespace in $(echo "${REQUIRED_PRODUCTS_JSON}" | jq -r '[ .[] | select(.enabled == true ) | .namespace ] | unique | .[]'); do
   $DEBUG && echo "$eachNamespace"
@@ -492,11 +513,9 @@ done
 #-------------------------------------------------------------------------------------------------------------------
 
 divider && echo -e "$info [INFO] Checking if Tracing is enabled...\n"
-
 if [[ ! "$(echo "${REQUIRED_PRODUCTS_JSON}" | jq -r '.[] | select(.enabled == true and .type == "tracing")')" == "" ]]; then
   TRACING_ENABLED=true
 fi
-
 echo -e "$info [INFO] Tracing enabled: '$TRACING_ENABLED'..."
 
 #-------------------------------------------------------------------------------------------------------------------
@@ -673,14 +692,13 @@ for DEMO in $(echo $REQUIRED_DEMOS_JSON | jq -r 'to_entries[] | select( .value.e
 done
 
 #-------------------------------------------------------------------------------------------------------------------
-# Print the names of the addons that failed to install
+# Print the names of the addons that failed to install if any
 #-------------------------------------------------------------------------------------------------------------------
 
-# print all failed addon names
 if [[ ${#ARRAY_FOR_FAILED_INSTALL_ADDONS[@]} -ne 0 ]]; then
   # Get only unique values
   ARRAY_FOR_FAILED_INSTALL_ADDONS=$(echo ${ARRAY_FOR_FAILED_INSTALL_ADDONS[@]} | tr ' ' '\n' | sort -u | tr '\n' ' ')
-  divider && echo -e "$info [INFO] The following addons failed to install and/or setup successfully:\n"
+  divider && echo -e "$cross [ERROR] The following addons failed to install and/or setup successfully:\n"
   listCounter=1
   for eachFailedAddon in ${ARRAY_FOR_FAILED_INSTALL_ADDONS[@]}; do
     echo "$listCounter. $eachFailedAddon"
@@ -689,14 +707,13 @@ if [[ ${#ARRAY_FOR_FAILED_INSTALL_ADDONS[@]} -ne 0 ]]; then
 fi
 
 #-------------------------------------------------------------------------------------------------------------------
-# Print the names of the products that failed to install
+# Print the names of the products that failed to install if any
 #-------------------------------------------------------------------------------------------------------------------
 
-# print all failed product names
 if [[ ${#ARRAY_FOR_FAILED_INSTALL_PRODUCTS[@]} -ne 0 ]]; then
   # Get only unique values
   ARRAY_FOR_FAILED_INSTALL_PRODUCTS=$(echo ${ARRAY_FOR_FAILED_INSTALL_PRODUCTS[@]} | tr ' ' '\n' | sort -u | tr '\n' ' ')
-  divider && echo -e "$info [INFO] The following products failed to install successfully:\n"
+  divider && echo -e "$cross [ERROR] The following products failed to install successfully in the '$NAMESPACE' namespace:\n"
   listCounter=1
   for eachFailedProducts in ${ARRAY_FOR_FAILED_INSTALL_PRODUCTS[@]}; do
     echo "$listCounter. $eachFailedProducts"
@@ -708,7 +725,7 @@ fi
 # Print the overall status
 #-------------------------------------------------------------------------------------------------------------------
 
-$DEBUG && divider && echo -e "Status:\n" && echo $STATUS | jq .
+$DEBUG && divider && echo -e "$info [INFO] Overall status:\n" && echo $STATUS | jq .
 
 #-------------------------------------------------------------------------------------------------------------------
 # Exit only if any one of the previous step(s) (addons/products/demos) changed the phase to Failed
