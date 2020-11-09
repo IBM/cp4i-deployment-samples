@@ -468,7 +468,7 @@ for eachNamespace in $(echo "${REQUIRED_PRODUCTS_JSON}" | jq -r '[ .[] | select(
 done
 
 #-------------------------------------------------------------------------------------------------------------------
-# Check if tracing is enabled in the products
+# Check if tracing is enabled in the selected products
 #-------------------------------------------------------------------------------------------------------------------
 
 divider && echo -e "$info [INFO] Checking if tracing is enabled...\n"
@@ -616,12 +616,6 @@ for DEMO in $(echo $REQUIRED_DEMOS_JSON | jq -r 'to_entries[] | select( .value.e
 done
 
 #-------------------------------------------------------------------------------------------------------------------
-# Print the overall status
-#-------------------------------------------------------------------------------------------------------------------
-# $DEBUG && divider && echo -e "Status:\n" && echo $STATUS | jq . && divider
-$DEBUG && divider && echo -e "Status:\n" && echo $STATUS | jq .
-
-#-------------------------------------------------------------------------------------------------------------------
 # Print the names of the addons that failed to install
 #-------------------------------------------------------------------------------------------------------------------
 
@@ -650,6 +644,12 @@ if [[ ${#ARRAY_FOR_FAILED_INSTALL_PRODUCTS[@]} -ne 0 ]]; then
     listCounter=$((listCounter + 1))
   done
 fi
+
+#-------------------------------------------------------------------------------------------------------------------
+# Print the overall status
+#-------------------------------------------------------------------------------------------------------------------
+
+$DEBUG && divider && echo -e "Status:\n" && echo $STATUS | jq .
 
 #-------------------------------------------------------------------------------------------------------------------
 # Exit if one of the previous steps (addons/products/demos) changed the phase to Failed
