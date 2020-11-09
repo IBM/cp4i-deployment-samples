@@ -411,8 +411,6 @@ for row in $(echo "${REQUIRED_ADDONS_JSON}" | jq -r '.[] | select(.enabled == tr
     else
       echo -e "\n$tick [SUCCESS] Successfully released PostgresSQL in the '$NAMESPACE' namespace"
     fi # release-psql.sh
-
-    check_phase_and_exit_on_failed
     ;;
 
   elasticSearch)
@@ -423,8 +421,6 @@ for row in $(echo "${REQUIRED_ADDONS_JSON}" | jq -r '.[] | select(.enabled == tr
     else
       echo -e "\n$tick [INFO] Successfully installed and configured elastic search in the '$NAMESPACE' namespace"
     fi #setup-elastic-search.sh
-
-    check_phase_and_exit_on_failed
     ;;
 
   ocpPipelines)
@@ -443,8 +439,6 @@ for row in $(echo "${REQUIRED_ADDONS_JSON}" | jq -r '.[] | select(.enabled == tr
     else
       echo -e "$tick [SUCCESS] Successfully configured secrets and permissions related to ocp pipelines in the '$NAMESPACE' namespace"
     fi #configure-ocp-pipeline.sh
-
-    check_phase_and_exit_on_failed
     ;;
 
   *)
@@ -487,8 +481,15 @@ done
 $DEBUG && divider && echo -e "Status:\n" && echo $STATUS | jq .
 
 #-------------------------------------------------------------------------------------------------------------------
+# Exit if one of the previous steps (addons/products/demos) changed the phase to Failed
+#-------------------------------------------------------------------------------------------------------------------
+
+check_phase_and_exit_on_failed
+
+#-------------------------------------------------------------------------------------------------------------------
 # Change final status to Running at end of installation
 #-------------------------------------------------------------------------------------------------------------------
-$DEBUG && divider && echo -e "$tick [SUCCESS] Successfully installed all selected products and demos, changing the status to 'Running'..."
+
+divider && echo -e "$tick [SUCCESS] Successfully installed all selected addons, products and demos. Changing the overall status to 'Running'..."
 update_phase "Running"
 divider
