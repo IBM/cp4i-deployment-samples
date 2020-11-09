@@ -408,56 +408,56 @@ for row in $(echo "${REQUIRED_ADDONS_JSON}" | jq -r '.[] | select(.enabled == tr
   $DEBUG && echo ${ADDON_JSON} | jq . && echo ""
   ADDON_TYPE=$(echo ${ADDON_JSON} | jq -r '.type')
 
-  # case ${ADDON_TYPE} in
+  case ${ADDON_TYPE} in
 
-  # postgres)
-  #   echo -e "$info [INFO] Releasing postgres...\n"
-  #   if ! $SCRIPT_DIR/release-psql.sh -n $NAMESPACE; then
-  #     update_conditions "Failed to release PostgreSQL in the '$NAMESPACE' namespace" "Releasing"
-  #     update_phase "Failed"
-  #     ARRAY_FOR_FAILED_INSTALL_ADDONS+=($ADDON_TYPE)
-  #   else
-  #     echo -e "\n$tick [SUCCESS] Successfully released PostgresSQL in the '$NAMESPACE' namespace"
-  #   fi # release-psql.sh
-  #   ;;
+  postgres)
+    echo -e "$info [INFO] Releasing postgres...\n"
+    if ! $SCRIPT_DIR/release-psql.sh -n $NAMESPACE; then
+      update_conditions "Failed to release PostgreSQL in the '$NAMESPACE' namespace" "Releasing"
+      update_phase "Failed"
+      ARRAY_FOR_FAILED_INSTALL_ADDONS+=($ADDON_TYPE)
+    else
+      echo -e "\n$tick [SUCCESS] Successfully released PostgresSQL in the '$NAMESPACE' namespace"
+    fi # release-psql.sh
+    ;;
 
-  # elasticSearch)
-  #   echo -e "$info [INFO] Setting up elastic search operator and elastic search instance in the '$NAMESPACE' namespace..."
-  #   if ! $SCRIPT_DIR/../../EventEnabledInsurance/setup-elastic-search.sh -n ${NAMESPACE} -e ${NAMESPACE}; then
-  #     update_conditions "Failed to install and configure elastic search in the '$NAMESPACE' namespace" "Releasing"
-  #     update_phase "Failed"
-  #     ARRAY_FOR_FAILED_INSTALL_ADDONS+=($ADDON_TYPE)
-  #   else
-  #     echo -e "\n$tick [INFO] Successfully installed and configured elastic search in the '$NAMESPACE' namespace"
-  #   fi # setup-elastic-search.sh
-  #   ;;
+  elasticSearch)
+    echo -e "$info [INFO] Setting up elastic search operator and elastic search instance in the '$NAMESPACE' namespace..."
+    if ! $SCRIPT_DIR/../../EventEnabledInsurance/setup-elastic-search.sh -n ${NAMESPACE} -e ${NAMESPACE}; then
+      update_conditions "Failed to install and configure elastic search in the '$NAMESPACE' namespace" "Releasing"
+      update_phase "Failed"
+      ARRAY_FOR_FAILED_INSTALL_ADDONS+=($ADDON_TYPE)
+    else
+      echo -e "\n$tick [INFO] Successfully installed and configured elastic search in the '$NAMESPACE' namespace"
+    fi # setup-elastic-search.sh
+    ;;
 
-  # ocpPipelines)
-  #   echo -e "$info [INFO] Installing OCP pipelines...\n"
-  #   if ! ${SCRIPT_DIR}/install-ocp-pipeline.sh; then
-  #     update_conditions "Failed to install OCP pipelines" "Releasing"
-  #     update_phase "Failed"
-  #     ARRAY_FOR_FAILED_INSTALL_ADDONS+=($ADDON_TYPE)
-  #   else
-  #     echo -e "$tick [SUCCESS] Successfully installed OCP pipelines" && divider
-  #   fi # install-ocp-pipeline.sh
+  ocpPipelines)
+    echo -e "$info [INFO] Installing OCP pipelines...\n"
+    if ! ${SCRIPT_DIR}/install-ocp-pipeline.sh; then
+      update_conditions "Failed to install OCP pipelines" "Releasing"
+      update_phase "Failed"
+      ARRAY_FOR_FAILED_INSTALL_ADDONS+=($ADDON_TYPE)
+    else
+      echo -e "$tick [SUCCESS] Successfully installed OCP pipelines" && divider
+    fi # install-ocp-pipeline.sh
 
-  #   echo -e "$info [INFO] Configuring secrets and permissions related to ocp pipelines in the '$NAMESPACE' namespace\n"
-  #   if ! ${SCRIPT_DIR}/configure-ocp-pipeline.sh -n ${NAMESPACE}; then
-  #     update_conditions "Failed to create secrets and permissions related to ocp pipelines in the '$NAMESPACE' namespace" "Releasing"
-  #     update_phase "Failed"
-  #     ARRAY_FOR_FAILED_INSTALL_ADDONS+=($ADDON_TYPE)
-  #   else
-  #     echo -e "$tick [SUCCESS] Successfully configured secrets and permissions related to ocp pipelines in the '$NAMESPACE' namespace"
-  #   fi # configure-ocp-pipeline.sh
-  #   ;;
+    echo -e "$info [INFO] Configuring secrets and permissions related to ocp pipelines in the '$NAMESPACE' namespace\n"
+    if ! ${SCRIPT_DIR}/configure-ocp-pipeline.sh -n ${NAMESPACE}; then
+      update_conditions "Failed to create secrets and permissions related to ocp pipelines in the '$NAMESPACE' namespace" "Releasing"
+      update_phase "Failed"
+      ARRAY_FOR_FAILED_INSTALL_ADDONS+=($ADDON_TYPE)
+    else
+      echo -e "$tick [SUCCESS] Successfully configured secrets and permissions related to ocp pipelines in the '$NAMESPACE' namespace"
+    fi # configure-ocp-pipeline.sh
+    ;;
 
-  # *)
-  #   echo -e "$cross ERROR: Unknown addon type: ${ADDON_TYPE}" 1>&2
-  #   divider
-  #   exit 1
-  #   ;;
-  # esac
+  *)
+    echo -e "$cross ERROR: Unknown addon type: ${ADDON_TYPE}" 1>&2
+    divider
+    exit 1
+    ;;
+  esac
 done
 
 #-------------------------------------------------------------------------------------------------------------------
