@@ -621,6 +621,8 @@ done
 
 # Get only unique values
 ARRAY_FOR_FAILED_INSTALL_ADDONS=$(echo ${ARRAY_FOR_FAILED_INSTALL_ADDONS[@]} | tr ' ' '\n' | sort -u | tr '\n' ' ')
+
+# print all failed addon names
 if [[ ${#ARRAY_FOR_FAILED_INSTALL_ADDONS[@]} -ne 0 ]]; then
   divider && echo -e "$info [INFO] The following addons failed to install and/or setup successfully:\n"
   listCounter=1
@@ -636,6 +638,8 @@ fi
 
 # Get only unique values
 ARRAY_FOR_FAILED_INSTALL_PRODUCTS=$(echo ${ARRAY_FOR_FAILED_INSTALL_PRODUCTS[@]} | tr ' ' '\n' | sort -u | tr '\n' ' ')
+
+# print all failed product names
 if [[ ${#ARRAY_FOR_FAILED_INSTALL_PRODUCTS[@]} -ne 0 ]]; then
   divider && echo -e "$info [INFO] The following products failed to install successfully:\n"
   listCounter=1
