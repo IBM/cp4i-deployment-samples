@@ -507,7 +507,7 @@ To delete the topic.
 ### POST
 ![post sub flow](./media/rest-post-flow.png)
 
-The pipeline deploys an ACE integration server (`ace-rest-int-srv-eei`) that hosts the `/eventinsurance/quote` endpoint. The route of the integration server can be found with `oc get -n $NAMESPACE route ace-rest-int-srv-eei-https -ojsonpath='.spec.host'`. Make sure to use HTTPS.
+The pipeline deploys an ACE integration server (`ace-rest-int-srv-eei`) that hosts the `/eventinsurance/quote` endpoint. The route of the integration server can be found with `oc get -n $NAMESPACE route ace-rest-int-srv-eei-https -ojsonpath='{.spec.host}'`. Make sure to use HTTPS.
 
 Get api endpoint and auth:
 ```bash
