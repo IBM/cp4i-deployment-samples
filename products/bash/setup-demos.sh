@@ -298,7 +298,7 @@ $DEBUG && echo $JSON | jq .
 #-------------------------------------------------------------------------------------------------------------------
 # Extract information from the yaml
 #-------------------------------------------------------------------------------------------------------------------
-$DEBUG && echo "\n[DEBUG] Get storage classes and branch from $INPUT_YAML_FILE"
+$DEBUG && echo -e "\n[DEBUG] Get storage classes and branch from $INPUT_YAML_FILE"
 GENERAL=$(echo $JSON | jq -r .spec.general)
 BLOCK_STORAGE_CLASS=$(echo $GENERAL | jq -r '.storage.block | if has("class") then .class else "cp4i-block-performance" end')
 FILE_STORAGE_CLASS=$(echo $GENERAL | jq -r '.storage.file | if has("class") then .class else "ibmc-file-gold-gid" end')
