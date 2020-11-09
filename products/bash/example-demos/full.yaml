@@ -94,9 +94,9 @@ status:
     - type: navigator
       name: cp4i-navigator
     - type: tracing
-      namespace: cp4i
       name: tracing-demo
   addons:
     - type: postgres
     - type: elasticSearch
     - type: ocpPipelines
+  namespaces:

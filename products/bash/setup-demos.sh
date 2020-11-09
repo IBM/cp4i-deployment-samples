@@ -19,24 +19,27 @@
 # USAGE:
 #   ./setup-demos.sh -i input.yaml -o output.yaml
 
-function divider {
+function divider() {
   echo -e "\n-------------------------------------------------------------------------------------------------------------------\n"
 }
 
-function usage {
-    echo "Usage: $0 -i input.yaml -o output.yaml"
-    divider
-    exit 1
+function usage() {
+  echo "Usage: $0 -i input.yaml -o output.yaml"
+  divider
+  exit 1
 }
 
 while getopts "i:o:" opt; do
   case ${opt} in
-    i ) INPUT_YAML_FILE="$OPTARG"
-      ;;
-    o ) OUTPUT_YAML_FILE="$OPTARG"
-      ;;
-    \? ) usage;
-      ;;
+  i)
+    INPUT_YAML_FILE="$OPTARG"
+    ;;
+  o)
+    OUTPUT_YAML_FILE="$OPTARG"
+    ;;
+  \?)
+    usage
+    ;;
   esac
 done
 
@@ -46,24 +49,27 @@ all_done="\xF0\x9F\x92\xAF"
 info="\xE2\x84\xB9"
 SCRIPT_DIR=$(dirname $0)
 DEBUG=true
+FAILURE_CODE=1
+SUCCESS_CODE=0
+CONDITION_ELEMENT_OBJECT='{"lastTransitionTime":"","message":"","reason":"","status":"","type":""}'
+NAMESPACE_OBJECT='{"name":""}'
 
-
-function product_set_defaults {
+function product_set_defaults() {
   PRODUCT_JSON=${1}
   PRODUCT_TYPE=$(echo ${PRODUCT_JSON} | jq -r '.type')
   case ${PRODUCT_TYPE} in
-    aceDashboard) DEFAULTS='{"name":"ace-dashboard-demo"}' ;;
-    aceDesigner)  DEFAULTS='{"name":"ace-designer-demo"}' ;;
-    apic)         DEFAULTS='{"name":"ademo","emailAddress":"your@email.address","mailServerHost":"smtp.mailtrap.io","mailServerPassword":"<your-password>","mailServerPort":2525,"mailServerUsername":"<your-username>"}' ;;
-    assetRepo)    DEFAULTS='{"name":"ar-demo"}' ;;
-    eventStreams) DEFAULTS='{"name":"es-demo"}' ;;
-    mq)           DEFAULTS='{"name":"mq-demo"}' ;;
-    navigator)    DEFAULTS='{"name":"navigator"}' ;;
-    tracing)      DEFAULTS='{"name":"tracing-demo"}' ;;
-    *)
-      echo -e "$cross ERROR: Unknown product type: ${PRODUCT_TYPE}" 1>&2
-      exit 1
-      ;;
+  aceDashboard) DEFAULTS='{"name":"ace-dashboard-demo"}' ;;
+  aceDesigner) DEFAULTS='{"name":"ace-designer-demo"}' ;;
+  apic) DEFAULTS='{"name":"ademo","emailAddress":"your@email.address","mailServerHost":"smtp.mailtrap.io","mailServerPassword":"<your-password>","mailServerPort":2525,"mailServerUsername":"<your-username>"}' ;;
+  assetRepo) DEFAULTS='{"name":"ar-demo"}' ;;
+  eventStreams) DEFAULTS='{"name":"es-demo"}' ;;
+  mq) DEFAULTS='{"name":"mq-demo"}' ;;
+  navigator) DEFAULTS='{"name":"navigator"}' ;;
+  tracing) DEFAULTS='{"name":"tracing-demo"}' ;;
+  *)
+    echo -e "$cross ERROR: Unknown product type: ${PRODUCT_TYPE}" 1>&2
+    exit 1
+    ;;
   esac
 
   for row in $(echo "${DEFAULTS}" | jq -r 'to_entries[] | @base64'); do
@@ -77,7 +83,7 @@ function product_set_defaults {
   echo "${PRODUCT_JSON}"
 }
 
-function product_fixup_namespace {
+function product_fixup_namespace() {
   PRODUCT_JSON=${1}
   PRODUCT_NAMESPACE=$(echo ${PRODUCT_JSON} | jq -r '.namespace')
   PRODUCT_NAMESPACE_SUFFIX=$(echo ${PRODUCT_JSON} | jq -r '.namespaceSuffix')
@@ -98,7 +104,7 @@ function product_fixup_namespace {
   echo "${PRODUCT_JSON}"
 }
 
-function merge_product {
+function merge_product() {
   PRODUCT_JSON=${1}
   PRODUCT_ARRAY_JSON=${2}
 
@@ -129,7 +135,7 @@ function merge_product {
   echo ${PRODUCT_ARRAY_JSON}
 }
 
-function merge_addon {
+function merge_addon() {
   ADDON_JSON=${1}
   ADDON_ARRAY_JSON=${2}
 
@@ -155,16 +161,53 @@ function merge_addon {
   echo ${ADDON_ARRAY_JSON}
 }
 
+function update_conditions() {
+  MESSAGE=${1}
+  REASON=${2}            # command type
+  CONDITION_TYPE="Error" # for the type in conditions
+  TIMESTAMP=$(date -u +%FT%T.%Z)
+
+  echo -e "\n$cross [ERROR] $MESSAGE"
+  $DEBUG && echo -e "\n$info update_conditions(): reason($REASON) - conditionType($CONDITION_TYPE) - timestamp($TIMESTAMP)"
+
+  # update condition array
+  CONDITION_TO_ADD=$(echo $CONDITION_ELEMENT_OBJECT | jq -r '.message="'"$MESSAGE"'" | .status="True" | .type="'$CONDITION_TYPE'" | .lastTransitionTime="'$TIMESTAMP'" | .reason="'$REASON'" ')
+  # add condition to condition array
+  STATUS=$(echo $STATUS | jq -c '.conditions += ['"${CONDITION_TO_ADD}"']')
+  $DEBUG && echo -e "\n$info [INFO] Printing the status conditions array" && echo $STATUS | jq -r '.conditions'
+}
+
+function update_phase() {
+  PHASE=${1} # Pending, Running or Failed
+
+  $DEBUG && divider && echo -e "$info [INFO] update_phase(): phase($PHASE)"
+
+  STATUS=$(echo $STATUS | jq -c '.phase="'$PHASE'"')
+}
+
+function check_phase_and_exit_on_failed() {
+
+  CURRENT_PHASE=$(echo $STATUS | jq -r '.phase')
+
+  # if the current phase is failed, then exit status (case insensitive checking)
+  if echo $CURRENT_PHASE | grep -iqF failed; then
+    divider && echo -e "$info [INFO] Current installation phase is '$CURRENT_PHASE', exiting now." && divider
+    exit 1
+  else
+    $DEBUG && divider && echo -e "$info [INFO] Current installation phase is '$CURRENT_PHASE', continuing the installation..."
+  fi
+}
+
 #-------------------------------------------------------------------------------------------------------------------
-# Validate the paramaters passed in
+# Validate the parameters passed in
 #-------------------------------------------------------------------------------------------------------------------
 missingParams="false"
-if [[ -z "${INPUT_YAML_FILE// }" ]]; then
+if [[ -z "${INPUT_YAML_FILE// /}" ]]; then
   echo -e "$cross ERROR: INPUT_YAML_FILE is empty. Please provide a value for '-i' parameter." 1>&2
   missingParams="true"
 fi
 
-if [[ -z "${OUTPUT_YAML_FILE// }" ]]; then
+if [[ -z "${OUTPUT_YAML_FILE// /}" ]]; then
   echo -e "$cross ERROR: OUTPUT_YAML_FILE is empty. Please provide a value for '-o' parameter." 1>&2
   missingParams="true"
 fi
@@ -176,9 +219,9 @@ fi
 #-------------------------------------------------------------------------------------------------------------------
 # Output the parameters
 #-------------------------------------------------------------------------------------------------------------------
-echo -e "$info Script directory: '$SCRIPT_DIR'"
+divider && echo -e "$info Script directory: '$SCRIPT_DIR'"
 echo -e "$info Input yaml file: '$INPUT_YAML_FILE'"
-echo -e "$info Output yaml file : '$OUTPUT_YAML_FILE'"
+echo -e "$info Output yaml file : '$OUTPUT_YAML_FILE'\n"
 
 #-------------------------------------------------------------------------------------------------------------------
 # Validate the prereqs
@@ -226,10 +269,10 @@ REQUIRED_PRODUCTS_JSON=$(echo $JSON | jq -c '.spec | if has("products") then .pr
 REQUIRED_ADDONS_JSON=$(echo $JSON | jq -c '.spec | if has("addons") then .addons else [] end')
 STATUS=$(echo $JSON | jq -r .status)
 
-echo -e "$info Block storage class: '$BLOCK_STORAGE_CLASS'"
+echo -e "\n$info Block storage class: '$BLOCK_STORAGE_CLASS'"
 echo -e "$info File storage class: '$FILE_STORAGE_CLASS'"
 echo -e "$info Samples repo branch: '$SAMPLES_REPO_BRANCH'"
-echo -e "$info Namespace: '$NAMESPACE'"
+echo -e "$info Namespace: '$NAMESPACE'" && divider
 
 #-------------------------------------------------------------------------------------------------------------------
 # If all demos enabled then add all demos
@@ -259,49 +302,49 @@ for DEMO in $(echo $REQUIRED_DEMOS_JSON | jq -r 'to_entries[] | select( .value.e
   PRODUCTS_FOR_DEMO=""
   ADDONS_FOR_DEMO=""
   case ${DEMO} in
-    cognitiveCarRepair)
-      PRODUCTS_FOR_DEMO='
+  cognitiveCarRepair)
+    PRODUCTS_FOR_DEMO='
       {"enabled":true,"type":"aceDashboard"}
       {"enabled":true,"type":"aceDesigner"}
       {"enabled":true,"type":"apic"}
       {"enabled":true,"type":"assetRepo"}
       {"enabled":true,"type":"tracing"}
       '
-      ADDONS_FOR_DEMO=''
-      ;;
-    drivewayDentDeletion)
-      PRODUCTS_FOR_DEMO='
+    ADDONS_FOR_DEMO=''
+    ;;
+  drivewayDentDeletion)
+    PRODUCTS_FOR_DEMO='
       {"enabled":true,"type":"aceDashboard"}
       {"enabled":true,"type":"apic"}
       {"enabled":true,"type":"tracing"}
       '
-      # Disabled as we no longer want a separate namespace for test. The following is an example
-      # of how this could work if we want to re-add this support later.
-      # {"enabled":true,"namespaceSuffix":"-ddd-test","type":"aceDashboard"}
-      # {"enabled":true,"namespaceSuffix":"-ddd-test","type":"navigator"}
-      ADDONS_FOR_DEMO='
+    # Disabled as we no longer want a separate namespace for test. The following is an example
+    # of how this could work if we want to re-add this support later.
+    # {"enabled":true,"namespaceSuffix":"-ddd-test","type":"aceDashboard"}
+    # {"enabled":true,"namespaceSuffix":"-ddd-test","type":"navigator"}
+    ADDONS_FOR_DEMO='
       {"enabled":true,"type":"postgres"}
       {"enabled":true,"type":"ocpPipelines"}
       '
-      ;;
-    eventEnabledInsurance)
-      PRODUCTS_FOR_DEMO='
+    ;;
+  eventEnabledInsurance)
+    PRODUCTS_FOR_DEMO='
       {"enabled":true,"type":"aceDashboard"}
       {"enabled":true,"type":"apic"}
       {"enabled":true,"type":"eventStreams"}
       {"enabled":true,"type":"tracing"}
       '
-      ADDONS_FOR_DEMO='
+    ADDONS_FOR_DEMO='
       {"enabled":true,"type":"postgres"}
       {"enabled":true,"type":"elasticSearch"}
       {"enabled":true,"type":"ocpPipelines"}
       '
-      ;;
+    ;;
 
-    *)
-      echo -e "$cross ERROR: Unknown demo: ${DEMO}" 1>&2
-      exit 1
-      ;;
+  *)
+    echo -e "$cross ERROR: Unknown demo: ${DEMO}" 1>&2
+    exit 1
+    ;;
   esac
 
   for PRODUCT_JSON in $PRODUCTS_FOR_DEMO; do
@@ -313,29 +356,111 @@ for DEMO in $(echo $REQUIRED_DEMOS_JSON | jq -r 'to_entries[] | select( .value.e
 done
 
 #-------------------------------------------------------------------------------------------------------------------
+# Change status phase to Pending as installation starting
+#-------------------------------------------------------------------------------------------------------------------
+$DEBUG && divider && echo -e "$info [INFO] Changing the status to 'Pending' as installation is starting..."
+update_phase "Pending"
+
+#-------------------------------------------------------------------------------------------------------------------
+# Check if the namespace  and the secret exists
+#-------------------------------------------------------------------------------------------------------------------
+
+$DEBUG && divider && echo -e "$info [INFO] Check if the '$NAMESPACE' namespace and the secret 'ibm-entitlement-key' exists...\n"
+
+# add namespace to status if exists
+oc get project $NAMESPACE 2>&1 >/dev/null
+if [ $? -ne 0 ]; then
+  update_conditions "Namespace '$NAMESPACE' does not exist" "Getting"
+  update_phase "Failed"
+else
+  echo -e "$tick [SUCCESS] Namespace '$NAMESPACE' exists"
+  NAMESPACE_TO_ADD=$(echo $NAMESPACE_OBJECT | jq -r '.name="'$NAMESPACE'" ')
+  STATUS=$(echo $STATUS | jq -c '.namespaces += ['"${NAMESPACE_TO_ADD}"']')
+fi
+
+check_phase_and_exit_on_failed
+
+divider
+
+# check if the secret exists in the namespace
+oc get secret -n $NAMESPACE ibm-entitlement-key 2>&1 >/dev/null
+if [ $? -ne 0 ]; then
+  update_conditions "Secret 'ibm-entitlement-key' not found in '$NAMESPACE' namespace" "Getting"
+  update_phase "Failed"
+else
+  echo -e "$tick [SUCCESS] Secret 'ibm-entitlement-key' exists in the '$NAMESPACE' namespace"
+fi
+
+check_phase_and_exit_on_failed
+
+#-------------------------------------------------------------------------------------------------------------------
 # Add the required addons
 #-------------------------------------------------------------------------------------------------------------------
-$DEBUG && divider
-$DEBUG && echo "Addons:"
+divider && echo -e "$info [INFO] Installing and setting up addons:"
 for row in $(echo "${REQUIRED_ADDONS_JSON}" | jq -r '.[] | select(.enabled == true ) | @base64'); do
+  divider
   ADDON_JSON=$(echo ${row} | base64 --decode)
-  $DEBUG && echo $ADDON_JSON | jq .
+  $DEBUG && echo ${ADDON_JSON} | jq . && echo ""
+  ADDON_TYPE=$(echo ${ADDON_JSON} | jq -r '.type')
+  case ${ADDON_TYPE} in
+  postgres)
+    echo -e "$info [INFO] Releasing postgres...\n"
+    if ! $SCRIPT_DIR/release-psql.sh -n $NAMESPACE; then
+      update_conditions "Failed to release PostgreSQL in the '$NAMESPACE' namespace" "Releasing"
+      update_phase "Failed"
+    else
+      echo -e "\n$tick [SUCCESS] Successfully released PostgresSQL in the '$NAMESPACE' namespace"
+    fi # release-psql.sh
+    ;;
+
+  elasticSearch)
+    echo -e "$info [INFO] Setting up elastic search operator and elastic search instance in the '$NAMESPACE' namespace..."
+    if ! $SCRIPT_DIR/../../EventEnabledInsurance/setup-elastic-search.sh -n ${NAMESPACE} -e ${NAMESPACE}; then
+      update_conditions "Failed to install and configure elastic search in the '$NAMESPACE' namespace" "Releasing"
+      update_phase "Failed"
+    else
+      echo -e "\n$tick [INFO] Successfully installed and configured elastic search in the '$NAMESPACE' namespace"
+    fi #setup-elastic-search.sh
+    ;;
+
+  ocpPipelines)
+    echo -e "$info [INFO] Installing OCP pipelines...\n"
+    if ! ${SCRIPT_DIR}/install-ocp-pipeline.sh; then
+      update_conditions "Failed to install OCP pipelines" "Releasing"
+      update_phase "Failed"
+    else
+      echo -e "$tick [SUCCESS] Successfully installed OCP pipelines" && divider
+    fi #install-ocp-pipeline.sh
+
+    echo -e "$info [INFO] Configuring secrets and permissions related to ocp pipelines in the '$NAMESPACE' namespace\n"
+    if ! ${SCRIPT_DIR}/configure-ocp-pipeline.sh -n ${NAMESPACE}; then
+      update_conditions "Failed to create secrets and permissions related to ocp pipelines in the '$NAMESPACE' namespace" "Releasing"
+      update_phase "Failed"
+    else
+      echo -e "$tick [SUCCESS] Successfully configured secrets and permissions related to ocp pipelines in the '$NAMESPACE' namespace"
+    fi #configure-ocp-pipeline.sh
+    ;;
+
+  *)
+    echo -e "$cross ERROR: Unknown addon type: ${ADDON_TYPE}" 1>&2
+    divider
+    exit 1
+    ;;
+  esac
 done
 
 #-------------------------------------------------------------------------------------------------------------------
-# Add the required namespaces
+# Display the namespaces
 #-------------------------------------------------------------------------------------------------------------------
-$DEBUG && divider
-$DEBUG && echo "Namespaces:"
-for namespace in $(echo "${REQUIRED_PRODUCTS_JSON}" | jq -r '[ .[] | select(.enabled == true ) | .namespace ] | unique | .[]'); do
-  $DEBUG && echo $namespace
+$DEBUG && divider && echo "Namespaces:"
+for eachNamespace in $(echo "${REQUIRED_PRODUCTS_JSON}" | jq -r '[ .[] | select(.enabled == true ) | .namespace ] | unique | .[]'); do
+  $DEBUG && echo "$eachNamespace"
 done
 
 #-------------------------------------------------------------------------------------------------------------------
 # Add the required products
 #-------------------------------------------------------------------------------------------------------------------
-$DEBUG && divider
-$DEBUG && echo "Products:"
+$DEBUG && divider && echo "Products:"
 for row in $(echo "${REQUIRED_PRODUCTS_JSON}" | jq -r '.[] | select(.enabled == true ) | @base64'); do
   PRODUCT_JSON=$(echo ${row} | base64 --decode)
   $DEBUG && echo $PRODUCT_JSON | jq .
@@ -344,8 +469,27 @@ done
 #-------------------------------------------------------------------------------------------------------------------
 # Add the required demos
 #-------------------------------------------------------------------------------------------------------------------
-$DEBUG && divider
-$DEBUG && echo "Demos:"
+$DEBUG && divider && echo "Demos:"
 for DEMO in $(echo $REQUIRED_DEMOS_JSON | jq -r 'to_entries[] | select( .value.enabled == true ) | .key'); do
   $DEBUG && echo $DEMO
 done
+
+#-------------------------------------------------------------------------------------------------------------------
+# Print the overall status
+#-------------------------------------------------------------------------------------------------------------------
+# $DEBUG && divider && echo -e "Status:\n" && echo $STATUS | jq . && divider
+$DEBUG && divider && echo -e "Status:\n" && echo $STATUS | jq .
+
+#-------------------------------------------------------------------------------------------------------------------
+# Exit if one of the previous steps (addons/products/demos) changed the phase to Failed
+#-------------------------------------------------------------------------------------------------------------------
+
+check_phase_and_exit_on_failed
+
+#-------------------------------------------------------------------------------------------------------------------
+# Change final status to Running at end of installation
+#-------------------------------------------------------------------------------------------------------------------
+
+divider && echo -e "$tick [SUCCESS] Successfully installed all selected addons, products and demos. Changing the overall status to 'Running'..."
+update_phase "Running"
+divider
