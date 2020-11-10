@@ -702,7 +702,7 @@ if [[ ! "$(echo "${REQUIRED_PRODUCTS_JSON}" | jq -r '.[] | select(.enabled == tr
   else
     echo -e "$tick [SUCCESS] Successfully configured APIC in the '$NAMESPACE' namespace"
     divider
-  fi
+  fi # configure-apic-v10.sh
 fi
 
 #-------------------------------------------------------------------------------------------------------------------
@@ -760,12 +760,6 @@ if [[ ${#ARRAY_FOR_FAILED_INSTALL_PRODUCTS[@]} -ne 0 ]]; then
 fi
 
 #-------------------------------------------------------------------------------------------------------------------
-# Print the overall status
-#-------------------------------------------------------------------------------------------------------------------
-
-$DEBUG && divider && echo -e "$info [INFO] Overall status:\n" && echo $STATUS | jq .
-
-#-------------------------------------------------------------------------------------------------------------------
 # Exit only if any one of the previous step(s) (addons/products/demos) changed the phase to Failed
 #-------------------------------------------------------------------------------------------------------------------
 
@@ -777,4 +771,4 @@ check_phase_and_exit_on_failed
 
 divider && echo -e "$tick [SUCCESS] Successfully installed all selected addons, products and demos. Changing the overall status to 'Running'..."
 update_phase "Running"
-divider
+$DEBUG && echo -e "$info [INFO] Final status:\n" echo $STATUS | jq . && divider
