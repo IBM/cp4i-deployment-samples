@@ -112,7 +112,7 @@ if [[ -z "${DB_PASS// /}" || -z "${NAMESPACE// /}" || -z "${DB_USER// /}" || -z 
   usage
 fi
 
-EXISTING_PASS=$(oc get secret ace-api-creds-$SUFFIX -ojsonpath='.data.pass' | base64 --decode)
+EXISTING_PASS=$(oc get secret ace-api-creds-$SUFFIX -ojsonpath='{.data.pass}' | base64 --decode)
 if [[ -z $EXISTING_SECRET ]]; then
   API_PASS=$(
     LC_ALL=C tr -dc 'A-Za-z0-9' </dev/urandom | head -c 16

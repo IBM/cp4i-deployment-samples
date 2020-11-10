@@ -507,7 +507,7 @@ To delete the topic.
 ### POST
 ![post sub flow](./media/rest-post-flow.png)
 
-The pipeline deploys an ACE integration server (`ace-rest-int-srv-eei`) that hosts the `/eventinsurance/quote` endpoint. The route of the integration server can be found with `oc get -n $NAMESPACE route ace-rest-int-srv-eei-https -ojsonpath='.spec.host'`. Make sure to use HTTPS.
+The pipeline deploys an ACE integration server (`ace-rest-int-srv-eei`) that hosts the `/eventinsurance/quote` endpoint. The route of the integration server can be found with `oc get -n $NAMESPACE route ace-rest-int-srv-eei-https -ojsonpath='{.spec.host}'`. Make sure to use HTTPS.
 
 Get api endpoint and auth:
 ```bash
@@ -557,5 +557,68 @@ A successful request should return an HTTP 200 with a JSON body that contains th
 
 DB_writer bar file: Responsible for Reading messages from the Queue `Quote` and adding to the Postgres Database table `db_cp4i1_sor_eei`. The flow consists of MQ input node and Java compute node. MQ input node passes the messages to the java compute node in the flow which reads the messages from the queue after every second and adds them to the postgres table.
 
+:information_source: Should the db writer fail to communicate with the SOR DB an exception will be thrown and after 99 unsuccesful retries (99 seconds) the message will be backed out to a backout queue `QuoteBO`.
+
 # Testing the POST calls via APIC
 Instructions to load test the POST call via APIC can be found [here](post-load-test-readme.md).
+
+# Component Downtime Testing
+
+Prereqs:
+1. Configure kafka connectors
+2. Call REST endpoint post & get
+
+## I. Shutting down the db writer integration server
+
+1. Delete the integration server:
+    ```sh
+    oc -n $NAMESPACE get integrationserver ace-db-writer-int-srv-eei -o yaml > ~/dbwriter.yaml
+    oc -n $NAMESPACE delete integrationserver ace-db-writer-int-srv-eei
+    ```
+    The post call will succeed but the message won't be taken off the queue and won't be processed
+2. Recreate integration server:
+    ```sh
+    oc apply -f ~/dbwriter.yaml
+    ```
+3. Test post and get (they should work now)
+
+## II. Shutting down the queue manager
+
+1. Delete the queue manager instance:
+    ```sh
+    oc -n $NAMESPACE get queuemanager mq-eei -o yaml > ~/eei-queuemanager.yaml
+    oc -n $NAMESPACE delete queuemanager mq-eei
+    ```
+2. Test post call and you should receive an error that contains: `Failed to make a client connection to queue manager`. The get call will still return existing data if the projection claims db has already been populated.
+3. Recreate queue manager and wait for phase to be running:
+    ```sh
+    oc apply -n $NAMESPACE -f ~/eei-queuemanager.yaml
+    oc get queuemanager -n $NAMESPACE mq-eei
+    ```
+4. Test post and get (they should work now)
+
+## III. Shutting down access to postgresql db
+
+1. Setup some env vars:
+    ```sh
+    POSTGRES_NAMESPACE=postgres
+    DB_POD=$(oc get pod -n ${POSTGRES_NAMESPACE} -l name=postgresql -o jsonpath='{.items[].metadata.name}')
+    DB_NAME=$(oc get secret eei-postgres-replication-credential -o json | \
+    jq -r '.data["connector.properties"]' | base64 --decode | grep dbName | awk '{print $2}')
+    ```
+2. Get a psql prompt for the database:
+    ```sh
+    oc exec -n ${POSTGRES_NAMESPACE} -it $DB_POD -- psql -d ${DB_NAME}
+    ```
+3. To simulate the shut down:
+    ```sql
+    REVOKE ALL PRIVILEGES ON QUOTES FROM cp4i_sor_eei;
+    REVOKE ALL PRIVILEGES ON QUOTES FROM cp4i_sor_replication_eei;
+    ```
+4. Post requests will succeed, however the new claim will not show up in the sor db or the projection claims db. Existing claims should still accessible with the get request but everything else will result in a 404. Make sure to restart the psql db within 99 seconds, otherwise the message will be put on the backout queue.
+5. To restart psql, make sure you're exec'd into the database and run the following commands:
+    ```sql
+    GRANT ALL PRIVILEGES ON TABLE quotes TO cp4i_sor_eei;
+    GRANT ALL PRIVILEGES ON TABLE quotes TO cp4i_sor_replication_eei;
+    ```
+6. Once the permissions have been restored, the new claim should show up in the psql db as well as the projection claims app.
