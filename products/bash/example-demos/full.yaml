@@ -66,37 +66,8 @@ spec:
 status:
   version: 2020.3.1
   conditions: []
-  phase: Ready
-  demos:
-    cognitiveCarRepair:
-      enabled: true
-    drivewayDentDeletion:
-      enabled: true
-    eventEnabledInsurance:
-      enabled: true
-    mappingAssist:
-      enabled: true
-    weatherChatbot:
-      enabled: true
-  products:
-    - type: aceDashboard
-      name: ace-dashboard-demo
-    - type: aceDesigner
-      name: ace-designer-demo
-    - type: apic
-      name: ademo
-    - type: assetRepo
-      name: ar-demo
-    - type: eventStreams
-      name: es-demo
-    - type: mq
-      name: mq-demo
-    - type: navigator
-      name: cp4i-navigator
-    - type: tracing
-      name: tracing-demo
-  addons:
-    - type: postgres
-    - type: elasticSearch
-    - type: ocpPipelines
-  namespaces:
+  phase:
+  demos: []
+  products: []
+  addons: []
+  namespaces: []
