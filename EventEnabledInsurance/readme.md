@@ -557,6 +557,8 @@ A successful request should return an HTTP 200 with a JSON body that contains th
 
 DB_writer bar file: Responsible for Reading messages from the Queue `Quote` and adding to the Postgres Database table `db_cp4i1_sor_eei`. The flow consists of MQ input node and Java compute node. MQ input node passes the messages to the java compute node in the flow which reads the messages from the queue after every second and adds them to the postgres table.
 
+:information_source: Should the db writer fail to communicate with the SOR DB an exception will be thrown and after 99 unsuccesful retries (99 seconds) the message will be backed out to a backout queue `QuoteBO`.
+
 # Testing the POST calls via APIC
 Instructions to load test the POST call via APIC can be found [here](post-load-test-readme.md).
 
@@ -613,8 +615,8 @@ Prereqs:
     REVOKE ALL PRIVILEGES ON QUOTES FROM cp4i_sor_eei;
     REVOKE ALL PRIVILEGES ON QUOTES FROM cp4i_sor_replication_eei;
     ```
-4. Post requests will succeed, however the new claim will not show up in the sor db or the projection claims db. Existing claims should still accessible with the get request but everything else will result in a 404.
-5. To restart postgres, make sure you're exec'd into the database and run the following commands:
+4. Post requests will succeed, however the new claim will not show up in the sor db or the projection claims db. Existing claims should still accessible with the get request but everything else will result in a 404. Make sure to restart the psql db within 99 seconds, otherwise the message will be put on the backout queue.
+5. To restart psql, make sure you're exec'd into the database and run the following commands:
     ```sql
     GRANT ALL PRIVILEGES ON TABLE quotes TO cp4i_sor_eei;
     GRANT ALL PRIVILEGES ON TABLE quotes TO cp4i_sor_replication_eei;
