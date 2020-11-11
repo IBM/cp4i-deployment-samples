@@ -423,14 +423,14 @@ done
 # Print previous status, clear it and set new status with Phase as Pending
 #-------------------------------------------------------------------------------------------------------------------
 
-divider
+$DEBUG && divider
 
 # if previous status exists, print it
 if [[ "${ORIGINAL_STATUS}" != "null" ]]; then
   $DEBUG && echo -e "$info Original status passed:\n" && echo $ORIGINAL_STATUS | jq .
 fi
 
-$DEBUG && echo -e "$info [INFO] Deleting old status, assigning new status and changing the status phase to 'Pending' as installation is starting...\n"
+$DEBUG && echo -e "$info [INFO] Deleting old status, assigning new status and changing the status phase to 'Pending' as installation is starting..."
 JSON=$(echo $JSON | jq -r 'del(.status) | .status.version="'$DEMO_VERSION'" | .status.conditions=[] | .status.phase="Pending" | .status.demos=[] | .status.addons=[] | .status.products=[] | .status.namespaces=[] ')
 STATUS=$(echo $JSON | jq -r .status)
 
@@ -469,7 +469,10 @@ check_phase_and_exit_on_failed
 # Add the required addons
 #-------------------------------------------------------------------------------------------------------------------
 
-divider && echo -e "$info [INFO] Installing and setting up addons:"
+if [ ${#REQUIRED_ADDONS_JSON[@]} -ne 0 ]; then
+  divider && echo -e "$info [INFO] Installing and setting up addons:"
+fi
+
 for eachAddon in $(echo "${REQUIRED_ADDONS_JSON}" | jq -r '.[] | select(.enabled == true ) | @base64'); do
   divider
   ADDON_JSON=$(echo ${eachAddon} | base64 --decode)
@@ -554,10 +557,10 @@ echo -e "$info [INFO] Tracing enabled: '$TRACING_ENABLED'..."
 # Install the selected/required products
 #-------------------------------------------------------------------------------------------------------------------
 
-$DEBUG && divider && echo -e "$info Starting selected products installation...\n"
+divider && echo -e "$info Starting products installation..." && divider
 for eachProduct in $(echo "${REQUIRED_PRODUCTS_JSON}" | jq -r '.[] | select(.enabled == true ) | @base64'); do
   EACH_PRODUCT_JSON=$(echo ${eachProduct} | base64 --decode)
-  $DEBUG && echo $EACH_PRODUCT_JSON | jq .
+  $DEBUG && echo $EACH_PRODUCT_JSON | jq . && echo ""
 
   EACH_PRODUCT_TYPE=$(echo ${EACH_PRODUCT_JSON} | jq -r '.type')
   EACH_PRODUCT_NAME=$(echo ${EACH_PRODUCT_JSON} | jq -r '.name')
@@ -586,7 +589,7 @@ for eachProduct in $(echo "${REQUIRED_PRODUCTS_JSON}" | jq -r '.[] | select(.ena
     ;;
 
   aceDesigner)
-    echo -e "\n$info [INFO] Releasing ACE Designer $ECHO_LINE..."
+    echo -e "$info [INFO] Releasing ACE Designer $ECHO_LINE..."
     if ! $SCRIPT_DIR/release-ace-designer.sh -n "$NAMESPACE" -r "$EACH_PRODUCT_NAME" -s "$BLOCK_STORAGE_CLASS"; then
       update_conditions "Failed to release ACE Designer $ECHO_LINE" "Releasing"
       update_phase "Failed"
@@ -601,7 +604,7 @@ for eachProduct in $(echo "${REQUIRED_PRODUCTS_JSON}" | jq -r '.[] | select(.ena
   assetRepo)
     # Get APIC release name for configuring APIC
     AR_RELEASE_NAME=$EACH_PRODUCT_NAME
-    echo -e "\n$info [INFO] Releasing Asset Repository $ECHO_LINE...\n"
+    echo -e "$info [INFO] Releasing Asset Repository $ECHO_LINE...\n"
     if ! $SCRIPT_DIR/release-ar.sh -n "$NAMESPACE" -r "$EACH_PRODUCT_NAME"; then
       update_conditions "Failed to release Asset Repository $ECHO_LINE" "Releasing"
       update_phase "Failed"
@@ -614,7 +617,7 @@ for eachProduct in $(echo "${REQUIRED_PRODUCTS_JSON}" | jq -r '.[] | select(.ena
     ;;
 
   aceDashboard)
-    echo -e "\n$info [INFO] Releasing ACE dashboard $ECHO_LINE...\n"
+    echo -e "$info [INFO] Releasing ACE dashboard $ECHO_LINE...\n"
     if ! $SCRIPT_DIR/release-ace-dashboard.sh -n "$NAMESPACE" -r "$EACH_PRODUCT_NAME" -s "$FILE_STORAGE_CLASS"; then
       update_conditions "Failed to release ACE dashboard $ECHO_LINE" "Releasing"
       update_phase "Failed"
@@ -627,7 +630,6 @@ for eachProduct in $(echo "${REQUIRED_PRODUCTS_JSON}" | jq -r '.[] | select(.ena
     ;;
 
   apic)
-    echo -e "\n$info [INFO] Releasing APIC $ECHO_LINE...\n"
     APIC_RELEASE_NAME=$EACH_PRODUCT_NAME
     export PORG_ADMIN_EMAIL=$(echo ${EACH_PRODUCT_JSON} | jq -r '.emailAddress')
     export MAIL_SERVER_HOST=$(echo ${EACH_PRODUCT_JSON} | jq -r '.mailServerHost')
@@ -642,6 +644,7 @@ for eachProduct in $(echo "${REQUIRED_PRODUCTS_JSON}" | jq -r '.[] | select(.ena
       RELEASE_APIC_PARAMS="-n '$NAMESPACE' -r '$EACH_PRODUCT_NAME'"
     fi
 
+    echo -e "$info [INFO] Releasing APIC $ECHO_LINE...\n"
     if ! $SCRIPT_DIR/release-apic.sh $RELEASE_APIC_PARAMS; then
       update_conditions "Failed to release APIC $ECHO_LINE" "Releasing"
       update_phase "Failed"
@@ -654,7 +657,7 @@ for eachProduct in $(echo "${REQUIRED_PRODUCTS_JSON}" | jq -r '.[] | select(.ena
     ;;
 
   eventStreams)
-    echo -e "\n$info [INFO] Releasing Event Streams $ECHO_LINE...\n"
+    echo -e "$info [INFO] Releasing Event Streams $ECHO_LINE...\n"
     if ! $SCRIPT_DIR/release-es.sh -n "$NAMESPACE" -r "$EACH_PRODUCT_NAME"; then
       update_conditions "Failed to release $ECHO_LINE" "Releasing"
       update_phase "Failed"
@@ -667,7 +670,7 @@ for eachProduct in $(echo "${REQUIRED_PRODUCTS_JSON}" | jq -r '.[] | select(.ena
     ;;
 
   tracing)
-    echo -e "\n$info [INFO] Releasing tracing $ECHO_LINE...\n"
+    echo -e "$info [INFO] Releasing tracing $ECHO_LINE...\n"
     TRACING_RELEASE_NAME=$EACH_PRODUCT_NAME
     if ! $SCRIPT_DIR/release-tracing.sh -n "$NAMESPACE" -r "$EACH_PRODUCT_NAME" -b "$BLOCK_STORAGE_CLASS" -f "$FILE_STORAGE_CLASS"; then
       update_conditions "Failed to release Tracing $ECHO_LINE" "Releasing"
@@ -716,9 +719,8 @@ if [[ ! "$(echo "${REQUIRED_PRODUCTS_JSON}" | jq -r '.[] | select(.enabled == tr
     update_product_status $APIC_RELEASE_NAME "apic" "true" "false"
     ARRAY_FOR_FAILED_INSTALL_PRODUCTS+=(apic)
   else
-    echo -e "\n$tick [SUCCESS] Successfully configured APIC in the '$NAMESPACE' namespace"
+    echo -e "$tick [SUCCESS] Successfully configured APIC in the '$NAMESPACE' namespace"
     update_product_status $APIC_RELEASE_NAME "apic" "true" "true"
-    divider
   fi # configure-apic-v10.sh
 fi
 
@@ -727,7 +729,7 @@ fi
 #-------------------------------------------------------------------------------------------------------------------
 
 if [[ ! "$(echo "${REQUIRED_PRODUCTS_JSON}" | jq -r '.[] | select(.enabled == true and .type == "assetRepo")')" == "" ]]; then
-  echo -e "$info [INFO] Creating Asset Repository remote in the '$NAMESPACE' namespace with the name '$AR_RELEASE_NAME'...\n"
+  divider && echo -e "$info [INFO] Creating Asset Repository remote in the '$NAMESPACE' namespace with the name '$AR_RELEASE_NAME'...\n"
   if ! $SCRIPT_DIR/ar_remote_create.sh -r "$AR_RELEASE_NAME" -n "$NAMESPACE" -o; then
     update_conditions "Failed to create Asset Repository remote in the '$NAMESPACE' namespace with the name '$AR_RELEASE_NAME'" "Releasing"
     update_phase "Failed"
@@ -795,6 +797,7 @@ $DEBUG && divider && echo -e "$info [INFO] The overall installation took $(($SEC
 # Change final status to Running at end of installation
 #-------------------------------------------------------------------------------------------------------------------
 
-divider && echo -e "$tick [SUCCESS] Successfully installed all selected addons, products and demos. Changing the overall status to 'Running'..."
+divider && echo -e "$tick [SUCCESS] Successfully installed all selected addons, products and demos. Changing the overall status to 'Running'"
 update_phase "Running"
-$DEBUG && divider && echo -e "$info [INFO] Final status:\n" && echo $STATUS | jq . && divider
+divider
+$DEBUG && echo -e "$info [INFO] Final status:\n" && echo $STATUS | jq . && divider
