@@ -481,7 +481,7 @@ for eachAddon in $(echo "${REQUIRED_ADDONS_JSON}" | jq -r '.[] | select(.enabled
 
   case ${ADDON_TYPE} in
   postgres)
-    echo -e "$info [INFO] Releasing postgres...\n"
+    echo -e "$info [INFO] Releasing postgres in the '$NAMESPACE' namespace...\n"
     if ! $SCRIPT_DIR/release-psql.sh -n "$NAMESPACE"; then
       update_conditions "Failed to release PostgreSQL in the '$NAMESPACE' namespace" "Releasing"
       update_phase "Failed"
