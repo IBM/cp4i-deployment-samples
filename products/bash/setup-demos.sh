@@ -782,7 +782,7 @@ check_phase_and_exit_on_failed
 # Calculate total time taken for all installation
 #-------------------------------------------------------------------------------------------------------------------
 
-$DEBUG && echo -e "$info [INFO] The overall installation took $(($SECONDS / 60 / 60 % 24)) hours $(($SECONDS / 60)) minutes and $(($SECONDS % 60)) seconds."
+$DEBUG && divider && echo -e "$info [INFO] The overall installation took $(($SECONDS / 60 / 60 % 24)) hours $(($SECONDS / 60)) minutes and $(($SECONDS % 60)) seconds."
 
 #-------------------------------------------------------------------------------------------------------------------
 # Change final status to Running at end of installation
