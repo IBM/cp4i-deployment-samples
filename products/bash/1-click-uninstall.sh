@@ -13,7 +13,7 @@
 #   - Logged into cluster on the OC CLI (https://docs.openshift.com/container-platform/4.4/cli_reference/openshift_cli/getting-started-cli.html)
 #
 # PARAMETERS:
-#   -n : <NAMESPACE> (string), namespace for the 1-click uninstallation. Defaults to "cp4i"
+#   -n : <NAMESPACE> (string), namespace for the 1-click un-installation. Defaults to "cp4i"
 #
 # USAGE:
 #   With defaults values
@@ -22,14 +22,14 @@
 #   Overriding the namespace and release-name
 #     ./1-click-uninstall.sh -n <NAMESPACE>
 
-function divider {
-    echo -e "\n-------------------------------------------------------------------------------------------------------------------\n"
+function divider() {
+  echo -e "\n-------------------------------------------------------------------------------------------------------------------\n"
 }
 
-function usage {
-    echo "Usage: $0 -n <NAMESPACE>"
-    divider
-    exit 1
+function usage() {
+  echo "Usage: $0 -n <NAMESPACE>"
+  divider
+  exit 1
 }
 
 NAMESPACE="cp4i"
@@ -42,14 +42,16 @@ missingParams="false"
 
 while getopts "n:" opt; do
   case ${opt} in
-    n ) NAMESPACE="$OPTARG"
-      ;;
-    \? ) usage;
-      ;;
+  n)
+    NAMESPACE="$OPTARG"
+    ;;
+  \?)
+    usage
+    ;;
   esac
 done
 
-if [[ -z "${NAMESPACE// }" ]]; then
+if [[ -z "${NAMESPACE// /}" ]]; then
   echo -e "$cross ERROR: 1-click uninstall namespace is empty. Please provide a value for '-n' parameter."
   missingParams="true"
 fi
@@ -71,7 +73,7 @@ oc delete PlatformNavigator -n ${NAMESPACE} ${NAMESPACE}-navigator
 divider
 
 # Deleting all ClusterServiceVersions
-echo "INFO: Deleting all ClusterServiceVersions in the ${NAMESPACE} namespace"
+echo "INFO: Deleting all ClusterServiceVersions except 'operand-deployment-lifecycle-manager' in the ${NAMESPACE} namespace"
 oc delete ClusterServiceVersion -n ${NAMESPACE} $(oc get -n ${NAMESPACE} ClusterServiceVersion | grep -v operand-deployment-lifecycle-manager | awk '{print $1}' | sed -n '1!p')
 
 divider
@@ -90,7 +92,7 @@ divider
 
 # Deleting the ibm-entitlement-key secret
 echo "INFO: Deleting ibm-entitlement-key secret"
-oc delete secret -n ${NAMESPACE} ibm-entitlement-key 
+oc delete secret -n ${NAMESPACE} ibm-entitlement-key
 
 divider
 

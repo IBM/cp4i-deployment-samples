@@ -10,11 +10,13 @@
 
 #******************************************************************************
 # PARAMETERS:
-#   -n : <namespace> (string), Defaults to "cp4i"
-#   -r : <is_release_name> (string), Defaults to "ace-is"
+#   -c : <ace_policy_names> (boolean), Parameter for changing ace config
 #   -i : <is_image_name> (string), Defaults to "image-registry.openshift-image-registry.svc:5000/cp4i/ace-11.0.0.9-r2:new-1"
-#   -z : <tracing_namespace> (string), Defaults to "-n namespace"
+#   -n : <namespace> (string), Defaults to "cp4i"
+#   -p : <ace_replicas> (int), allow changing the number of pods (replicas), Defaults to 2
+#   -r : <is_release_name> (string), Defaults to "ace-is"
 #   -t : <tracing_enabled> (boolean), optional flag to enable tracing, Defaults to false
+#   -z : <tracing_namespace> (string), Defaults to "-n namespace"
 #
 # USAGE:
 #   With defaults values
@@ -23,49 +25,60 @@
 #   Overriding the namespace and release-name
 #     ./release-ace-integration-server -n cp4i -r cp4i-bernie-ace
 
-function usage {
-  echo "Usage: $0 -n <namespace> -r <is_release_name> -i <is_image_name> -t -z <tracing_namespace>"
+function usage() {
+  echo "Usage: $0 -c <ace_policy_names> -i <is_image_name> -n <namespace> -p <ace_replicas> -r <is_release_name> -t -z <tracing_namespace>"
   exit 1
 }
 
+tick="\xE2\x9C\x85"
+cross="\xE2\x9D\x8C"
 namespace="cp4i"
-is_release_name="ace-is"
 is_image_name=""
-tracing_namespace=""
+is_release_name="ace-is"
 tracing_enabled="false"
+tracing_namespace=""
 CURRENT_DIR=$(dirname $0)
+ace_policy_names="[keystore-ddd, policyproject-ddd, serverconf-ddd, setdbparms-ddd, application.kdb, application.sth, application.jks]"
+ace_replicas="2"
 echo "Current directory: $CURRENT_DIR"
 
-while getopts "n:r:i:z:t" opt; do
+while getopts "c:i:n:p:r:tz:" opt; do
   case ${opt} in
-  n)
-    namespace="$OPTARG"
-    ;;
-  r)
-    is_release_name="$OPTARG"
+  c)
+    ace_policy_names="$OPTARG"
     ;;
   i)
     is_image_name="$OPTARG"
     ;;
-  z)
-    tracing_namespace="$OPTARG"
+  n)
+    namespace="$OPTARG"
+    ;;
+  p)
+    ace_replicas=$OPTARG
+    ;;
+  r)
+    is_release_name="$OPTARG"
     ;;
   t)
     tracing_enabled=true
     ;;
+  z)
+    tracing_namespace="$OPTARG"
+    ;;
   \?)
     usage
-    exit
     ;;
   esac
 done
 
-if [ "$tracing_enabled" == "true" ] ; then
-   if [ -z "$tracing_namespace" ]; then tracing_namespace=${namespace} ; fi
+if [ "$tracing_enabled" == "true" ]; then
+  if [ -z "$tracing_namespace" ]; then tracing_namespace=${namespace}; fi
 else
-    # assgining value to tracing_namespace b/c empty values causes CR to throw an error
-    tracing_namespace=${namespace}
+  # assigning value to tracing_namespace b/c empty values causes CR to throw an error
+  tracing_namespace=${namespace}
 fi
+
+echo -e "\nINFO: ACE policy configurations: '$ace_policy_names'"
 
 # ------------------------------------------------ FIND IMAGE TAG --------------------------------------------------
 
@@ -79,7 +92,6 @@ if [[ -z "$imageTag" ]]; then
   echo "ERROR: Failed to extract image tag from the end of '$is_image_name'"
   exit 1
 fi
-
 
 echo "[INFO] tracing is set to $tracing_enabled"
 
@@ -98,20 +110,13 @@ spec:
    containers:
      runtime:
        image: ${is_image_name}
-  configurations:
-  - ace-keystore
-  - ace-policyproject-ddd
-  - ace-serverconf
-  - ace-setdbparms
-  - application.kdb
-  - application.sth
-  - application.jks
+  configurations: $ace_policy_names
   designerFlowsOperationMode: disabled
   license:
     accept: true
     license: L-APEH-BPUCJK
     use: CloudPakForIntegrationProduction
-  replicas: 2
+  replicas: ${ace_replicas}
   router:
     timeout: 120s
   service:
@@ -122,26 +127,30 @@ spec:
     enabled: ${tracing_enabled}
     namespace: ${tracing_namespace}
 EOF
+if [[ "$?" != "0" ]]; then
+  echo -e "$cross [ERROR] Failed to apply IntegrationServer CR"
+  exit 1
+fi
 
 timer=0
 echo "[INFO] tracing is set to $tracing_enabled"
 if [ "$tracing_enabled" == "true" ]; then
   while ! oc get secrets icp4i-od-store-cred -n ${namespace}; do
     echo "Waiting for the secret icp4i-od-store-cred to get created"
-    if [ $timer -gt 5 ]; then
+    if [ $timer -gt 30 ]; then
       echo "Secret icp4i-od-store-cred didn't get created in  ${namespace}, going to create the secret next "
       break
       timer=$((timer + 1))
     fi
-    sleep 60
+    sleep 10
   done
 
   # -------------------------------------- Register Tracing ---------------------------------------------------------------------
-  if  ! oc get secrets icp4i-od-store-cred -n ${namespace} ; then
+  if ! oc get secrets icp4i-od-store-cred -n ${namespace}; then
     echo "[INFO] secret icp4i-od-store-cred does not exist in ${namespace}, running tracing registration"
     echo "Tracing_Namespace= ${tracing_namespace}"
     echo "Namespace= ${namespace}"
-    if ! ${CURRENT_DIR}/register-tracing.sh -n $tracing_namespace -a ${namespace} ; then
+    if ! ${CURRENT_DIR}/register-tracing.sh -n $tracing_namespace -a ${namespace}; then
       echo "INFO: Running with test environment flag"
       echo "ERROR: Failed to register tracing in project '$namespace'"
       exit 1
@@ -199,8 +208,8 @@ numberOfMatchesForImageTag=0
 time=0
 
 # wait for 10 minutes for all replica pods to be deployed with new image
-while [ $numberOfMatchesForImageTag -ne $numberOfReplicas ]; do
-  if [ $time -gt 15 ]; then
+while [ "$numberOfMatchesForImageTag" -ne "$numberOfReplicas" ]; do
+  if [ $time -gt 90 ]; then
     echo "ERROR: Timed-out trying to wait for all $is_release_name demo pods to be deployed with a new image containing the image tag '$imageTag'"
     echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
     exit 1
@@ -235,11 +244,29 @@ while [ $numberOfMatchesForImageTag -ne $numberOfReplicas ]; do
     echo -e "No Ready and Running pods found for $is_release_name yet"
   fi
   if [[ $numberOfMatchesForImageTag != "$numberOfReplicas" ]]; then
-    echo -e "\nINFO: Not all $is_release_name pods have been deployed with the new image having the image tag '$imageTag', retrying for upto 10 minutes for new $is_release_name demo pods te be deployed with new image. Waited ${time} minute(s)."
-    sleep 60
+    echo -e "\nINFO: Not all $is_release_name pods have been deployed with the new image having the image tag '$imageTag', retrying for upto 10 minutes for new $is_release_name demo pods to be deployed with new image. Waited ${time} minute(s)."
+    sleep 10
   else
     echo -e "\nINFO: All $is_release_name demo pods have been deployed with the new image"
   fi
   time=$((time + 1))
   echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------"
+
 done
+
+GOT_SERVICE=false
+for i in $(seq 1 30); do
+  if oc get svc ${is_release_name}-is -n ${namespace}; then
+    GOT_SERVICE=true
+    break
+  else
+    echo "Waiting for ace api service named '${is_release_name}-is' (Attempt $i of 30)."
+    echo "Checking again in 10 seconds..."
+    sleep 10
+  fi
+done
+echo $GOT_SERVICE
+if [[ "$GOT_SERVICE" == "false" ]]; then
+  echo -e "[ERROR] ${CROSS} ace api integration server service doesn't exist"
+  exit 1
+fi

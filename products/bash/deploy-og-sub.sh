@@ -22,18 +22,22 @@
 #   Overriding the namespace
 #     ./deploy-og-sub -n cp4i-prod
 #
-# function usage {
-#     echo "Usage: $0 -n <namespace>"
-# }
-#
+
+function usage() {
+  echo "Usage: $0 -n <namespace>"
+  exit 1
+}
+
 namespace="cp4i"
 
 while getopts "n:" opt; do
   case ${opt} in
-    n ) namespace="$OPTARG"
-      ;;
-    \? ) usage; exit
-      ;;
+  n)
+    namespace="$OPTARG"
+    ;;
+  \?)
+    usage
+    ;;
   esac
 done
 
@@ -49,16 +53,16 @@ IAM_Update_OperandConfig() {
   oc get OperandConfig -n ibm-common-services $(oc get OperandConfig -n ibm-common-services | sed -n 2p | awk '{print $1}') -o json | jq '(.spec.services[] | select(.name == "ibm-iam-operator") | .spec.authentication)|={"config":{"roksEnabled":true,"roksURL":"'$IAM_URL'","roksUserPrefix":"IAM#"}}' | oc apply -f -
 }
 
-function output_time {
+function output_time() {
   SECONDS=${1}
-  if((SECONDS>59));then
-    printf "%d minutes, %d seconds" $((SECONDS/60)) $((SECONDS%60))
+  if ((SECONDS > 59)); then
+    printf "%d minutes, %d seconds" $((SECONDS / 60)) $((SECONDS % 60))
   else
     printf "%d seconds" $SECONDS
   fi
 }
 
-function wait_for_subscription {
+function wait_for_subscription() {
   NAMESPACE=${1}
   SOURCE=${2}
   NAME=${3}
@@ -92,14 +96,14 @@ function wait_for_subscription {
       fi
 
       echo "Retrying in ${wait_time} seconds, waited for $(output_time $time) so far"
-      ((time=time+$wait_time))
+      ((time = time + $wait_time))
       sleep $wait_time
     fi
   done
   echo "$SUBSCRIPTION_NAME has succeeded"
 }
 
-function wait_for_all_subscriptions {
+function wait_for_all_subscriptions() {
   NAMESPACE=${1}
   echo "Waiting for all subscriptions in namespace: $NAMESPACE"
 
@@ -114,7 +118,7 @@ function wait_for_all_subscriptions {
     rows=$(oc get subscription -n ${NAMESPACE} -o json | jq -r '.items[] | { name: .metadata.name, csv: .status.currentCSV } | @base64')
     for row in $rows; do
       _jq() {
-       echo ${row} | base64 --decode | jq -r ${1}
+        echo ${row} | base64 --decode | jq -r ${1}
       }
 
       SUBSCRIPTION_NAME=$(_jq '.name')
@@ -148,7 +152,7 @@ function wait_for_all_subscriptions {
       fi
 
       echo "Retrying in ${wait_time} seconds, waited for $(output_time $time) so far"
-      ((time=time+$wait_time))
+      ((time = time + $wait_time))
       sleep $wait_time
     fi
 
@@ -157,7 +161,7 @@ function wait_for_all_subscriptions {
   echo "All subscriptions in $NAMESPACE have succeeded"
 }
 
-function create_subscription {
+function create_subscription() {
   NAMESPACE=${1}
   SOURCE=${2}
   NAME=${3}

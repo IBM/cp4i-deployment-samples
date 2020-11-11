@@ -13,10 +13,14 @@
 #   - Logged into cluster on the OC CLI (https://docs.openshift.com/container-platform/4.4/cli_reference/openshift_cli/getting-started-cli.html)
 #
 # PARAMETERS:
-#   -e : <environment> (string), can be either "dev" or "test", defaults to "dev"
+#   -e : <environment> (string), can be either "dev" or "test", defaults to "dev". "test" currently only suitable for DDD.
 #   -n : <namespace> (string), defaults to "cp4i"
 #   -a : <apic_namespace> (string), defaults to same value as $NAMESPACE
-#   -r : <release> (string), defaults to "ademo"
+#   -r : <apic_release> (string), defaults to "ademo"
+#   -d : <demo name> (string), default to "ddd".
+#   -t : <target url> (string), default to "". If "" then constructs the URL to point to the ace-api-int-srv-is service
+#   -p : <product yaml> (string), Path relative to root of the repo, defaults to "DrivewayDentDeletion/Operators/apic-resources/apic-product-ddd.yaml"
+#   -s : <swagger yaml> (string), Path relative to root of the repo, defaults to "DrivewayDentDeletion/Operators/apic-resources/apic-api-ddd.yaml"
 #
 # USAGE:
 #   With default values
@@ -45,13 +49,49 @@ TEST_ORG="ddd-demo-test"
 CATALOG="$([[ $ENVIRONMENT == dev ]] && echo $DEV_ORG || echo $TEST_ORG)-catalog"
 ACE_SECRET="ace-v11-service-creds"
 APIC_SECRET="cp4i-admin-creds"
+DEMO_NAME="ddd"
+TARGET_URL=""
+PRODUCT_YAML_TEMPLATE="DrivewayDentDeletion/Operators/apic-resources/apic-product-ddd.yaml"
+SWAGGER_YAML_TEMPLATE="DrivewayDentDeletion/Operators/apic-resources/apic-api-ddd.yaml"
+# TODO
+DEBUG=true
 
-function usage {
-  echo "Usage: $0 -e <environment> -n <namespace> -s <namespace_suffix> -r <release> -d"
+function usage() {
+  echo "Usage: $0 -e <environment> -n <namespace> -s <namespace_suffix> -r <release> -d <demo name> -t <target url> -p <product yaml> -s <swagger yaml>"
 }
 
+while getopts "e:n:r:d:t:p:s:" opt; do
+  case ${opt} in
+  e)
+    ENVIRONMENT="$OPTARG"
+    ;;
+  n)
+    MAIN_NAMESPACE="$OPTARG"
+    ;;
+  r)
+    RELEASE="$OPTARG"
+    ;;
+  d)
+    DEMO_NAME="$OPTARG"
+    ;;
+  t)
+    TARGET_URL="$OPTARG"
+    ;;
+  p)
+    PRODUCT_YAML_TEMPLATE="$OPTARG"
+    ;;
+  s)
+    SWAGGER_YAML_TEMPLATE="$OPTARG"
+    ;;
+  \?)
+    usage
+    exit
+    ;;
+  esac
+done
+
 OUTPUT=""
-function handle_res {
+function handle_res() {
   local body=$1
   local status=$(echo ${body} | $JQ -r ".status")
   $DEBUG && echo "[DEBUG] res body: ${body}"
@@ -75,25 +115,12 @@ function handle_res {
   fi
 }
 
-while getopts "e:n:r:d" opt; do
-  case ${opt} in
-    e ) ENVIRONMENT="$OPTARG"
-      ;;
-    n ) MAIN_NAMESPACE="$OPTARG"
-      ;;
-    r ) RELEASE="$OPTARG"
-      ;;
-    \? ) usage; exit
-      ;;
-  esac
-done
-
 NAMESPACE=$([[ $ENVIRONMENT == "dev" ]] && echo "${MAIN_NAMESPACE}" || echo "${MAIN_NAMESPACE}-ddd-test")
 ORG=$([[ $ENVIRONMENT == "dev" ]] && echo "main-demo" || echo "ddd-demo-test")
 CATALOG=${ORG}-catalog
-PRODUCT=${NAMESPACE}-product-ddd
+PRODUCT=${NAMESPACE}-product-${DEMO_NAME}
 C_ORG=${ORG}-corp
-APP=ddd-app
+APP=${DEMO_NAME}-app
 
 # Gather info from cluster resources
 echo "[INFO]  Gathering cluster info..."
@@ -108,7 +135,7 @@ $DEBUG && echo "[DEBUG] PLATFORM_API_EP=${PLATFORM_API_EP}"
 $DEBUG && echo "[DEBUG] Checking if jq is present..."
 jqInstalled=false
 
-if ! command -v jq &> /dev/null; then
+if ! command -v jq &>/dev/null; then
   jqInstalled=false
 else
   jqInstalled=true
@@ -133,23 +160,15 @@ fi
 
 echo "[INFO]  jq version: $($JQ --version)"
 
-for i in `seq 1 5`; do
-  ACE_API=$(oc get svc ace-api-int-srv-is -n ${NAMESPACE} -o jsonpath="{.metadata.name}")
-  if [[ -z $ACE_API ]]; then
-    echo "Waiting for ace api route (Attempt $i of 5)."
-    echo "Checking again in one minute..."
-    sleep 60
-  else
-    $DEBUG && echo "[DEBUG] ACE_API=${ACE_API}"
-    break
-  fi
-done
-[[ -z $ACE_API ]] && echo -e "[ERROR] ${CROSS} ace api integration server service doesn't exit" && exit 1
-ACE_API_INT_SRV_PORT=$(oc get svc -n $NAMESPACE $ACE_API -ojson | $JQ -r '.spec.ports[] | select(.name == "https").port')
-ACE_API_INT_SRV=${ACE_API}.${NAMESPACE}.svc.cluster.local:$ACE_API_INT_SRV_PORT
-ACE_API_USER=$(oc get secret -n $NAMESPACE ace-api-creds -o json | $JQ -r '.data.user' | base64 --decode)
-ACE_API_PASS=$(oc get secret -n $NAMESPACE ace-api-creds -o json | $JQ -r '.data.pass' | base64 --decode)
-$DEBUG && echo "[DEBUG] ACE_API_INT_SRV=${ACE_API_INT_SRV}"
+if [[ -z $TARGET_URL ]]; then
+  ACE_API="ace-api-int-srv-is"
+  ACE_API_INT_SRV_PORT=$(oc get svc -n $NAMESPACE ${ACE_API} -ojson | $JQ -r '.spec.ports[] | select(.name == "https").port')
+  TARGET_URL="https://${ACE_API}.${NAMESPACE}.svc.cluster.local:$ACE_API_INT_SRV_PORT"
+fi
+
+ACE_API_USER=$(oc get secret -n $NAMESPACE ace-api-creds-${DEMO_NAME} -o json | $JQ -r '.data.user' | base64 --decode)
+ACE_API_PASS=$(oc get secret -n $NAMESPACE ace-api-creds-${DEMO_NAME} -o json | $JQ -r '.data.pass' | base64 --decode)
+$DEBUG && echo "[DEBUG] TARGET_URL=${TARGET_URL}"
 echo -e "[INFO]  ${TICK} Cluster info gathered"
 
 # Grab bearer token
@@ -160,16 +179,16 @@ echo -e "[INFO]  ${TICK} Got bearer token"
 
 # Template api and product yamls
 echo "[INFO]  Templating api yaml..."
-cat ${CURRENT_DIR}/../../DrivewayDentDeletion/Operators/apic-resources/apic-api-ddd.yaml |
-  sed "s#{{ACE_API_INT_SRV_ROUTE}}#${ACE_API_INT_SRV}#g;" |
-  sed "s#{{ACE_API_USER}}#${ACE_API_USER}#g;" |
-  sed "s#{{ACE_API_PASS}}#${ACE_API_PASS}#g;" > ${CURRENT_DIR}/api.yaml
+cat ${CURRENT_DIR}/../../${SWAGGER_YAML_TEMPLATE} |
+  sed "s#{{TARGET_URL}}#${TARGET_URL}#g;" |
+  sed "s#{{BASIC_AUTH_USERNAME}}#${ACE_API_USER}#g;" |
+  sed "s#{{BASIC_AUTH_PASSWORD}}#${ACE_API_PASS}#g;" >${CURRENT_DIR}/api.yaml
 $DEBUG && echo -e "[DEBUG] api yaml:\n$(cat ${CURRENT_DIR}/api.yaml)"
 echo -e "[INFO]  ${TICK} Templated api yaml"
 
 echo "[INFO]  Templating product yaml..."
-cat ${CURRENT_DIR}/../../DrivewayDentDeletion/Operators/apic-resources/apic-product-ddd.yaml |
-  sed "s#{{NAMESPACE}}#$NAMESPACE#g;" > ${CURRENT_DIR}/product.yaml
+cat ${CURRENT_DIR}/../../${PRODUCT_YAML_TEMPLATE} |
+  sed "s#{{NAMESPACE}}#$NAMESPACE#g;" >${CURRENT_DIR}/product.yaml
 $DEBUG && echo -e "[DEBUG] product yaml:\n$(cat ${CURRENT_DIR}/product.yaml)"
 echo -e "[INFO]  ${TICK} Templated product yaml"
 
@@ -219,12 +238,13 @@ if [[ $ENVIRONMENT == "dev" ]]; then
     -H "accept: application/json" \
     -H "authorization: Bearer ${TOKEN}")
   handle_res "${RES}"
+  $DEBUG && echo -e "PRODUCT='${PRODUCT}'\nPRODUCT_VER='${PRODUCT_VER}'\nOUTPUT=${OUTPUT}"
   DRAFT_PRODUCT_URL=$(echo ${OUTPUT} | $JQ -r '.results[] | select(.name == "'$PRODUCT'" and .version == "'$PRODUCT_VER'").url')
-  if [[ $DRAFT_PRODUCT_URL == "null" ]]; then
+  if [[ $DRAFT_PRODUCT_URL == "null" ]] || [[ $DRAFT_PRODUCT_URL == "" ]]; then
     echo -e "[ERROR] ${CROSS} Couldn't get product url"
     exit 1
   fi
-  $DEBUG && echo "[DEBUG] Product url: ${DRAFT_PRODUCT_URL}"
+  $DEBUG && echo "[DEBUG] Product url: '${DRAFT_PRODUCT_URL}'"
   echo -e "[INFO]  ${TICK} Got product url"
 
   # Get gateway service url
@@ -275,12 +295,6 @@ else
   echo -e "[INFO]  ${TICK} Product published"
 fi
 
-# Create configmap for org info
-echo "[INFO] Creating configmap ${ORG}-info"
-oc create configmap ${ORG}-info \
-  --from-literal=ORG=$ORG \
-  --from-literal=CATALOG=$CATALOG
-
 #*******************************************************************************
 # Subscription stuff
 #*******************************************************************************
@@ -296,7 +310,10 @@ $DEBUG && echo "[DEBUG] User registry url: ${USER_REGISTRY_URL}"
 echo -e "[INFO] ${TICK} Got configured catalog user registry url for ${ORG}-catalog"
 
 CORG_OWNER_USERNAME="${ORG}-corg-admin"
-CORG_OWNER_PASSWORD=$(LC_ALL=C tr -dc 'A-Za-z0-9' </dev/urandom | head -c 16 ; echo)
+CORG_OWNER_PASSWORD=$(
+  LC_ALL=C tr -dc 'A-Za-z0-9' </dev/urandom | head -c 16
+  echo
+)
 $DEBUG && echo "[DEBUG] username: $CORG_OWNER_USERNAME"
 $DEBUG && echo "[DEBUG] password: ${CORG_OWNER_PASSWORD}"
 # Create consumer org owner
@@ -329,6 +346,19 @@ if [[ $OWNER_URL == "null" ]]; then
   echo -e "[INFO] ${TICK} Got owner url"
 else
   echo -e "[INFO] ${TICK} Consumer org owner created"
+
+  # Store consumer org owner creds
+  cat <<EOF | oc apply -n ${MAIN_NAMESPACE} -f -
+apiVersion: v1
+kind: Secret
+metadata:
+  name: ${CORG_OWNER_USERNAME}-creds
+type: Opaque
+stringData:
+  username: ${CORG_OWNER_USERNAME}
+  password: ${CORG_OWNER_PASSWORD}
+EOF
+
 fi
 
 # Create consumer org
@@ -345,18 +375,6 @@ RES=$(curl -kLsS -X POST https://$PLATFORM_API_EP/api/catalogs/$ORG/$CATALOG/con
 handle_res "${RES}"
 echo -e "[INFO] ${TICK} Consumer org created"
 
-# Store consumer org owner creds
-cat << EOF | oc apply -n ${MAIN_NAMESPACE} -f -
-apiVersion: v1
-kind: Secret
-metadata:
-  name: corg-owner-creds
-type: Opaque
-stringData:
-  username: ${CORG_OWNER_USERNAME}
-  password: ${CORG_OWNER_PASSWORD}
-EOF
-
 # Create an app
 echo "[INFO] Creating application..."
 RES=$(curl -kLsS -X POST https://$PLATFORM_API_EP/api/consumer-orgs/$ORG/$CATALOG/$C_ORG/apps \
@@ -364,7 +382,7 @@ RES=$(curl -kLsS -X POST https://$PLATFORM_API_EP/api/consumer-orgs/$ORG/$CATALO
   -H "authorization: Bearer ${TOKEN}" \
   -H "content-type: application/json" \
   -d "{
-    \"title\": \"ddd app\",
+    \"title\": \"${DEMO_NAME} app\",
     \"name\": \"${APP}\"
 }")
 handle_res "${RES}"
@@ -392,3 +410,31 @@ RES=$(curl -kLsS -X POST https://$PLATFORM_API_EP/api/apps/$ORG/$CATALOG/$C_ORG/
 }")
 handle_res "${RES}"
 echo -e "[INFO] ${TICK} Subscription created"
+
+echo "[INFO]  Getting client id..."
+RES=$(curl -kLsS https://$PLATFORM_API_EP/api/catalogs/$ORG/$CATALOG/credentials \
+  -H "accept: application/json" \
+  -H "authorization: Bearer ${TOKEN}")
+CLIENT_ID=$(echo "${RES}" | $JQ -r '.results[] | select(.name | contains("'${APP}'")).client_id')
+$DEBUG && echo "[DEBUG] Client id: ${CLIENT_ID}"
+[[ $CLIENT_ID == "null" ]] && echo -e "[ERROR] ${CROSS} Couldn't get client id" && exit 1
+echo -e "[INFO]  ${TICK} Got client id"
+
+echo "[INFO]  Creating secret ${DEMO_NAME}-api-endpoint-client-id"
+BASE_PATH=$(grep 'basePath:' ${CURRENT_DIR}/api.yaml | head -1 | awk '{print $2}')
+$DEBUG && echo "[DEBUG] BASE_PATH: ${BASE_PATH}"
+HOST="https://$(oc get route -n $MAIN_NAMESPACE ${RELEASE}-gw-gateway -o jsonpath='{.spec.host}')/$ORG/$CATALOG$BASE_PATH"
+$DEBUG && echo "[DEBUG] HOST: ${HOST}"
+
+# Store api endpoint & client id in secret
+cat <<EOF | oc apply -n ${NAMESPACE} -f -
+apiVersion: v1
+kind: Secret
+metadata:
+  name: ${DEMO_NAME}-api-endpoint-client-id
+type: Opaque
+stringData:
+  api: ${HOST}
+  cid: ${CLIENT_ID}
+EOF
+echo -e "[INFO]  ${TICK} Secret created"

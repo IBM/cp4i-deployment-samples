@@ -32,12 +32,12 @@ ORG_NAME_DDD="ddd-demo-test"
 tick="\xE2\x9C\x85"
 cross="\xE2\x9D\x8C"
 
-function usage {
+function usage() {
   echo "Usage: $0 -n <NAMESPACE> -r <RELEASE_NAME>"
 }
 
 OUTPUT=""
-function handle_res {
+function handle_res() {
   local body=$1
   local status=$(echo ${body} | jq -r ".status")
   $DEBUG && echo "[DEBUG] res body: ${body}"
@@ -55,12 +55,16 @@ function handle_res {
 
 while getopts "n:r:" opt; do
   case ${opt} in
-    n ) NAMESPACE="$OPTARG"
-      ;;
-    r ) RELEASE_NAME="$OPTARG"
-      ;;
-    \? ) usage; exit
-      ;;
+  n)
+    NAMESPACE="$OPTARG"
+    ;;
+  r)
+    RELEASE_NAME="$OPTARG"
+    ;;
+  \?)
+    usage
+    exit
+    ;;
   esac
 done
 
@@ -70,8 +74,8 @@ NAMESPACE="${NAMESPACE}"
 CATALOG_NAME="${ORG_NAME}-catalog"
 CATALOG_NAME_DDD="${ORG_NAME_DDD}-catalog"
 PORG_ADMIN_EMAIL=${PORG_ADMIN_EMAIL:-"cp4i-admin@apiconnect.net"} # update to recipient of portal site creation email
-ACE_REGISTRATION_SECRET_NAME="ace-v11-service-creds" # corresponds to registration obj currently hard-coded in configmap
-PROVIDER_SECRET_NAME="cp4i-admin-creds" # corresponds to credentials obj currently hard-coded in configmap
+ACE_REGISTRATION_SECRET_NAME="ace-v11-service-creds"              # corresponds to registration obj currently hard-coded in configmap
+PROVIDER_SECRET_NAME="cp4i-admin-creds"                           # corresponds to credentials obj currently hard-coded in configmap
 CONFIGURATOR_IMAGE=${CONFIGURATOR_IMAGE:-"cp.icr.io/cp/apic/ibm-apiconnect-apiconnect-configurator:10.0.0.0-ifix1.0"}
 MAIL_SERVER_HOST=${MAIL_SERVER_HOST:-"smtp.mailtrap.io"}
 MAIL_SERVER_PORT=${MAIL_SERVER_PORT:-"2525"}
@@ -79,7 +83,7 @@ MAIL_SERVER_USERNAME=${MAIL_SERVER_USERNAME:-"<your-username>"}
 MAIL_SERVER_PASSWORD=${MAIL_SERVER_PASSWORD:-"<your-password>"}
 
 echo "Waiting for APIC installation to complete..."
-for i in `seq 1 120`; do
+for i in $(seq 1 120); do
   APIC_STATUS=$(kubectl get apiconnectcluster.apiconnect.ibm.com -n $NAMESPACE ${RELEASE_NAME} -o jsonpath='{.status.phase}')
   if [ "$APIC_STATUS" == "Ready" ]; then
     printf "$tick"
@@ -90,7 +94,7 @@ for i in `seq 1 120`; do
 
     ${CURRENT_DIR}/fix-cs-dependencies.sh
 
-    kubectl get apic,pods -n $NAMESPACE
+    kubectl get apic,pods,pvc -n $NAMESPACE
     echo "Checking again in one minute..."
     sleep 60
   fi
@@ -102,7 +106,7 @@ if [ "$APIC_STATUS" != "Ready" ]; then
   exit 1
 fi
 
-for i in `seq 1 60`; do
+for i in $(seq 1 60); do
   PORTAL_WWW_POD=$(oc get pods -n $NAMESPACE | grep -m1 "${RELEASE_NAME}-ptl.*www" | awk '{print $1}')
   if [ -z "$PORTAL_WWW_POD" ]; then
     echo "Not got portal pod yet"
@@ -137,7 +141,7 @@ PTL_WEB_EP=$(oc get route -n $NAMESPACE ${RELEASE_NAME}-ptl-portal-web -o jsonpa
 
 # create the k8s resources
 echo "Applying manifests"
-cat << EOF | oc apply -f -
+cat <<EOF | oc apply -f -
 apiVersion: v1
 kind: ServiceAccount
 metadata:
@@ -343,7 +347,7 @@ kubectl wait --for=condition=complete --timeout=300s -n $NAMESPACE job/${RELEASE
 PROVIDER_CREDENTIALS=$(kubectl get secret $PROVIDER_SECRET_NAME -n $NAMESPACE -o json | jq .data)
 ACE_CREDENTIALS=$(kubectl get secret $ACE_REGISTRATION_SECRET_NAME -n $NAMESPACE -o json | jq .data)
 
-for i in `seq 1 60`; do
+for i in $(seq 1 60); do
   PORTAL_WWW_POD=$(kubectl get pods -n $NAMESPACE | grep -m1 "${RELEASE_NAME}-ptl.*www" | awk '{print $1}')
   PORTAL_SITE_UUID=$(kubectl exec -n $NAMESPACE -it $PORTAL_WWW_POD -c admin /opt/ibm/bin/list_sites | awk '{print $1}')
   PORTAL_SITE_RESET_URL=$(kubectl exec -n $NAMESPACE -it $PORTAL_WWW_POD -c admin /opt/ibm/bin/site_login_link $PORTAL_SITE_UUID | tail -1)

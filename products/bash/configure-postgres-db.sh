@@ -24,7 +24,7 @@
 #   With overridden values
 #     ./configure-postgres-db.sh -n <POSTGRES_NAMESPACE> -u <DB_USER> -d <DB_NAME> -p <DB_PASS> -e <DEMO>
 
-function usage {
+function usage() {
   echo "Usage: $0 -n <POSTGRES_NAMESPACE> -u <DB_USER> -d <DB_NAME> -p <DB_PASS> -e <DEMO>"
   exit 1
 }
@@ -39,22 +39,28 @@ cross="\xE2\x9D\x8C"
 
 while getopts "n:u:d:p:e:" opt; do
   case ${opt} in
-    n ) POSTGRES_NAMESPACE="$OPTARG"
-      ;;
-    u ) DB_USER="$OPTARG"
-      ;;
-    d ) DB_NAME="$OPTARG"
-      ;;
-    p ) DB_PASS="$OPTARG"
-      ;;
-    e ) DEMO="$OPTARG"
-      ;;
-    \? ) usage;
-      ;;
+  n)
+    POSTGRES_NAMESPACE="$OPTARG"
+    ;;
+  u)
+    DB_USER="$OPTARG"
+    ;;
+  d)
+    DB_NAME="$OPTARG"
+    ;;
+  p)
+    DB_PASS="$OPTARG"
+    ;;
+  e)
+    DEMO="$OPTARG"
+    ;;
+  \?)
+    usage
+    ;;
   esac
 done
 
-if [[ -z "${DB_PASS// }" || -z "${POSTGRES_NAMESPACE// }" || -z "${DB_USER// }" || -z "${DB_NAME// }" || -z "${DEMO// }" ]]; then
+if [[ -z "${DB_PASS// /}" || -z "${POSTGRES_NAMESPACE// /}" || -z "${DB_USER// /}" || -z "${DB_NAME// /}" || -z "${DEMO// /}" ]]; then
   echo -e "$cross ERROR: Some mandatory parameters are empty"
   usage
 fi
@@ -77,12 +83,12 @@ echo -e "\n---------------------------------------------------------------------
 
 # Check if the database exists
 if ! oc exec -n ${POSTGRES_NAMESPACE} -i $DB_POD \
-  -- psql -d $DB_NAME -c '\l' > /dev/null 2>&1 ; then
+  -- psql -d $DB_NAME -c '\l' >/dev/null 2>&1; then
   echo "INFO: Creating Database '$DB_NAME' and User '$DB_USER'"
   oc exec -n ${POSTGRES_NAMESPACE} -i $DB_POD \
-    -- psql << EOF
+    -- psql <<EOF
 CREATE DATABASE $DB_NAME;
-CREATE USER $DB_USER WITH PASSWORD `echo "'${DB_PASS}'"`;
+CREATE USER $DB_USER WITH PASSWORD $(echo "'${DB_PASS}'");
 GRANT CONNECT ON DATABASE $DB_NAME TO $DB_USER;
 EOF
   if [ $? -ne 0 ]; then
@@ -92,8 +98,8 @@ EOF
 else
   echo "INFO: Database and user already exist, updating user password only"
   oc exec -n ${POSTGRES_NAMESPACE} -i $DB_POD \
-    -- psql << EOF
-ALTER USER $DB_USER WITH PASSWORD `echo "'${DB_PASS}'"`;
+    -- psql <<EOF
+ALTER USER $DB_USER WITH PASSWORD $(echo "'${DB_PASS}'");
 EOF
 fi
 
@@ -102,7 +108,7 @@ echo -e "\n---------------------------------------------------------------------
 if [[ "$DEMO" == "ddd" ]]; then
   echo "INFO: Creating the table 'QUOTES' in the database '$DB_NAME' with the username '$DB_USER'"
   if ! oc exec -n $POSTGRES_NAMESPACE -it $DB_POD \
-      -- psql -U $DB_USER -d $DB_NAME -c \
+    -- psql -U $DB_USER -d $DB_NAME -c \
     '
     CREATE TABLE IF NOT EXISTS QUOTES (
       QuoteID SERIAL PRIMARY KEY NOT NULL,
@@ -124,7 +130,7 @@ if [[ "$DEMO" == "ddd" ]]; then
     echo -e "\n$tick INFO: Created the table 'QUOTES' in the database '$DB_NAME' with the username '$DB_USER'"
   fi
 else
-  echo -e "\nINFO: Creating the table 'QUOTES' and in the database '$DB_NAME' with the username '$DB_USER'"
+  echo -e "INFO: Creating the table 'QUOTES' and in the database '$DB_NAME' with the username '$DB_USER'"
   if ! oc exec -n $POSTGRES_NAMESPACE -it $DB_POD \
     -- psql -U $DB_USER -d $DB_NAME -c \
     '

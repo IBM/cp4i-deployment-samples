@@ -25,8 +25,8 @@
 #   Overriding the namespace and release-name
 #     ./release-tracing -n cp4i-prod -r prod
 
-function usage {
-    echo "Usage: $0 -n <namespace> -r <release-name>"
+function usage() {
+  echo "Usage: $0 -n <namespace> -r <release-name>"
 }
 
 namespace="cp4i"
@@ -37,28 +37,31 @@ production="false"
 
 while getopts "n:r:b:d:f:p" opt; do
   case ${opt} in
-    n ) namespace="$OPTARG"
-      ;;
-    r ) release_name="$OPTARG"
-      ;;
-    b ) block_storage="$OPTARG"
-      ;;
-    f ) file_storage="$OPTARG"
-      ;;
-    p ) production="true"
-      ;;
-    \? ) usage; exit
-      ;;
+  n)
+    namespace="$OPTARG"
+    ;;
+  r)
+    release_name="$OPTARG"
+    ;;
+  b)
+    block_storage="$OPTARG"
+    ;;
+  f)
+    file_storage="$OPTARG"
+    ;;
+  p)
+    production="true"
+    ;;
+  \?)
+    usage
+    exit
+    ;;
   esac
 done
 
-
-
-
-if [[ "$production" == "true" ]]
-then
-echo "Production Mode Enabled"
-cat << EOF | oc apply -f -
+if [[ "$production" == "true" ]]; then
+  echo "Production Mode Enabled"
+  cat <<EOF | oc apply -f -
 apiVersion: integration.ibm.com/v1beta2
 kind: OperationsDashboard
 metadata:
@@ -91,10 +94,10 @@ spec:
     tracingVolume:
       class: "${block_storage}"
       size: 150Gi
-  version: 2020.3.1-0
+  version: 2020.3.1-1
 EOF
 else
-cat << EOF | oc apply -f -
+  cat <<EOF | oc apply -f -
 apiVersion: integration.ibm.com/v1beta2
 kind: OperationsDashboard
 metadata:
@@ -114,6 +117,6 @@ spec:
       class: "${file_storage}"
     tracingVolume:
       class: "${block_storage}"
-  version: 2020.3.1-0
+  version: 2020.3.1-1
 EOF
 fi

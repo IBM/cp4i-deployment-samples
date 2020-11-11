@@ -19,7 +19,7 @@
 #   ./release-psql.sh
 #******************************************************************************
 
-function usage {
+function usage() {
   echo "Usage: $0 -n <POSTGRES_NAMESPACE>"
   exit 1
 }
@@ -28,15 +28,17 @@ POSTGRES_NAMESPACE="postgres"
 
 while getopts "n:u:d:p:" opt; do
   case ${opt} in
-    n ) POSTGRES_NAMESPACE="$OPTARG"
-      ;;
-    \? ) usage; exit
-      ;;
+  n)
+    POSTGRES_NAMESPACE="$OPTARG"
+    ;;
+  \?)
+    usage
+    ;;
   esac
 done
 
 echo "Installing PostgreSQL..."
-cat << EOF > postgres.env
+cat <<EOF >postgres.env
   MEMORY_LIMIT=2Gi
   NAMESPACE=openshift
   DATABASE_SERVICE_NAME=postgresql
@@ -56,7 +58,7 @@ echo "INFO: Found DB pod as: ${DB_POD}"
 
 echo "INFO: Changing DB parameters for Debezium support"
 oc exec -n ${POSTGRES_NAMESPACE} -i $DB_POD \
-  -- psql << EOF
+  -- psql <<EOF
 ALTER SYSTEM SET wal_level = logical;
 ALTER SYSTEM SET max_wal_senders=10;
 ALTER SYSTEM SET max_replication_slots=10;

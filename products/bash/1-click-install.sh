@@ -330,7 +330,9 @@ spec:
   updateStrategy:
     registryPoll:
       interval: 45m
+
 ---
+
 apiVersion: operators.coreos.com/v1alpha1
 kind: CatalogSource
 metadata:
