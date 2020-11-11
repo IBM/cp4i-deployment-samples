@@ -682,7 +682,7 @@ if [[ "$TRACING_ENABLED" == "true" ]]; then
   if ! $SCRIPT_DIR/register-tracing.sh -n "$NAMESPACE"; then
     update_conditions "Failed to register Tracing in the '$NAMESPACE' namespace" "Releasing"
     update_phase "Failed"
-    ARRAY_FOR_FAILED_INSTALL_PRODUCTS+=($tracing)
+    ARRAY_FOR_FAILED_INSTALL_PRODUCTS+=(tracing)
   else
     echo -e "$tick [SUCCESS] Successfully registered Tracing in the '$NAMESPACE' namespace"
     update_product_status $EACH_PRODUCT_NAME $EACH_PRODUCT_TYPE "true" "false"
@@ -714,7 +714,7 @@ if [[ ! "$(echo "${REQUIRED_PRODUCTS_JSON}" | jq -r '.[] | select(.enabled == tr
   if ! $SCRIPT_DIR/ar_remote_create.sh -r "$AR_REMOTE_NAME" -n "$NAMESPACE" -o; then
     update_conditions "Failed to create Asset Repository remote in the '$NAMESPACE' namespace with the name '$AR_REMOTE_NAME'" "Releasing"
     update_phase "Failed"
-    ARRAY_FOR_FAILED_INSTALL_PRODUCTS+=($assetRepo)
+    ARRAY_FOR_FAILED_INSTALL_PRODUCTS+=(assetRepo)
   else
     echo -e "$tick INFO: Successfully created Asset Repository remote in the '$NAMESPACE' namespace with the name '$AR_REMOTE_NAME'"
   fi # ar_remote_create.sh
