@@ -763,6 +763,7 @@ fi
 # Exit only if any one of the previous step(s) (addons/products/demos) changed the phase to Failed
 #-------------------------------------------------------------------------------------------------------------------
 
+$DEBUG && echo -e "$info [INFO] Status after all installations:\n" && echo $STATUS | jq . && divider
 check_phase_and_exit_on_failed
 
 #-------------------------------------------------------------------------------------------------------------------
@@ -771,4 +772,4 @@ check_phase_and_exit_on_failed
 
 divider && echo -e "$tick [SUCCESS] Successfully installed all selected addons, products and demos. Changing the overall status to 'Running'..."
 update_phase "Running"
-$DEBUG && echo -e "$info [INFO] Final status:\n" echo $STATUS | jq . && divider
+$DEBUG && echo -e "$info [INFO] Final status:\n" && echo $STATUS | jq . && divider
