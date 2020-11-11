@@ -56,7 +56,7 @@ NAMESPACE_OBJECT_FOR_STATUS='{"name":""}'
 TRACING_ENABLED=false
 ADDON_OBJECT_FOR_STATUS='{"type":"", "installed":"", "readyToUse":""}'
 PRODUCT_OBJECT_FOR_STATUS='{"name":"","type":"", "installed":"", "readyToUse":""}'
-DEMO_VERSION="2020.3.1"
+DEMO_VERSION="2020.3.1-1"
 
 declare -a ARRAY_FOR_FAILED_INSTALL_PRODUCTS
 declare -a ARRAY_FOR_FAILED_INSTALL_ADDONS
@@ -250,6 +250,12 @@ function update_product_status() {
   # update status with new product status
   STATUS=$(echo $STATUS | jq -c '.products += ['"${PRODUCT_TO_ADD_TO_STATUS}"']')
 }
+
+#-------------------------------------------------------------------------------------------------------------------
+# Set seconds to zero to calculate time taken for overall demo setup
+#-------------------------------------------------------------------------------------------------------------------
+
+SECONDS=0
 
 #-------------------------------------------------------------------------------------------------------------------
 # Validate the parameters passed in
@@ -765,6 +771,12 @@ fi
 
 $DEBUG && echo -e "$info [INFO] Status after all installations:\n" && echo $STATUS | jq . && divider
 check_phase_and_exit_on_failed
+
+#-------------------------------------------------------------------------------------------------------------------
+# Calculate total time taken for all installation
+#-------------------------------------------------------------------------------------------------------------------
+
+$DEBUG && echo -e "$info [INFO] The overall installation took $(($SECONDS / 60 / 60 % 24)) hours $(($SECONDS / 60)) minutes and $(($SECONDS % 60)) seconds."
 
 #-------------------------------------------------------------------------------------------------------------------
 # Change final status to Running at end of installation
