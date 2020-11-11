@@ -330,7 +330,7 @@ NAMESPACE=$(echo $JSON | jq -r .metadata.namespace)
 REQUIRED_DEMOS_JSON=$(echo $JSON | jq -c '.spec | if has("demos") then .demos else {} end')
 REQUIRED_PRODUCTS_JSON=$(echo $JSON | jq -c '.spec | if has("products") then .products else [] end')
 REQUIRED_ADDONS_JSON=$(echo $JSON | jq -c '.spec | if has("addons") then .addons else [] end')
-# To use during un-installation
+# To use for un-installation
 ORIGINAL_STATUS=$(echo $JSON | jq -r .status)
 
 echo -e "\n$info Block storage class: '$BLOCK_STORAGE_CLASS'"
@@ -420,10 +420,17 @@ for DEMO in $(echo $REQUIRED_DEMOS_JSON | jq -r 'to_entries[] | select( .value.e
 done
 
 #-------------------------------------------------------------------------------------------------------------------
-# Clear previous status and set new status with Phase as Pending
+# Print previous status, clear it and set new status with Phase as Pending
 #-------------------------------------------------------------------------------------------------------------------
 
-$DEBUG && divider && echo -e "$info [INFO] Deleting old status, assigning new status and changing the status phase to 'Pending' as installation is starting..."
+divider
+
+# if previous status exists, print it
+if [[ "${ORIGINAL_STATUS}" != "null" ]]; then
+  $DEBUG && echo -e "$info Original status passed:\n" && echo $ORIGINAL_STATUS | jq .
+fi
+
+$DEBUG && echo -e "$info [INFO] Deleting old status, assigning new status and changing the status phase to 'Pending' as installation is starting...\n"
 JSON=$(echo $JSON | jq -r 'del(.status) | .status.version="'$DEMO_VERSION'" | .status.conditions=[] | .status.phase="Pending" | .status.demos=[] | .status.addons=[] | .status.products=[] | .status.namespaces=[] ')
 STATUS=$(echo $JSON | jq -r .status)
 
@@ -790,4 +797,4 @@ $DEBUG && divider && echo -e "$info [INFO] The overall installation took $(($SEC
 
 divider && echo -e "$tick [SUCCESS] Successfully installed all selected addons, products and demos. Changing the overall status to 'Running'..."
 update_phase "Running"
-$DEBUG && divider && echo -e "\n$info [INFO] Final status:\n" && echo $STATUS | jq . && divider
+$DEBUG && divider && echo -e "$info [INFO] Final status:\n" && echo $STATUS | jq . && divider
