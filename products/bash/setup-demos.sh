@@ -593,7 +593,7 @@ for eachProduct in $(echo "${REQUIRED_PRODUCTS_JSON}" | jq -r '.[] | select(.ena
 
   assetRepo)
     # Get APIC release name for configuring APIC
-    AR_REMOTE_NAME=$EACH_PRODUCT_NAME
+    AR_RELEASE_NAME=$EACH_PRODUCT_NAME
     echo -e "\n$info [INFO] Releasing Asset Repository $ECHO_LINE...\n"
     if ! $SCRIPT_DIR/release-ar.sh -n "$NAMESPACE" -r "$EACH_PRODUCT_NAME"; then
       update_conditions "Failed to release Asset Repository $ECHO_LINE" "Releasing"
@@ -661,6 +661,7 @@ for eachProduct in $(echo "${REQUIRED_PRODUCTS_JSON}" | jq -r '.[] | select(.ena
 
   tracing)
     echo -e "\n$info [INFO] Releasing tracing $ECHO_LINE...\n"
+    TRACING_RELEASE_NAME=$EACH_PRODUCT_NAME
     if ! $SCRIPT_DIR/release-tracing.sh -n "$NAMESPACE" -r "$EACH_PRODUCT_NAME" -b "$BLOCK_STORAGE_CLASS" -f "$FILE_STORAGE_CLASS"; then
       update_conditions "Failed to release Tracing $ECHO_LINE" "Releasing"
       update_phase "Failed"
@@ -688,10 +689,11 @@ if [[ "$TRACING_ENABLED" == "true" ]]; then
   if ! $SCRIPT_DIR/register-tracing.sh -n "$NAMESPACE"; then
     update_conditions "Failed to register Tracing in the '$NAMESPACE' namespace" "Releasing"
     update_phase "Failed"
+    update_product_status $TRACING_RELEASE_NAME "tracing" "true" "false"
     ARRAY_FOR_FAILED_INSTALL_PRODUCTS+=(tracing)
   else
     echo -e "$tick [SUCCESS] Successfully registered Tracing in the '$NAMESPACE' namespace"
-    update_product_status $EACH_PRODUCT_NAME $EACH_PRODUCT_TYPE "true" "false"
+    update_product_status $TRACING_RELEASE_NAME "tracing" "true" "true"
   fi # release-tracing.sh
 fi
 
@@ -704,9 +706,11 @@ if [[ ! "$(echo "${REQUIRED_PRODUCTS_JSON}" | jq -r '.[] | select(.enabled == tr
   if ! $SCRIPT_DIR/configure-apic-v10.sh -n "$NAMESPACE" -r "$APIC_RELEASE_NAME"; then
     update_conditions "Failed to configure APIC in the '$NAMESPACE' namespace" "Releasing"
     update_phase "Failed"
+    update_product_status $APIC_RELEASE_NAME "apic" "true" "false"
     ARRAY_FOR_FAILED_INSTALL_PRODUCTS+=(apic)
   else
     echo -e "$tick [SUCCESS] Successfully configured APIC in the '$NAMESPACE' namespace"
+    update_product_status $APIC_RELEASE_NAME "apic" "true" "true"
     divider
   fi # configure-apic-v10.sh
 fi
@@ -716,13 +720,15 @@ fi
 #-------------------------------------------------------------------------------------------------------------------
 
 if [[ ! "$(echo "${REQUIRED_PRODUCTS_JSON}" | jq -r '.[] | select(.enabled == true and .type == "assetRepo")')" == "" ]]; then
-  divider && echo -e "$info [INFO] Creating Asset Repository remote in the '$NAMESPACE' namespace with the name '$AR_REMOTE_NAME'...\n"
-  if ! $SCRIPT_DIR/ar_remote_create.sh -r "$AR_REMOTE_NAME" -n "$NAMESPACE" -o; then
-    update_conditions "Failed to create Asset Repository remote in the '$NAMESPACE' namespace with the name '$AR_REMOTE_NAME'" "Releasing"
+  divider && echo -e "$info [INFO] Creating Asset Repository remote in the '$NAMESPACE' namespace with the name '$AR_RELEASE_NAME'...\n"
+  if ! $SCRIPT_DIR/ar_remote_create.sh -r "$AR_RELEASE_NAME" -n "$NAMESPACE" -o; then
+    update_conditions "Failed to create Asset Repository remote in the '$NAMESPACE' namespace with the name '$AR_RELEASE_NAME'" "Releasing"
     update_phase "Failed"
+    update_product_status $AR_RELEASE_NAME "assetRepo" "true" "false"
     ARRAY_FOR_FAILED_INSTALL_PRODUCTS+=(assetRepo)
   else
-    echo -e "$tick INFO: Successfully created Asset Repository remote in the '$NAMESPACE' namespace with the name '$AR_REMOTE_NAME'"
+    echo -e "$tick INFO: Successfully created Asset Repository remote in the '$NAMESPACE' namespace with the name '$AR_RELEASE_NAME'"
+    update_product_status $AR_RELEASE_NAME "assetRepo" "true" "true"
   fi # ar_remote_create.sh
 fi
 
@@ -784,4 +790,4 @@ $DEBUG && echo -e "$info [INFO] The overall installation took $(($SECONDS / 60 /
 
 divider && echo -e "$tick [SUCCESS] Successfully installed all selected addons, products and demos. Changing the overall status to 'Running'..."
 update_phase "Running"
-$DEBUG && echo -e "$info [INFO] Final status:\n" && echo $STATUS | jq . && divider
+$DEBUG && echo -e "\n$info [INFO] Final status:\n" && echo $STATUS | jq . && divider
