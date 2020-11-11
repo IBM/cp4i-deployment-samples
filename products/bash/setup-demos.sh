@@ -501,11 +501,11 @@ for eachAddon in $(echo "${REQUIRED_ADDONS_JSON}" | jq -r '.[] | select(.enabled
       update_phase "Failed"
       ARRAY_FOR_FAILED_INSTALL_ADDONS+=($ADDON_TYPE)
     else
-      echo -e "$tick [SUCCESS] Successfully installed OCP pipelines" && divider
+      echo -e "$tick [SUCCESS] Successfully installed OCP pipelines"
       update_addon_status $ADDON_TYPE "true" "false"
     fi # install-ocp-pipeline.sh
 
-    echo -e "$info [INFO] Configuring secrets and permissions related to ocp pipelines in the '$NAMESPACE' namespace\n"
+    divider && echo -e "$info [INFO] Configuring secrets and permissions related to ocp pipelines in the '$NAMESPACE' namespace\n"
     if ! $SCRIPT_DIR/configure-ocp-pipeline.sh -n "$NAMESPACE"; then
       update_conditions "Failed to create secrets and permissions related to ocp pipelines in the '$NAMESPACE' namespace" "Releasing"
       update_phase "Failed"
@@ -547,7 +547,7 @@ echo -e "$info [INFO] Tracing enabled: '$TRACING_ENABLED'..."
 # Install the selected/required products
 #-------------------------------------------------------------------------------------------------------------------
 
-$DEBUG && divider && echo -e "$info Starting selected products' installation..."
+$DEBUG && divider && echo -e "$info Starting selected products installation...\n"
 for eachProduct in $(echo "${REQUIRED_PRODUCTS_JSON}" | jq -r '.[] | select(.enabled == true ) | @base64'); do
   EACH_PRODUCT_JSON=$(echo ${eachProduct} | base64 --decode)
   $DEBUG && echo $EACH_PRODUCT_JSON | jq .
@@ -685,7 +685,7 @@ done
 #-------------------------------------------------------------------------------------------------------------------
 
 if [[ "$TRACING_ENABLED" == "true" ]]; then
-  echo -e "$info [INFO] Registering tracing in the '$NAMESPACE' namespace...\n"
+  divider && echo -e "$info [INFO] Registering tracing in the '$NAMESPACE' namespace...\n"
   if ! $SCRIPT_DIR/register-tracing.sh -n "$NAMESPACE"; then
     update_conditions "Failed to register Tracing in the '$NAMESPACE' namespace" "Releasing"
     update_phase "Failed"
@@ -720,7 +720,7 @@ fi
 #-------------------------------------------------------------------------------------------------------------------
 
 if [[ ! "$(echo "${REQUIRED_PRODUCTS_JSON}" | jq -r '.[] | select(.enabled == true and .type == "assetRepo")')" == "" ]]; then
-  divider && echo -e "$info [INFO] Creating Asset Repository remote in the '$NAMESPACE' namespace with the name '$AR_RELEASE_NAME'...\n"
+  echo -e "$info [INFO] Creating Asset Repository remote in the '$NAMESPACE' namespace with the name '$AR_RELEASE_NAME'...\n"
   if ! $SCRIPT_DIR/ar_remote_create.sh -r "$AR_RELEASE_NAME" -n "$NAMESPACE" -o; then
     update_conditions "Failed to create Asset Repository remote in the '$NAMESPACE' namespace with the name '$AR_RELEASE_NAME'" "Releasing"
     update_phase "Failed"
