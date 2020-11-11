@@ -223,7 +223,7 @@ function update_addon_status() {
   ADDON_INSTALLED=${2}    # if the addon is installed
   ADDON_READY_TO_USE=${3} # if the installed addon is configured and ready to use
 
-  $DEBUG && echo -e "\n$info [INFO] addonType($ADDON_TYPE) - addonInstalled($ADDON_INSTALLED) - addonReadyToUse($ADDON_READY_TO_USE)"
+  $DEBUG && divider && echo -e "$info [INFO] addonType($ADDON_TYPE) - addonInstalled($ADDON_INSTALLED) - addonReadyToUse($ADDON_READY_TO_USE)"
 
   # clear any existing status for the passed addon type
   STATUS=$(echo $STATUS | jq -c 'del(.addons[] | select(.type == "'$ADDON_TYPE'")) ')
@@ -241,7 +241,7 @@ function update_product_status() {
   PRODUCT_INSTALLED=${3}    # if the product is installed
   PRODUCT_READY_TO_USE=${4} # if the installed product is configured and ready to use
 
-  $DEBUG && echo -e "\n$info [INFO] productName($PRODUCT_NAME) - productType($PRODUCT_TYPE) - productInstalled($PRODUCT_INSTALLED) - productReadyToUse($PRODUCT_READY_TO_USE)"
+  $DEBUG && divider && echo -e "$info [INFO] productName($PRODUCT_NAME) - productType($PRODUCT_TYPE) - productInstalled($PRODUCT_INSTALLED) - productReadyToUse($PRODUCT_READY_TO_USE)"
 
   # clear any existing status for the passed product type
   STATUS=$(echo $STATUS | jq -c 'del(.products[] | select(.type == "'$PRODUCT_TYPE'")) ')
@@ -600,7 +600,7 @@ for eachProduct in $(echo "${REQUIRED_PRODUCTS_JSON}" | jq -r '.[] | select(.ena
       update_phase "Failed"
       ARRAY_FOR_FAILED_INSTALL_PRODUCTS+=($EACH_PRODUCT_TYPE)
     else
-      echo -e "$tick [SUCCESS] Successfully released Asset Repository $ECHO_LINE" && divider
+      echo -e "\n$tick [SUCCESS] Successfully released Asset Repository $ECHO_LINE"
       update_product_status $EACH_PRODUCT_NAME $EACH_PRODUCT_TYPE "true" "false"
     fi # release-ar.sh
     divider
@@ -613,7 +613,7 @@ for eachProduct in $(echo "${REQUIRED_PRODUCTS_JSON}" | jq -r '.[] | select(.ena
       update_phase "Failed"
       ARRAY_FOR_FAILED_INSTALL_PRODUCTS+=($EACH_PRODUCT_TYPE)
     else
-      echo -e "$tick [SUCCESS] Successfully released ACE dashboard $ECHO_LINE" && divider
+      echo -e "\n$tick [SUCCESS] Successfully released ACE dashboard $ECHO_LINE"
       update_product_status $EACH_PRODUCT_NAME $EACH_PRODUCT_TYPE "true" "true"
     fi # release-ace-dashboard.sh
     divider
@@ -640,7 +640,7 @@ for eachProduct in $(echo "${REQUIRED_PRODUCTS_JSON}" | jq -r '.[] | select(.ena
       update_phase "Failed"
       ARRAY_FOR_FAILED_INSTALL_PRODUCTS+=($EACH_PRODUCT_TYPE)
     else
-      echo -e "$tick [SUCCESS] Successfully released APIC $ECHO_LINE" && divider
+      echo -e "\n$tick [SUCCESS] Successfully released APIC $ECHO_LINE"
       update_product_status $EACH_PRODUCT_NAME $EACH_PRODUCT_TYPE "true" "false"
     fi # release-apic.sh
     divider
@@ -653,7 +653,7 @@ for eachProduct in $(echo "${REQUIRED_PRODUCTS_JSON}" | jq -r '.[] | select(.ena
       update_phase "Failed"
       ARRAY_FOR_FAILED_INSTALL_PRODUCTS+=($EACH_PRODUCT_TYPE)
     else
-      echo -e "$tick [SUCCESS] Successfully release $ECHO_LINE" && divider
+      echo -e "\n$tick [SUCCESS] Successfully release $ECHO_LINE"
       update_product_status $EACH_PRODUCT_NAME $EACH_PRODUCT_TYPE "true" "true"
     fi # release-es.sh
     divider
@@ -667,7 +667,7 @@ for eachProduct in $(echo "${REQUIRED_PRODUCTS_JSON}" | jq -r '.[] | select(.ena
       update_phase "Failed"
       ARRAY_FOR_FAILED_INSTALL_PRODUCTS+=($EACH_PRODUCT_TYPE)
     else
-      echo -e "$tick [SUCCESS] Successfully released Tracing $ECHO_LINE" && divider
+      echo -e "\n$tick [SUCCESS] Successfully released Tracing $ECHO_LINE"
       update_product_status $EACH_PRODUCT_NAME $EACH_PRODUCT_TYPE "true" "false"
     fi # release-tracing.sh
     ;;
@@ -692,7 +692,7 @@ if [[ "$TRACING_ENABLED" == "true" ]]; then
     update_product_status $TRACING_RELEASE_NAME "tracing" "true" "false"
     ARRAY_FOR_FAILED_INSTALL_PRODUCTS+=(tracing)
   else
-    echo -e "$tick [SUCCESS] Successfully registered Tracing in the '$NAMESPACE' namespace"
+    echo -e "\n$tick [SUCCESS] Successfully registered Tracing in the '$NAMESPACE' namespace"
     update_product_status $TRACING_RELEASE_NAME "tracing" "true" "true"
   fi # release-tracing.sh
 fi
@@ -709,7 +709,7 @@ if [[ ! "$(echo "${REQUIRED_PRODUCTS_JSON}" | jq -r '.[] | select(.enabled == tr
     update_product_status $APIC_RELEASE_NAME "apic" "true" "false"
     ARRAY_FOR_FAILED_INSTALL_PRODUCTS+=(apic)
   else
-    echo -e "$tick [SUCCESS] Successfully configured APIC in the '$NAMESPACE' namespace"
+    echo -e "\n$tick [SUCCESS] Successfully configured APIC in the '$NAMESPACE' namespace"
     update_product_status $APIC_RELEASE_NAME "apic" "true" "true"
     divider
   fi # configure-apic-v10.sh
@@ -727,7 +727,7 @@ if [[ ! "$(echo "${REQUIRED_PRODUCTS_JSON}" | jq -r '.[] | select(.enabled == tr
     update_product_status $AR_RELEASE_NAME "assetRepo" "true" "false"
     ARRAY_FOR_FAILED_INSTALL_PRODUCTS+=(assetRepo)
   else
-    echo -e "$tick INFO: Successfully created Asset Repository remote in the '$NAMESPACE' namespace with the name '$AR_RELEASE_NAME'"
+    echo -e "\n$tick [SUCCESS] Successfully created Asset Repository remote in the '$NAMESPACE' namespace with the name '$AR_RELEASE_NAME'"
     update_product_status $AR_RELEASE_NAME "assetRepo" "true" "true"
   fi # ar_remote_create.sh
 fi
@@ -775,7 +775,7 @@ fi
 # Exit only if any one of the previous step(s) (addons/products/demos) changed the phase to Failed
 #-------------------------------------------------------------------------------------------------------------------
 
-$DEBUG && echo -e "$info [INFO] Status after all installations:\n" && echo $STATUS | jq . && divider
+$DEBUG && divider && echo -e "$info [INFO] Status after all installations:\n" && echo $STATUS | jq .
 check_phase_and_exit_on_failed
 
 #-------------------------------------------------------------------------------------------------------------------
@@ -790,4 +790,4 @@ $DEBUG && divider && echo -e "$info [INFO] The overall installation took $(($SEC
 
 divider && echo -e "$tick [SUCCESS] Successfully installed all selected addons, products and demos. Changing the overall status to 'Running'..."
 update_phase "Running"
-$DEBUG && echo -e "\n$info [INFO] Final status:\n" && echo $STATUS | jq . && divider
+$DEBUG && divider && echo -e "\n$info [INFO] Final status:\n" && echo $STATUS | jq . && divider
