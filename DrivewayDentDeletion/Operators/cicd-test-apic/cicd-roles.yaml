@@ -29,7 +29,7 @@ rules:
   verbs: ["create", "delete", "get", "list", "patch", "update", "watch"]
 # Permission to get pods during deploy stage
 - apiGroups: [""]
-  resources: ["pods", "pods/exec", "configmaps", "secrets", "serviceaccounts"]
+  resources: ["pods", "pods/exec", "configmaps", "secrets", "serviceaccounts", "services"]
   verbs: ["list", "get", "create", "delete"]
 
 ---
@@ -124,7 +124,7 @@ metadata:
 rules:
 # Permission to get tasks, pipelines in tekton.dev in dev namespace - to apply pipeline and task yamls
 - apiGroups: [""]
-  resources: ["pods", "pods/exec", "configmaps", "secrets", "serviceaccounts"]
+  resources: ["pods", "pods/exec", "configmaps", "secrets", "serviceaccounts", "services"]
   verbs: ["list", "get", "create", "delete"]
 # Permissions for appconnect integration server deployment in test namespace
 - apiGroups: ["appconnect.ibm.com"]
@@ -177,8 +177,8 @@ rules:
   verbs: ["get", "list"]
 # Permissions for test task to list services in dev namespace
 - apiGroups: [""]
-  resources: ["services"]
-  verbs: ["get", "list"]
+  resources: ["services", "secrets"]
+  verbs: ["get", "list", "patch"]
 # Permission to get secrets for test script in test namespace
 - apiGroups: [""]
   resources: ["secrets"]
@@ -203,12 +203,12 @@ rules:
   verbs: ["get", "list"]
 # Permissions for test task to list services in test namespace
 - apiGroups: [""]
-  resources: ["services"]
-  verbs: ["get", "list"]
+  resources: ["services", "secrets"]
+  verbs: ["get", "list", "patch"]
 # Permission to get secrets for test script in test namespace
 - apiGroups: [""]
   resources: ["secrets"]
-  verbs: ["get"]
+  verbs: ["get", "create"]
 # Permission to create configmaps for test script in test namespace
 - apiGroups: [""]
   resources: ["configmaps"]

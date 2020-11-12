@@ -35,6 +35,8 @@ SUFFIX="eei"
 POSTGRES_NAMESPACE="postgres"
 REPO="https://github.com/IBM/cp4i-deployment-samples.git"
 BRANCH="main"
+info="\xE2\x84\xB9"
+missingParams="false"
 ELASTIC_NAMESPACE="elasticsearch"
 
 while getopts "n:r:b:" opt; do
@@ -54,17 +56,32 @@ while getopts "n:r:b:" opt; do
   esac
 done
 
-if [[ -z "${namespace// }" || -z "${REPO// }" || -z "${BRANCH// }" ]]; then
-  echo -e "$cross ERROR: Mandatory parameters are empty"
+if [[ -z "${namespace// /}" ]]; then
+  echo -e "$cross ERROR: Namespace for EEI is empty. Please provide a value for '-n' parameter."
+  missingParams="true"
+fi
+
+if [[ -z "${REPO// /}" ]]; then
+  echo -e "$cross ERROR: Repository name is empty. Please provide a value for '-r' parameter."
+  missingParams="true"
+fi
+
+if [[ -z "${BRANCH// /}" ]]; then
+  echo -e "$cross ERROR: Branch for the repository is empty. Please provide a value for '-b' parameter."
+  missingParams="true"
+fi
+
+if [[ "$missingParams" == "true" ]]; then
+  echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
   usage
 fi
 
 CURRENT_DIR=$(dirname $0)
-echo "INFO: Current directory: '$CURRENT_DIR'"
-echo "INFO: Namespace: '$namespace'"
-echo "INFO: Suffix for the postgres is: '$SUFFIX'"
-echo "INFO: Repo: '$REPO'"
-echo "INFO: Branch: '$BRANCH'"
+echo -e "$info INFO: Current directory: '$CURRENT_DIR'"
+echo -e "$info INFO: Namespace: '$namespace'"
+echo -e "$info INFO: Suffix for the postgres is: '$SUFFIX'"
+echo -e "$info INFO: Repo: '$REPO'"
+echo -e "$info INFO: Branch: '$BRANCH'"
 
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
@@ -148,7 +165,7 @@ PASSWORD_ENCODED=$(echo -n ${DB_PASS} | base64)
 
 echo "INFO: Creating a secret for the lifecycle simulator app to connect to postgres"
 # everything inside 'data' must be in the base64 encoded form
-cat << EOF | oc apply -f -
+cat <<EOF | oc apply -f -
 apiVersion: v1
 kind: Secret
 metadata:
@@ -172,19 +189,22 @@ fi #configure-postgres-db.sh
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
 REPLICATION_USER=$(echo ${namespace}_sor_replication_${SUFFIX} | sed 's/-/_/g')
-REPLICATION_PASSWORD=$(LC_ALL=C tr -dc 'A-Za-z0-9' </dev/urandom | head -c 32 ; echo)
+REPLICATION_PASSWORD=$(
+  LC_ALL=C tr -dc 'A-Za-z0-9' </dev/urandom | head -c 32
+  echo
+)
 REPLICATION_PASSWORD_ENCODED=$(echo -n ${REPLICATION_PASSWORD} | base64)
 
 echo "INFO: Creating replication user"
-oc exec -n ${POSTGRES_NAMESPACE} -i $DB_POD -- psql -d $DB_NAME << EOF
-CREATE ROLE $REPLICATION_USER REPLICATION LOGIN PASSWORD `echo "'${REPLICATION_PASSWORD}'"`;
-ALTER USER $REPLICATION_USER WITH PASSWORD `echo "'${REPLICATION_PASSWORD}'"`;
+oc exec -n ${POSTGRES_NAMESPACE} -i $DB_POD -- psql -d $DB_NAME <<EOF
+CREATE ROLE $REPLICATION_USER REPLICATION LOGIN PASSWORD $(echo "'${REPLICATION_PASSWORD}'");
+ALTER USER $REPLICATION_USER WITH PASSWORD $(echo "'${REPLICATION_PASSWORD}'");
 GRANT ALL PRIVILEGES ON TABLE quotes TO $REPLICATION_USER;
 CREATE PUBLICATION db_eei_quotes FOR TABLE quotes;
 EOF
 
 echo -e "\nINFO: Creating secret for replication user"
-cat << EOF | oc apply -f -
+cat <<EOF | oc apply -f -
 apiVersion: v1
 kind: Secret
 metadata:
@@ -211,18 +231,18 @@ echo -e "$tick $all_done INFO: All prerequisites for the event enabled insurance
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
 time=0
-echo "INFO: Waiting for upto 10 minutes for git-clone cluster task to be available before creating the pipeline and the pipelinerun..."
+echo "INFO: Waiting for upto 120 minutes for git-clone cluster task to be available before creating the pipeline and the pipelinerun..."
 GIT_CLONE_CLUSTER_TASK=$(oc get clustertask git-clone)
 RESULT_GIT_CLONE_CLUSTER_TASK=$(echo $?)
 while [ "$RESULT_GIT_CLONE_CLUSTER_TASK" -ne "0" ]; do
-  if [ $time -gt 10 ]; then
+  if [ $time -gt 120 ]; then
     echo "ERROR: Timed-out waiting for 'git-clone' cluster task to be available"
     echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
     exit 1
   fi
 
   $TKN clustertask ls | grep git-clone
-  echo -e "\nINFO: The cluster task 'git-clone' is not yet available, waiting for upto 10 minutes. Waited ${time} minute(s)."
+  echo -e "\nINFO: The cluster task 'git-clone' is not yet available, waiting for upto 120 minutes. Waited ${time} minute(s)."
   time=$((time + 1))
   sleep 60
   GIT_CLONE_CLUSTER_TASK=$(oc get clustertask git-clone)
