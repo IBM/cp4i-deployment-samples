@@ -13,8 +13,8 @@
 #   - Logged into cluster on the OC CLI (https://docs.openshift.com/container-platform/4.4/cli_reference/openshift_cli/getting-started-cli.html)
 #
 # PARAMETERS:
-#   -i : <input.yaml> (string), full path to input yaml
-#   -o : <output.yaml> (string), full path to output yaml
+#   -i : <input.yaml/input.json> (string), full path to input yaml/json
+#   -o : <output.yaml/output.json> (string), full path to output yaml/json
 #
 # USAGE:
 #   ./setup-demos.sh -i input.yaml -o output.yaml
@@ -32,10 +32,10 @@ function usage() {
 while getopts "i:o:" opt; do
   case ${opt} in
   i)
-    INPUT_YAML_FILE="$OPTARG"
+    INPUT_FILE="$OPTARG"
     ;;
   o)
-    OUTPUT_YAML_FILE="$OPTARG"
+    OUTPUT_FILE="$OPTARG"
     ;;
   \?)
     usage
@@ -202,13 +202,13 @@ function check_phase_and_exit_on_failed() {
 # Validate the parameters passed in
 #-------------------------------------------------------------------------------------------------------------------
 missingParams="false"
-if [[ -z "${INPUT_YAML_FILE// /}" ]]; then
-  echo -e "$cross ERROR: INPUT_YAML_FILE is empty. Please provide a value for '-i' parameter." 1>&2
+if [[ -z "${INPUT_FILE// /}" ]]; then
+  echo -e "$cross ERROR: INPUT_FILE is empty. Please provide a value for '-i' parameter." 1>&2
   missingParams="true"
 fi
 
-if [[ -z "${OUTPUT_YAML_FILE// /}" ]]; then
-  echo -e "$cross ERROR: OUTPUT_YAML_FILE is empty. Please provide a value for '-o' parameter." 1>&2
+if [[ -z "${OUTPUT_FILE// /}" ]]; then
+  echo -e "$cross ERROR: OUTPUT_FILE is empty. Please provide a value for '-o' parameter." 1>&2
   missingParams="true"
 fi
 if [[ "$missingParams" == "true" ]]; then
@@ -220,8 +220,8 @@ fi
 # Output the parameters
 #-------------------------------------------------------------------------------------------------------------------
 divider && echo -e "$info Script directory: '$SCRIPT_DIR'"
-echo -e "$info Input yaml file: '$INPUT_YAML_FILE'"
-echo -e "$info Output yaml file : '$OUTPUT_YAML_FILE'\n"
+echo -e "$info Input yaml file: '$INPUT_FILE'"
+echo -e "$info Output yaml file : '$OUTPUT_FILE'\n"
 
 #-------------------------------------------------------------------------------------------------------------------
 # Validate the prereqs
@@ -248,17 +248,21 @@ if [[ "$missingPrereqs" == "true" ]]; then
 fi
 
 #-------------------------------------------------------------------------------------------------------------------
-# Read in the input yaml and convert to json
+# Read in the input file and, if not already json, convert to json
 #-------------------------------------------------------------------------------------------------------------------
-$DEBUG && echo "[DEBUG] Converting $INPUT_YAML_FILE into json"
-JSON=$(yq r -j $INPUT_YAML_FILE)
-$DEBUG && echo "[DEBUG] Got the following JSON for $INPUT_YAML_FILE:"
+if [[ "$INPUT_FILE" == *.json ]]; then
+  JSON=$(<$INPUT_FILE)
+else
+  $DEBUG && echo "[DEBUG] Converting $INPUT_FILE into json"
+  JSON=$(yq r -j $INPUT_FILE)
+fi
+$DEBUG && echo "[DEBUG] Got the following JSON for $INPUT_FILE:"
 $DEBUG && echo $JSON | jq .
 
 #-------------------------------------------------------------------------------------------------------------------
 # Extract information from the yaml
 #-------------------------------------------------------------------------------------------------------------------
-$DEBUG && echo "[DEBUG] Get storage classes and branch from $INPUT_YAML_FILE"
+$DEBUG && echo "[DEBUG] Get storage classes and branch from $INPUT_FILE"
 GENERAL=$(echo $JSON | jq -r .spec.general)
 BLOCK_STORAGE_CLASS=$(echo $GENERAL | jq -r '.storage.block | if has("class") then .class else "cp4i-block-performance" end')
 FILE_STORAGE_CLASS=$(echo $GENERAL | jq -r '.storage.file | if has("class") then .class else "ibmc-file-gold-gid" end')

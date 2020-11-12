@@ -1,0 +1,27 @@
+{
+  "apiVersion": "integration.ibm.com/v1beta1",
+  "kind": "Demo",
+  "metadata": {
+    "name": "demos",
+    "namespace": "cp4i"
+  },
+  "spec": {
+    "demos": {
+      "all": {
+        "enabled": true
+      }
+    },
+    "general": {
+      "samplesRepoBranch": "main",
+      "storage": {
+        "block": {
+          "class": "cp4i-block-performance"
+        },
+        "file": {
+          "class": "ibmc-file-gold-gid"
+        }
+      }
+    },
+    "version": "2020.3.1"
+  }
+}
