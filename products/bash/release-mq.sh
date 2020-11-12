@@ -32,6 +32,8 @@ function usage {
     exit 1
 }
 
+tick="\xE2\x9C\x85"
+cross="\xE2\x9D\x8C"
 namespace="cp4i"
 release_name="mq-demo"
 qm_name="QUICKSTART"
@@ -55,7 +57,7 @@ while getopts "n:r:i:q:z:t" opt; do
       ;;
     t ) tracing_enabled=true
       ;;
-    \? ) usage; exit
+    \? ) usage;
       ;;
   esac
 done
@@ -102,6 +104,10 @@ spec:
     enabled: ${tracing_enabled}
     namespace: ${tracing_namespace}
 EOF
+if [[ "$?" != "0" ]]; then
+  echo -e "$cross [ERROR] Failed to apply QueueManager CR"
+  exit 1
+fi
 
 else
 
@@ -150,6 +156,10 @@ data:
   app.crt: $APP_CERT
 type: Opaque
 EOF
+if [[ "$?" != "0" ]]; then
+  echo -e "$cross [ERROR] Failed to apply ConfigMap/Secret for MQ TLS"
+  exit 1
+fi
 
 
 echo -e "INFO: Going ahead to apply the CR for '$release_name'"
@@ -207,25 +217,29 @@ spec:
     enabled: ${tracing_enabled}
     namespace: ${tracing_namespace}
 EOF
+if [[ "$?" != "0" ]]; then
+  echo -e "$cross [ERROR] Failed to apply QueueManager CR"
+  exit 1
+fi
 
   # -------------------------------------- Register Tracing ---------------------------------------------------------------------
 oc get secrets icp4i-od-store-cred -n ${namespace}
 if [ $? -ne 0 ] && [ "$tracing_enabled" == "true"  ] ; then
- echo "[INFO] secret icp4i-od-store-cred does not exist in ${namespace}, running tracing registration"
-    echo "Tracing_Namespace= ${tracing_namespace}"
-    echo "Namespace= ${namespace}"
-      if ! ${CURRENT_DIR}/register-tracing.sh -n $tracing_namespace -a ${namespace} ; then
-        echo "INFO: Running with test environment flag"
-        echo "ERROR: Failed to register tracing in project '$namespace'"
-        exit 1
-      fi
- else
-    if [ "$tracing_enabled" == "false" ]; then
-        echo "[INFO] Tracing Registration not need. Tracing set to $tracing_enabled"
-     else
-        echo "[INFO] secret icp4i-od-store-cred exist, no need to run tracing registration"
-    fi
- fi
+  echo "[INFO] secret icp4i-od-store-cred does not exist in ${namespace}, running tracing registration"
+  echo "Tracing_Namespace= ${tracing_namespace}"
+  echo "Namespace= ${namespace}"
+  if ! ${CURRENT_DIR}/register-tracing.sh -n $tracing_namespace -a ${namespace} ; then
+    echo "INFO: Running with test environment flag"
+    echo "ERROR: Failed to register tracing in project '$namespace'"
+    exit 1
+  fi
+else
+  if [ "$tracing_enabled" == "false" ]; then
+    echo "[INFO] Tracing Registration not need. Tracing set to $tracing_enabled"
+  else
+    echo "[INFO] secret icp4i-od-store-cred exist, no need to run tracing registration"
+  fi
+fi
   # -------------------------------------- INSTALL JQ ---------------------------------------------------------------------
 
   echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
@@ -269,7 +283,7 @@ if [ $? -ne 0 ] && [ "$tracing_enabled" == "true"  ] ; then
 
   # wait for 10 minutes for all replica pods to be deployed with new image
   while [ $numberOfMatchesForImageTag -ne $numberOfReplicas ]; do
-    if [ $time -gt 10 ]; then
+    if [ $time -gt 60 ]; then
       echo "ERROR: Timed-out trying to wait for all $release_name demo pod(s) to be deployed with a new image containing the image tag '$imageTag'"
       echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
       exit 1
@@ -306,7 +320,7 @@ if [ $? -ne 0 ] && [ "$tracing_enabled" == "true"  ] ; then
     fi
     if [[ $numberOfMatchesForImageTag != "$numberOfReplicas" ]]; then
       echo -e "\nINFO: Not all $release_name pods have been deployed with the new image having the image tag '$imageTag', retrying for upto 10 minutes for new $release_name demo pods to be deployed with new image. Waited ${time} minute(s)."
-      sleep 60
+      sleep 10
     else
       echo -e "\nINFO: All $release_name demo pods have been deployed with the new image"
     fi

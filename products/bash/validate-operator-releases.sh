@@ -23,6 +23,7 @@
 
 function usage {
     echo "Usage: $0 [products...]"
+    exit 1
 }
 
 cp_releases=()

@@ -70,7 +70,7 @@ spec:
     config.storage.replication.factor: 3
     offset.storage.replication.factor: 3
     status.storage.replication.factor: 3
-    # The followoing 2 properties enable a class that allows reading properties from files.
+    # The following 2 properties enable a class that allows reading properties from files.
     config.providers: file
     config.providers.file.class: org.apache.kafka.common.config.provider.FileConfigProvider
   # This mounts secrets into the connector at /opt/kafka/external-configuration. These
@@ -457,22 +457,22 @@ Check the rows in the table:
 db_uuid_sor_eei=# SELECT * FROM QUOTES;
                quoteid                |   source    |     name     |        email        | age |             address             | usstate | licenseplate | descriptionofdamage | claimstatus | claimcost
 --------------------------------------+-------------+--------------+---------------------+-----+---------------------------------+---------+--------------+---------------------+-------------+-----------
- f7d2b638-0446-4ea9-a7bd-697bc2c95d52 | Mobile      | Andy Rosales | AndyR@mail.com      |  77 | 9783 Oxford St., Duluth         | GA      | GWL3149      | Won't start         |           3 |          
- 427f2916-a746-4548-b9c6-8f344232e636 | Mobile      | Andy Rosales | AndyR@mail.com      |  74 | 9783 Oxford St., Duluth         | GA      | GWL3149      | Cracked windscreen  |           4 |          
- 32e3b886-289e-45f3-9d0b-2e461b7235e4 | Mobile      | Nella Beard  | NBeard@mail.com     |  45 | 8774 Inverness Dr., Janesville  | WI      | 787-YWR      | Wheel fell off      |           3 |          
- c2d88eb4-fcb9-4ac9-a5bc-0d23e2bdacb2 | Email       | Andy Rosales | AndyR@mail.com      |  40 | 9783 Oxford St., Duluth         | GA      | GWL3149      | Dent in door        |           1 |          
- dafcf44c-6948-4b20-a0e9-0d6a6a3f2de0 | Mobile      | Andy Rosales | AndyR@mail.com      |  21 | 9783 Oxford St., Duluth         | GA      | GWL3149      | Dent in door        |           3 |          
- ce31003c-77cd-4589-998a-ed74636b7453 | Mobile      | Nella Beard  | NBeard@mail.com     |  50 | 8774 Inverness Dr., Janesville  | WI      | 787-YWR      | Dent in door        |           2 |          
+ f7d2b638-0446-4ea9-a7bd-697bc2c95d52 | Mobile      | Andy Rosales | AndyR@mail.com      |  77 | 9783 Oxford St., Duluth         | GA      | GWL3149      | Won't start         |           3 |
+ 427f2916-a746-4548-b9c6-8f344232e636 | Mobile      | Andy Rosales | AndyR@mail.com      |  74 | 9783 Oxford St., Duluth         | GA      | GWL3149      | Cracked windscreen  |           4 |
+ 32e3b886-289e-45f3-9d0b-2e461b7235e4 | Mobile      | Nella Beard  | NBeard@mail.com     |  45 | 8774 Inverness Dr., Janesville  | WI      | 787-YWR      | Wheel fell off      |           3 |
+ c2d88eb4-fcb9-4ac9-a5bc-0d23e2bdacb2 | Email       | Andy Rosales | AndyR@mail.com      |  40 | 9783 Oxford St., Duluth         | GA      | GWL3149      | Dent in door        |           1 |
+ dafcf44c-6948-4b20-a0e9-0d6a6a3f2de0 | Mobile      | Andy Rosales | AndyR@mail.com      |  21 | 9783 Oxford St., Duluth         | GA      | GWL3149      | Dent in door        |           3 |
+ ce31003c-77cd-4589-998a-ed74636b7453 | Mobile      | Nella Beard  | NBeard@mail.com     |  50 | 8774 Inverness Dr., Janesville  | WI      | 787-YWR      | Dent in door        |           2 |
  9ed6cb97-b7e7-42f7-bf7c-f4e073896444 | Web         | Ronny Doyle  | RonnyDoyle@mail.com |  43 | 790 Arrowhead Court, Portsmouth | VA      | WMC-9628     | Dent in door        |           7 |       300
- af52be30-306f-44d9-81cf-81db89995efc | Mobile      | Nella Beard  | NBeard@mail.com     |  60 | 8774 Inverness Dr., Janesville  | WI      | 787-YWR      | Won't start         |           4 |          
+ af52be30-306f-44d9-81cf-81db89995efc | Mobile      | Nella Beard  | NBeard@mail.com     |  60 | 8774 Inverness Dr., Janesville  | WI      | 787-YWR      | Won't start         |           4 |
  8675ec56-106b-45a1-bfd0-ed9a276e6a19 | Police      | Ronny Doyle  | RonnyDoyle@mail.com |  31 | 790 Arrowhead Court, Portsmouth | VA      | WMC-9628     | Wheel fell off      |           6 |       300
  1a629bd3-15c7-4f13-a702-871077f78281 | Mobile      | Nella Beard  | NBeard@mail.com     |  48 | 8774 Inverness Dr., Janesville  | WI      | 787-YWR      | Won't start         |           5 |       600
- 82b475ab-d666-47f8-811a-a8106e664999 | Mobile      | Andy Rosales | AndyR@mail.com      |  59 | 9783 Oxford St., Duluth         | GA      | GWL3149      | Wheel fell off      |           4 |          
- ebe55243-c199-4c00-810d-22336f2137a6 | Email       | Andy Rosales | AndyR@mail.com      |  69 | 9783 Oxford St., Duluth         | GA      | GWL3149      | Won't start         |           1 |          
- 72665b87-6493-4a2f-9443-6150c889b43f | Web         | Andy Rosales | AndyR@mail.com      |  30 | 9783 Oxford St., Duluth         | GA      | GWL3149      | Wheel fell off      |           1 |          
- d0bd9c77-573d-425d-91c1-973b500cebe0 | Mobile      | Ronny Doyle  | RonnyDoyle@mail.com |  28 | 790 Arrowhead Court, Portsmouth | VA      | WMC-9628     | Cracked windscreen  |           3 |          
+ 82b475ab-d666-47f8-811a-a8106e664999 | Mobile      | Andy Rosales | AndyR@mail.com      |  59 | 9783 Oxford St., Duluth         | GA      | GWL3149      | Wheel fell off      |           4 |
+ ebe55243-c199-4c00-810d-22336f2137a6 | Email       | Andy Rosales | AndyR@mail.com      |  69 | 9783 Oxford St., Duluth         | GA      | GWL3149      | Won't start         |           1 |
+ 72665b87-6493-4a2f-9443-6150c889b43f | Web         | Andy Rosales | AndyR@mail.com      |  30 | 9783 Oxford St., Duluth         | GA      | GWL3149      | Wheel fell off      |           1 |
+ d0bd9c77-573d-425d-91c1-973b500cebe0 | Mobile      | Ronny Doyle  | RonnyDoyle@mail.com |  28 | 790 Arrowhead Court, Portsmouth | VA      | WMC-9628     | Cracked windscreen  |           3 |
  70374fc4-7910-496f-bbe3-a7b0819036cd | Call Center | Ronny Doyle  | RonnyDoyle@mail.com |  33 | 790 Arrowhead Court, Portsmouth | VA      | WMC-9628     | Cracked windscreen  |           7 |       800
- 88953978-770c-4883-899b-fd5d4549d4d2 | Mobile      | Nella Beard  | NBeard@mail.com     |  39 | 8774 Inverness Dr., Janesville  | WI      | 787-YWR      | Dent in door        |           2 |          
+ 88953978-770c-4883-899b-fd5d4549d4d2 | Mobile      | Nella Beard  | NBeard@mail.com     |  39 | 8774 Inverness Dr., Janesville  | WI      | 787-YWR      | Dent in door        |           2 |
  d56e7c3d-a131-4995-bc7c-78a49e641f95 | Police      | Nella Beard  | NBeard@mail.com     |  71 | 8774 Inverness Dr., Janesville  | WI      | 787-YWR      | Cracked windscreen  |           6 |       300
 (17 rows)
 ```
@@ -496,3 +496,129 @@ To delete the topic.
 - Click `Topics` on the left hand side
 - Click the `...` menu for the `sor.public.quotes` topic
 - Choose `Delete this topic`, then `Delete`
+
+# REST endpoint
+
+## ACE flow
+
+### GET
+![get sub flow](./media/rest-get-flow.png)
+
+### POST
+![post sub flow](./media/rest-post-flow.png)
+
+The pipeline deploys an ACE integration server (`ace-rest-int-srv-eei`) that hosts the `/eventinsurance/quote` endpoint. The route of the integration server can be found with `oc get -n $NAMESPACE route ace-rest-int-srv-eei-https -ojsonpath='{.spec.host}'`. Make sure to use HTTPS.
+
+Get api endpoint and auth:
+```bash
+export NAMESPACE=#eei namespace
+export API_BASE_URL=$(oc -n $NAMESPACE get secret eei-api-endpoint-client-id -o jsonpath='{.data.api}' | base64 --decode)
+export API_CLIENT_ID=$(oc -n $NAMESPACE get secret eei-api-endpoint-client-id -o jsonpath='{.data.cid}' | base64 --decode)
+```
+
+Example GET:
+```bash
+$ curl -k -H "X-IBM-Client-Id: ${API_CLIENT_ID}" "${API_BASE_URL}/quote?QuoteID=$QUOTE_ID"
+```
+
+Example POST:
+```bash
+curl -k "${API_BASE_URL}/quote" \
+  -H "X-IBM-Client-Id: ${API_CLIENT_ID}" \
+  -d '{
+    "name": "Barack Obama",
+    "email": "comments@whitehouse.gov",
+    "age": "50",
+    "address": "1600 Pennsylvania Avenue",
+    "usState": "DC",
+    "licensePlate": "EK 3333",
+    "descriptionOfDamage": "420"
+  }'
+```
+
+A successful request should return an HTTP 200 with a JSON body that contains the quote object with a quote id, e.g.:
+```json
+{
+  "name": "Barack Obama",
+  "email": "comments@whitehouse.gov",
+  "age": "50",
+  "address": "1600 Pennsylvania Avenue",
+  "usState": "DC",
+  "licensePlate": "EK 3333",
+  "descriptionOfDamage": "420",
+  "quoteid": "89f8c116-12d8-11eb-b21c-ac1e162c0000"
+}
+```
+# DB Writer
+
+## DB Writer Flow
+
+![dbwriter flow](./media/db-writer-flow.png)
+
+DB_writer bar file: Responsible for Reading messages from the Queue `Quote` and adding to the Postgres Database table `db_cp4i1_sor_eei`. The flow consists of MQ input node and Java compute node. MQ input node passes the messages to the java compute node in the flow which reads the messages from the queue after every second and adds them to the postgres table.
+
+:information_source: Should the db writer fail to communicate with the SOR DB an exception will be thrown and after 99 unsuccesful retries (99 seconds) the message will be backed out to a backout queue `QuoteBO`.
+
+# Testing the POST calls via APIC
+Instructions to load test the POST call via APIC can be found [here](post-load-test-readme.md).
+
+# Component Downtime Testing
+
+Prereqs:
+1. Configure kafka connectors
+2. Call REST endpoint post & get
+
+## I. Shutting down the db writer integration server
+
+1. Delete the integration server:
+    ```sh
+    oc -n $NAMESPACE get integrationserver ace-db-writer-int-srv-eei -o yaml > ~/dbwriter.yaml
+    oc -n $NAMESPACE delete integrationserver ace-db-writer-int-srv-eei
+    ```
+    The post call will succeed but the message won't be taken off the queue and won't be processed
+2. Recreate integration server:
+    ```sh
+    oc apply -f ~/dbwriter.yaml
+    ```
+3. Test post and get (they should work now)
+
+## II. Shutting down the queue manager
+
+1. Delete the queue manager instance:
+    ```sh
+    oc -n $NAMESPACE get queuemanager mq-eei -o yaml > ~/eei-queuemanager.yaml
+    oc -n $NAMESPACE delete queuemanager mq-eei
+    ```
+2. Test post call and you should receive an error that contains: `Failed to make a client connection to queue manager`. The get call will still return existing data if the projection claims db has already been populated.
+3. Recreate queue manager and wait for phase to be running:
+    ```sh
+    oc apply -n $NAMESPACE -f ~/eei-queuemanager.yaml
+    oc get queuemanager -n $NAMESPACE mq-eei
+    ```
+4. Test post and get (they should work now)
+
+## III. Shutting down access to postgresql db
+
+1. Setup some env vars:
+    ```sh
+    POSTGRES_NAMESPACE=postgres
+    DB_POD=$(oc get pod -n ${POSTGRES_NAMESPACE} -l name=postgresql -o jsonpath='{.items[].metadata.name}')
+    DB_NAME=$(oc get secret eei-postgres-replication-credential -o json | \
+    jq -r '.data["connector.properties"]' | base64 --decode | grep dbName | awk '{print $2}')
+    ```
+2. Get a psql prompt for the database:
+    ```sh
+    oc exec -n ${POSTGRES_NAMESPACE} -it $DB_POD -- psql -d ${DB_NAME}
+    ```
+3. To simulate the shut down:
+    ```sql
+    REVOKE ALL PRIVILEGES ON QUOTES FROM cp4i_sor_eei;
+    REVOKE ALL PRIVILEGES ON QUOTES FROM cp4i_sor_replication_eei;
+    ```
+4. Post requests will succeed, however the new claim will not show up in the sor db or the projection claims db. Existing claims should still accessible with the get request but everything else will result in a 404. Make sure to restart the psql db within 99 seconds, otherwise the message will be put on the backout queue.
+5. To restart psql, make sure you're exec'd into the database and run the following commands:
+    ```sql
+    GRANT ALL PRIVILEGES ON TABLE quotes TO cp4i_sor_eei;
+    GRANT ALL PRIVILEGES ON TABLE quotes TO cp4i_sor_replication_eei;
+    ```
+6. Once the permissions have been restored, the new claim should show up in the psql db as well as the projection claims app.

@@ -31,7 +31,7 @@ while getopts "n:" opt; do
   case ${opt} in
     n ) namespace="$OPTARG"
       ;;
-    \? ) usage; exit
+    \? ) usage;
       ;;
   esac
 done
@@ -63,6 +63,38 @@ stringData:
   username: ${ER_USERNAME}
   password: ${ER_PASSWORD}
 EOF
+
+echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
+
+time=0
+echo -e "INFO: Waiting for upto 5 minutes for 'pipeline' service account to be available in the '$namespace' namespace...\n"
+GET_PIPELINE_SERVICE_ACCOUNT=$(oc get sa --namespace ${namespace} pipeline)
+RESULT_GET_PIPELINE_SERVICE_ACCOUNT=$(echo $?)
+while [ "$RESULT_GET_PIPELINE_SERVICE_ACCOUNT" -ne "0" ]; do
+  if [ $time -gt 5 ]; then
+    echo "ERROR: Timed-out waiting for 'pipeline' service account to be available in the '$namespace' namespace"
+    echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
+    exit 1
+  fi
+
+  oc get sa --namespace ${namespace} pipeline
+  echo -e "\nINFO: The 'pipeline' service account is not yet available in the '$namespace' namespace, waiting for upto 5 minutes. Waited ${time} minute(s).\n"
+  time=$((time + 1))
+  sleep 60
+  GET_PIPELINE_SERVICE_ACCOUNT=$(oc get sa --namespace ${namespace} pipeline)
+  RESULT_GET_PIPELINE_SERVICE_ACCOUNT=$(echo $?)
+done
+
+echo -e "\nINFO: 'pipeline' service account is now available\n"
+oc get sa --namespace ${namespace} pipeline
+
+echo -e "\nINFO: Adding Entitled Registry secret to pipeline Service Account..."
+if ! oc get sa --namespace ${namespace} pipeline -o json | jq -r 'del(.secrets[] | select(.name == "er-pull-secret")) | .secrets += [{"name": "er-pull-secret"}]' | oc replace -f -; then
+  echo -e "ERROR: Failed to add the secret 'er-pull-secret' to the service account 'pipeline' in the '$namespace' namespace"
+  exit 1
+else
+  echo -e "INFO: Successfully added the secret 'er-pull-secret' to the service account 'pipeline' in the '$namespace' namespace"
+fi
 
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 

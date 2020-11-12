@@ -1,9 +1,9 @@
 swagger: '2.0'
 info:
-  title: DrivewayDentDeletion
+  title: EventEnabledInsurance
   version: 1.0.0
-  description: DrivewayDentDeletion
-  x-ibm-name: drivewaydentdeletion
+  description: EventEnabledInsurance
+  x-ibm-name: eventenabledinsurance
 paths:
   /quote:
     get:
@@ -12,27 +12,21 @@ paths:
         '200':
           description: The operation was successful.
           schema:
-            type: array
-            items:
-              $ref: '#/definitions/Quote'
+            $ref: '#/definitions/Quote'
       produces:
         - application/json
-      description: Retrieve quote
       parameters:
         - name: QuoteID
           in: query
           type: string
-        - name: Email
-          in: query
-          type: string
-        - name: Name
-          in: query
-          type: string
+          required: true
     post:
       operationId: postQuote
       responses:
         '200':
           description: The operation was successful.
+          schema:
+            $ref: '#/definitions/Quote'
       consumes:
         - application/json
       produces:
@@ -45,25 +39,33 @@ paths:
             $ref: '#/definitions/Quote'
           description: The request body for the operation
           required: true
-basePath: /drivewayrepair
+basePath: /eventinsurance
 definitions:
   Quote:
     type: object
     properties:
-      QuoteID:
+      name:
         type: string
-      Name:
+      email:
         type: string
-      Email:
+      age:
+        type: integer
+      address:
         type: string
-      Address:
+      usState:
         type: string
-      USState:
+      licensePlate:
         type: string
-      LicensePlate:
+      descriptionOfDamage:
         type: string
-      Versions:
-        type: string
+    required:
+      - name
+      - email
+      - age
+      - address
+      - usState
+      - licensePlate
+      - descriptionOfDamage
 host: $(catalog.host)
 schemes:
   - https
@@ -88,6 +90,7 @@ x-ibm-configuration:
           timeout: 60
           parameter-control:
             type: blacklist
+            values: []
           header-control:
             type: blacklist
             values:
@@ -99,10 +102,12 @@ x-ibm-configuration:
   phase: realized
   enforced: true
   testable: true
+  application-authentication:
+    certificate: false
 securityDefinitions:
   clientID:
     type: apiKey
-    in: header
     name: X-IBM-Client-Id
+    in: header
 security:
   - clientID: []

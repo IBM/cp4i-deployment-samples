@@ -5,10 +5,10 @@ Integration Servers and 1 MQ server. Future versions of this demo will build
 upon this.
 
 # Prerequisites
-A [script](prereqs.sh) is provided to setup the prerequisits for this demo
+A [script](prereqs.sh) is provided to setup the prerequisites for this demo
 and this script is automatically run as part of the 1-click demo preparation.
 The script carries out the following:
-- Installs Openshift pipelines from the ocp-4.4 channel
+- Installs Openshift pipelines from the ocp-4.5 channel
 - Creates a project to be used for the demo (default `cp4i`).
 - Creates secrets to allow the pipeline to push images to the above project (default `cp4i`).
 - Creates a secret to allow the pipeline to pull from the entitled registry
@@ -73,5 +73,5 @@ These steps will need to be documented in the demo docs:
 - Deploy to dev/test and wait for rollout tasks: Each of these tasks applies a CR to deploy/update an MQ/ACE microservice and waits for the deploy/update to rollout so the microservice is running the newly built image once the task has completed.
 - Test APIC API in Dev environment: Runs a test of the POST/GET endpoints to verify that the dev environment is working. This acts as a gate for rolling out the change to the test environment.
 - Copy images to test tasks: Copies the images from the dev project to the test project.
-- Configure APIC resources taks: Creates APIC Product, users, subscription in `Dev provider organisation` at later stage in `test provider organisation`
+- Configure APIC resources task: Creates APIC Product, users, subscription in `Dev provider organisation` at later stage in `test provider organisation`
 - Test APIC API in Test environment task: This task will run a final test of the POST/GET endpoints to verify the API published in the APIC catalog in test environment i.e. `test provider org`.

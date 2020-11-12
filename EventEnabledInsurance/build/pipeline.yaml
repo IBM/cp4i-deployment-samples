@@ -26,76 +26,190 @@ spec:
         - name: output
           workspace: git-source
 
+    # build simulator app image
     - name: build-simulator-image
       runAfter:
         - git-clone-eei
-      taskSpec:
-        workspaces:
-          - name: git-source
-        steps:
-          - name: build
-            image: quay.io/buildah/stable:latest
-            securityContext:
-              privileged: true
-            script: |
-              buildah --storage-driver vfs bud \
-                -f /workspace/git-source/EventEnabledInsurance/QuoteLifecycleSimulator/Simulator.Dockerfile \
-                -t image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}/quote-simulator-eei:latest \
-                /workspace/git-source/EventEnabledInsurance/QuoteLifecycleSimulator
-              buildah --storage-driver vfs push \
-                --tls-verify=false \
-                image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}/quote-simulator-eei:latest
+      taskRef:
+        name: build-task-no-pvc
+      params:
+        - name: imageTag
+          value: "latest"
+        - name: imageName
+          value: "quote-simulator-eei"
+        - name: dockerfile
+          value: "EventEnabledInsurance/QuoteLifecycleSimulator/Simulator.Dockerfile"
+        - name: contextPath
+          value: "EventEnabledInsurance/QuoteLifecycleSimulator"
       workspaces:
-      - name: git-source
-        workspace: git-source
+        - name: git-source
+          workspace: git-source
 
+    # deploy simulator app image
     - name: deploy-simulator-app
       runAfter:
         - build-simulator-image
-      taskSpec:
-        workspaces:
-          - name: git-source
-        steps:
-          - name: oc
-            image: quay.io/openshift/origin-cli:latest
-            script: "/workspace/git-source/EventEnabledInsurance/QuoteLifecycleSimulator/deploy.sh -n {{NAMESPACE}}"
+      taskRef:
+        name: run-script
+      params:
+        - name: script
+          value: "EventEnabledInsurance/QuoteLifecycleSimulator/deploy.sh"
+        - name: params
+          value: " -n {{NAMESPACE}}"
       workspaces:
-      - name: git-source
-        workspace: git-source
+        - name: git-source
+          workspace: git-source
 
+    # build projection claim app image
     - name: build-projection-claims-image
       runAfter:
         - git-clone-eei
-      taskSpec:
-        workspaces:
-          - name: git-source
-        steps:
-          - name: build
-            image: quay.io/buildah/stable:latest
-            securityContext:
-              privileged: true
-            script: |
-              buildah --storage-driver vfs bud \
-                -f /workspace/git-source/EventEnabledInsurance/ProjectionClaims/Dockerfile \
-                -t image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}/projection-claims-eei:latest \
-                /workspace/git-source/EventEnabledInsurance/ProjectionClaims
-              buildah --storage-driver vfs push \
-                --tls-verify=false \
-                image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}/projection-claims-eei:latest
+      taskRef:
+        name: build-task-no-pvc
+      params:
+        - name: imageTag
+          value: "latest"
+        - name: imageName
+          value: "projection-claims-eei"
+        - name: dockerfile
+          value: "EventEnabledInsurance/ProjectionClaims/Dockerfile"
+        - name: contextPath
+          value: "EventEnabledInsurance/ProjectionClaims"
       workspaces:
-      - name: git-source
-        workspace: git-source
+        - name: git-source
+          workspace: git-source
 
+    # deploy projection claim app image
     - name: deploy-projection-claims-app
       runAfter:
         - build-projection-claims-image
-      taskSpec:
-        workspaces:
-          - name: git-source
-        steps:
-          - name: oc
-            image: quay.io/openshift/origin-cli:latest
-            script: "/workspace/git-source/EventEnabledInsurance/ProjectionClaims/deploy.sh -n {{NAMESPACE}}"
+      taskRef:
+        name: run-script
+      params:
+        - name: script
+          value: "EventEnabledInsurance/ProjectionClaims/deploy.sh"
+        - name: params
+          value: " -n {{NAMESPACE}}"
       workspaces:
-      - name: git-source
-        workspace: git-source
+        - name: git-source
+          workspace: git-source
+
+    # build mq image
+    - name: build-mq-image
+      runAfter:
+        - git-clone-eei
+      taskRef:
+        name: build-task-no-pvc
+      params:
+        - name: imageTag
+          value: "latest"
+        - name: imageName
+          value: "mq-eei"
+        - name: dockerfile
+          value: "EventEnabledInsurance/MQ/Dockerfile"
+        - name: contextPath
+          value: "EventEnabledInsurance/MQ"
+      workspaces:
+        - name: git-source
+          workspace: git-source
+
+    # deploy mq image
+    - name: deploy-mq
+      runAfter:
+        - build-mq-image
+      taskRef:
+        name: run-script
+      params:
+        - name: script
+          value: "products/bash/release-mq.sh"
+        - name: params
+          value: " -n {{NAMESPACE}} -r mq-eei -i image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}/mq-eei:latest -q eei"
+      workspaces:
+        - name: git-source
+          workspace: git-source
+
+    # build ace rest
+    - name: build-ace-rest
+      runAfter:
+        - git-clone-eei
+      taskRef:
+        name: build-task
+      params:
+        - name: imageTag
+          value: "latest"
+        - name: imageName
+          value: "ace-rest-eei"
+        - name: dockerfile
+          value: "../../../EventEnabledInsurance/ACE/REST.Dockerfile"
+        - name: contextPath
+          value: "../EventEnabledInsurance/ACE/BarFiles"
+        - name: pvc
+          value: "buildah-ace-rest-eei"
+      workspaces:
+        - name: git-source
+          workspace: git-source
+
+    # build ace db-writer
+    - name: build-ace-db-writer
+      runAfter:
+        - git-clone-eei
+      taskRef:
+        name: build-task
+      params:
+        - name: imageTag
+          value: "latest"
+        - name: imageName
+          value: "ace-db-writer-eei"
+        - name: dockerfile
+          value: "../../../EventEnabledInsurance/ACE/DB-WRITER.Dockerfile"
+        - name: contextPath
+          value: "../EventEnabledInsurance/ACE/BarFiles"
+        - name: pvc
+          value: "buildah-ace-db-writer-eei"
+      workspaces:
+        - name: git-source
+          workspace: git-source
+
+    # deploy ace rest
+    - name: deploy-ace-rest
+      runAfter:
+        - build-ace-rest
+      taskRef:
+        name: run-script
+      params:
+        - name: script
+          value: "products/bash/release-ace-integration-server.sh"
+        - name: params
+          value: " -n '{{NAMESPACE}}' -r 'ace-rest-int-srv-eei' -i image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}/ace-rest-eei:latest -c {{CONFIGURATIONS}} -p 1"
+      workspaces:
+        - name: git-source
+          workspace: git-source
+
+    # deploy ace db_writer
+    - name: deploy-db-writer
+      runAfter:
+        - build-ace-db-writer
+      taskRef:
+        name: run-script
+      params:
+        - name: script
+          value: "products/bash/release-ace-integration-server.sh"
+        - name: params
+          value: " -n '{{NAMESPACE}}' -r 'ace-db-writer-int-srv-eei' -i image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}/ace-db-writer-eei:latest -c {{CONFIGURATIONS}} -p 1"
+      workspaces:
+        - name: git-source
+          workspace: git-source
+
+    - name: push-to-apic
+      runAfter:
+        - git-clone-eei
+      taskRef:
+        name: run-script
+      params:
+        - name: script
+          value: "products/bash/pub-sub-apic.sh"
+        - name: params
+          value: " -n '{{NAMESPACE}}' -d eei -t https://ace-rest-int-srv-eei-is:7843 -p EventEnabledInsurance/apic/apic-product-eei.yaml -s EventEnabledInsurance/apic/apic-api-eei.yaml"
+      workspaces:
+        - name: git-source
+          workspace: git-source
