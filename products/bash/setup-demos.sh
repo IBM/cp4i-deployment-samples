@@ -13,8 +13,8 @@
 #   - Logged into cluster on the OC CLI (https://docs.openshift.com/container-platform/4.4/cli_reference/openshift_cli/getting-started-cli.html)
 #
 # PARAMETERS:
-#   -i : <input.yaml> (string), full path to input yaml
-#   -o : <output.yaml> (string), full path to output yaml
+#   -i : <input.yaml/input.json> (string), full path to input yaml/json
+#   -o : <output.yaml/output.json> (string), full path to output yaml/json
 #
 # USAGE:
 #   ./setup-demos.sh -i input.yaml -o output.yaml
@@ -32,10 +32,10 @@ function usage() {
 while getopts "i:o:" opt; do
   case ${opt} in
   i)
-    INPUT_YAML_FILE="$OPTARG"
+    INPUT_FILE="$OPTARG"
     ;;
   o)
-    OUTPUT_YAML_FILE="$OPTARG"
+    OUTPUT_FILE="$OPTARG"
     ;;
   \?)
     usage
@@ -186,20 +186,20 @@ function update_conditions() {
   TIMESTAMP=$(date -u +%FT%T.%Z)
 
   echo -e "\n$cross [ERROR] $MESSAGE"
-  $DEBUG && echo -e "\n$info update_conditions(): reason($REASON) - conditionType($CONDITION_TYPE) - timestamp($TIMESTAMP)"
+  $DEBUG && echo -e "\n$info [DEBUG] update_conditions(): reason($REASON) - conditionType($CONDITION_TYPE) - timestamp($TIMESTAMP)"
 
   # update condition array
   CONDITION_TO_ADD=$(echo $CONDITION_ELEMENT_OBJECT | jq -r '.message="'"$MESSAGE"'" | .status="True" | .type="'$CONDITION_TYPE'" | .lastTransitionTime="'$TIMESTAMP'" | .reason="'$REASON'" ')
   # add condition to condition array
   STATUS=$(echo $STATUS | jq -c '.conditions += ['"${CONDITION_TO_ADD}"']')
-  $DEBUG && echo -e "\n$info [INFO] Printing the status conditions array" && echo $STATUS | jq -r '.conditions'
+  $DEBUG && echo -e "\n$info [DEBUG] Printing the status conditions array" && echo $STATUS | jq -r '.conditions'
 }
 
 #----------------------------------------------------
 
 function update_phase() {
   PHASE=${1} # Pending, Running or Failed
-  $DEBUG && divider && echo -e "$info [INFO] update_phase(): phase($PHASE)"
+  $DEBUG && divider && echo -e "$info [DEBUG] update_phase(): phase($PHASE)"
   STATUS=$(echo $STATUS | jq -c '.phase="'$PHASE'"')
 }
 
@@ -212,7 +212,7 @@ function check_phase_and_exit_on_failed() {
     divider && echo -e "$info [INFO] Current installation phase is '$CURRENT_PHASE', exiting now." && divider
     exit 1
   else
-    $DEBUG && divider && echo -e "$info [INFO] Current installation phase is '$CURRENT_PHASE', continuing the installation..."
+    $DEBUG && divider && echo -e "$info [DEBUG] Current installation phase is '$CURRENT_PHASE', continuing the installation..."
   fi
 }
 
@@ -223,7 +223,7 @@ function update_addon_status() {
   ADDON_INSTALLED=${2}    # if the addon is installed
   ADDON_READY_TO_USE=${3} # if the installed addon is configured and ready to use
 
-  $DEBUG && divider && echo -e "$info [INFO] addonType($ADDON_TYPE) - addonInstalled($ADDON_INSTALLED) - addonReadyToUse($ADDON_READY_TO_USE)"
+  $DEBUG && divider && echo -e "$info [DEBUG] addonType($ADDON_TYPE) - addonInstalled($ADDON_INSTALLED) - addonReadyToUse($ADDON_READY_TO_USE)"
 
   # clear any existing status for the passed addon type
   STATUS=$(echo $STATUS | jq -c 'del(.addons[] | select(.type == "'$ADDON_TYPE'")) ')
@@ -241,7 +241,7 @@ function update_product_status() {
   PRODUCT_INSTALLED=${3}    # if the product is installed
   PRODUCT_READY_TO_USE=${4} # if the installed product is configured and ready to use
 
-  $DEBUG && divider && echo -e "$info [INFO] productName($PRODUCT_NAME) - productType($PRODUCT_TYPE) - productInstalled($PRODUCT_INSTALLED) - productReadyToUse($PRODUCT_READY_TO_USE)"
+  $DEBUG && divider && echo -e "$info [DEBUG] productName($PRODUCT_NAME) - productType($PRODUCT_TYPE) - productInstalled($PRODUCT_INSTALLED) - productReadyToUse($PRODUCT_READY_TO_USE)"
 
   # clear any existing status for the passed product type
   STATUS=$(echo $STATUS | jq -c 'del(.products[] | select(.type == "'$PRODUCT_TYPE'")) ')
@@ -262,13 +262,13 @@ SECONDS=0
 #-------------------------------------------------------------------------------------------------------------------
 
 missingParams="false"
-if [[ -z "${INPUT_YAML_FILE// /}" ]]; then
-  echo -e "$cross ERROR: INPUT_YAML_FILE is empty. Please provide a value for '-i' parameter." 1>&2
+if [[ -z "${INPUT_FILE// /}" ]]; then
+  echo -e "$cross ERROR: INPUT_FILE is empty. Please provide a value for '-i' parameter." 1>&2
   missingParams="true"
 fi
 
-if [[ -z "${OUTPUT_YAML_FILE// /}" ]]; then
-  echo -e "$cross ERROR: OUTPUT_YAML_FILE is empty. Please provide a value for '-o' parameter." 1>&2
+if [[ -z "${OUTPUT_FILE// /}" ]]; then
+  echo -e "$cross ERROR: OUTPUT_FILE is empty. Please provide a value for '-o' parameter." 1>&2
   missingParams="true"
 fi
 if [[ "$missingParams" == "true" ]]; then
@@ -281,8 +281,8 @@ fi
 #-------------------------------------------------------------------------------------------------------------------
 
 divider && echo -e "$info Script directory: '$SCRIPT_DIR'"
-echo -e "$info Input yaml file: '$INPUT_YAML_FILE'"
-echo -e "$info Output yaml file : '$OUTPUT_YAML_FILE'\n"
+echo -e "$info Input yaml file: '$INPUT_FILE'"
+echo -e "$info Output yaml file : '$OUTPUT_FILE'\n"
 
 #-------------------------------------------------------------------------------------------------------------------
 # Validate the prereqs
@@ -310,18 +310,21 @@ if [[ "$missingPrereqs" == "true" ]]; then
 fi
 
 #-------------------------------------------------------------------------------------------------------------------
-# Read in the input yaml and convert to json
+# Read in the input file and, if not already json, convert to json
 #-------------------------------------------------------------------------------------------------------------------
-
-$DEBUG && echo "[DEBUG] Converting $INPUT_YAML_FILE into json"
-JSON=$(yq r -j $INPUT_YAML_FILE)
-$DEBUG && echo "[DEBUG] Got the following JSON for $INPUT_YAML_FILE:"
+if [[ "$INPUT_FILE" == *.json ]]; then
+  JSON=$(<$INPUT_FILE)
+else
+  $DEBUG && echo "[DEBUG] Converting $INPUT_FILE into json"
+  JSON=$(yq r -j $INPUT_FILE)
+fi
+$DEBUG && echo "[DEBUG] Got the following JSON for $INPUT_FILE:"
 $DEBUG && echo $JSON | jq .
 
 #-------------------------------------------------------------------------------------------------------------------
 # Extract information from the yaml
 #-------------------------------------------------------------------------------------------------------------------
-$DEBUG && echo -e "\n[DEBUG] Get storage classes and branch from $INPUT_YAML_FILE"
+$DEBUG && echo "[DEBUG] Get storage classes and branch from $INPUT_FILE"
 GENERAL=$(echo $JSON | jq -r .spec.general)
 BLOCK_STORAGE_CLASS=$(echo $GENERAL | jq -r '.storage.block | if has("class") then .class else "cp4i-block-performance" end')
 FILE_STORAGE_CLASS=$(echo $GENERAL | jq -r '.storage.file | if has("class") then .class else "ibmc-file-gold-gid" end')
@@ -342,7 +345,7 @@ echo -e "$info Namespace: '$NAMESPACE'" && divider
 # If all demos enabled then add all demos
 #-------------------------------------------------------------------------------------------------------------------
 ALL_DEMOS_ENABLED=$(echo $REQUIRED_DEMOS_JSON | jq -r '.all | if has("enabled") then .enabled else "false" end')
-$DEBUG && echo -e "$info All demos enabled: '$ALL_DEMOS_ENABLED'"
+$DEBUG && echo -e "$info [DEBUG] All demos enabled: '$ALL_DEMOS_ENABLED'"
 if [[ "${ALL_DEMOS_ENABLED}" == "true" ]]; then
   REQUIRED_DEMOS_JSON='{"cognitiveCarRepair": {"enabled": true},"drivewayDentDeletion": {"enabled": true},"eventEnabledInsurance": {"enabled": true}}'
 else
@@ -427,10 +430,10 @@ $DEBUG && divider
 
 # if previous status exists, print it
 if [[ "${ORIGINAL_STATUS}" != "null" ]]; then
-  $DEBUG && echo -e "$info Original status passed:\n" && echo $ORIGINAL_STATUS | jq .
+  $DEBUG && echo -e "$info [DEBUG] Original status passed:\n" && echo $ORIGINAL_STATUS | jq .
 fi
 
-$DEBUG && echo -e "$info [INFO] Deleting old status, assigning new status and changing the status phase to 'Pending' as installation is starting..."
+$DEBUG && echo -e "$info [DEBUG] Deleting old status, assigning new status and changing the status phase to 'Pending' as installation is starting..."
 JSON=$(echo $JSON | jq -r 'del(.status) | .status.version="'$DEMO_VERSION'" | .status.conditions=[] | .status.phase="Pending" | .status.demos=[] | .status.addons=[] | .status.products=[] | .status.namespaces=[] ')
 STATUS=$(echo $JSON | jq -r .status)
 
@@ -438,7 +441,7 @@ STATUS=$(echo $JSON | jq -r .status)
 # Check if the namespace and the secret exists
 #-------------------------------------------------------------------------------------------------------------------
 
-$DEBUG && divider && echo -e "$info [INFO] Check if the '$NAMESPACE' namespace and the secret 'ibm-entitlement-key' exists...\n"
+$DEBUG && divider && echo -e "$info [DEBUG] Check if the '$NAMESPACE' namespace and the secret 'ibm-entitlement-key' exists...\n"
 
 # add namespace to status if exists
 oc get project $NAMESPACE 2>&1 >/dev/null
@@ -538,7 +541,7 @@ done
 # Display all the namespaces
 #-------------------------------------------------------------------------------------------------------------------
 
-$DEBUG && divider && echo -e "$info [INFO] Namespaces:"
+$DEBUG && divider && echo -e "$info [DEBUG] Namespaces:"
 for eachNamespace in $(echo "${REQUIRED_PRODUCTS_JSON}" | jq -r '[ .[] | select(.enabled == true ) | .namespace ] | unique | .[]'); do
   $DEBUG && echo "$eachNamespace"
 done
@@ -745,7 +748,7 @@ fi
 # Add the required demos
 #-------------------------------------------------------------------------------------------------------------------
 
-$DEBUG && divider && echo "Demos:"
+$DEBUG && divider && echo -e "$info [DEBUG] Demos:"
 for DEMO in $(echo $REQUIRED_DEMOS_JSON | jq -r 'to_entries[] | select( .value.enabled == true ) | .key'); do
   $DEBUG && echo $DEMO
 done
@@ -784,14 +787,14 @@ fi
 # Exit only if any one of the previous step(s) (addons/products/demos) changed the phase to Failed
 #-------------------------------------------------------------------------------------------------------------------
 
-$DEBUG && divider && echo -e "$info [INFO] Status after all installations:\n" && echo $STATUS | jq .
+$DEBUG && divider && echo -e "$info [DEBUG] Status after all installations:\n" && echo $STATUS | jq .
 check_phase_and_exit_on_failed
 
 #-------------------------------------------------------------------------------------------------------------------
 # Calculate total time taken for all installation
 #-------------------------------------------------------------------------------------------------------------------
 
-$DEBUG && divider && echo -e "$info [INFO] The overall installation took $(($SECONDS / 60 / 60 % 24)) hours $(($SECONDS / 60)) minutes and $(($SECONDS % 60)) seconds."
+$DEBUG && divider && echo -e "$info [DEBUG] The overall installation took $(($SECONDS / 60 / 60 % 24)) hours $(($SECONDS / 60)) minutes and $(($SECONDS % 60)) seconds."
 
 #-------------------------------------------------------------------------------------------------------------------
 # Change final status to Running at end of installation
@@ -800,4 +803,4 @@ $DEBUG && divider && echo -e "$info [INFO] The overall installation took $(($SEC
 divider && echo -e "$tick [SUCCESS] Successfully installed all selected addons, products and demos. Changing the overall status to 'Running'"
 update_phase "Running"
 divider
-$DEBUG && echo -e "$info [INFO] Final status:\n" && echo $STATUS | jq . && divider
+$DEBUG && echo -e "$info [DEBUG] Final status:\n" && echo $STATUS | jq . && divider
