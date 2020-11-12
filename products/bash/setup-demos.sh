@@ -55,7 +55,7 @@ CONDITION_ELEMENT_OBJECT='{"lastTransitionTime":"","message":"","reason":"","sta
 NAMESPACE_OBJECT_FOR_STATUS='{"name":""}'
 TRACING_ENABLED=false
 ADDON_OBJECT_FOR_STATUS='{"type":"", "installed":"", "readyToUse":""}'
-PRODUCT_OBJECT_FOR_STATUS='{"name":"","type":"", "installed":"", "readyToUse":""}'
+PRODUCT_OBJECT_FOR_STATUS='{"name":"","type":"", "namespace":"", "installed":"", "readyToUse":""}'
 DEMO_VERSION="2020.3.1-1"
 
 declare -a ARRAY_FOR_FAILED_INSTALL_PRODUCTS
@@ -236,17 +236,19 @@ function update_addon_status() {
 #----------------------------------------------------
 
 function update_product_status() {
-  PRODUCT_NAME=${1}         # name of product
-  PRODUCT_TYPE=${2}         # type of product
-  PRODUCT_INSTALLED=${3}    # if the product is installed
-  PRODUCT_READY_TO_USE=${4} # if the installed product is configured and ready to use
+  PRODUCT_NAME=${1}            # name of product
+  PRODUCT_TYPE=${2}            # type of product
+  PRODUCT_INSTALLED=${3}       # if the product is installed
+  PRODUCT_READY_TO_USE=${4}    # if the installed product is configured and ready to use
+  PRODUCT_NAMESPACE=$NAMESPACE # namespace for the product
 
-  $DEBUG && divider && echo -e "$info [DEBUG] productName($PRODUCT_NAME) - productType($PRODUCT_TYPE) - productInstalled($PRODUCT_INSTALLED) - productReadyToUse($PRODUCT_READY_TO_USE)"
+  $DEBUG && divider && echo -e "$info [DEBUG] productName($PRODUCT_NAME) - productNamespace($PRODUCT_NAMESPACE) - productType($PRODUCT_TYPE) - productInstalled($PRODUCT_INSTALLED) - productReadyToUse($PRODUCT_READY_TO_USE)"
 
   # clear any existing status for the passed product type
-  STATUS=$(echo $STATUS | jq -c 'del(.products[] | select(.type == "'$PRODUCT_TYPE'")) ')
+  # STATUS=$(echo $STATUS | jq -c 'del(.products[] | select(.type == "'$PRODUCT_TYPE'")) ')
+  STATUS=$(echo $STATUS | jq -c 'del(.products[] | select(.type == "'$PRODUCT_TYPE'" and .name == "'$PRODUCT_NAME'" and .namespace == "'$PRODUCT_NAMESPACE'")) ')
   # create object and add status for each product
-  PRODUCT_TO_ADD_TO_STATUS=$(echo $PRODUCT_OBJECT_FOR_STATUS | jq -r '.name="'$PRODUCT_NAME'" | .type="'$PRODUCT_TYPE'" | .installed="'$PRODUCT_INSTALLED'" | .readyToUse="'$PRODUCT_READY_TO_USE'" ')
+  PRODUCT_TO_ADD_TO_STATUS=$(echo $PRODUCT_OBJECT_FOR_STATUS | jq -r '.name="'$PRODUCT_NAME'" | .type="'$PRODUCT_TYPE'" | .namespace="'$PRODUCT_NAMESPACE'" | .installed="'$PRODUCT_INSTALLED'" | .readyToUse="'$PRODUCT_READY_TO_USE'" ')
   # update status with new product status
   STATUS=$(echo $STATUS | jq -c '.products += ['"${PRODUCT_TO_ADD_TO_STATUS}"']')
 }
@@ -491,7 +493,7 @@ for eachAddon in $(echo "${REQUIRED_ADDONS_JSON}" | jq -r '.[] | select(.enabled
       ARRAY_FOR_FAILED_INSTALL_ADDONS+=($ADDON_TYPE)
     else
       echo -e "\n$tick [SUCCESS] Successfully released PostgresSQL in the '$NAMESPACE' namespace"
-      update_addon_status $ADDON_TYPE "true" "true"
+      update_addon_status "$ADDON_TYPE" "true" "true"
     fi # release-psql.sh
     ;;
 
@@ -503,7 +505,7 @@ for eachAddon in $(echo "${REQUIRED_ADDONS_JSON}" | jq -r '.[] | select(.enabled
       ARRAY_FOR_FAILED_INSTALL_ADDONS+=($ADDON_TYPE)
     else
       echo -e "\n$tick [INFO] Successfully installed and configured elastic search in the '$NAMESPACE' namespace"
-      update_addon_status $ADDON_TYPE "true" "true"
+      update_addon_status "$ADDON_TYPE" "true" "true"
     fi # setup-elastic-search.sh
     ;;
 
@@ -515,7 +517,7 @@ for eachAddon in $(echo "${REQUIRED_ADDONS_JSON}" | jq -r '.[] | select(.enabled
       ARRAY_FOR_FAILED_INSTALL_ADDONS+=($ADDON_TYPE)
     else
       echo -e "$tick [SUCCESS] Successfully installed OCP pipelines"
-      update_addon_status $ADDON_TYPE "true" "false"
+      update_addon_status "$ADDON_TYPE" "true" "false"
     fi # install-ocp-pipeline.sh
 
     divider && echo -e "$info [INFO] Configuring secrets and permissions related to ocp pipelines in the '$NAMESPACE' namespace\n"
@@ -525,7 +527,7 @@ for eachAddon in $(echo "${REQUIRED_ADDONS_JSON}" | jq -r '.[] | select(.enabled
       ARRAY_FOR_FAILED_INSTALL_ADDONS+=($ADDON_TYPE)
     else
       echo -e "$tick [SUCCESS] Successfully configured secrets and permissions related to ocp pipelines in the '$NAMESPACE' namespace"
-      update_addon_status $ADDON_TYPE "true" "true"
+      update_addon_status "$ADDON_TYPE" "true" "true"
     fi # configure-ocp-pipeline.sh
     ;;
 
@@ -567,6 +569,7 @@ for eachProduct in $(echo "${REQUIRED_PRODUCTS_JSON}" | jq -r '.[] | select(.ena
 
   EACH_PRODUCT_TYPE=$(echo ${EACH_PRODUCT_JSON} | jq -r '.type')
   EACH_PRODUCT_NAME=$(echo ${EACH_PRODUCT_JSON} | jq -r '.name')
+  EACH_PRODUCT_NAMESPACE=$(echo ${EACH_PRODUCT_JSON} | jq -r '.namespace')
   ECHO_LINE="in the '$NAMESPACE' namespace with the name '$EACH_PRODUCT_NAME'"
 
   case ${EACH_PRODUCT_TYPE} in
@@ -586,7 +589,7 @@ for eachProduct in $(echo "${REQUIRED_PRODUCTS_JSON}" | jq -r '.[] | select(.ena
       ARRAY_FOR_FAILED_INSTALL_PRODUCTS+=($EACH_PRODUCT_TYPE)
     else
       echo -e "\n$tick [SUCCESS] Successfully released MQ $ECHO_LINE"
-      update_product_status $EACH_PRODUCT_NAME $EACH_PRODUCT_TYPE "true" "true"
+      update_product_status "$EACH_PRODUCT_NAME" "$EACH_PRODUCT_TYPE" "true" "true"
     fi # release-mq.sh
     divider
     ;;
@@ -599,7 +602,7 @@ for eachProduct in $(echo "${REQUIRED_PRODUCTS_JSON}" | jq -r '.[] | select(.ena
       ARRAY_FOR_FAILED_INSTALL_PRODUCTS+=($EACH_PRODUCT_TYPE)
     else
       echo -e "\n$tick [INFO] Successfully released ACE Designer $ECHO_LINE"
-      update_product_status $EACH_PRODUCT_NAME $EACH_PRODUCT_TYPE "true" "true"
+      update_product_status "$EACH_PRODUCT_NAME" "$EACH_PRODUCT_TYPE" "true" "true"
     fi # release-ace-designer.sh
     divider
     ;;
@@ -614,7 +617,7 @@ for eachProduct in $(echo "${REQUIRED_PRODUCTS_JSON}" | jq -r '.[] | select(.ena
       ARRAY_FOR_FAILED_INSTALL_PRODUCTS+=($EACH_PRODUCT_TYPE)
     else
       echo -e "\n$tick [SUCCESS] Successfully released Asset Repository $ECHO_LINE"
-      update_product_status $EACH_PRODUCT_NAME $EACH_PRODUCT_TYPE "true" "false"
+      update_product_status "$EACH_PRODUCT_NAME" "$EACH_PRODUCT_TYPE" "true" "false"
     fi # release-ar.sh
     divider
     ;;
@@ -627,7 +630,7 @@ for eachProduct in $(echo "${REQUIRED_PRODUCTS_JSON}" | jq -r '.[] | select(.ena
       ARRAY_FOR_FAILED_INSTALL_PRODUCTS+=($EACH_PRODUCT_TYPE)
     else
       echo -e "\n$tick [SUCCESS] Successfully released ACE dashboard $ECHO_LINE"
-      update_product_status $EACH_PRODUCT_NAME $EACH_PRODUCT_TYPE "true" "true"
+      update_product_status "$EACH_PRODUCT_NAME" "$EACH_PRODUCT_TYPE" "true" "true"
     fi # release-ace-dashboard.sh
     divider
     ;;
@@ -654,7 +657,7 @@ for eachProduct in $(echo "${REQUIRED_PRODUCTS_JSON}" | jq -r '.[] | select(.ena
       ARRAY_FOR_FAILED_INSTALL_PRODUCTS+=($EACH_PRODUCT_TYPE)
     else
       echo -e "\n$tick [SUCCESS] Successfully released APIC $ECHO_LINE"
-      update_product_status $EACH_PRODUCT_NAME $EACH_PRODUCT_TYPE "true" "false"
+      update_product_status "$EACH_PRODUCT_NAME" "$EACH_PRODUCT_TYPE" "true" "false"
     fi # release-apic.sh
     divider
     ;;
@@ -667,7 +670,7 @@ for eachProduct in $(echo "${REQUIRED_PRODUCTS_JSON}" | jq -r '.[] | select(.ena
       ARRAY_FOR_FAILED_INSTALL_PRODUCTS+=($EACH_PRODUCT_TYPE)
     else
       echo -e "\n$tick [SUCCESS] Successfully release $ECHO_LINE"
-      update_product_status $EACH_PRODUCT_NAME $EACH_PRODUCT_TYPE "true" "true"
+      update_product_status "$EACH_PRODUCT_NAME" "$EACH_PRODUCT_TYPE" "true" "true"
     fi # release-es.sh
     divider
     ;;
@@ -681,7 +684,7 @@ for eachProduct in $(echo "${REQUIRED_PRODUCTS_JSON}" | jq -r '.[] | select(.ena
       ARRAY_FOR_FAILED_INSTALL_PRODUCTS+=($EACH_PRODUCT_TYPE)
     else
       echo -e "\n$tick [SUCCESS] Successfully released Tracing $ECHO_LINE"
-      update_product_status $EACH_PRODUCT_NAME $EACH_PRODUCT_TYPE "true" "false"
+      update_product_status "$EACH_PRODUCT_NAME" "$EACH_PRODUCT_TYPE" "true" "false"
     fi # release-tracing.sh
     ;;
 
@@ -702,11 +705,11 @@ if [[ "$TRACING_ENABLED" == "true" ]]; then
   if ! $SCRIPT_DIR/register-tracing.sh -n "$NAMESPACE"; then
     update_conditions "Failed to register Tracing in the '$NAMESPACE' namespace" "Releasing"
     update_phase "Failed"
-    update_product_status $TRACING_RELEASE_NAME "tracing" "true" "false"
+    update_product_status "$TRACING_RELEASE_NAME" "tracing" "true" "false"
     ARRAY_FOR_FAILED_INSTALL_PRODUCTS+=(tracing)
   else
     echo -e "\n$tick [SUCCESS] Successfully registered Tracing in the '$NAMESPACE' namespace"
-    update_product_status $TRACING_RELEASE_NAME "tracing" "true" "true"
+    update_product_status "$TRACING_RELEASE_NAME" "tracing" "true" "true"
   fi # release-tracing.sh
 fi
 
@@ -719,11 +722,11 @@ if [[ ! "$(echo "${REQUIRED_PRODUCTS_JSON}" | jq -r '.[] | select(.enabled == tr
   if ! $SCRIPT_DIR/configure-apic-v10.sh -n "$NAMESPACE" -r "$APIC_RELEASE_NAME"; then
     update_conditions "Failed to configure APIC in the '$NAMESPACE' namespace" "Releasing"
     update_phase "Failed"
-    update_product_status $APIC_RELEASE_NAME "apic" "true" "false"
+    update_product_status "$APIC_RELEASE_NAME" "apic" "true" "false"
     ARRAY_FOR_FAILED_INSTALL_PRODUCTS+=(apic)
   else
     echo -e "$tick [SUCCESS] Successfully configured APIC in the '$NAMESPACE' namespace"
-    update_product_status $APIC_RELEASE_NAME "apic" "true" "true"
+    update_product_status "$APIC_RELEASE_NAME" "apic" "true" "true"
   fi # configure-apic-v10.sh
 fi
 
@@ -736,11 +739,11 @@ if [[ ! "$(echo "${REQUIRED_PRODUCTS_JSON}" | jq -r '.[] | select(.enabled == tr
   if ! $SCRIPT_DIR/ar_remote_create.sh -r "$AR_RELEASE_NAME" -n "$NAMESPACE" -o; then
     update_conditions "Failed to create Asset Repository remote in the '$NAMESPACE' namespace with the name '$AR_RELEASE_NAME'" "Releasing"
     update_phase "Failed"
-    update_product_status $AR_RELEASE_NAME "assetRepo" "true" "false"
+    update_product_status "$AR_RELEASE_NAME" "assetRepo" "true" "false"
     ARRAY_FOR_FAILED_INSTALL_PRODUCTS+=(assetRepo)
   else
     echo -e "\n$tick [SUCCESS] Successfully created Asset Repository remote in the '$NAMESPACE' namespace with the name '$AR_RELEASE_NAME'"
-    update_product_status $AR_RELEASE_NAME "assetRepo" "true" "true"
+    update_product_status "$AR_RELEASE_NAME" "assetRepo" "true" "true"
   fi # ar_remote_create.sh
 fi
 
