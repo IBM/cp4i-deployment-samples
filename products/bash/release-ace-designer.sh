@@ -23,8 +23,8 @@
 #   Overriding the namespace and release-name
 #     ./release-ace-designer.sh -n cp4i-prod -r prod
 
-function usage {
-    echo "Usage: $0 -n <namespace> -r <designer_release_name>"
+function usage() {
+  echo "Usage: $0 -n <namespace> -r <designer_release_name>"
 }
 
 namespace="cp4i"
@@ -32,21 +32,26 @@ designer_release_name="ace-designer-demo"
 storage="ibmc-block-gold"
 while getopts "n:r:s:" opt; do
   case ${opt} in
-    n ) namespace="$OPTARG"
-      ;;
-    r ) designer_release_name="$OPTARG"
-      ;;
-    s ) storage="$OPTARG"
-     ;;
-    \? ) usage; exit
-      ;;
+  n)
+    namespace="$OPTARG"
+    ;;
+  r)
+    designer_release_name="$OPTARG"
+    ;;
+  s)
+    storage="$OPTARG"
+    ;;
+  \?)
+    usage
+    exit
+    ;;
   esac
 done
 echo "INFO: Release ACE Designer..."
-echo "INFO: Namepace: '$namespace'"
+echo "INFO: Namespace: '$namespace'"
 echo "INFO: Designer Release Name: '$designer_release_name'"
 
-cat << EOF | oc apply -f -
+cat <<EOF | oc apply -f -
 apiVersion: appconnect.ibm.com/v1beta1
 kind: DesignerAuthoring
 metadata:

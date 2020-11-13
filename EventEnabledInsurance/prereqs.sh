@@ -180,7 +180,7 @@ echo -e "\n---------------------------------------------------------------------
 
 echo -e "INFO: Configuring postgres in the '$namespace' namespace with the user '$DB_USER' and database name '$DB_NAME' and suffix '$SUFFIX'\n"
 if ! ${CURRENT_DIR}/../products/bash/configure-postgres-db.sh -n ${POSTGRES_NAMESPACE} -u $DB_USER -d $DB_NAME -p $DB_PASS -e $SUFFIX; then
-  echo -e "$cross ERROR: Failed to configure postgres in the '$namespace' namespace with the user '$DB_USER' and database name '$DB_NAME' amd suffix '$SUFFIX'"
+  echo -e "$cross ERROR: Failed to configure postgres in the '$namespace' namespace with the user '$DB_USER' and database name '$DB_NAME' and suffix '$SUFFIX'"
   exit 1
 else
   echo -e "$tick INFO: Successfully configured postgres in the '$namespace' namespace with the user '$DB_USER' and database name '$DB_NAME' and suffix '$SUFFIX'"
@@ -269,7 +269,7 @@ if ! ${CURRENT_DIR}/build/build.sh -n ${namespace} -r $REPO -b $BRANCH -t $TKN; 
   echo -e "\n$cross ERROR: Failed to build/deploy the EEI apps in the '$namespace' namespace"
   exit 1
 else
-  echo -e "\n$tick INFO: Successfully built and deplopyed the EEI apps in the '$namespace' namespace"
+  echo -e "\n$tick INFO: Successfully built and deployed the EEI apps in the '$namespace' namespace"
 fi #build/build.sh
 
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"

@@ -59,7 +59,7 @@ while getopts "n:r:b:t:" opt; do
   esac
 done
 
-if [[ -z "${namespace// }" || -z "${REPO// }" || -z "${BRANCH// }" || -z "${TKN// }" ]]; then
+if [[ -z "${namespace// /}" || -z "${REPO// /}" || -z "${BRANCH// /}" || -z "${TKN// /}" ]]; then
   echo -e "$cross ERROR: Mandatory parameters are empty"
   usage
 fi
@@ -88,7 +88,7 @@ echo "INFO: Create build and deploy tekton tasks"
 if cat $CURRENT_DIR/../../CommonPipelineResources/cicd-tasks-new.yaml |
   sed "s#{{NAMESPACE}}#$namespace#g;" |
   oc apply -n ${namespace} -f -; then
-    echo -e "\n$tick INFO: Successfully applied build and deploy tekton tasks in the '$namespace' namespace"
+  echo -e "\n$tick INFO: Successfully applied build and deploy tekton tasks in the '$namespace' namespace"
 else
   echo -e "\n$cross ERROR: Failed to apply build and deploy tekton tasks in the '$namespace' namespace"
   exit 1
@@ -105,7 +105,7 @@ if cat $CURRENT_DIR/pipeline.yaml |
   sed "s#{{FORKED_REPO}}#$REPO#g;" |
   sed "s#{{BRANCH}}#$BRANCH#g;" |
   oc apply -n ${namespace} -f -; then
-    echo -e "\n$tick INFO: Successfully applied the pipeline to build and deploy the EEI apps in '$namespace' namespace"
+  echo -e "\n$tick INFO: Successfully applied the pipeline to build and deploy the EEI apps in '$namespace' namespace"
 else
   echo -e "\n$cross ERROR: Failed to apply the pipeline to build and deploy the EEI apps in '$namespace' namespace"
   exit 1
@@ -131,7 +131,7 @@ fi #pipelinerun.yaml
 
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
-pipelinerunSuccess="false";
+pipelinerunSuccess="false"
 echo -e "INFO: Displaying the pipelinerun logs in the '$namespace' namespace: \n"
 if ! $TKN pipelinerun logs -n $namespace -f $PIPELINE_RUN_NAME; then
   echo -e "\n$cross ERROR: Failed to get the pipelinerun logs successfully"
@@ -145,7 +145,7 @@ oc get pipelinerun -n $namespace $PIPELINE_RUN_NAME
 echo -e "\nINFO: The task runs in the '$namespace' namespace:\n"
 oc get taskrun -n $namespace
 
-if [[ "$(oc get pipelinerun -n $namespace $PIPELINE_RUN_NAME -o json | jq -r '.status.conditions[0].status')" == "True" ]];then
+if [[ "$(oc get pipelinerun -n $namespace $PIPELINE_RUN_NAME -o json | jq -r '.status.conditions[0].status')" == "True" ]]; then
   pipelinerunSuccess="true"
 fi
 
@@ -153,7 +153,7 @@ echo -e "\nINFO: Going ahead to delete the pipelinerun instance to delete the re
 
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
-if oc delete pipelinerun -n $namespace $PIPELINE_RUN_NAME ; then
+if oc delete pipelinerun -n $namespace $PIPELINE_RUN_NAME; then
   echo -e "$tick INFO: Deleted the pipelinerun with the uid '$PIPELINERUN_UID'"
 else
   echo -e "$cross ERROR: Failed to delete the pipelinerun with the uid '$PIPELINERUN_UID'"
@@ -185,7 +185,7 @@ fi
 
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
-if [[ "$pipelinerunSuccess" == "false" ]];then
+if [[ "$pipelinerunSuccess" == "false" ]]; then
   echo -e "\n$cross ERROR: The pipelinerun did not succeed\n"
   exit 1
 else

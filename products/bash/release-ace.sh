@@ -24,8 +24,8 @@
 #   Overriding the namespace and release-name
 #     ./release-ace.sh -n cp4i-prod -r prod
 
-function usage {
-    echo "Usage: $0 -n <namespace> -r <dashboard-release-name> -e <designer-release-name>"
+function usage() {
+  echo "Usage: $0 -n <namespace> -r <dashboard-release-name> -e <designer-release-name>"
 }
 
 namespace="cp4i"
@@ -34,14 +34,19 @@ designer_release_name="ace-designer-demo"
 
 while getopts "n:r:e:" opt; do
   case ${opt} in
-    n ) namespace="$OPTARG"
-      ;;
-    r ) dashboard_release_name="$OPTARG"
-      ;;
-    e ) designer_release_name="$OPTARG"
-      ;;
-    \? ) usage; exit
-      ;;
+  n)
+    namespace="$OPTARG"
+    ;;
+  r)
+    dashboard_release_name="$OPTARG"
+    ;;
+  e)
+    designer_release_name="$OPTARG"
+    ;;
+  \?)
+    usage
+    exit
+    ;;
   esac
 done
 
@@ -49,13 +54,13 @@ CURRENT_DIR=$(dirname $0)
 echo "Current directory: $CURRENT_DIR"
 
 # Ace Dashboard release
-if ! ${CURRENT_DIR}/release-ace-dashboard.sh -n ${namespace} -r ${dashboard_release_name} ; then
+if ! ${CURRENT_DIR}/release-ace-dashboard.sh -n ${namespace} -r ${dashboard_release_name}; then
   echo "ERROR: Failed to release the ace dashboard in the namespace '$namespace'" 1>&2
   exit 1
 fi
 
 # Ace Designer release
-if ! ${CURRENT_DIR}/release-ace-designer.sh -n ${namespace} -r ${designer_release_name} ; then
+if ! ${CURRENT_DIR}/release-ace-designer.sh -n ${namespace} -r ${designer_release_name}; then
   echo "ERROR: Failed to release the ace designer in the namespace '$namespace'" 1>&2
   exit 1
 fi

@@ -24,8 +24,7 @@ export username=image-bot
 declare -a image_projects=("ace" "mq")
 
 echo "Creating secrets to push images to openshift local registry"
-for image_project in "${image_projects[@]}"
-do
+for image_project in "${image_projects[@]}"; do
   kubectl -n ${image_project} create serviceaccount image-bot
   oc -n ${image_project} policy add-role-to-user registry-editor system:serviceaccount:${image_project}:image-bot
 
@@ -37,7 +36,7 @@ do
 done
 
 echo "Creating secret to pull base images from Entitled Registry"
-cat << EOF | oc apply --namespace ${NAMESPACE} -f -
+cat <<EOF | oc apply --namespace ${NAMESPACE} -f -
 apiVersion: v1
 kind: Secret
 metadata:
@@ -54,14 +53,14 @@ export CURRENT_USER="$(oc whoami)"
 mkdir -p ${PWD}/tmp
 echo "Fetching kubeconfig of cluster and creating secret"
 # oc adm policy add-role-to-user admin $CURRENT_USER -n $NAMESPACE
-oc config view --flatten=true --minify=true > ${PWD}/tmp/kubeconfig.yaml
+oc config view --flatten=true --minify=true >${PWD}/tmp/kubeconfig.yaml
 oc create -n $NAMESPACE secret generic cluster-kubeconfig --from-file=kubeconfig=${PWD}/tmp/kubeconfig.yaml --dry-run -o yaml | oc apply -f -
 
 export HELM_HOME=${PWD}/tmp/.helm
 mkdir -p ${HELM_HOME}
 echo "Fetching ca.crt and ca.key for your cluster"
-kubectl -n kube-system get secret cluster-ca-cert -o jsonpath='{.data.tls\.crt}' | base64 --decode > $HELM_HOME/ca.crt
-kubectl -n kube-system get secret cluster-ca-cert -o jsonpath='{.data.tls\.key}' | base64 --decode > $HELM_HOME/ca.key
+kubectl -n kube-system get secret cluster-ca-cert -o jsonpath='{.data.tls\.crt}' | base64 --decode >$HELM_HOME/ca.crt
+kubectl -n kube-system get secret cluster-ca-cert -o jsonpath='{.data.tls\.key}' | base64 --decode >$HELM_HOME/ca.key
 
 echo "key.pem does not exist in $HELM_HOME, creating key.pem and cert.pem, ca.pem using the new key.pem"
 openssl genrsa -out $HELM_HOME/key.pem 4096
@@ -80,7 +79,7 @@ oc create -n $NAMESPACE secret generic task-helm-repositories \
   --from-file=repositories.yaml=repositories.yaml \
   --dry-run -o yaml | oc apply -f -
 
-cat << EOF | oc apply -f -
+cat <<EOF | oc apply -f -
 kind: Secret
 apiVersion: v1
 metadata:
@@ -94,7 +93,7 @@ data:
 type: Opaque
 EOF
 
-cat << EOF > /tmp/policy.xml
+cat <<EOF >/tmp/policy.xml
 <?xml version="1.0" encoding="UTF-8"?>
 <policies>
   <policy policyType="MQEndpoint" policyName="MQEndpointPolicy" policyTemplate="MQEndpoint">
@@ -111,7 +110,7 @@ cat << EOF > /tmp/policy.xml
 </policies>
 EOF
 
-cat << EOF > /tmp/policyDescriptor.xml
+cat <<EOF >/tmp/policyDescriptor.xml
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <ns2:policyProjectDescriptor xmlns="http://com.ibm.etools.mft.descriptor.base" xmlns:ns2="http://com.ibm.etools.mft.descriptor.policyProject">
   <references/>
@@ -141,7 +140,7 @@ oc wait -n postgres --for=condition=available deploymentconfig --timeout=20m pos
 echo "Creating quotes table in postgres samepledb"
 oc exec -n postgres -it $(oc get pod -n postgres -l name=postgresql -o jsonpath='{.items[].metadata.name}') \
   -- psql -U admin -d sampledb -c \
-'CREATE TABLE QUOTES (
+  'CREATE TABLE QUOTES (
   QuoteID SERIAL PRIMARY KEY NOT NULL,
   Name VARCHAR(100),
   EMail VARCHAR(100),

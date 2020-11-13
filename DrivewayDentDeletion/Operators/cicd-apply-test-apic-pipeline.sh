@@ -57,12 +57,12 @@ done
 CURRENT_DIR=$(dirname $0)
 echo "Current directory: $CURRENT_DIR"
 
-if ! oc project $namespace >/dev/null 2>&1 ; then
+if ! oc project $namespace >/dev/null 2>&1; then
   echo "ERROR: The dev namespace '$namespace' does not exist"
   exit 1
 fi
 
-if ! oc project $namespace-ddd-test >/dev/null 2>&1 ; then
+if ! oc project $namespace-ddd-test >/dev/null 2>&1; then
   echo "ERROR: The test namespace '$namespace-ddd-test' does not exist"
   exit 1
 fi
@@ -98,8 +98,8 @@ echo "INFO: Create service accounts"
 if cat $CURRENT_DIR/cicd-test-apic/cicd-service-accounts.yaml |
   sed "s#{{NAMESPACE}}#$namespace#g;" |
   oc apply -f -; then
-    printf "$tick "
-    echo "Successfully applied service accounts in the '$namespace' namespace"
+  printf "$tick "
+  echo "Successfully applied service accounts in the '$namespace' namespace"
 else
   printf "$cross "
   echo "Failed to apply service accounts in the '$namespace' namespace"
@@ -113,8 +113,8 @@ echo "INFO: Create roles for tasks"
 if cat $CURRENT_DIR/cicd-test-apic/cicd-roles.yaml |
   sed "s#{{NAMESPACE}}#$namespace#g;" |
   oc apply -f -; then
-    printf "$tick "
-    echo "Successfully created roles for tasks in the '$namespace' namespace"
+  printf "$tick "
+  echo "Successfully created roles for tasks in the '$namespace' namespace"
 else
   printf "$cross "
   echo "Failed to create roles for tasks in the '$namespace' namespace"
@@ -128,8 +128,8 @@ echo "INFO: Create role bindings for roles"
 if cat $CURRENT_DIR/cicd-test-apic/cicd-rolebindings.yaml |
   sed "s#{{NAMESPACE}}#$namespace#g;" |
   oc apply -f -; then
-    printf "$tick "
-    echo "Successfully applied role bindings for roles in the '$namespace' namespace"
+  printf "$tick "
+  echo "Successfully applied role bindings for roles in the '$namespace' namespace"
 else
   printf "$cross "
   echo "Failed to apply role bindings for roles in the '$namespace' namespace"
@@ -146,8 +146,8 @@ if cat $CURRENT_DIR/cicd-test-apic/cicd-tasks.yaml |
   sed "s#{{NAMESPACE}}#$namespace#g;" |
   sed "s#{{TRACING}}#$tracing#g;" |
   oc apply -f -; then
-    printf "$tick "
-    echo "Successfully applied tekton tasks in the '$namespace' namespace"
+  printf "$tick "
+  echo "Successfully applied tekton tasks in the '$namespace' namespace"
 else
   printf "$cross "
   echo "Failed to apply tekton tasks in the '$namespace' namespace"
@@ -163,8 +163,8 @@ if cat $CURRENT_DIR/cicd-test-apic/cicd-pipeline.yaml |
   sed "s#{{FORKED_REPO}}#$repo#g;" |
   sed "s#{{BRANCH}}#$branch#g;" |
   oc apply -f -; then
-    printf "$tick "
-    echo "Successfully applied the pipeline to run tasks to build, deploy, test e2e in '$namespace' and '$namespace-ddd-test' namespace"
+  printf "$tick "
+  echo "Successfully applied the pipeline to run tasks to build, deploy, test e2e in '$namespace' and '$namespace-ddd-test' namespace"
 else
   printf "$cross "
   echo "Failed to apply the pipeline to run tasks to build, deploy test e2e in '$namespace' and '$namespace-ddd-test' namespace"
@@ -231,7 +231,7 @@ if [[ $sum -gt 0 ]]; then
   echo "ERROR: Creating the webhook is not recommended as some resources have not been applied successfully in the '$namespace' namespace"
   exit 1
 else
-  # print route for webbook
+  # print route for webhook
   echo "INFO: Your trigger route for the github webhook is: $WEBHOOK_ROUTE"
   echo -e "\nINFO: The next step is to add the trigger URL to the forked repo as a webhook with the Content type as 'application/json', which triggers an initial run of the pipeline.\n"
   printf "$tick  $all_done "

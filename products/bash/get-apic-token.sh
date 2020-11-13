@@ -32,12 +32,12 @@ NAMESPACE="cp4i"
 RELEASE="ademo"
 DEBUG=false
 
-function usage {
+function usage() {
   echo "Usage: $0 -n <namespace> -d"
 }
 
 OUTPUT=""
-function handle_res {
+function handle_res() {
   local body=$1
   local status=$(echo ${body} | $JQ -r ".status")
   $DEBUG && echo "[DEBUG] res body: ${body}"
@@ -52,14 +52,19 @@ function handle_res {
 
 while getopts "n:r:d" opt; do
   case ${opt} in
-    n ) NAMESPACE="$OPTARG"
-      ;;
-    r ) RELEASE="$OPTARG"
-      ;;
-    d ) DEBUG=true
-      ;;
-    \? ) usage; exit
-      ;;
+  n)
+    NAMESPACE="$OPTARG"
+    ;;
+  r)
+    RELEASE="$OPTARG"
+    ;;
+  d)
+    DEBUG=true
+    ;;
+  \?)
+    usage
+    exit
+    ;;
   esac
 done
 
@@ -67,7 +72,7 @@ done
 $DEBUG && echo "[DEBUG] Checking if jq is present..."
 jqInstalled=false
 
-if ! command -v jq &> /dev/null; then
+if ! command -v jq &>/dev/null; then
   jqInstalled=false
 else
   jqInstalled=true

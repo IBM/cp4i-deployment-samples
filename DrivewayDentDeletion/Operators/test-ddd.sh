@@ -21,7 +21,7 @@
 #   With defaults values
 #     ./test-ddd.sh
 #
-#   Overriding the default paramters
+#   Overriding the default parameters
 #     ./test-ddd.sh -n <NAMESPACE> -r <FORKED_REPO> -b <BRANCH>
 #
 
@@ -85,10 +85,10 @@ fi
 
 function print_pipelineruns_taskruns() {
     divider
-    echo -e "$INFO INFO: Printing the pipelineruns in the '$NAMESPACE' namesapce...\n"
+    echo -e "$INFO INFO: Printing the pipelineruns in the '$NAMESPACE' namespace...\n"
     $TKN pipelinerun list -n $NAMESPACE
     divider
-    echo -e "$INFO INFO: Printing all the taskruns in the '$NAMESPACE' namesapce...\n"
+    echo -e "$INFO INFO: Printing all the taskruns in the '$NAMESPACE' namespace...\n"
     $TKN taskrun list -n $NAMESPACE
     divider
 }
@@ -101,7 +101,7 @@ function wait_and_trigger_pipeline() {
     time=0
     while [ "$(oc get pod -n $NAMESPACE | grep el-$PIPELINE_TYPE-event-listener | grep 1/1 | grep Running)" == "" ]; do
         if [ $time -gt 5 ]; then
-            echo -e "$CROSS ERROR: The event listner pod could not be found or did not get to Running state within 5 minutes, below is the current list of pods in the '$NAMESPACE' namespace:\n'"
+            echo -e "$CROSS ERROR: The event listener pod could not be found or did not get to Running state within 5 minutes, below is the current list of pods in the '$NAMESPACE' namespace:\n'"
             oc get pods -n $NAMESPACE
             exit 1
         fi
@@ -138,12 +138,12 @@ function wait_and_trigger_pipeline() {
     fi
 }
 
-function run_continous_load_script() {
+function run_continuous_load_script() {
     divider
     CONTINUOUS_LOAD_NAMESPACE=$1 #namespace
     APIC_ENABLED=$2              # apic enabled
     PIPELINE_TYPE=$3             # pipeline type
-    echo -e "$INFO INFO Running the continuous-load.sh after '$PIPELINE_TYPE' pipeine with apic set to '$APIC_ENABLED' in the '$CONTINUOUS_LOAD_NAMESPACE' namespace..."
+    echo -e "$INFO INFO Running the continuous-load.sh after '$PIPELINE_TYPE' pipeline with apic set to '$APIC_ENABLED' in the '$CONTINUOUS_LOAD_NAMESPACE' namespace..."
 
     if [[ "$APIC_ENABLED" == "true" ]]; then
         if ! $CURRENT_DIR/continuous-load.sh -n $CONTINUOUS_LOAD_NAMESPACE -a -z; then
@@ -253,9 +253,9 @@ fi
 
 wait_and_trigger_pipeline "dev"
 
-run_continous_load_script "$NAMESPACE" "false" "dev"
+run_continuous_load_script "$NAMESPACE" "false" "dev"
 
-run_continous_load_script "$NAMESPACE" "false" "dev"
+run_continuous_load_script "$NAMESPACE" "false" "dev"
 
 # -------------------------------------------- TEST PIPELINE RUN ----------------------------------------------------------
 
@@ -267,9 +267,9 @@ fi
 
 wait_and_trigger_pipeline "test"
 
-run_continous_load_script "$NAMESPACE" "false" "test"
+run_continuous_load_script "$NAMESPACE" "false" "test"
 
-run_continous_load_script "$NAMESPACE-ddd-test" "false" "test"
+run_continuous_load_script "$NAMESPACE-ddd-test" "false" "test"
 
 # -------------------------------------------- TEST APIC PIPELINE RUN -----------------------------------------------------
 
@@ -281,9 +281,9 @@ fi
 
 wait_and_trigger_pipeline "test-apic"
 
-run_continous_load_script "$NAMESPACE" "true" "test-apic"
+run_continuous_load_script "$NAMESPACE" "true" "test-apic"
 
-run_continous_load_script "$NAMESPACE-ddd-test" "true" "test-apic"
+run_continuous_load_script "$NAMESPACE-ddd-test" "true" "test-apic"
 
 # -------------------------------------------PRINT PIPELINERUN, TASKRUN, EXIT ---------------------------------------------
 

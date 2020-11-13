@@ -30,8 +30,8 @@ spec:
           image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}-ddd-test/$(params.imageName):$(params.imageTag)-test
         df -h /var/lib/containers
       volumeMounts:
-         - mountPath: /var/lib/containers
-           name: varlibcontainers
+        - mountPath: /var/lib/containers
+          name: varlibcontainers
       resources:
         requests:
           memory: "4Gi"
@@ -45,7 +45,6 @@ spec:
         claimName: $(params.pvc)
 
 ---
-
 apiVersion: tekton.dev/v1beta1
 kind: Task
 metadata:

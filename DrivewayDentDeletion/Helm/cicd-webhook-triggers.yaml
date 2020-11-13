@@ -11,14 +11,12 @@ spec:
       value: "{{FORKED_REPO}}"
 
 ---
-
 apiVersion: v1
 kind: ServiceAccount
 metadata:
   name: cicd-el
 
 ---
-
 apiVersion: v1
 kind: ServiceAccount
 metadata:
@@ -28,7 +26,6 @@ secrets:
   - name: er-pull-secret
 
 ---
-
 apiVersion: v1
 kind: ServiceAccount
 metadata:
@@ -38,7 +35,6 @@ secrets:
   - name: er-pull-secret
 
 ---
-
 apiVersion: tekton.dev/v1beta1
 kind: Task
 metadata:
@@ -72,7 +68,6 @@ spec:
         runAsUser: 0
 
 ---
-
 apiVersion: tekton.dev/v1beta1
 kind: Task
 metadata:
@@ -106,7 +101,6 @@ spec:
         runAsUser: 0
 
 ---
-
 apiVersion: tekton.dev/v1beta1
 kind: Task
 metadata:
@@ -140,7 +134,6 @@ spec:
         runAsUser: 0
 
 ---
-
 apiVersion: tekton.dev/v1beta1
 kind: Task
 metadata:
@@ -174,7 +167,6 @@ spec:
         runAsUser: 0
 
 ---
-
 apiVersion: tekton.dev/v1alpha1
 kind: Task
 metadata:
@@ -185,40 +177,40 @@ spec:
       type: string
       description: The image tag
   steps:
-  - args:
-    - upgrade
-    - ace-ddd-api-dev
-    - ibm-ace-server-icp4i-prod
-    - --repo
-    - https://raw.githubusercontent.com/IBM/charts/master/repo/entitled/
-    - --namespace
-    - ace
-    - --set
-    - image.pullPolicy=Always,image.aceonly=image-registry.openshift-image-registry.svc:5000/ace/ace-ddd-api:$(params.imageTag),aceonly.replicaCount=2,license=accept,integrationServer.configurationSecret=ace-ddd-dev-creds
-    - --tls
-    - --install
-    - --debug
-    image: alpine/helm:2.12.3
-    env:
-      - name: KUBECONFIG
-        value: /app/kubeconfig
-      - name: HELM_TLS_CA_CERT
-        value: /app/helm/ca.pem
-      - name: HELM_TLS_CERT
-        value: /app/helm/cert.pem
-      - name: HELM_TLS_KEY
-        value: /app/helm/key.pem
-    volumeMounts:
-     - name: kubeconfig
-       mountPath: /app
-     - name: helm-tls
-       mountPath: /app/helm
-     - name: helm-repositories
-       mountPath: /tekton/home/.helm/repository
-    name: helm-deploy
-    resources: {}
-    securityContext:
-      runAsUser: 0
+    - args:
+        - upgrade
+        - ace-ddd-api-dev
+        - ibm-ace-server-icp4i-prod
+        - --repo
+        - https://raw.githubusercontent.com/IBM/charts/master/repo/entitled/
+        - --namespace
+        - ace
+        - --set
+        - image.pullPolicy=Always,image.aceonly=image-registry.openshift-image-registry.svc:5000/ace/ace-ddd-api:$(params.imageTag),aceonly.replicaCount=2,license=accept,integrationServer.configurationSecret=ace-ddd-dev-creds
+        - --tls
+        - --install
+        - --debug
+      image: alpine/helm:2.12.3
+      env:
+        - name: KUBECONFIG
+          value: /app/kubeconfig
+        - name: HELM_TLS_CA_CERT
+          value: /app/helm/ca.pem
+        - name: HELM_TLS_CERT
+          value: /app/helm/cert.pem
+        - name: HELM_TLS_KEY
+          value: /app/helm/key.pem
+      volumeMounts:
+        - name: kubeconfig
+          mountPath: /app
+        - name: helm-tls
+          mountPath: /app/helm
+        - name: helm-repositories
+          mountPath: /tekton/home/.helm/repository
+      name: helm-deploy
+      resources: {}
+      securityContext:
+        runAsUser: 0
   volumes:
     - name: kubeconfig
       secret:
@@ -231,7 +223,6 @@ spec:
         secretName: task-helm-repositories
 
 ---
-
 apiVersion: tekton.dev/v1alpha1
 kind: Task
 metadata:
@@ -242,40 +233,40 @@ spec:
       type: string
       description: The image tag
   steps:
-  - args:
-    - upgrade
-    - ace-ddd-acme-dev
-    - ibm-ace-server-icp4i-prod
-    - --repo
-    - https://raw.githubusercontent.com/IBM/charts/master/repo/entitled/
-    - --namespace
-    - ace
-    - --set
-    - image.pullPolicy=Always,image.aceonly=image-registry.openshift-image-registry.svc:5000/ace/ace-ddd-acme:$(params.imageTag),aceonly.replicaCount=2,license=accept,integrationServer.configurationSecret=ace-ddd-dev-creds
-    - --tls
-    - --install
-    - --debug
-    image: alpine/helm:2.12.3
-    env:
-      - name: KUBECONFIG
-        value: /app/kubeconfig
-      - name: HELM_TLS_CA_CERT
-        value: /app/helm/ca.pem
-      - name: HELM_TLS_CERT
-        value: /app/helm/cert.pem
-      - name: HELM_TLS_KEY
-        value: /app/helm/key.pem
-    volumeMounts:
-     - name: kubeconfig
-       mountPath: /app
-     - name: helm-tls
-       mountPath: /app/helm
-     - name: helm-repositories
-       mountPath: /tekton/home/.helm/repository
-    name: helm-deploy
-    resources: {}
-    securityContext:
-      runAsUser: 0
+    - args:
+        - upgrade
+        - ace-ddd-acme-dev
+        - ibm-ace-server-icp4i-prod
+        - --repo
+        - https://raw.githubusercontent.com/IBM/charts/master/repo/entitled/
+        - --namespace
+        - ace
+        - --set
+        - image.pullPolicy=Always,image.aceonly=image-registry.openshift-image-registry.svc:5000/ace/ace-ddd-acme:$(params.imageTag),aceonly.replicaCount=2,license=accept,integrationServer.configurationSecret=ace-ddd-dev-creds
+        - --tls
+        - --install
+        - --debug
+      image: alpine/helm:2.12.3
+      env:
+        - name: KUBECONFIG
+          value: /app/kubeconfig
+        - name: HELM_TLS_CA_CERT
+          value: /app/helm/ca.pem
+        - name: HELM_TLS_CERT
+          value: /app/helm/cert.pem
+        - name: HELM_TLS_KEY
+          value: /app/helm/key.pem
+      volumeMounts:
+        - name: kubeconfig
+          mountPath: /app
+        - name: helm-tls
+          mountPath: /app/helm
+        - name: helm-repositories
+          mountPath: /tekton/home/.helm/repository
+      name: helm-deploy
+      resources: {}
+      securityContext:
+        runAsUser: 0
   volumes:
     - name: kubeconfig
       secret:
@@ -288,7 +279,6 @@ spec:
         secretName: task-helm-repositories
 
 ---
-
 apiVersion: tekton.dev/v1alpha1
 kind: Task
 metadata:
@@ -299,40 +289,40 @@ spec:
       type: string
       description: The image tag
   steps:
-  - args:
-    - upgrade
-    - ace-ddd-bernie-dev
-    - ibm-ace-server-icp4i-prod
-    - --repo
-    - https://raw.githubusercontent.com/IBM/charts/master/repo/entitled/
-    - --namespace
-    - ace
-    - --set
-    - image.pullPolicy=Always,image.aceonly=image-registry.openshift-image-registry.svc:5000/ace/ace-ddd-bernie:$(params.imageTag),aceonly.replicaCount=2,license=accept,integrationServer.configurationSecret=ace-ddd-dev-creds
-    - --tls
-    - --install
-    - --debug
-    image: alpine/helm:2.12.3
-    env:
-      - name: KUBECONFIG
-        value: /app/kubeconfig
-      - name: HELM_TLS_CA_CERT
-        value: /app/helm/ca.pem
-      - name: HELM_TLS_CERT
-        value: /app/helm/cert.pem
-      - name: HELM_TLS_KEY
-        value: /app/helm/key.pem
-    volumeMounts:
-     - name: kubeconfig
-       mountPath: /app
-     - name: helm-tls
-       mountPath: /app/helm
-     - name: helm-repositories
-       mountPath: /tekton/home/.helm/repository
-    name: helm-deploy
-    resources: {}
-    securityContext:
-      runAsUser: 0
+    - args:
+        - upgrade
+        - ace-ddd-bernie-dev
+        - ibm-ace-server-icp4i-prod
+        - --repo
+        - https://raw.githubusercontent.com/IBM/charts/master/repo/entitled/
+        - --namespace
+        - ace
+        - --set
+        - image.pullPolicy=Always,image.aceonly=image-registry.openshift-image-registry.svc:5000/ace/ace-ddd-bernie:$(params.imageTag),aceonly.replicaCount=2,license=accept,integrationServer.configurationSecret=ace-ddd-dev-creds
+        - --tls
+        - --install
+        - --debug
+      image: alpine/helm:2.12.3
+      env:
+        - name: KUBECONFIG
+          value: /app/kubeconfig
+        - name: HELM_TLS_CA_CERT
+          value: /app/helm/ca.pem
+        - name: HELM_TLS_CERT
+          value: /app/helm/cert.pem
+        - name: HELM_TLS_KEY
+          value: /app/helm/key.pem
+      volumeMounts:
+        - name: kubeconfig
+          mountPath: /app
+        - name: helm-tls
+          mountPath: /app/helm
+        - name: helm-repositories
+          mountPath: /tekton/home/.helm/repository
+      name: helm-deploy
+      resources: {}
+      securityContext:
+        runAsUser: 0
   volumes:
     - name: kubeconfig
       secret:
@@ -345,7 +335,6 @@ spec:
         secretName: task-helm-repositories
 
 ---
-
 apiVersion: tekton.dev/v1alpha1
 kind: Task
 metadata:
@@ -356,40 +345,40 @@ spec:
       type: string
       description: The image tag
   steps:
-  - args:
-    - upgrade
-    - ace-ddd-chris-dev
-    - ibm-ace-server-icp4i-prod
-    - --repo
-    - https://raw.githubusercontent.com/IBM/charts/master/repo/entitled/
-    - --namespace
-    - ace
-    - --set
-    - image.pullPolicy=Always,image.aceonly=image-registry.openshift-image-registry.svc:5000/ace/ace-ddd-chris:$(params.imageTag),aceonly.replicaCount=2,license=accept,integrationServer.configurationSecret=ace-ddd-dev-creds
-    - --tls
-    - --install
-    - --debug
-    image: alpine/helm:2.12.3
-    env:
-      - name: KUBECONFIG
-        value: /app/kubeconfig
-      - name: HELM_TLS_CA_CERT
-        value: /app/helm/ca.pem
-      - name: HELM_TLS_CERT
-        value: /app/helm/cert.pem
-      - name: HELM_TLS_KEY
-        value: /app/helm/key.pem
-    volumeMounts:
-     - name: kubeconfig
-       mountPath: /app
-     - name: helm-tls
-       mountPath: /app/helm
-     - name: helm-repositories
-       mountPath: /tekton/home/.helm/repository
-    name: helm-deploy
-    resources: {}
-    securityContext:
-      runAsUser: 0
+    - args:
+        - upgrade
+        - ace-ddd-chris-dev
+        - ibm-ace-server-icp4i-prod
+        - --repo
+        - https://raw.githubusercontent.com/IBM/charts/master/repo/entitled/
+        - --namespace
+        - ace
+        - --set
+        - image.pullPolicy=Always,image.aceonly=image-registry.openshift-image-registry.svc:5000/ace/ace-ddd-chris:$(params.imageTag),aceonly.replicaCount=2,license=accept,integrationServer.configurationSecret=ace-ddd-dev-creds
+        - --tls
+        - --install
+        - --debug
+      image: alpine/helm:2.12.3
+      env:
+        - name: KUBECONFIG
+          value: /app/kubeconfig
+        - name: HELM_TLS_CA_CERT
+          value: /app/helm/ca.pem
+        - name: HELM_TLS_CERT
+          value: /app/helm/cert.pem
+        - name: HELM_TLS_KEY
+          value: /app/helm/key.pem
+      volumeMounts:
+        - name: kubeconfig
+          mountPath: /app
+        - name: helm-tls
+          mountPath: /app/helm
+        - name: helm-repositories
+          mountPath: /tekton/home/.helm/repository
+      name: helm-deploy
+      resources: {}
+      securityContext:
+        runAsUser: 0
   volumes:
     - name: kubeconfig
       secret:
@@ -402,7 +391,6 @@ spec:
         secretName: task-helm-repositories
 
 ---
-
 apiVersion: tekton.dev/v1beta1
 kind: Task
 metadata:
@@ -432,47 +420,46 @@ spec:
         runAsUser: 0
 
 ---
-
 apiVersion: tekton.dev/v1alpha1
 kind: Task
 metadata:
   name: helm-deploy-task-mq
 spec:
   steps:
-  - args:
-    - upgrade
-    - mq-ddd-dev
-    - ibm-mqadvanced-server-integration-prod
-    - --repo
-    - https://raw.githubusercontent.com/IBM/charts/master/repo/entitled/
-    - --namespace
-    - mq
-    - --set
-    - license=accept,log.debug=false,qmPVC.enabled=false,logPVC.enabled=false,tls.hostname={{CP_CONSOLE}},trace.strmqm=false,selectedCluster[0].label=local-cluster,selectedCluster[0].value=local-cluster,selectedCluster[0].ip={{CP_CONSOLE}},selectedCluster[0].namespace=local-cluster,queueManager.multiInstance=false,odTracingConfig.enabled=false,odTracingConfig.odTracingNamespace=tracing,pki.keys[0].name=default,pki.keys[0].secret.secretName=mqcert,pki.keys[0].secret.items[0]=tls.key,pki.keys[0].secret.items[0]=tls.crt,image.repository=image-registry.openshift-image-registry.svc:5000/mq/mq-ddd,image.tag=mq,image.pullPolicy=Always
-    - --tls
-    - --install
-    - --debug
-    image: alpine/helm:2.12.3
-    env:
-      - name: KUBECONFIG
-        value: /app/kubeconfig
-      - name: HELM_TLS_CA_CERT
-        value: /app/helm/ca.pem
-      - name: HELM_TLS_CERT
-        value: /app/helm/cert.pem
-      - name: HELM_TLS_KEY
-        value: /app/helm/key.pem
-    volumeMounts:
-     - name: kubeconfig
-       mountPath: /app
-     - name: helm-tls
-       mountPath: /app/helm
-     - name: helm-repositories
-       mountPath: /tekton/home/.helm/repository
-    name: helm-deploy
-    resources: {}
-    securityContext:
-      runAsUser: 0
+    - args:
+        - upgrade
+        - mq-ddd-dev
+        - ibm-mqadvanced-server-integration-prod
+        - --repo
+        - https://raw.githubusercontent.com/IBM/charts/master/repo/entitled/
+        - --namespace
+        - mq
+        - --set
+        - license=accept,log.debug=false,qmPVC.enabled=false,logPVC.enabled=false,tls.hostname={{CP_CONSOLE}},trace.strmqm=false,selectedCluster[0].label=local-cluster,selectedCluster[0].value=local-cluster,selectedCluster[0].ip={{CP_CONSOLE}},selectedCluster[0].namespace=local-cluster,queueManager.multiInstance=false,odTracingConfig.enabled=false,odTracingConfig.odTracingNamespace=tracing,pki.keys[0].name=default,pki.keys[0].secret.secretName=mqcert,pki.keys[0].secret.items[0]=tls.key,pki.keys[0].secret.items[0]=tls.crt,image.repository=image-registry.openshift-image-registry.svc:5000/mq/mq-ddd,image.tag=mq,image.pullPolicy=Always
+        - --tls
+        - --install
+        - --debug
+      image: alpine/helm:2.12.3
+      env:
+        - name: KUBECONFIG
+          value: /app/kubeconfig
+        - name: HELM_TLS_CA_CERT
+          value: /app/helm/ca.pem
+        - name: HELM_TLS_CERT
+          value: /app/helm/cert.pem
+        - name: HELM_TLS_KEY
+          value: /app/helm/key.pem
+      volumeMounts:
+        - name: kubeconfig
+          mountPath: /app
+        - name: helm-tls
+          mountPath: /app/helm
+        - name: helm-repositories
+          mountPath: /tekton/home/.helm/repository
+      name: helm-deploy
+      resources: {}
+      securityContext:
+        runAsUser: 0
   volumes:
     - name: kubeconfig
       secret:
@@ -485,7 +472,6 @@ spec:
         secretName: task-helm-repositories
 
 ---
-
 apiVersion: tekton.dev/v1alpha1
 kind: Pipeline
 metadata:
@@ -585,51 +571,49 @@ spec:
         name: helm-deploy-task-mq
 
 ---
-
 apiVersion: triggers.tekton.dev/v1alpha1
 kind: TriggerTemplate
 metadata:
   name: main-triggertemplate
 spec:
   resourcetemplates:
-  - apiVersion: tekton.dev/v1alpha1
-    kind: PipelineRun
-    metadata:
-      name: main-pipelinerun-$(uid)
-    spec:
-      pipelineRef:
-        name: main-pipeline
-      serviceAccountNames:
-        - taskName: ace-api-build
-          serviceAccountName: cicd-ace-sa
-        - taskName: ace-acme-build
-          serviceAccountName: cicd-ace-sa
-        - taskName: ace-bernie-build
-          serviceAccountName: cicd-ace-sa
-        - taskName: ace-chris-build
-          serviceAccountName: cicd-ace-sa
-        - taskName: mq-build
-          serviceAccountName: cicd-mq-sa
-        - taskName: ace-api-helm-deploy
-          serviceAccountName: cicd-ace-sa
-        - taskName: ace-acme-helm-deploy
-          serviceAccountName: cicd-ace-sa
-        - taskName: ace-bernie-helm-deploy
-          serviceAccountName: cicd-ace-sa
-        - taskName: ace-chris-helm-deploy
-          serviceAccountName: cicd-ace-sa
-        - taskName: mq-helm-deploy
-          serviceAccountName: cicd-mq-sa
-      resources:
-      - name: git-source
-        resourceRef:
-          name: git-source
-      params:
-      - name: imageTag
-        value: $(uid)
+    - apiVersion: tekton.dev/v1alpha1
+      kind: PipelineRun
+      metadata:
+        name: main-pipelinerun-$(uid)
+      spec:
+        pipelineRef:
+          name: main-pipeline
+        serviceAccountNames:
+          - taskName: ace-api-build
+            serviceAccountName: cicd-ace-sa
+          - taskName: ace-acme-build
+            serviceAccountName: cicd-ace-sa
+          - taskName: ace-bernie-build
+            serviceAccountName: cicd-ace-sa
+          - taskName: ace-chris-build
+            serviceAccountName: cicd-ace-sa
+          - taskName: mq-build
+            serviceAccountName: cicd-mq-sa
+          - taskName: ace-api-helm-deploy
+            serviceAccountName: cicd-ace-sa
+          - taskName: ace-acme-helm-deploy
+            serviceAccountName: cicd-ace-sa
+          - taskName: ace-bernie-helm-deploy
+            serviceAccountName: cicd-ace-sa
+          - taskName: ace-chris-helm-deploy
+            serviceAccountName: cicd-ace-sa
+          - taskName: mq-helm-deploy
+            serviceAccountName: cicd-mq-sa
+        resources:
+          - name: git-source
+            resourceRef:
+              name: git-source
+        params:
+          - name: imageTag
+            value: $(uid)
 
 ---
-
 apiVersion: triggers.tekton.dev/v1alpha1
 kind: EventListener
 metadata:
@@ -637,11 +621,10 @@ metadata:
 spec:
   serviceAccountName: cicd-el
   triggers:
-  - template:
-      name: main-triggertemplate
+    - template:
+        name: main-triggertemplate
 
 ---
-
 apiVersion: route.openshift.io/v1
 kind: Route
 metadata:
@@ -660,34 +643,32 @@ spec:
     weight: null
 
 ---
-
 kind: Role
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
   name: tekton-triggers-role
 rules:
-# Permissions for every EventListener deployment to function
-- apiGroups: ["triggers.tekton.dev"]
-  resources: ["eventlisteners", "triggerbindings", "triggertemplates"]
-  verbs: ["get"]
-- apiGroups: [""]
-  # secrets are only needed for Github/Gitlab interceptors, serviceaccounts only for per trigger authorization
-  resources: ["configmaps", "secrets", "serviceaccounts"]
-  verbs: ["get", "list", "watch"]
-# Permissions to create resources in associated TriggerTemplates
-- apiGroups: ["tekton.dev"]
-  resources: ["pipelineruns", "pipelineresources", "taskruns"]
-  verbs: ["create"]
+  # Permissions for every EventListener deployment to function
+  - apiGroups: ["triggers.tekton.dev"]
+    resources: ["eventlisteners", "triggerbindings", "triggertemplates"]
+    verbs: ["get"]
+  - apiGroups: [""]
+    # secrets are only needed for Github/Gitlab interceptors, serviceaccounts only for per trigger authorization
+    resources: ["configmaps", "secrets", "serviceaccounts"]
+    verbs: ["get", "list", "watch"]
+  # Permissions to create resources in associated TriggerTemplates
+  - apiGroups: ["tekton.dev"]
+    resources: ["pipelineruns", "pipelineresources", "taskruns"]
+    verbs: ["create"]
 
 ---
-
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
   name: tekton-triggers-rolebinding
 subjects:
-- kind: ServiceAccount
-  name: cicd-el
+  - kind: ServiceAccount
+    name: cicd-el
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: Role

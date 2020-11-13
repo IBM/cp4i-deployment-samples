@@ -117,7 +117,7 @@
 
 ## Setting up ACE to use TLS
 
-For ACE to use the TLS configuration we need provide the following `ace-configuration` to ACE instegration server CR:
+For ACE to use the TLS configuration we need provide the following `ace-configuration` to ACE integration server CR:
 
 ```yaml
 #serverconf.yaml:

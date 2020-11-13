@@ -23,8 +23,8 @@
 #   Overriding the namespace and number of replicas
 #     ./release-navigator -n cp4i-prod -r 1
 
-function usage {
-    echo "Usage: $0 -n <namespace> -r <replicas>"
+function usage() {
+  echo "Usage: $0 -n <namespace> -r <replicas>"
 }
 
 namespace="cp4i"
@@ -35,19 +35,23 @@ echo "Current Dir: $SCRIPT_DIR"
 
 while getopts "n:r:" opt; do
   case ${opt} in
-    n ) namespace="$OPTARG"
-      ;;
-    r ) replicas="$OPTARG"
-      ;;
-    \? ) usage; exit
-      ;;
+  n)
+    namespace="$OPTARG"
+    ;;
+  r)
+    replicas="$OPTARG"
+    ;;
+  \?)
+    usage
+    exit
+    ;;
   esac
 done
 
 # Instantiate Platform Navigator
 echo "INFO: Instantiating Platform Navigator"
 time=0
-while ! cat <<EOF | oc apply -f -
+while ! cat <<EOF | oc apply -f -; do
 apiVersion: integration.ibm.com/v1beta1
 kind: PlatformNavigator
 metadata:
@@ -61,7 +65,6 @@ spec:
   version: 2020.3.1
 EOF
 
-do
   if [ $time -gt 10 ]; then
     echo "ERROR: Exiting installation as timeout waiting for PlatformNavigator to be created"
     exit 1

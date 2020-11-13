@@ -63,8 +63,6 @@ echo "#### Adding certs and keys to JKS"
 runmqckm -cert -add -db server.jks -file ${CERT_APP} -pw password
 runmqckm -cert -import -file ${KEYP12_APP} -pw password -target server.jks -target_pw password
 
- 
-
 # Add the certificate to a trust store in JKS format, for Client to use when connecting
 echo "#### Creating JKS format, for application to use when connecting"
 runmqckm -keydb -create -db application.jks -type jks -pw password

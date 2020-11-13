@@ -12,7 +12,7 @@ Configure apic for Car Crash Demo
 
 - `configure-apic.sh` is called from installation script from ibm-cp-integration case.tgz (https://github.com/IBM/cloud-pak/blob/master/repo/case/ibm-cp-integration-1.0.24.tgz). Before calling the `configure-apic.sh` the install script in case.tgz does the following:
 
-    - set pre-reqs to install APIC i.e namepsace, secrets and entitlment keys
+    - set pre-reqs to install APIC i.e namespace, secrets and entitlement keys
 
     - Install APIC using ibm-entitled charts repo
 

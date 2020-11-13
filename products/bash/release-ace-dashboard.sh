@@ -23,8 +23,8 @@
 #   Overriding the namespace and release-name
 #     ./release-ace-dashboard.sh -n cp4i-prod -r prod
 
-function usage {
-    echo "Usage: $0 -n <namespace> -r <dashboard-release-name>"
+function usage() {
+  echo "Usage: $0 -n <namespace> -r <dashboard-release-name>"
 }
 
 namespace="cp4i"
@@ -33,33 +33,38 @@ storage="ibmc-file-gold-gid"
 production="false"
 while getopts "n:r:s:p" opt; do
   case ${opt} in
-    n ) namespace="$OPTARG"
-      ;;
-    r ) dashboard_release_name="$OPTARG"
-      ;;
-    s ) storage="$OPTARG"
-      ;;
-    p ) production="true"
-      ;;
-    \? ) usage; exit
-      ;;
+  n)
+    namespace="$OPTARG"
+    ;;
+  r)
+    dashboard_release_name="$OPTARG"
+    ;;
+  s)
+    storage="$OPTARG"
+    ;;
+  p)
+    production="true"
+    ;;
+  \?)
+    usage
+    exit
+    ;;
   esac
 done
 
 echo "INFO: Release ACE Dashboard..."
-echo "INFO: Namepace: '$namespace'"
+echo "INFO: Namespace: '$namespace'"
 echo "INFO: Dashboard Release Name: '$dashboard_release_name'"
 
 use="CloudPakForIntegrationNonProduction"
 
-if [[ "$production" == "true" ]]
-then 
-echo "Production Mode Enabled"
-use="CloudPakForIntegrationProduction"
+if [[ "$production" == "true" ]]; then
+  echo "Production Mode Enabled"
+  use="CloudPakForIntegrationProduction"
 
 fi
 
-cat << EOF | oc apply -f -
+cat <<EOF | oc apply -f -
 apiVersion: appconnect.ibm.com/v1beta1
 kind: Dashboard
 metadata:

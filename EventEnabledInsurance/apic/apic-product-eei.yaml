@@ -1,7 +1,7 @@
 info:
-    version: 1.0.0
-    title: {{NAMESPACE}}-product-eei
-    name: {{NAMESPACE}}-product-eei
+  version: 1.0.0
+  title: "{{NAMESPACE}}-product-eei"
+  name: "{{NAMESPACE}}-product-eei"
 gateways:
   - datapower-api-gateway
 plans:
@@ -14,7 +14,7 @@ plans:
     approval: false
 apis:
   eventenabledinsurance1.0.0:
-    name: 'eventenabledinsurance:1.0.0'
+    name: "eventenabledinsurance:1.0.0"
 visibility:
   view:
     type: public

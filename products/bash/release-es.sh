@@ -23,8 +23,8 @@
 #   Overriding the namespace and release-name
 #     ./release-es.sh -n cp4i-prod -r prod
 
-function usage {
-    echo "Usage: $0 -n <namespace> -r <release-name>"
+function usage() {
+  echo "Usage: $0 -n <namespace> -r <release-name>"
 }
 
 namespace="cp4i"
@@ -34,25 +34,28 @@ storageClass=""
 
 while getopts "n:r:pc:" opt; do
   case ${opt} in
-    n ) namespace="$OPTARG"
-      ;;
-    r ) release_name="$OPTARG"
-      ;;
-    p ) production="true"
-      ;;
-    c ) storageClass="$OPTARG"
-      ;;
-    \? ) usage; exit
-      ;;
+  n)
+    namespace="$OPTARG"
+    ;;
+  r)
+    release_name="$OPTARG"
+    ;;
+  p)
+    production="true"
+    ;;
+  c)
+    storageClass="$OPTARG"
+    ;;
+  \?)
+    usage
+    exit
+    ;;
   esac
 done
 
-
-
-if [ "$production" == "true" ]
-then
-echo "Production Mode Enabled"
-cat << EOF | oc apply -f -
+if [ "$production" == "true" ]; then
+  echo "Production Mode Enabled"
+  cat <<EOF | oc apply -f -
 apiVersion: eventstreams.ibm.com/v1beta1
 kind: EventStreams
 metadata:
@@ -103,8 +106,8 @@ spec:
         size: 2Gi
         type: persistent-claim
 EOF
-else 
-cat << EOF | oc apply -f -
+else
+  cat <<EOF | oc apply -f -
 apiVersion: eventstreams.ibm.com/v1beta1
 kind: EventStreams
 metadata:

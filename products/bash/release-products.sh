@@ -47,8 +47,8 @@
 #    completes.
 #
 
-function usage {
-    echo "Usage: $0 <console> [products...]"
+function usage() {
+  echo "Usage: $0 <console> [products...]"
 }
 
 cp_console="$1"
@@ -58,26 +58,25 @@ cp_username=${CP_USERNAME:-admin}
 cp_password=${CP_PASSWORD}
 
 if [[ -z "${cp_console}" ]]; then
-    usage
-    exit 2
+  usage
+  exit 2
 fi
 if [[ -z "${cp_products}" ]]; then
-    cp_products="apic ace assetrepo eventstreams tracing mq postgres"
+  cp_products="apic ace assetrepo eventstreams tracing mq postgres"
 fi
 if [[ -z "${cp_password}" ]]; then
-    read -p "Password (${cp_username}): " -s -r cp_password
-    echo
+  read -p "Password (${cp_username}): " -s -r cp_password
+  echo
 fi
 if [[ -z "${cp_password}" ]]; then
-    echo "No password was provided for the '${cp_username}' user" 1>&2
-    exit 1
+  echo "No password was provided for the '${cp_username}' user" 1>&2
+  exit 1
 fi
 
 cp_client_platform=linux-amd64
 if [[ $(uname) == Darwin ]]; then
-    cp_client_platform=darwin-amd64
+  cp_client_platform=darwin-amd64
 fi
-
 
 # --- Init -------------------------------------------------------------
 
@@ -93,8 +92,8 @@ export PATH=${PWD}/bin:${PATH}
 echo "Downloading tools..."
 curl -k -sS -o bin/kubectl https://${cp_console}/api/cli/kubectl-${cp_client_platform}
 curl -k -sS -o bin/cloudctl https://${cp_console}/api/cli/cloudctl-${cp_client_platform}
-curl -k -sS https://${cp_console}/api/cli/helm-${cp_client_platform}.tar.gz | \
-    tar xzf - -C bin --strip-components=1 ${cp_client_platform}/helm
+curl -k -sS https://${cp_console}/api/cli/helm-${cp_client_platform}.tar.gz |
+  tar xzf - -C bin --strip-components=1 ${cp_client_platform}/helm
 
 chmod +x bin/*
 
@@ -103,41 +102,40 @@ helm init --client-only
 
 # Login to the cluster
 if ! cloudctl login -a https://${cp_console} -u ${cp_username} -p "${cp_password}" -n default --skip-ssl-validation; then
-    echo "Unable to login to the console as user '${cp_username}' with the given password" 1>&2
-    exit 1
+  echo "Unable to login to the console as user '${cp_username}' with the given password" 1>&2
+  exit 1
 fi
 
 # Add the chart repo
 chart_repo=ibm-entitled-charts
 helm repo add ${chart_repo} https://raw.githubusercontent.com/IBM/charts/master/repo/entitled/
 
-
 # --- Tracing registration ---------------------------------------------
 # First parameter is the namespace where tracing is installed
 # Second parameter is the namespace to register. I.e. mq if registering mq
 # Note before calling this tracing should be installed and the app to be registered should be installed
-function register_tracing_application {
+function register_tracing_application() {
   TRACING_NAMESPACE=${1}
   REG_NAMESPACE=${2}
 
   echo "Registering app in ${REG_NAMESPACE} namespace for tracing"
 
   echo "Waiting for tracing registration job to complete..."
-  for i in `seq 1 60`; do
-  	TRACING_JOB_STATUS=$(kubectl get pods -n ${REG_NAMESPACE} | grep -E -m1 '(odtracing|od-registration)' | awk '{print $3}')
-  	if [ "$TRACING_JOB_STATUS" == "Completed" ]; then
-  		echo "Tracing registration job is complete."
-  		break
-  	else
+  for i in $(seq 1 60); do
+    TRACING_JOB_STATUS=$(kubectl get pods -n ${REG_NAMESPACE} | grep -E -m1 '(odtracing|od-registration)' | awk '{print $3}')
+    if [ "$TRACING_JOB_STATUS" == "Completed" ]; then
+      echo "Tracing registration job is complete."
+      break
+    else
       if [[ i -eq 60 ]]; then
         echo "Tracing registration job failed, giving up after numerous attempts"
         exit 1
       fi
-  		echo "Waiting for tracing registration job to complete (Attempt $i of 60). Job status: $TRACING_JOB_STATUS"
-  		kubectl -n ${REG_NAMESPACE} get pods,jobs
-  		echo "Checking again in one minute..."
-  		sleep 60
-  	fi
+      echo "Waiting for tracing registration job to complete (Attempt $i of 60). Job status: $TRACING_JOB_STATUS"
+      kubectl -n ${REG_NAMESPACE} get pods,jobs
+      echo "Checking again in one minute..."
+      sleep 60
+    fi
   done
 
   echo "Waiting 1 minute for tracing registration to trickle through"
@@ -145,15 +143,15 @@ function register_tracing_application {
 
   echo "Waiting for tracing pod..."
   # Loop/retry here, tracing pod may not exist yet
-  for i in `seq 1 60`; do
+  for i in $(seq 1 60); do
     TRACING_POD=$(oc get pod -n ${TRACING_NAMESPACE} -l helm.sh/chart=ibm-icp4i-tracing-prod -o jsonpath='{.items[].metadata.name}')
-  	if [[ -z "$TRACING_POD" ]]; then
+    if [[ -z "$TRACING_POD" ]]; then
       echo "Waiting for tracing pod (Attempt $i of 60), checking again in 15 seconds..."
-  		sleep 15
-  	else
+      sleep 15
+    else
       echo "Got tracing pod: ${TRACING_POD}"
-  		break
-  	fi
+      break
+    fi
   done
   if [[ -z "$TRACING_POD" ]]; then
     echo "Failed to get tracing pod"
@@ -162,34 +160,33 @@ function register_tracing_application {
 
   echo "Copying NameSpaceAutoRegistration.jar into tracing pod..."
   # Loop/retry here, pod exists but ui-manager container may not be ready
-  for i in `seq 1 60`; do
+  for i in $(seq 1 60); do
     if oc cp -n ${TRACING_NAMESPACE} ./tracing/NameSpaceAutoRegistration.jar ${TRACING_POD}:/tmp -c ui-manager; then
       echo "Jar copied"
-  		break
+      break
     else
       if [[ i -eq 60 ]]; then
         echo "Failed to copy jar, giving up after numerous attempts"
         exit 1
       fi
       echo "Failed to copy jar (Attempt $i of 60), trying again in 15 seconds..."
-  		sleep 15
+      sleep 15
     fi
   done
 
-
   echo "Running registration jar"
-  # Loop/retry here, job to request regustration may not have run yet
-  for i in `seq 1 60`; do
-    if oc exec -n ${TRACING_NAMESPACE} ${TRACING_POD} -c ui-manager -- java -cp /usr/local/tomee/derby/derbyclient.jar:/tmp/NameSpaceAutoRegistration.jar org.montier.tracing.demo.NameSpaceAutoRegistration ${REG_NAMESPACE} > commands.sh; then
+  # Loop/retry here, job to request registration may not have run yet
+  for i in $(seq 1 60); do
+    if oc exec -n ${TRACING_NAMESPACE} ${TRACING_POD} -c ui-manager -- java -cp /usr/local/tomee/derby/derbyclient.jar:/tmp/NameSpaceAutoRegistration.jar org.montier.tracing.demo.NameSpaceAutoRegistration ${REG_NAMESPACE} >commands.sh; then
       echo "Registration successful"
-  		break
+      break
     else
       if [[ i -eq 60 ]]; then
         echo "Failed to register, giving up after numerous attempts"
         exit 1
       fi
       echo "Failed to register (Attempt $i of 60), trying again in 15 seconds..."
-  		sleep 15
+      sleep 15
     fi
   done
 
@@ -197,8 +194,6 @@ function register_tracing_application {
   chmod +x ./commands.sh
   . ./commands.sh
 }
-
-
 
 # --- ACE Dashboard ----------------------------------------------------
 
@@ -219,25 +214,24 @@ persistence:
   storageClassName: ${ace_dashboard_storage_class}
 "
 
-function release_ace_dashboard {
-    echo "Releasing ACE Dashboard..."
-    # Validate the environment
-    if ! kubectl get ns ${ace_dashboard_namespace} > /dev/null 2>&1; then
-        echo "There is no namespace '${ace_dashboard_namespace}'" 1>&2
-        exit 1
-    fi
-    if ! kubectl get secret ${ace_dashboard_pull_secret} -n ${ace_dashboard_namespace} > /dev/null 2>&1; then
-        echo "There is no '${ace_dashboard_pull_secret}' secret in namespace '${ace_dashboard_namespace}'" 1>&2
-        exit 1
-    fi
-    # Create the Helm TLS key
-    kubectl create secret generic ${ace_dashboard_helm_secret} -n ${ace_dashboard_namespace} --from-file=cert.pem=${HELM_HOME}/cert.pem --from-file=ca.pem=${HELM_HOME}/ca.pem --from-file=key.pem=${HELM_HOME}/key.pem
-    # Create the Helm values file
-    echo "${ace_dashboard_values}" > ace-dashboard-values.yaml
-    # Create the release
-    helm install ${chart_repo}/${ace_dashboard_chart} --name ${ace_dashboard_release_name} --namespace ${ace_dashboard_namespace} --values ace-dashboard-values.yaml --tls
+function release_ace_dashboard() {
+  echo "Releasing ACE Dashboard..."
+  # Validate the environment
+  if ! kubectl get ns ${ace_dashboard_namespace} >/dev/null 2>&1; then
+    echo "There is no namespace '${ace_dashboard_namespace}'" 1>&2
+    exit 1
+  fi
+  if ! kubectl get secret ${ace_dashboard_pull_secret} -n ${ace_dashboard_namespace} >/dev/null 2>&1; then
+    echo "There is no '${ace_dashboard_pull_secret}' secret in namespace '${ace_dashboard_namespace}'" 1>&2
+    exit 1
+  fi
+  # Create the Helm TLS key
+  kubectl create secret generic ${ace_dashboard_helm_secret} -n ${ace_dashboard_namespace} --from-file=cert.pem=${HELM_HOME}/cert.pem --from-file=ca.pem=${HELM_HOME}/ca.pem --from-file=key.pem=${HELM_HOME}/key.pem
+  # Create the Helm values file
+  echo "${ace_dashboard_values}" >ace-dashboard-values.yaml
+  # Create the release
+  helm install ${chart_repo}/${ace_dashboard_chart} --name ${ace_dashboard_release_name} --namespace ${ace_dashboard_namespace} --values ace-dashboard-values.yaml --tls
 }
-
 
 # --- ACE Designer -----------------------------------------------------
 
@@ -261,23 +255,22 @@ image:
 license: accept
 "
 
-function release_ace_designer {
-    echo "Releasing ACE Designer..."
-    # Validate the environment
-    if ! kubectl get ns ${ace_designer_namespace} > /dev/null 2>&1; then
-        echo "There is no namespace '${ace_designer_namespace}'" 1>&2
-        exit 1
-    fi
-    if ! kubectl get secret ${ace_designer_pull_secret} -n ${ace_designer_namespace} > /dev/null 2>&1; then
-        echo "There is no '${ace_designer_pull_secret}' secret in namespace '${ace_designer_namespace}'" 1>&2
-        exit 1
-    fi
-    # Create the Helm values file
-    echo "${ace_designer_values}" > ace-designer-values.yaml
-    # Create the release
-    helm install ${chart_repo}/${ace_designer_chart} --name ${ace_designer_release_name} --namespace ${ace_designer_namespace} --values ace-designer-values.yaml --tls
+function release_ace_designer() {
+  echo "Releasing ACE Designer..."
+  # Validate the environment
+  if ! kubectl get ns ${ace_designer_namespace} >/dev/null 2>&1; then
+    echo "There is no namespace '${ace_designer_namespace}'" 1>&2
+    exit 1
+  fi
+  if ! kubectl get secret ${ace_designer_pull_secret} -n ${ace_designer_namespace} >/dev/null 2>&1; then
+    echo "There is no '${ace_designer_pull_secret}' secret in namespace '${ace_designer_namespace}'" 1>&2
+    exit 1
+  fi
+  # Create the Helm values file
+  echo "${ace_designer_values}" >ace-designer-values.yaml
+  # Create the release
+  helm install ${chart_repo}/${ace_designer_chart} --name ${ace_designer_release_name} --namespace ${ace_designer_namespace} --values ace-designer-values.yaml --tls
 }
-
 
 # --- APIC -------------------------------------------------------------
 
@@ -289,7 +282,7 @@ apic_pull_secret=ibm-entitlement-key
 apic_storage_class=ibmc-block-gold
 
 # First parameter is boolean, true for enable tracing
-function release_apic {
+function release_apic() {
   apic_tracing=${1}
   apic_endpoint_root=$(kubectl get configmap ibmcloud-cluster-info -n kube-public -o jsonpath='{.data.proxy_address}')
 
@@ -331,22 +324,21 @@ function release_apic {
 
   echo "Releasing API Connect..."
   # Validate the environment
-  if ! kubectl get ns ${apic_namespace} > /dev/null 2>&1; then
+  if ! kubectl get ns ${apic_namespace} >/dev/null 2>&1; then
     echo "There is no namespace '${apic_namespace}'" 1>&2
     exit 1
   fi
-  if ! kubectl get secret ${apic_pull_secret} -n ${apic_namespace} > /dev/null 2>&1; then
+  if ! kubectl get secret ${apic_pull_secret} -n ${apic_namespace} >/dev/null 2>&1; then
     echo "There is no '${apic_pull_secret}' secret in namespace '${apic_namespace}'" 1>&2
     exit 1
   fi
   # Create the Helm TLS key
   kubectl create secret generic ${apic_helm_secret} -n ${apic_namespace} --from-file=cert.pem=${HELM_HOME}/cert.pem --from-file=ca.pem=${HELM_HOME}/ca.pem --from-file=key.pem=${HELM_HOME}/key.pem
   # Create the Helm values file
-  echo "${apic_values}" > apic-values.yaml
+  echo "${apic_values}" >apic-values.yaml
   # Create the release
   helm install ${chart_repo}/${apic_chart} --name ${apic_release_name} --namespace ${apic_namespace} --values apic-values.yaml --tls
 }
-
 
 # --- Asset Repo -------------------------------------------------------
 
@@ -375,21 +367,21 @@ selectedCluster:
   value: local-cluster
 "
 
-function release_asset_repo {
-    echo "Releasing Asset Repo..."
-    # Validate the environment
-    if ! kubectl get ns ${asset_repo_namespace} > /dev/null 2>&1; then
-      echo "There is no namespace '${asset_repo_namespace}'" 1>&2
-      exit 1
-    fi
-    if ! kubectl get secret ${asset_repo_pull_secret} -n ${asset_repo_namespace} > /dev/null 2>&1; then
-      echo "There is no '${asset_repo_pull_secret}' secret in namespace '${asset_repo_namespace}'" 1>&2
-      exit 1
-    fi
-    # Create the Helm values file
-    echo "${asset_repo_values}" > asset-repo-values.yaml
-    # Create the release
-    helm install ${chart_repo}/${asset_repo_chart} --name ${asset_repo_release_name} --namespace ${asset_repo_namespace} --values asset-repo-values.yaml --tls
+function release_asset_repo() {
+  echo "Releasing Asset Repo..."
+  # Validate the environment
+  if ! kubectl get ns ${asset_repo_namespace} >/dev/null 2>&1; then
+    echo "There is no namespace '${asset_repo_namespace}'" 1>&2
+    exit 1
+  fi
+  if ! kubectl get secret ${asset_repo_pull_secret} -n ${asset_repo_namespace} >/dev/null 2>&1; then
+    echo "There is no '${asset_repo_pull_secret}' secret in namespace '${asset_repo_namespace}'" 1>&2
+    exit 1
+  fi
+  # Create the Helm values file
+  echo "${asset_repo_values}" >asset-repo-values.yaml
+  # Create the release
+  helm install ${chart_repo}/${asset_repo_chart} --name ${asset_repo_release_name} --namespace ${asset_repo_namespace} --values asset-repo-values.yaml --tls
 }
 
 # --- Event Streams ----------------------------------------------------
@@ -439,21 +431,21 @@ icp4i:
   icp4iPlatformNamespace: ${navigator_namespace}
 "
 
-function release_event_streams {
-    echo "Releasing Event Streams..."
-    # Validate the environment
-    if ! kubectl get ns ${event_streams_namespace} > /dev/null 2>&1; then
-      echo "There is no namespace '${event_streams_namespace}'" 1>&2
-      exit 1
-    fi
-    if ! kubectl get secret ${event_streams_pull_secret} -n ${event_streams_namespace} > /dev/null 2>&1; then
-      echo "There is no '${event_streams_pull_secret}' secret in namespace '${event_streams_namespace}'" 1>&2
-      exit 1
-    fi
-    # Create the Helm values file
-    echo "${event_streams_values}" > event-streams-values.yaml
-    # Create the release
-    helm install ${chart_repo}/${event_streams_chart} --name ${event_streams_release_name} --namespace ${event_streams_namespace} --values event-streams-values.yaml --tls
+function release_event_streams() {
+  echo "Releasing Event Streams..."
+  # Validate the environment
+  if ! kubectl get ns ${event_streams_namespace} >/dev/null 2>&1; then
+    echo "There is no namespace '${event_streams_namespace}'" 1>&2
+    exit 1
+  fi
+  if ! kubectl get secret ${event_streams_pull_secret} -n ${event_streams_namespace} >/dev/null 2>&1; then
+    echo "There is no '${event_streams_pull_secret}' secret in namespace '${event_streams_namespace}'" 1>&2
+    exit 1
+  fi
+  # Create the Helm values file
+  echo "${event_streams_values}" >event-streams-values.yaml
+  # Create the release
+  helm install ${chart_repo}/${event_streams_chart} --name ${event_streams_release_name} --namespace ${event_streams_namespace} --values event-streams-values.yaml --tls
 }
 
 # --- MQ ---------------------------------------------------------------
@@ -464,7 +456,7 @@ mq_chart=ibm-mqadvanced-server-integration-prod
 mq_pull_secret=ibm-entitlement-key
 
 # First parameter is boolean, true for enable tracing
-function release_mq {
+function release_mq() {
   mq_tracing=${1}
 
   mq_values="\
@@ -495,16 +487,16 @@ function release_mq {
 
   echo "Releasing MQ..."
   # Validate the environment
-  if ! kubectl get ns ${mq_namespace} > /dev/null 2>&1; then
+  if ! kubectl get ns ${mq_namespace} >/dev/null 2>&1; then
     echo "There is no namespace '${mq_namespace}'" 1>&2
     exit 1
   fi
-  if ! kubectl get secret ${mq_pull_secret} -n ${mq_namespace} > /dev/null 2>&1; then
+  if ! kubectl get secret ${mq_pull_secret} -n ${mq_namespace} >/dev/null 2>&1; then
     echo "There is no '${mq_pull_secret}' secret in namespace '${mq_namespace}'" 1>&2
     exit 1
   fi
   # Create the Helm values file
-  echo "${mq_values}" > mq-values.yaml
+  echo "${mq_values}" >mq-values.yaml
   # Create the release
   helm install ${chart_repo}/${mq_chart} --name ${mq_release_name} --namespace ${mq_namespace} --values mq-values.yaml --tls
 }
@@ -542,58 +534,58 @@ selectedCluster:
   value: local-cluster
 "
 
-function release_tracing {
-    echo "Releasing Operations Dashboard..."
-    # Validate the environment
-    if ! kubectl get ns ${tracing_namespace} > /dev/null 2>&1; then
-      echo "There is no namespace '${tracing_namespace}'" 1>&2
-      exit 1
-    fi
-    if ! kubectl get secret ${tracing_pull_secret} -n ${tracing_namespace} > /dev/null 2>&1; then
-      echo "There is no '${tracing_pull_secret}' secret in namespace '${tracing_namespace}'" 1>&2
-      exit 1
-    fi
-    # Create the Helm values file
-    echo "${tracing_values}" > tracing-values.yaml
+function release_tracing() {
+  echo "Releasing Operations Dashboard..."
+  # Validate the environment
+  if ! kubectl get ns ${tracing_namespace} >/dev/null 2>&1; then
+    echo "There is no namespace '${tracing_namespace}'" 1>&2
+    exit 1
+  fi
+  if ! kubectl get secret ${tracing_pull_secret} -n ${tracing_namespace} >/dev/null 2>&1; then
+    echo "There is no '${tracing_pull_secret}' secret in namespace '${tracing_namespace}'" 1>&2
+    exit 1
+  fi
+  # Create the Helm values file
+  echo "${tracing_values}" >tracing-values.yaml
 
-    if ! wget -q https://github.com/IBM/charts/raw/master/repo/entitled/${tracing_chart}-${tracing_version}.tgz; then
-      echo "Failed to download ${tracing_chart}-${tracing_version}.tgz from https://github.com/IBM/charts/raw/master/repo/entitled" 1>&2
-      exit 1
-    fi
+  if ! wget -q https://github.com/IBM/charts/raw/master/repo/entitled/${tracing_chart}-${tracing_version}.tgz; then
+    echo "Failed to download ${tracing_chart}-${tracing_version}.tgz from https://github.com/IBM/charts/raw/master/repo/entitled" 1>&2
+    exit 1
+  fi
 
-    if ! tar -xvf ${tracing_chart}-${tracing_version}.tgz; then
-      echo "Failed to untar ${tracing_chart}-${tracing_version}.tgz"
-      exit 1
-    fi
+  if ! tar -xvf ${tracing_chart}-${tracing_version}.tgz; then
+    echo "Failed to untar ${tracing_chart}-${tracing_version}.tgz"
+    exit 1
+  fi
 
-    if ! mv ${tracing_chart}/templates/stateful-set.yaml ${tracing_chart}/templates/stateful-set.yaml.bak; then
-      echo "Failed to rename stateful-set.yaml to stateful-set.yaml.bak"
-      exit 1
-    fi
+  if ! mv ${tracing_chart}/templates/stateful-set.yaml ${tracing_chart}/templates/stateful-set.yaml.bak; then
+    echo "Failed to rename stateful-set.yaml to stateful-set.yaml.bak"
+    exit 1
+  fi
 
-    if ! sed '/OD_ES_KEYSTORE_PASSWORD/i \
+  if ! sed '/OD_ES_KEYSTORE_PASSWORD/i \
 \          - name: "OD_SAMPLING_POLICY_DEFAULT_SAMPLE_PERCENT" \
 \            value: "100" \
-' ${tracing_chart}/templates/stateful-set.yaml.bak > ${tracing_chart}/templates/stateful-set.yaml; then
-      echo "Failed to insert OD_SAMPLING_POLICY_DEFAULT_SAMPLE_PERCENT into stateful-set.yaml"
-      exit 1
-    fi
+' ${tracing_chart}/templates/stateful-set.yaml.bak >${tracing_chart}/templates/stateful-set.yaml; then
+    echo "Failed to insert OD_SAMPLING_POLICY_DEFAULT_SAMPLE_PERCENT into stateful-set.yaml"
+    exit 1
+  fi
 
-    if ! rm ${tracing_chart}/templates/stateful-set.yaml.bak; then
-      echo "Failed to delete stateful-set.yaml.bak"
-      exit 1
-    fi
+  if ! rm ${tracing_chart}/templates/stateful-set.yaml.bak; then
+    echo "Failed to delete stateful-set.yaml.bak"
+    exit 1
+  fi
 
-    # Create the release
-    helm install ${tracing_chart}/ --name ${tracing_release_name} --namespace ${tracing_namespace} --values tracing-values.yaml --tls
+  # Create the release
+  helm install ${tracing_chart}/ --name ${tracing_release_name} --namespace ${tracing_namespace} --values tracing-values.yaml --tls
 }
 
 # --- Postgres ---------------------------------------------------------
 
-function install_postgres {
+function install_postgres() {
   echo "Installing PostgreSQL..."
 
-  cat << EOF > postgres.env
+  cat <<EOF >postgres.env
   MEMORY_LIMIT=2Gi
   NAMESPACE=openshift
   DATABASE_SERVICE_NAME=postgresql
@@ -604,7 +596,7 @@ function install_postgres {
   POSTGRESQL_VERSION=9.6
 EOF
 
-  oc process -n openshift postgresql-persistent --param-file=postgres.env > postgres.yaml
+  oc process -n openshift postgresql-persistent --param-file=postgres.env >postgres.yaml
   oc create namespace postgres
   oc project postgres
   oc apply -f postgres.yaml
@@ -616,55 +608,55 @@ EOF
 tracing_enabled=${tracing_enabled:-false}
 
 for product in $cp_products; do
-    case $product in
-        tracing)
-            release_tracing
-            tracing_enabled=true
-            ;;
-    esac
+  case $product in
+  tracing)
+    release_tracing
+    tracing_enabled=true
+    ;;
+  esac
 done
 
 echo "tracing_enabled=${tracing_enabled}"
 
 for product in $cp_products; do
-    case $product in
-        ace)
-            release_ace_dashboard
-            release_ace_designer
-            ;;
-        apic)
-            release_apic ${tracing_enabled}
-            ;;
-        assetrepo)
-            release_asset_repo
-            ;;
-        eventstreams)
-            release_event_streams
-            ;;
-        mq)
-            release_mq ${tracing_enabled}
-            ;;
-        tracing)
-            ;;
-        postgres)
-            install_postgres
-            ;;
-        *)
-            echo "Unknown product: ${product}"
-            ;;
-    esac
+  case $product in
+  ace)
+    release_ace_dashboard
+    release_ace_designer
+    ;;
+  apic)
+    release_apic ${tracing_enabled}
+    ;;
+  assetrepo)
+    release_asset_repo
+    ;;
+  eventstreams)
+    release_event_streams
+    ;;
+  mq)
+    release_mq ${tracing_enabled}
+    ;;
+  tracing) ;;
+
+  postgres)
+    install_postgres
+    ;;
+  *)
+    echo "Unknown product: ${product}"
+    ;;
+  esac
 done
 
 if ${tracing_enabled}; then
   for product in $cp_products; do
-      case $product in
-          apic)
-              register_tracing_application ${tracing_namespace} ${apic_namespace}
-              ;;
-          mq)
-              register_tracing_application ${tracing_namespace} ${mq_namespace}
-              ;;
-      esac
+    case $product in
+    apic)
+      register_tracing_application ${tracing_namespace} ${apic_namespace}
+      ;;
+    mq)
+      register_tracing_application ${tracing_namespace} ${mq_namespace}
+      ;;
+    esac
   done
 fi
 
