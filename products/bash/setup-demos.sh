@@ -291,10 +291,13 @@ echo -e "$info Output yaml file : '$OUTPUT_FILE'\n"
 #-------------------------------------------------------------------------------------------------------------------
 
 missingPrereqs="false"
-yq --version
-if [ $? -ne 0 ]; then
-  echo -e "$cross [ERROR] 'yq' needs to be installed before running this script" 1>&2
-  missingPrereqs="true"
+# Only require yq to be installed if either file is not json (I.e. yaml)
+if [[ "$INPUT_FILE" != *.json ]] || [[ "$OUTPUT_FILE" != *.json ]] ; then
+  yq --version
+  if [ $? -ne 0 ]; then
+    echo -e "$cross [ERROR] 'yq' needs to be installed before running this script" 1>&2
+    missingPrereqs="true"
+  fi
 fi
 jq --version
 if [ $? -ne 0 ]; then
