@@ -26,7 +26,7 @@
 #   -m : <demoAPICMailServerUsername> (string), Username for the mail server. Defaults to "<your-username>"
 #   -n : <JOB_NAMESPACE> (string), Namespace for the 1-click install
 #   -o : <demoAPICMailServerPort> (string), Port number of the mail server. Defaults to "2525"
-#   -p : <csDefaultAdminPassword> (string), Common service defaul admin password
+#   -p : <csDefaultAdminPassword> (string), Common service default admin password
 #   -q : <demoAPICMailServerPassword> (string), Password for the mail server.
 #   -r : <navReplicaCount> (string), Platform navigator replicas, Defaults to 3
 #   -s : <DOCKER_REGISTRY_PASS> (string), Docker registry password
@@ -203,7 +203,7 @@ echo -e "$info APIC mail server port: '$demoAPICMailServerPort'"
 echo -e "$info APIC mail server username: '$demoAPICMailServerUsername'"
 echo -e "$info Image repository for downloading images: '$IMAGE_REPO'"
 echo -e "$info Temporary ER repository: '$tempRepo'"
-echo -e "$info Dcoker registry username: '$DOCKER_REGISTRY_USER'"
+echo -e "$info Docker registry username: '$DOCKER_REGISTRY_USER'"
 echo -e "$info Environment for installation: '$ENVIRONMENT'"
 echo -e "$info If using fast storage for the installation: '$useFastStorageClass'"
 echo -e "$info If testing the driveway dent deletion demo E2E: '$testDrivewayDentDeletionDemoE2E'"
@@ -370,7 +370,7 @@ fi
 
 divider
 
-# Only update common services username and password if common servies is not already installed
+# Only update common services username and password if common services is not already installed
 if [ "${pwdChange}" == "true" ]; then
   if ! $CURRENT_DIR/change-cs-credentials.sh -u ${csDefaultAdminUser} -p ${csDefaultAdminPassword}; then
     echo -e "$cross ERROR: Failed to update the common services admin username/password" 1>&2
@@ -423,11 +423,11 @@ if [[ "${demoPreparation}" == "true" ]]; then
   divider
 
   if ! $CURRENT_DIR/release-mq.sh -n ${JOB_NAMESPACE} -t; then
-    echo -e "$cross : Failed to release mq" 1>&2
+    echo -e "$cross : Failed to release MQ" 1>&2
     divider
     exit 1
   else
-    echo -e "$tick INFO: Successfully released asset repo"
+    echo -e "$tick INFO: Successfully released MQ"
     divider
   fi
 fi #demoPreparation
@@ -555,7 +555,7 @@ if [[ "${drivewayDentDeletionDemo}" == "true" || "${demoPreparation}" == "true" 
     echo "ERROR: Failed to configure apic" 1>&2
     exit 1
   else
-    echo -e "$tick INFO: Successfully onfigured apic"
+    echo -e "$tick INFO: Successfully configured apic"
     divider
   fi
 fi #drivewayDentDeletionDemo
