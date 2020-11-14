@@ -46,8 +46,6 @@ spec:
             serviceAccountName: cicd-push-to-test
           - taskName: image-push-to-test-mq
             serviceAccountName: cicd-push-to-test
-          - taskName: cicd-deploy-in-test-namespace
-            serviceAccountName: cicd-deploy-to-test
           - taskName: deploy-wait-mq-test
             serviceAccountName: cicd-mq-deploy-in-test-sa
           - taskName: deploy-wait-ace-api-test

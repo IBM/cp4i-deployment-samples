@@ -110,8 +110,6 @@ function wait_and_trigger_pipeline() {
         sleep 60
     done
 
-    divider
-
     echo -e "$INFO INFO: The event listener pod:\n"
     oc get pod -n $NAMESPACE | grep el-$PIPELINE_TYPE-event-listener | grep 1/1 | grep Running
     echo -e "\n$INFO INFO: The event listener pod is now in Running, going ahead to trigger the '$PIPELINE_TYPE' pipeline...\n"
@@ -128,9 +126,9 @@ function wait_and_trigger_pipeline() {
 
     divider
 
-    PIPELINE_RUN_END_STATUS=$($TKN pipelinerun describe -n $NAMESPACE $($TKN pipelinerun list -n $NAMESPACE --limit 1 | sed -n 2p | awk '{print $1}') -o json | $JQ -r '.status.conditions[0].type')
-    if [[ "$PIPELINE_RUN_END_STATUS" != "Succeeded" ]]; then
-        echo -e "$CROSS ERROR: The '$PIPELINE_TYPE' pipeline run did not complete successfully.$CROSS"
+    PIPELINE_RUN_END_STATUS=$($TKN pipelinerun describe -n $NAMESPACE $($TKN pipelinerun list -n $NAMESPACE --limit 1 | sed -n 2p | awk '{print $1}') -o json | $JQ -r '.status.conditions[0].status')
+    if [[ "$PIPELINE_RUN_END_STATUS" == "False" ]]; then
+        echo -e "$CROSS ERROR: The '$PIPELINE_TYPE' pipeline run did not complete successfully. $CROSS"
         print_pipelineruns_taskruns
         exit 1
     else
@@ -143,7 +141,7 @@ function run_continuous_load_script() {
     CONTINUOUS_LOAD_NAMESPACE=$1 #namespace
     APIC_ENABLED=$2              # apic enabled
     PIPELINE_TYPE=$3             # pipeline type
-    echo -e "$INFO INFO Running the continuous-load.sh after '$PIPELINE_TYPE' pipeline with apic set to '$APIC_ENABLED' in the '$CONTINUOUS_LOAD_NAMESPACE' namespace..."
+    echo -e "$INFO INFO Running the continuous-load.sh after '$PIPELINE_TYPE' pipeline with apic set to '$APIC_ENABLED' in the '$CONTINUOUS_LOAD_NAMESPACE' namespace...\n"
 
     if [[ "$APIC_ENABLED" == "true" ]]; then
         if ! $CURRENT_DIR/continuous-load.sh -n $CONTINUOUS_LOAD_NAMESPACE -a -z; then
@@ -158,8 +156,6 @@ function run_continuous_load_script() {
             exit 1
         fi
     fi
-
-    divider
 }
 
 divider
