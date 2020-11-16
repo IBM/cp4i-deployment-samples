@@ -592,6 +592,7 @@ if [[ ("${demoPreparation}" == "true" || "${drivewayDentDeletionDemo}" == "true"
   if ! $CURRENT_DIR/../../DrivewayDentDeletion/Operators/test-ddd.sh -n ${JOB_NAMESPACE} -b $demoDeploymentBranch; then
     echo "ERROR: Failed to run automated test for driveway dent deletion demo" 1>&2
     divider
+    exit 1
   fi
 fi
 divider
