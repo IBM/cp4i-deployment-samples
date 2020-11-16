@@ -21,7 +21,7 @@
 #   With overridden values
 #     ./prereqs.sh -n <namespace> -r <nav_replicas>
 
-function usage {
+function usage() {
   echo "Usage: $0 -n <namespace> -r <nav_replicas>"
   exit 1
 }
@@ -36,12 +36,15 @@ POSTGRES_NAMESPACE="postgres"
 
 while getopts "n:r:" opt; do
   case ${opt} in
-    n ) namespace="$OPTARG"
-      ;;
-    r ) nav_replicas="$OPTARG"
-      ;;
-    \? ) usage;
-      ;;
+  n)
+    namespace="$OPTARG"
+    ;;
+  r)
+    nav_replicas="$OPTARG"
+    ;;
+  \?)
+    usage
+    ;;
   esac
 done
 
@@ -49,7 +52,6 @@ CURRENT_DIR=$(dirname $0)
 echo "INFO: Current directory: '$CURRENT_DIR'"
 echo "INFO: Namespace: '$namespace'"
 echo "INFO: Suffix for the postgres is: '$SUFFIX'"
-
 
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
@@ -59,7 +61,7 @@ if ! ${CURRENT_DIR}/../../products/bash/install-ocp-pipeline.sh; then
   exit 1
 else
   echo -e "$tick INFO: Successfully installed OCP pipelines"
-fi  #${CURRENT_DIR}/../../products/bash/install-ocp-pipeline
+fi #${CURRENT_DIR}/../../products/bash/install-ocp-pipeline
 
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
@@ -69,7 +71,7 @@ if ! ${CURRENT_DIR}/../../products/bash/configure-ocp-pipeline.sh -n ${namespace
   exit 1
 else
   echo -e "$tick INFO: Successfully configured secrets and permissions related to ocp pipelines in the '$namespace' namespace for the ddd demo"
-fi  #${CURRENT_DIR}/../../products/bash/configure-ocp-pipeline.sh -n ${namespace}
+fi #${CURRENT_DIR}/../../products/bash/configure-ocp-pipeline.sh -n ${namespace}
 
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
@@ -91,7 +93,7 @@ echo -e "\n---------------------------------------------------------------------
 
 echo "INFO: Creating operator group and subscription in the namespace '${test_namespace}'"
 
-if ! ${CURRENT_DIR}/../../products/bash/deploy-og-sub.sh -n ${test_namespace} ; then
+if ! ${CURRENT_DIR}/../../products/bash/deploy-og-sub.sh -n ${test_namespace}; then
   echo -e "$cross ERROR: Failed to apply subscriptions and csv in the namespace '$test_namespace'"
   exit 1
 fi
@@ -106,18 +108,20 @@ echo -e "\n---------------------------------------------------------------------
 
 declare -a image_projects=("${dev_namespace}" "${test_namespace}")
 
-for image_project in "${image_projects[@]}" #for_outer
-do
+for image_project in "${image_projects[@]}"; do #for_outer
   echo "INFO: Generating user, database name and password for the postgres database in the '$image_project' namespace"
   DB_POD=$(oc get pod -n $POSTGRES_NAMESPACE -l name=postgresql -o jsonpath='{.items[].metadata.name}')
   DB_USER=$(echo ${image_project}_${SUFFIX} | sed 's/-/_/g')
   DB_NAME="db_$DB_USER"
-  DB_PASS=$(LC_ALL=C tr -dc 'A-Za-z0-9' </dev/urandom | head -c 32 ; echo)
+  DB_PASS=$(
+    LC_ALL=C tr -dc 'A-Za-z0-9' </dev/urandom | head -c 32
+    echo
+  )
   PASSWORD_ENCODED=$(echo -n ${DB_PASS} | base64)
 
   echo "INFO: Creating a secret for the database user '$DB_USER' in the database '$DB_NAME' with the password generated"
   # everything inside 'data' must be in the base64 encoded form
-  cat << EOF | oc apply -f -
+  cat <<EOF | oc apply -f -
 apiVersion: v1
 kind: Secret
 metadata:
@@ -136,7 +140,7 @@ EOF
     exit 1
   else
     echo -e "\n$tick INFO: Successfully configured postgres in the '$POSTGRES_NAMESPACE' namespace with the user '$DB_USER' and database name '$DB_NAME'\n"
-  fi  #configure-postgres-db.sh
+  fi #configure-postgres-db.sh
 
   echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
@@ -146,7 +150,7 @@ EOF
     exit 1
   else
     echo -e "\n$tick INFO: Successfully configured ace in the '$image_project' namespace with the user '$DB_USER' and database name '$DB_NAME' and suffix '$SUFFIX'"
-  fi  #${CURRENT_DIR}/../../products/bash/create-ace-config.sh -n ${image_project} -g $POSTGRES_NAMESPACE -u $DB_USER -d $DB_NAME -p $DB_PASS -s $SUFFIX
+  fi #${CURRENT_DIR}/../../products/bash/create-ace-config.sh -n ${image_project} -g $POSTGRES_NAMESPACE -u $DB_USER -d $DB_NAME -p $DB_PASS -s $SUFFIX
 
   echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 done #for_outer_done
@@ -172,7 +176,7 @@ echo -e "\n---------------------------------------------------------------------
 
 echo "INFO: Releasing Navigator in the namespace '${test_namespace}'"
 
-if ! ${CURRENT_DIR}/../../products/bash/release-navigator.sh -n ${test_namespace} -r ${nav_replicas} ; then
+if ! ${CURRENT_DIR}/../../products/bash/release-navigator.sh -n ${test_namespace} -r ${nav_replicas}; then
   echo -e "$cross ERROR: Failed to release the platform navigator in the namespace '$test_namespace'"
   exit 1
 fi
@@ -181,7 +185,7 @@ echo -e "\n---------------------------------------------------------------------
 
 echo "INFO: Releasing ACE dashboard in the namespace '${test_namespace}'"
 
-if ! ${CURRENT_DIR}/../../products/bash/release-ace-dashboard.sh -n ${test_namespace} ; then
+if ! ${CURRENT_DIR}/../../products/bash/release-ace-dashboard.sh -n ${test_namespace}; then
   echo -e $cross "ERROR: Failed to release the ace dashboard in the namespace '$test_namespace'"
   exit 1
 fi

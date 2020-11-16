@@ -21,9 +21,9 @@
 #   With default values
 #     ./test-api-e2e.sh
 
-function usage {
-    echo "Usage: $0 -n <NAMESPACE> -r <RELEASE> -p <NAMESPACE_SUFFIX> -s <USER_DB_SUFFIX> -a"
-    exit 1
+function usage() {
+  echo "Usage: $0 -n <NAMESPACE> -r <RELEASE> -p <NAMESPACE_SUFFIX> -s <USER_DB_SUFFIX> -a"
+  exit 1
 }
 
 CURRENT_DIR=$(dirname $0)
@@ -40,18 +40,25 @@ fi
 
 while getopts "n:r:p:s:a" opt; do
   case ${opt} in
-    n ) NAMESPACE="$OPTARG"
-      ;;
-    r ) RELEASE="$OPTARG"
-      ;;
-    p ) NAMESPACE_SUFFIX="$OPTARG"
-      ;;
-    s ) USER_DB_SUFFIX="$OPTARG"
-      ;;
-    a ) APIC=true
-      ;;
-    \? ) usage; exit
-      ;;
+  n)
+    NAMESPACE="$OPTARG"
+    ;;
+  r)
+    RELEASE="$OPTARG"
+    ;;
+  p)
+    NAMESPACE_SUFFIX="$OPTARG"
+    ;;
+  s)
+    USER_DB_SUFFIX="$OPTARG"
+    ;;
+  a)
+    APIC=true
+    ;;
+  \?)
+    usage
+    exit
+    ;;
   esac
 done
 
@@ -212,8 +219,8 @@ if [ "$post_response_code" == "200" ]; then
   echo -e "\nINFO: Confirming the deletion of the row with the quote id '$quote_id' from database '${DB_NAME}' as the user '${DB_USER}'..."
   oc exec -n postgres -it ${DB_POD} \
     -- psql -U ${DB_USER} -d ${DB_NAME} -c \
-    "SELECT * FROM quotes WHERE quotes.quoteid=${quote_id};" \
-    | grep '0 rows'
+    "SELECT * FROM quotes WHERE quotes.quoteid=${quote_id};" |
+    grep '0 rows'
 
   if [ $? -eq 0 ]; then
     echo -e "\n$TICK INFO: Successfully confirmed deletion of row with quote id '$quote_id'"

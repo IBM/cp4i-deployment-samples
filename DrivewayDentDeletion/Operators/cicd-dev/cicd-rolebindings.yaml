@@ -3,22 +3,21 @@ kind: RoleBinding
 metadata:
   name: ace-int-srv-rolebinding
 subjects:
-- kind: ServiceAccount
-  name: cicd-ace-sa
+  - kind: ServiceAccount
+    name: cicd-ace-sa
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: Role
   name: ace-int-srv-role
 
 ---
-
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
   name: mq-rolebinding
 subjects:
-- kind: ServiceAccount
-  name: cicd-mq-sa
+  - kind: ServiceAccount
+    name: cicd-mq-sa
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: Role

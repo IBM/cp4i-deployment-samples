@@ -19,13 +19,13 @@ spec:
           eventstreams.production.type: CloudPakForIntegrationNonProduction
           productID: 2a79e49111f44ec3acd89608e56138f5
           productName: IBM Event Streams for Non Production
-           # Use the latest version of Eventstreams
+          # Use the latest version of Eventstreams
           productVersion: 10.1.0
           productMetric: VIRTUAL_PROCESSOR_CORE
           productChargedContainers: eei-cluster-connect
           cloudpakId: c8b82d189e7545f0892db9ef2731b90d
           cloudpakName: IBM Cloud Pak for Integration
-           # Use the latest version of Eventstreams
+          # Use the latest version of Eventstreams
           cloudpakVersion: 2020.3.1
           productCloudpakRatio: "2:1"
   config:

@@ -10,7 +10,7 @@ The script carries out the following:
 - Creates secrets to allow the pipeline to push images to the default project (`cp4i`).
 - Creates a username and password for the dev (this is the namespace where the 1-click install ran in).
 - Create a username for the postgres for this demo.
-- Creates a database for the postfreg for this demo.
+- Creates a database for the postgres for this demo.
 - Creates a `QUOTES` table in the database.
 - Creates an ACE configuration and dynamic policy xml for postgres in the default namespace `cp4i`.
 - Does some setup to support a Debezium connector:
@@ -367,7 +367,7 @@ The following should appear in the logs:
 And now the connector is monitoring the `sor.public.quotes` topic and writing to the `sor.public.quotes` index in Elasticsearch.
 
 # Verify contents of Elasticsearch
-Portforward the Elasticsearch service to your localhost:
+Port forward the Elasticsearch service to your localhost:
 ```
 ELASTIC_NAMESPACE=elasticsearch
 oc port-forward -n ${ELASTIC_NAMESPACE} service/elasticsearch-eei-es-http 9200
@@ -557,7 +557,7 @@ A successful request should return an HTTP 200 with a JSON body that contains th
 
 DB_writer bar file: Responsible for Reading messages from the Queue `Quote` and adding to the Postgres Database table `db_cp4i1_sor_eei`. The flow consists of MQ input node and Java compute node. MQ input node passes the messages to the java compute node in the flow which reads the messages from the queue after every second and adds them to the postgres table.
 
-:information_source: Should the db writer fail to communicate with the SOR DB an exception will be thrown and after 99 unsuccesful retries (99 seconds) the message will be backed out to a backout queue `QuoteBO`.
+:information_source: Should the db writer fail to communicate with the SOR DB an exception will be thrown and after 99 unsuccessful retries (99 seconds) the message will be backed out to a backout queue `QuoteBO`.
 
 # Testing the POST calls via APIC
 Instructions to load test the POST call via APIC can be found [here](post-load-test-readme.md).

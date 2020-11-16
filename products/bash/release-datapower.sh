@@ -25,8 +25,8 @@
 #   Overriding the namespace and release-name
 #     ./release-datapower -n cp4i-prod -r datapower -p -a admin
 
-function usage {
-    echo "Usage: $0 -n <namespace> -r <release-name> [-t]"
+function usage() {
+  echo "Usage: $0 -n <namespace> -r <release-name> [-t]"
 }
 
 SCRIPT_DIR=$(dirname $0)
@@ -40,27 +40,31 @@ memory_limit="4Gi"
 replicas=1
 
 while getopts "n:r:pa:" opt; do
-    case ${opt} in
-        n ) namespace="$OPTARG"
-        ;;
-        r ) release_name="$OPTARG"
-        ;;
-        p ) production="true"
-        ;;
-        a ) admin_password="$OPTARG"
-        ;;
-        \? ) usage; exit
-        ;;
-    esac
+  case ${opt} in
+  n)
+    namespace="$OPTARG"
+    ;;
+  r)
+    release_name="$OPTARG"
+    ;;
+  p)
+    production="true"
+    ;;
+  a)
+    admin_password="$OPTARG"
+    ;;
+  \?)
+    usage
+    exit
+    ;;
+  esac
 done
 
-
-if [[ "$production" == "true" ]]
-then
-    echo "Production Mode Enabled"
-    flavour="production"
-    memory_limit="8Gi"
-    replicas=5
+if [[ "$production" == "true" ]]; then
+  echo "Production Mode Enabled"
+  flavour="production"
+  memory_limit="8Gi"
+  replicas=5
 fi
 
 # Create ConfigMap for default
@@ -79,7 +83,7 @@ oc create secret generic -n ${namespace} jon --from-file=${SCRIPT_DIR}/datapower
 oc create secret generic -n ${namespace} datapower-admin-credentials --from-literal=password=${admin_password}
 
 # Create DataPowerService
-cat << EOF | oc apply -f -
+cat <<EOF | oc apply -f -
 apiVersion: datapower.ibm.com/v1beta2
 kind: DataPowerService
 metadata:

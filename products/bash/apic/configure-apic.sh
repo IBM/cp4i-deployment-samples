@@ -1,12 +1,12 @@
 #!/bin/bash
 set -e
 
-DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-NAMESPACE="apic" # update to namespace where apic is installed
+NAMESPACE="apic"                                                  # update to namespace where apic is installed
 PORG_ADMIN_EMAIL=${PORG_ADMIN_EMAIL:-"cp4i-admin@apiconnect.net"} # update to recipient of portal site creation email
-ACE_REGISTRATION_SECRET_NAME="ace-v11-service-creds" # corresponds to registration obj currently hard-coded in configmap
-PROVIDER_SECRET_NAME="cp4i-admin-creds" # corresponds to credentials obj currently hard-coded in configmap
+ACE_REGISTRATION_SECRET_NAME="ace-v11-service-creds"              # corresponds to registration obj currently hard-coded in configmap
+PROVIDER_SECRET_NAME="cp4i-admin-creds"                           # corresponds to credentials obj currently hard-coded in configmap
 CONFIGURATOR_IMAGE=${CONFIGURATOR_IMAGE:-"cp.icr.io/cp/apic/apic-configurator:dte-21"}
 MAIL_SERVER_HOST=${MAIL_SERVER_HOST:-"smtp.mailtrap.io"}
 MAIL_SERVER_PORT=${MAIL_SERVER_PORT:-"2525"}
@@ -18,17 +18,17 @@ MANIFEST_DIR=$DIR/apic-config-manifest
 mkdir -p $MANIFEST_DIR
 
 echo "Waiting for OIDC registration job to complete..."
-for i in `seq 1 60`; do
-	OIDC_JOB_STATUS=$(kubectl get pods | grep -m1 register-oidc | awk '{print $3}')
-	if [ "$OIDC_JOB_STATUS" == "Completed" ]; then
-		echo "[OK] OIDC registration job is complete."
-		break
-	else
-		echo "Waiting for OIDC registration job to complete (Attempt $i of 60). Job status: $OIDC_JOB_STATUS"
-		kubectl get pods,jobs
-		echo "Checking again in one minute..."
-		sleep 60
-	fi
+for i in $(seq 1 60); do
+  OIDC_JOB_STATUS=$(kubectl get pods | grep -m1 register-oidc | awk '{print $3}')
+  if [ "$OIDC_JOB_STATUS" == "Completed" ]; then
+    echo "[OK] OIDC registration job is complete."
+    break
+  else
+    echo "Waiting for OIDC registration job to complete (Attempt $i of 60). Job status: $OIDC_JOB_STATUS"
+    kubectl get pods,jobs
+    echo "Checking again in one minute..."
+    sleep 60
+  fi
 done
 
 echo "Waiting for gateway pod to be ready..."
@@ -62,13 +62,12 @@ sed "s#{{{ apim_namespace }}}#$NAMESPACE#g;
   s#{{{ api_gateway_endpoint }}}#$API_GW_EP#g;
   s#{{{ gateway_service_endpoint }}}#$GW_SVC_EP#g;
   s#{{{ mail_server_host }}}#$MAIL_SERVER_HOST#g;
-  s#{{{ mail_server_port }}}#$MAIL_SERVER_PORT#g" $TEMPLATE_DIR/configmap.yaml > $MANIFEST_DIR/configmap.yaml
+  s#{{{ mail_server_port }}}#$MAIL_SERVER_PORT#g" $TEMPLATE_DIR/configmap.yaml >$MANIFEST_DIR/configmap.yaml
 sed "s#{{{ mail_server_username }}}#$MAIL_SERVER_USERNAME#g;
-  s#{{{ mail_server_password }}}#$MAIL_SERVER_PASSWORD#g" $TEMPLATE_DIR/default-mail-server-creds-secret.yaml > $MANIFEST_DIR/default-mail-server-creds-secret.yaml
-sed "s#{{{ apim_namespace }}}#$NAMESPACE#g" $TEMPLATE_DIR/rbac.yaml > $MANIFEST_DIR/rbac.yaml
-sed "s#{{{ configurator_image }}}#$CONFIGURATOR_IMAGE#g" $TEMPLATE_DIR/job.yaml > $MANIFEST_DIR/job.yaml
+  s#{{{ mail_server_password }}}#$MAIL_SERVER_PASSWORD#g" $TEMPLATE_DIR/default-mail-server-creds-secret.yaml >$MANIFEST_DIR/default-mail-server-creds-secret.yaml
+sed "s#{{{ apim_namespace }}}#$NAMESPACE#g" $TEMPLATE_DIR/rbac.yaml >$MANIFEST_DIR/rbac.yaml
+sed "s#{{{ configurator_image }}}#$CONFIGURATOR_IMAGE#g" $TEMPLATE_DIR/job.yaml >$MANIFEST_DIR/job.yaml
 cp $TEMPLATE_DIR/serviceaccount.yaml $MANIFEST_DIR/serviceaccount.yaml
-
 
 # create the k8s resources
 echo "Applying manifests"
@@ -82,17 +81,17 @@ kubectl wait --for=condition=complete --timeout=300s job/apic-configurator
 PROVIDER_CREDENTIALS=$(kubectl get secret $PROVIDER_SECRET_NAME -n $NAMESPACE -o json | jq .data)
 ACE_CREDENTIALS=$(kubectl get secret $ACE_REGISTRATION_SECRET_NAME -n $NAMESPACE -o json | jq .data)
 
-for i in `seq 1 60`; do
-	PORTAL_WWW_POD=$(kubectl get pods | grep -m1 portal-www | awk '{print $1}')
-	PORTAL_SITE_UUID=$(kubectl exec -it $PORTAL_WWW_POD -c admin /opt/ibm/bin/list_sites | awk '{print $1}')
+for i in $(seq 1 60); do
+  PORTAL_WWW_POD=$(kubectl get pods | grep -m1 portal-www | awk '{print $1}')
+  PORTAL_SITE_UUID=$(kubectl exec -it $PORTAL_WWW_POD -c admin /opt/ibm/bin/list_sites | awk '{print $1}')
   PORTAL_SITE_RESET_URL=$(kubectl exec -it $PORTAL_WWW_POD -c admin /opt/ibm/bin/site_login_link $PORTAL_SITE_UUID | tail -1)
   if [[ "$PORTAL_SITE_RESET_URL" =~ "https://$PTL_WEB_EP" ]]; then
     echo "[OK] Got the portal_site_password_reset_link"
-		break
+    break
   else
     echo "Waiting for the portal_site_password_reset_link to be available (Attempt $i of 60)."
-		echo "Checking again in one minute..."
-		sleep 60
+    echo "Checking again in one minute..."
+    sleep 60
   fi
 done
 

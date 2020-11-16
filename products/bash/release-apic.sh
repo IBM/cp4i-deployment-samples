@@ -24,8 +24,8 @@
 #   Overriding the namespace and release-name
 #     ./release-apic -n cp4i-prod -r prod
 
-function usage {
-    echo "Usage: $0 -n <namespace> -r <release-name> [-t]"
+function usage() {
+  echo "Usage: $0 -n <namespace> -r <release-name> [-t]"
 }
 
 namespace="cp4i"
@@ -35,16 +35,22 @@ production="false"
 
 while getopts "n:r:tp" opt; do
   case ${opt} in
-    n ) namespace="$OPTARG"
-      ;;
-    r ) release_name="$OPTARG"
-      ;;
-    t ) tracing=true
-      ;;
-    p ) production="true"
+  n)
+    namespace="$OPTARG"
     ;;
-    \? ) usage; exit
-      ;;
+  r)
+    release_name="$OPTARG"
+    ;;
+  t)
+    tracing=true
+    ;;
+  p)
+    production="true"
+    ;;
+  \?)
+    usage
+    exit
+    ;;
   esac
 done
 
@@ -54,7 +60,7 @@ if [[ "$production" == "true" ]]; then
   profile="n12xc4.m12"
 fi
 
-cat << EOF | oc apply -f -
+cat <<EOF | oc apply -f -
 apiVersion: apiconnect.ibm.com/v1beta1
 kind: APIConnectCluster
 metadata:

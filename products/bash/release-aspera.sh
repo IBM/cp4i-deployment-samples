@@ -25,8 +25,8 @@
 #   Overriding the namespace and release-name
 #     ./release-aspera -n cp4i-prod -r prod -k keyfile_path
 
-function usage {
-    echo "Usage: $0 -n <namespace> -r <release-name> [-t]"
+function usage() {
+  echo "Usage: $0 -n <namespace> -r <release-name> [-t]"
 }
 
 namespace="cp4i"
@@ -36,28 +36,34 @@ license_key_filepath=""
 storage_class=""
 
 while getopts "n:r:pk:c:" opt; do
-    case ${opt} in
-        n ) namespace="$OPTARG"
-        ;;
-        r ) release_name="$OPTARG"
-        ;;
-        p ) production="true"
-        ;;
-        k ) license_key_filepath="$OPTARG"
-        ;;
-        c ) storage_class="$OPTARG"
-        ;;
-        \? ) usage; exit
-        ;;
-    esac
+  case ${opt} in
+  n)
+    namespace="$OPTARG"
+    ;;
+  r)
+    release_name="$OPTARG"
+    ;;
+  p)
+    production="true"
+    ;;
+  k)
+    license_key_filepath="$OPTARG"
+    ;;
+  c)
+    storage_class="$OPTARG"
+    ;;
+  \?)
+    usage
+    exit
+    ;;
+  esac
 done
 
 license="$(cat ${license_key_filepath} | awk '{printf "      %s\n",$0}')"
 
-if [[ "$production" == "true" ]]
-then
-    echo "Production Mode Enabled"
-    cat << EOF | oc apply -f -
+if [[ "$production" == "true" ]]; then
+  echo "Production Mode Enabled"
+  cat <<EOF | oc apply -f -
 apiVersion: hsts.aspera.ibm.com/v1
 kind: IbmAsperaHsts
 metadata:
@@ -123,8 +129,8 @@ ${license}
   version: 4.0.0
 EOF
 else
-    
-cat << EOF | oc apply -f -
+
+  cat <<EOF | oc apply -f -
 apiVersion: hsts.aspera.ibm.com/v1
 kind: IbmAsperaHsts
 metadata:

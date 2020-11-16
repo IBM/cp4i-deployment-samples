@@ -14,7 +14,7 @@ spec:
     database.port: "5432"
     # The following credentials refer to the mounted secret and use the FileConfigProvider
     # from the KafkaConnectS2I to extract properties from the properties file.
-    database.dbname : "${file:/opt/kafka/external-configuration/postgres-connector-config/connector.properties:dbName}"
+    database.dbname: "${file:/opt/kafka/external-configuration/postgres-connector-config/connector.properties:dbName}"
     database.user: "${file:/opt/kafka/external-configuration/postgres-connector-config/connector.properties:dbUsername}"
     database.password: "${file:/opt/kafka/external-configuration/postgres-connector-config/connector.properties:dbPassword}"
     # This is the prefix used for the topic created by this connector.

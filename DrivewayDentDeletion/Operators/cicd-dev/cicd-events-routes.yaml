@@ -5,11 +5,10 @@ metadata:
 spec:
   serviceAccountName: pipeline
   triggers:
-  - template:
-      name: dev-triggertemplate
+    - template:
+        name: dev-triggertemplate
 
 ---
-
 apiVersion: route.openshift.io/v1
 kind: Route
 metadata:

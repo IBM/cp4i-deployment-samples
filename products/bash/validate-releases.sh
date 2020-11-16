@@ -23,8 +23,8 @@
 # 3. To validate specific products, add them to the command line, e.g:
 #       ./validate-releases.sh <console> mq-demo ace-demo
 
-function usage {
-    echo "Usage: $0 <console> [products...]"
+function usage() {
+  echo "Usage: $0 <console> [products...]"
 }
 
 cp_console="$1"
@@ -34,25 +34,25 @@ cp_username=${CP_USERNAME:-admin}
 cp_password=${CP_PASSWORD}
 
 if [[ -z "${cp_console}" ]]; then
-    usage
-    exit 2
+  usage
+  exit 2
 fi
 if [[ -z "${cp_releases}" ]]; then
-    echo "No releases specified, validation complete."
-    exit 1
+  echo "No releases specified, validation complete."
+  exit 1
 fi
 if [[ -z "${cp_password}" ]]; then
-    read -p "Password (${cp_username}): " -s -r cp_password
-    echo
+  read -p "Password (${cp_username}): " -s -r cp_password
+  echo
 fi
 if [[ -z "${cp_password}" ]]; then
-    echo "No password was provided for the '${cp_username}' user" 1>&2
-    exit 1
+  echo "No password was provided for the '${cp_username}' user" 1>&2
+  exit 1
 fi
 
 cp_client_platform=linux-amd64
 if [[ $(uname) == Darwin ]]; then
-    cp_client_platform=darwin-amd64
+  cp_client_platform=darwin-amd64
 fi
 
 cd "$(dirname $0)"
@@ -67,8 +67,8 @@ export PATH=${PWD}/bin:${PATH}
 echo "Downloading tools..."
 curl -k -sS -o bin/kubectl https://${cp_console}/api/cli/kubectl-${cp_client_platform}
 curl -k -sS -o bin/cloudctl https://${cp_console}/api/cli/cloudctl-${cp_client_platform}
-curl -k -sS https://${cp_console}/api/cli/helm-${cp_client_platform}.tar.gz | \
-    tar xzf - -C bin --strip-components=1 ${cp_client_platform}/helm
+curl -k -sS https://${cp_console}/api/cli/helm-${cp_client_platform}.tar.gz |
+  tar xzf - -C bin --strip-components=1 ${cp_client_platform}/helm
 
 chmod +x bin/*
 
@@ -77,11 +77,11 @@ helm init --client-only
 
 # Login to the cluster
 if ! cloudctl login -a https://${cp_console} -u ${cp_username} -p "${cp_password}" -n default --skip-ssl-validation; then
-    echo "Unable to login to the console as user '${cp_username}' with the given password" 1>&2
-    exit 1
+  echo "Unable to login to the console as user '${cp_username}' with the given password" 1>&2
+  exit 1
 fi
 
-function is_release_ready {
+function is_release_ready() {
   release_name=${1}
   release_status=$(helm status ${release_name} --tls -o json | jq -r '.info.status.code')
 
@@ -111,7 +111,7 @@ while [ ! $retry_count -eq $startup_retries ] && [ "$everything_ready" = false ]
 
   if [ "$everything_ready" = false ]; then
     sleep $retry_interval
-    retry_count=$((retry_count+1))
+    retry_count=$((retry_count + 1))
     echo "Releases not ready, retrying... ${retry_count} attempts out of ${startup_retries}."
   fi
 done
