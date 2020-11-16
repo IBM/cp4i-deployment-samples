@@ -54,7 +54,7 @@ echo "INFO: Current directory: '$CURRENT_DIR'"
 echo "INFO: Namespace: '$namespace'"
 echo "INFO: Suffix for the postgres is: '$SUFFIX'"
 
-if [[ -z "${namespace// }" ]]; then
+if [[ -z "${namespace// /}" ]]; then
   echo -e "$cross ERROR: A mandatory parameter 'namespace' is empty"
   usage
 fi
@@ -73,7 +73,7 @@ echo "INFO: The username for the simulator app to connect to the postgres: $PG_U
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
 echo "INFO: Creating a deployment for the lifecycle simulator application..."
-cat << EOF | oc apply -f -
+cat <<EOF | oc apply -f -
 apiVersion: apps/v1
 kind: Deployment
 metadata:

@@ -27,9 +27,9 @@
 #   Overriding the namespace and release-name
 #     ./release-mq -n cp4i -r mq-demo -i image-registry.openshift-image-registry.svc:5000/cp4i/mq-ddd -q mq-qm
 
-function usage {
-    echo "Usage: $0 -n <namespace> -r <release_name> -i <image_name> -q <qm_name> -z <tracing_namespace> [-t]"
-    exit 1
+function usage() {
+  echo "Usage: $0 -n <namespace> -r <release_name> -i <image_name> -q <qm_name> -z <tracing_namespace> [-t]"
+  exit 1
 }
 
 tick="\xE2\x9C\x85"
@@ -45,36 +45,43 @@ echo "Namespace: $namespace"
 
 while getopts "n:r:i:q:z:t" opt; do
   case ${opt} in
-    n ) namespace="$OPTARG"
-      ;;
-    r ) release_name="$OPTARG"
-      ;;
-    i ) image_name="$OPTARG"
-      ;;
-    q ) qm_name="$OPTARG"
-      ;;
-    z ) tracing_namespace="$OPTARG"
-      ;;
-    t ) tracing_enabled=true
-      ;;
-    \? ) usage;
-      ;;
+  n)
+    namespace="$OPTARG"
+    ;;
+  r)
+    release_name="$OPTARG"
+    ;;
+  i)
+    image_name="$OPTARG"
+    ;;
+  q)
+    qm_name="$OPTARG"
+    ;;
+  z)
+    tracing_namespace="$OPTARG"
+    ;;
+  t)
+    tracing_enabled=true
+    ;;
+  \?)
+    usage
+    ;;
   esac
 done
 
 # when called from install.sh
-if [ "$tracing_enabled" == "true" ] ; then
-   if [ -z "$tracing_namespace" ]; then tracing_namespace=${namespace} ; fi
+if [ "$tracing_enabled" == "true" ]; then
+  if [ -z "$tracing_namespace" ]; then tracing_namespace=${namespace}; fi
 else
-    # assgining value to tracing_namespace b/c empty values causes CR to throw an error
-    tracing_namespace=${namespace}
+  # assigning value to tracing_namespace b/c empty values causes CR to throw an error
+  tracing_namespace=${namespace}
 fi
 
 echo "[INFO] tracing is set to $tracing_enabled"
 
 if [ -z $image_name ]; then
 
-cat << EOF | oc apply -f -
+  cat <<EOF | oc apply -f -
 apiVersion: mq.ibm.com/v1beta1
 kind: QueueManager
 metadata:
@@ -104,34 +111,34 @@ spec:
     enabled: ${tracing_enabled}
     namespace: ${tracing_namespace}
 EOF
-if [[ "$?" != "0" ]]; then
-  echo -e "$cross [ERROR] Failed to apply QueueManager CR"
-  exit 1
-fi
+  if [[ "$?" != "0" ]]; then
+    echo -e "$cross [ERROR] Failed to apply QueueManager CR"
+    exit 1
+  fi
 
 else
 
-# --------------------------------------------------- FIND IMAGE TAG ---------------------------------------------------
+  # --------------------------------------------------- FIND IMAGE TAG ---------------------------------------------------
 
-echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
+  echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
-imageTag=${image_name##*:}
+  imageTag=${image_name##*:}
 
-echo "INFO: Image tag found for '$release_name' is '$imageTag'"
-echo "INFO: Image is '$image_name'"
-echo "INFO: Release name is: '$release_name'"
+  echo "INFO: Image tag found for '$release_name' is '$imageTag'"
+  echo "INFO: Image is '$image_name'"
+  echo "INFO: Release name is: '$release_name'"
 
-if [[ -z "$imageTag" ]]; then
-  echo "ERROR: Failed to extract image tag from the end of '$image_name'"
-  exit 1
-fi
+  if [[ -z "$imageTag" ]]; then
+    echo "ERROR: Failed to extract image tag from the end of '$image_name'"
+    exit 1
+  fi
 
-echo "INFO: Setting up certs for MQ TLS"
-QM_KEY=$(cat $CURRENT_DIR/mq/createcerts/server.key | base64 -w0)
-QM_CERT=$(cat $CURRENT_DIR/mq/createcerts/server.crt | base64 -w0)
-APP_CERT=$(cat $CURRENT_DIR/mq/createcerts/application.crt | base64 -w0)
+  echo "INFO: Setting up certs for MQ TLS"
+  QM_KEY=$(cat $CURRENT_DIR/mq/createcerts/server.key | base64 -w0)
+  QM_CERT=$(cat $CURRENT_DIR/mq/createcerts/server.crt | base64 -w0)
+  APP_CERT=$(cat $CURRENT_DIR/mq/createcerts/application.crt | base64 -w0)
 
-cat << EOF | oc apply -f -
+  cat <<EOF | oc apply -f -
 ---
 kind: ConfigMap
 apiVersion: v1
@@ -156,17 +163,16 @@ data:
   app.crt: $APP_CERT
 type: Opaque
 EOF
-if [[ "$?" != "0" ]]; then
-  echo -e "$cross [ERROR] Failed to apply ConfigMap/Secret for MQ TLS"
-  exit 1
-fi
+  if [[ "$?" != "0" ]]; then
+    echo -e "$cross [ERROR] Failed to apply ConfigMap/Secret for MQ TLS"
+    exit 1
+  fi
 
+  echo -e "INFO: Going ahead to apply the CR for '$release_name'"
 
-echo -e "INFO: Going ahead to apply the CR for '$release_name'"
+  echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
-echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
-
-cat << EOF | oc apply -f -
+  cat <<EOF | oc apply -f -
 apiVersion: mq.ibm.com/v1beta1
 kind: QueueManager
 metadata:
@@ -217,29 +223,29 @@ spec:
     enabled: ${tracing_enabled}
     namespace: ${tracing_namespace}
 EOF
-if [[ "$?" != "0" ]]; then
-  echo -e "$cross [ERROR] Failed to apply QueueManager CR"
-  exit 1
-fi
-
-  # -------------------------------------- Register Tracing ---------------------------------------------------------------------
-oc get secrets icp4i-od-store-cred -n ${namespace}
-if [ $? -ne 0 ] && [ "$tracing_enabled" == "true"  ] ; then
-  echo "[INFO] secret icp4i-od-store-cred does not exist in ${namespace}, running tracing registration"
-  echo "Tracing_Namespace= ${tracing_namespace}"
-  echo "Namespace= ${namespace}"
-  if ! ${CURRENT_DIR}/register-tracing.sh -n $tracing_namespace -a ${namespace} ; then
-    echo "INFO: Running with test environment flag"
-    echo "ERROR: Failed to register tracing in project '$namespace'"
+  if [[ "$?" != "0" ]]; then
+    echo -e "$cross [ERROR] Failed to apply QueueManager CR"
     exit 1
   fi
-else
-  if [ "$tracing_enabled" == "false" ]; then
-    echo "[INFO] Tracing Registration not need. Tracing set to $tracing_enabled"
+
+  # -------------------------------------- Register Tracing ---------------------------------------------------------------------
+  oc get secrets icp4i-od-store-cred -n ${namespace}
+  if [ $? -ne 0 ] && [ "$tracing_enabled" == "true" ]; then
+    echo "[INFO] secret icp4i-od-store-cred does not exist in ${namespace}, running tracing registration"
+    echo "Tracing_Namespace= ${tracing_namespace}"
+    echo "Namespace= ${namespace}"
+    if ! ${CURRENT_DIR}/register-tracing.sh -n $tracing_namespace -a ${namespace}; then
+      echo "INFO: Running with test environment flag"
+      echo "ERROR: Failed to register tracing in project '$namespace'"
+      exit 1
+    fi
   else
-    echo "[INFO] secret icp4i-od-store-cred exist, no need to run tracing registration"
+    if [ "$tracing_enabled" == "false" ]; then
+      echo "[INFO] Tracing Registration not need. Tracing set to $tracing_enabled"
+    else
+      echo "[INFO] secret icp4i-od-store-cred exist, no need to run tracing registration"
+    fi
   fi
-fi
   # -------------------------------------- INSTALL JQ ---------------------------------------------------------------------
 
   echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
@@ -291,25 +297,24 @@ fi
 
     numberOfMatchesForImageTag=0
 
-  if [ "${tracing_enabled}" == "true" ]; then
-    allCorrespondingPods=$(oc get pods -n $namespace | grep $release_name | grep 3/3 | grep Running | awk '{print $1}')
-  else
-    allCorrespondingPods=$(oc get pods -n $namespace | grep $release_name | grep 1/1 | grep Running | awk '{print $1}')
-  fi
+    if [ "${tracing_enabled}" == "true" ]; then
+      allCorrespondingPods=$(oc get pods -n $namespace | grep $release_name | grep 3/3 | grep Running | awk '{print $1}')
+    else
+      allCorrespondingPods=$(oc get pods -n $namespace | grep $release_name | grep 1/1 | grep Running | awk '{print $1}')
+    fi
 
-  echo "[INFO] Total pods for mq $allCorrespondingPods"
+    echo "[INFO] Total pods for mq $allCorrespondingPods"
 
-    for eachMQPod in $allCorrespondingPods
-      do
-        echo -e "\nINFO: For MQ demo pod '$eachMQPod':"
-        imageInPod=$(oc get pod $eachMQPod -n $namespace -o json | ./jq -r '.spec.containers[0].image')
-        echo "INFO: Image present in the pod '$eachMQPod' is '$imageInPod'"
-        if [[ $imageInPod == *:$imageTag ]]; then
-          echo "INFO: Image tag matches.."
-          numberOfMatchesForImageTag=$((numberOfMatchesForImageTag + 1))
-        else
-          echo "INFO: Image tag '$imageTag' is not present in the image of the MQ demo pod '$eachMQPod'"
-        fi
+    for eachMQPod in $allCorrespondingPods; do
+      echo -e "\nINFO: For MQ demo pod '$eachMQPod':"
+      imageInPod=$(oc get pod $eachMQPod -n $namespace -o json | ./jq -r '.spec.containers[0].image')
+      echo "INFO: Image present in the pod '$eachMQPod' is '$imageInPod'"
+      if [[ $imageInPod == *:$imageTag ]]; then
+        echo "INFO: Image tag matches.."
+        numberOfMatchesForImageTag=$((numberOfMatchesForImageTag + 1))
+      else
+        echo "INFO: Image tag '$imageTag' is not present in the image of the MQ demo pod '$eachMQPod'"
+      fi
     done
 
     echo -e "\nINFO: Total $release_name demo pods deployed with new image: $numberOfMatchesForImageTag"

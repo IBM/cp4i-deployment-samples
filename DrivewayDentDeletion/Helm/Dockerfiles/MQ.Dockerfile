@@ -9,5 +9,5 @@ DEFINE QLOCAL('CrumpledOut') DEFPSIST(YES)\n\
 DEFINE CHANNEL(ACE_SVRCONN) CHLTYPE(SVRCONN) TRPTYPE(TCP) MCAUSER('mqm') \n\
 SET CHLAUTH(ACE_SVRCONN) TYPE(BLOCKUSER) ACTION(REPLACE) USERLIST('nobody') \n\
 alter qmgr CONNAUTH('') \n\
-REFRESH SECURITY" > /etc/mqm/aceldap.mqsc
+REFRESH SECURITY" >/etc/mqm/aceldap.mqsc
 RUN cat /etc/mqm/aceldap.mqsc

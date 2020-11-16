@@ -310,13 +310,13 @@ spec:
         - name: pvc
           value: "buildah-mq"
 
-# --------------------------------- IN TEST NAMESPACE ---------------------------------------------
+    # --------------------------------- IN TEST NAMESPACE ---------------------------------------------
 
     # Deploy MQ in test namespace
     - name: deploy-wait-mq-test
       runAfter:
         - image-push-to-test-mq
-      taskRef: 
+      taskRef:
         name: deploy-task
       params:
         - name: imageTag
@@ -358,7 +358,7 @@ spec:
     - name: deploy-wait-ace-bernie-test
       runAfter:
         - image-push-to-test-ace-bernie
-      taskRef: 
+      taskRef:
         name: deploy-task
       params:
         - name: imageTag
@@ -379,7 +379,7 @@ spec:
     - name: deploy-wait-ace-acme-test
       runAfter:
         - image-push-to-test-ace-acme
-      taskRef:        
+      taskRef:
         name: deploy-task
       params:
         - name: imageTag
@@ -400,7 +400,7 @@ spec:
     - name: deploy-wait-ace-chris-test
       runAfter:
         - image-push-to-test-ace-chris
-      taskRef:        
+      taskRef:
         name: deploy-task
       params:
         - name: imageTag

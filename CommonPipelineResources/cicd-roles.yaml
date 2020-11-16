@@ -5,7 +5,7 @@ metadata:
   name: role-postgres-test-task
   namespace: postgres
 rules:
-# Permissions for test task to list, get and create pods and configmaps in postgres namespace
-- apiGroups: [""]
-  resources: ["pods", "pods/exec", "configmaps"]
-  verbs: ["list", "get", "create"]
+  # Permissions for test task to list, get and create pods and configmaps in postgres namespace
+  - apiGroups: [""]
+    resources: ["pods", "pods/exec", "configmaps"]
+    verbs: ["list", "get", "create"]

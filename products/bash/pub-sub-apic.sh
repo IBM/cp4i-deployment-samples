@@ -56,33 +56,42 @@ SWAGGER_YAML_TEMPLATE="DrivewayDentDeletion/Operators/apic-resources/apic-api-dd
 # TODO
 DEBUG=true
 
-function usage {
+function usage() {
   echo "Usage: $0 -e <environment> -n <namespace> -s <namespace_suffix> -r <release> -d <demo name> -t <target url> -p <product yaml> -s <swagger yaml>"
 }
 
 while getopts "e:n:r:d:t:p:s:" opt; do
   case ${opt} in
-    e ) ENVIRONMENT="$OPTARG"
-      ;;
-    n ) MAIN_NAMESPACE="$OPTARG"
-      ;;
-    r ) RELEASE="$OPTARG"
-      ;;
-    d ) DEMO_NAME="$OPTARG"
-      ;;
-    t ) TARGET_URL="$OPTARG"
-      ;;
-    p ) PRODUCT_YAML_TEMPLATE="$OPTARG"
-      ;;
-    s ) SWAGGER_YAML_TEMPLATE="$OPTARG"
-      ;;
-    \? ) usage; exit
-      ;;
+  e)
+    ENVIRONMENT="$OPTARG"
+    ;;
+  n)
+    MAIN_NAMESPACE="$OPTARG"
+    ;;
+  r)
+    RELEASE="$OPTARG"
+    ;;
+  d)
+    DEMO_NAME="$OPTARG"
+    ;;
+  t)
+    TARGET_URL="$OPTARG"
+    ;;
+  p)
+    PRODUCT_YAML_TEMPLATE="$OPTARG"
+    ;;
+  s)
+    SWAGGER_YAML_TEMPLATE="$OPTARG"
+    ;;
+  \?)
+    usage
+    exit
+    ;;
   esac
 done
 
 OUTPUT=""
-function handle_res {
+function handle_res() {
   local body=$1
   local status=$(echo ${body} | $JQ -r ".status")
   $DEBUG && echo "[DEBUG] res body: ${body}"
@@ -126,7 +135,7 @@ $DEBUG && echo "[DEBUG] PLATFORM_API_EP=${PLATFORM_API_EP}"
 $DEBUG && echo "[DEBUG] Checking if jq is present..."
 jqInstalled=false
 
-if ! command -v jq &> /dev/null; then
+if ! command -v jq &>/dev/null; then
   jqInstalled=false
 else
   jqInstalled=true
@@ -173,13 +182,13 @@ echo "[INFO]  Templating api yaml..."
 cat ${CURRENT_DIR}/../../${SWAGGER_YAML_TEMPLATE} |
   sed "s#{{TARGET_URL}}#${TARGET_URL}#g;" |
   sed "s#{{BASIC_AUTH_USERNAME}}#${ACE_API_USER}#g;" |
-  sed "s#{{BASIC_AUTH_PASSWORD}}#${ACE_API_PASS}#g;" > ${CURRENT_DIR}/api.yaml
+  sed "s#{{BASIC_AUTH_PASSWORD}}#${ACE_API_PASS}#g;" >${CURRENT_DIR}/api.yaml
 $DEBUG && echo -e "[DEBUG] api yaml:\n$(cat ${CURRENT_DIR}/api.yaml)"
 echo -e "[INFO]  ${TICK} Templated api yaml"
 
 echo "[INFO]  Templating product yaml..."
 cat ${CURRENT_DIR}/../../${PRODUCT_YAML_TEMPLATE} |
-  sed "s#{{NAMESPACE}}#$NAMESPACE#g;" > ${CURRENT_DIR}/product.yaml
+  sed "s#{{NAMESPACE}}#$NAMESPACE#g;" >${CURRENT_DIR}/product.yaml
 $DEBUG && echo -e "[DEBUG] product yaml:\n$(cat ${CURRENT_DIR}/product.yaml)"
 echo -e "[INFO]  ${TICK} Templated product yaml"
 
@@ -301,7 +310,10 @@ $DEBUG && echo "[DEBUG] User registry url: ${USER_REGISTRY_URL}"
 echo -e "[INFO] ${TICK} Got configured catalog user registry url for ${ORG}-catalog"
 
 CORG_OWNER_USERNAME="${ORG}-corg-admin"
-CORG_OWNER_PASSWORD=$(LC_ALL=C tr -dc 'A-Za-z0-9' </dev/urandom | head -c 16 ; echo)
+CORG_OWNER_PASSWORD=$(
+  LC_ALL=C tr -dc 'A-Za-z0-9' </dev/urandom | head -c 16
+  echo
+)
 $DEBUG && echo "[DEBUG] username: $CORG_OWNER_USERNAME"
 $DEBUG && echo "[DEBUG] password: ${CORG_OWNER_PASSWORD}"
 # Create consumer org owner
@@ -336,7 +348,7 @@ else
   echo -e "[INFO] ${TICK} Consumer org owner created"
 
   # Store consumer org owner creds
-  cat << EOF | oc apply -n ${MAIN_NAMESPACE} -f -
+  cat <<EOF | oc apply -n ${MAIN_NAMESPACE} -f -
 apiVersion: v1
 kind: Secret
 metadata:
@@ -399,7 +411,6 @@ RES=$(curl -kLsS -X POST https://$PLATFORM_API_EP/api/apps/$ORG/$CATALOG/$C_ORG/
 handle_res "${RES}"
 echo -e "[INFO] ${TICK} Subscription created"
 
-
 echo "[INFO]  Getting client id..."
 RES=$(curl -kLsS https://$PLATFORM_API_EP/api/catalogs/$ORG/$CATALOG/credentials \
   -H "accept: application/json" \
@@ -416,7 +427,7 @@ HOST="https://$(oc get route -n $MAIN_NAMESPACE ${RELEASE}-gw-gateway -o jsonpat
 $DEBUG && echo "[DEBUG] HOST: ${HOST}"
 
 # Store api endpoint & client id in secret
-cat << EOF | oc apply -n ${NAMESPACE} -f -
+cat <<EOF | oc apply -n ${NAMESPACE} -f -
 apiVersion: v1
 kind: Secret
 metadata:

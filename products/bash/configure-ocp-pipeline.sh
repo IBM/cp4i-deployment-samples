@@ -20,7 +20,7 @@
 #   With overridden values
 #     ./configure-ocp-pipeline.sh -n <namespace>
 
-function usage {
+function usage() {
   echo "Usage: $0 -n <namespace>"
   exit 1
 }
@@ -29,10 +29,12 @@ namespace="cp4i"
 
 while getopts "n:" opt; do
   case ${opt} in
-    n ) namespace="$OPTARG"
-      ;;
-    \? ) usage;
-      ;;
+  n)
+    namespace="$OPTARG"
+    ;;
+  \?)
+    usage
+    ;;
   esac
 done
 
@@ -40,7 +42,7 @@ echo "INFO: Namespace passed: $namespace"
 
 echo "INFO: Creating secret to pull base images from Entitled Registry"
 DOCKERCONFIGJSON_ER=$(oc get secret -n ${namespace} ibm-entitlement-key -o json | jq -r '.data.".dockerconfigjson"' | base64 --decode)
-if [ -z ${DOCKERCONFIGJSON_ER} ] ; then
+if [ -z ${DOCKERCONFIGJSON_ER} ]; then
   echo "ERROR: Failed to find ibm-entitlement-key secret in the namespace '${namespace}'" 1>&2
   exit 1
 fi
@@ -50,8 +52,8 @@ export ER_USERNAME=$(echo "$DOCKERCONFIGJSON_ER" | jq -r '.auths."cp.icr.io".use
 export ER_PASSWORD=$(echo "$DOCKERCONFIGJSON_ER" | jq -r '.auths."cp.icr.io".password')
 
 # Creating a new secret as the type of entitlement key is 'kubernetes.io/DOCKERCONFIGJSON' but we need secret of type 'kubernetes.io/basic-auth'
-# to pull imags from the ER
-cat << EOF | oc apply --namespace ${namespace} -f -
+# to pull images from the ER
+cat <<EOF | oc apply --namespace ${namespace} -f -
 apiVersion: v1
 kind: Secret
 metadata:

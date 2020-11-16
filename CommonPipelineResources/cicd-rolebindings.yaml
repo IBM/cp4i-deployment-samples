@@ -5,9 +5,9 @@ metadata:
   name: test-postgres-rolebinding
   namespace: postgres
 subjects:
-- kind: ServiceAccount
-  name: cicd-test
-  namespace: "{{NAMESPACE}}"
+  - kind: ServiceAccount
+    name: cicd-test
+    namespace: "{{NAMESPACE}}"
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: Role

@@ -57,12 +57,12 @@ done
 CURRENT_DIR=$(dirname $0)
 echo "Current directory: $CURRENT_DIR"
 
-if ! oc project $namespace >/dev/null 2>&1 ; then
+if ! oc project $namespace >/dev/null 2>&1; then
   echo "ERROR: The dev namespace '$namespace' does not exist"
   exit 1
 fi
 
-if ! oc project $namespace-ddd-test >/dev/null 2>&1 ; then
+if ! oc project $namespace-ddd-test >/dev/null 2>&1; then
   echo "ERROR: The test namespace '$namespace-ddd-test' does not exist"
   exit 1
 fi
@@ -98,8 +98,8 @@ echo "INFO: Create common service accounts"
 if cat $CURRENT_DIR/../../CommonPipelineResources/cicd-service-accounts.yaml |
   sed "s#{{NAMESPACE}}#$namespace#g;" |
   oc apply -f -; then
-    printf "$tick "
-    echo "Successfully applied common service accounts in the '$namespace' namespace"
+  printf "$tick "
+  echo "Successfully applied common service accounts in the '$namespace' namespace"
 else
   printf "$cross "
   echo "Failed to apply common service accounts in the '$namespace' namespace"
@@ -113,8 +113,8 @@ echo "INFO: Create ddd specific service accounts"
 if cat $CURRENT_DIR/cicd-test/cicd-service-accounts.yaml |
   sed "s#{{NAMESPACE}}#$namespace#g;" |
   oc apply -f -; then
-    printf "$tick "
-    echo "Successfully applied ddd service accounts in the '$namespace' namespace"
+  printf "$tick "
+  echo "Successfully applied ddd service accounts in the '$namespace' namespace"
 else
   printf "$cross "
   echo "Failed to apply ddd service accounts in the '$namespace' namespace"
@@ -128,8 +128,8 @@ echo "INFO: Create common roles for tasks"
 if cat $CURRENT_DIR/../../CommonPipelineResources/cicd-roles.yaml |
   sed "s#{{NAMESPACE}}#$namespace#g;" |
   oc apply -f -; then
-    printf "$tick "
-    echo "Successfully created roles for tasks in the '$namespace' namespace"
+  printf "$tick "
+  echo "Successfully created roles for tasks in the '$namespace' namespace"
 else
   printf "$cross "
   echo "Failed to create roles for tasks in the '$namespace' namespace"
@@ -138,14 +138,13 @@ fi
 
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
-
 # create ddd roles for tasks
 echo "INFO: Create ddd roles for tasks"
 if cat $CURRENT_DIR/cicd-test/cicd-roles.yaml |
   sed "s#{{NAMESPACE}}#$namespace#g;" |
   oc apply -f -; then
-    printf "$tick "
-    echo "Successfully created ddd roles for tasks in the '$namespace' namespace"
+  printf "$tick "
+  echo "Successfully created ddd roles for tasks in the '$namespace' namespace"
 else
   printf "$cross "
   echo "Failed to create ddd roles for tasks in the '$namespace' namespace"
@@ -159,8 +158,8 @@ echo "INFO: Create common role bindings for roles"
 if cat $CURRENT_DIR/../../CommonPipelineResources/cicd-rolebindings.yaml |
   sed "s#{{NAMESPACE}}#$namespace#g;" |
   oc apply -f -; then
-    printf "$tick "
-    echo "Successfully applied common role bindings for roles in the '$namespace' namespace"
+  printf "$tick "
+  echo "Successfully applied common role bindings for roles in the '$namespace' namespace"
 else
   printf "$cross "
   echo "Failed to apply common role bindings for roles in the '$namespace' namespace"
@@ -169,14 +168,13 @@ fi
 
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
-
 # create ddd specific role bindings for roles
 echo "INFO: Create ddd specific role bindings for roles"
 if cat $CURRENT_DIR/cicd-test/cicd-rolebindings.yaml |
   sed "s#{{NAMESPACE}}#$namespace#g;" |
   oc apply -f -; then
-    printf "$tick "
-    echo "Successfully applied ddd role bindings for roles in the '$namespace' namespace"
+  printf "$tick "
+  echo "Successfully applied ddd role bindings for roles in the '$namespace' namespace"
 else
   printf "$cross "
   echo "Failed to apply ddd role bindings for roles in the '$namespace' namespace"
@@ -192,8 +190,8 @@ if cat $CURRENT_DIR/../../CommonPipelineResources/cicd-tasks.yaml |
   sed "s#{{NAMESPACE}}#$namespace#g;" |
   sed "s#{{TRACING}}#$tracing#g;" |
   oc apply -f -; then
-    printf "$tick "
-    echo "Successfully applied tekton tasks in the '$namespace' namespace"
+  printf "$tick "
+  echo "Successfully applied tekton tasks in the '$namespace' namespace"
 else
   printf "$cross "
   echo "Failed to apply tekton tasks in the '$namespace' namespace"
@@ -207,8 +205,8 @@ echo "INFO: Create tekton tasks for test"
 if cat $CURRENT_DIR/cicd-test/cicd-tasks.yaml |
   sed "s#{{NAMESPACE}}#$namespace#g;" |
   oc apply -f -; then
-    printf "$tick "
-    echo "Successfully applied tekton tasks for test in the '$namespace' namespace"
+  printf "$tick "
+  echo "Successfully applied tekton tasks for test in the '$namespace' namespace"
 else
   printf "$cross "
   echo "Failed to apply tekton tasks for test in the '$namespace' namespace"
@@ -224,8 +222,8 @@ if cat $CURRENT_DIR/cicd-test/cicd-pipeline.yaml |
   sed "s#{{FORKED_REPO}}#$repo#g;" |
   sed "s#{{BRANCH}}#$branch#g;" |
   oc apply -f -; then
-    printf "$tick "
-    echo "Successfully applied the pipeline to run tasks to build, deploy, test e2e in '$namespace' and '$namespace-ddd-test' namespace"
+  printf "$tick "
+  echo "Successfully applied the pipeline to run tasks to build, deploy, test e2e in '$namespace' and '$namespace-ddd-test' namespace"
 else
   printf "$cross "
   echo "Failed to apply the pipeline to run tasks to build, deploy test e2e in '$namespace' and '$namespace-ddd-test' namespace"
@@ -292,7 +290,7 @@ if [[ $sum -gt 0 ]]; then
   echo "ERROR: Creating the webhook is not recommended as some resources have not been applied successfully in the '$namespace' namespace"
   exit 1
 else
-  # print route for webbook
+  # print route for webhook
   echo "INFO: Your trigger route for the github webhook is: $WEBHOOK_ROUTE"
   echo -e "\nINFO: The next step is to add the trigger URL to the forked repo as a webhook with the Content type as 'application/json', which triggers an initial run of the pipeline.\n"
   printf "$tick  $all_done "

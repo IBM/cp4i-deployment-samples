@@ -5,7 +5,7 @@ Integration Servers and 1 MQ server. Future versions of this demo will build
 upon this.
 
 # Prerequisites
-A [script](prereqs.sh) is provided to setup the prerequisits for this demo
+A [script](prereqs.sh) is provided to setup the prerequisites for this demo
 and this script is automatically run as part of the 1-click demo preparation.
 The script sets up the following:
 - Installs Tekton Pipelines v0.12.1

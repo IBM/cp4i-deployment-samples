@@ -5,11 +5,10 @@ metadata:
 spec:
   serviceAccountName: cicd-pipeline
   triggers:
-  - template:
-      name: test-apic-triggertemplate
+    - template:
+        name: test-apic-triggertemplate
 
 ---
-
 apiVersion: route.openshift.io/v1
 kind: Route
 metadata:

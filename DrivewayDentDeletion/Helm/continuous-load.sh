@@ -21,13 +21,13 @@
 #   CAUTION - running without <should_cleanup_table> enabled can result in data leftover in the postgres table
 #
 #   With defaults values
-#     ./continuous-load.sh 
+#     ./continuous-load.sh
 #
 #   With cleanup and custom retry time
 #     ./continuous-load.sh -t 2 -c
 
-function usage {
-    echo "Usage: $0 -a <api_base_url> -t <retry_interval> -c -i -s"
+function usage() {
+  echo "Usage: $0 -a <api_base_url> -t <retry_interval> -c -i -s"
 }
 
 should_cleanup_table=false
@@ -38,36 +38,42 @@ retry_interval=5
 
 while getopts "a:t:cis" opt; do
   case ${opt} in
-    a ) api_base_url="$OPTARG"
-      ;;
-    t ) retry_interval="$OPTARG"
-      ;;
-    c ) should_cleanup_table=true
-      ;;
-    i ) condensed_info=true
-      ;;
-    s ) save_row_after_run=true
-      ;;
-    \? ) usage
-      ;;
+  a)
+    api_base_url="$OPTARG"
+    ;;
+  t)
+    retry_interval="$OPTARG"
+    ;;
+  c)
+    should_cleanup_table=true
+    ;;
+  i)
+    condensed_info=true
+    ;;
+  s)
+    save_row_after_run=true
+    ;;
+  \?)
+    usage
+    ;;
   esac
 done
 
 os_sed_flag=""
 if [[ $(uname) == Darwin ]]; then
-    os_sed_flag="-e"
+  os_sed_flag="-e"
 fi
 
-function cleanup_table {
+function cleanup_table() {
   table_name="quotes"
   echo -e "\Clearing '${table_name}' database of all rows..."
   oc exec -n postgres -it $(oc get pod -n postgres -l name=postgresql -o jsonpath='{.items[].metadata.name}') \
-      -- psql -U admin -d sampledb -c \
+    -- psql -U admin -d sampledb -c \
     "TRUNCATE ${table_name};"
 }
 
-# Catches any exit signals for cleanup 
-if [ "$should_cleanup_table" = true ] ; then
+# Catches any exit signals for cleanup
+if [ "$should_cleanup_table" = true ]; then
   trap "cleanup_table" EXIT
 fi
 
@@ -82,27 +88,27 @@ while true; do
     quote_id=$(echo "$post_response" | jq '.' | sed $os_sed_flag '$ d' | jq '.QuoteID')
 
     echo -e "SUCCESS - POSTed with response code: ${post_response_code}, QuoteID: ${quote_id}, and Response Body:\n"
-    if [ "$condensed_info" = true ] ; then
-    # The usage of sed here is to prevent an error caused between the -w flag of curl and jq not interacting well
+    if [ "$condensed_info" = true ]; then
+      # The usage of sed here is to prevent an error caused between the -w flag of curl and jq not interacting well
       echo ${post_response} | jq '.' | sed $os_sed_flag '$ d' | jq '{ QuoteID: .QuoteID, Versions: .Versions }'
     else
       echo ${post_response} | jq '.' | sed $os_sed_flag '$ d'
     fi
 
     # - GET ---
-    echo -e "\nGET request..."  
+    echo -e "\nGET request..."
     get_response=$(curl -s -w " %{http_code}" -X GET ${api_base_url}/quote?QuoteID=${quote_id})
     get_response_code=$(echo "${get_response##* }")
 
     if [ "$get_response_code" == "200" ]; then
       echo -e "SUCCESS - GETed with response code: ${get_response_code}, and Response Body:\n"
 
-      if [ "$condensed_info" = true ] ; then
+      if [ "$condensed_info" = true ]; then
         # The usage of sed here is to prevent an error caused between the -w flag of curl and jq not interacting well
         echo ${get_response} | jq '.' | sed $os_sed_flag '$ d' | jq '.[0] | { QuoteID: .QuoteID, Email: .Email }'
       else
         echo ${get_response} | jq '.' | sed $os_sed_flag '$ d'
-      fi  
+      fi
     else
       echo "FAILED - Error code: ${get_response_code}"
     fi
@@ -112,7 +118,7 @@ while true; do
       echo -e "\nDeleting row from database..."
       oc exec -n postgres -it $(oc get pod -n postgres -l name=postgresql -o jsonpath='{.items[].metadata.name}') \
         -- psql -U admin -d sampledb -c \
-      "DELETE FROM quotes WHERE quotes.quoteid = ${quote_id};"
+        "DELETE FROM quotes WHERE quotes.quoteid = ${quote_id};"
     fi
   else
     echo "FAILED - Error code: ${post_response_code}" # Failure catch during POST

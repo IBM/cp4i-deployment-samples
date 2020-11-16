@@ -309,7 +309,7 @@ spec:
         - name: pvc
           value: "buildah-mq"
 
-# --------------------------------- IN TEST NAMESPACE ---------------------------------------------
+    # --------------------------------- IN TEST NAMESPACE ---------------------------------------------
 
     # Deploy MQ in test namespace
     - name: deploy-wait-mq-test

@@ -22,14 +22,14 @@
 #   Overriding the namespace and release-name
 #     ./1-click-uninstall.sh -n <NAMESPACE>
 
-function divider {
-    echo -e "\n-------------------------------------------------------------------------------------------------------------------\n"
+function divider() {
+  echo -e "\n-------------------------------------------------------------------------------------------------------------------\n"
 }
 
-function usage {
-    echo "Usage: $0 -n <NAMESPACE>"
-    divider
-    exit 1
+function usage() {
+  echo "Usage: $0 -n <NAMESPACE>"
+  divider
+  exit 1
 }
 
 NAMESPACE="cp4i"
@@ -42,14 +42,16 @@ missingParams="false"
 
 while getopts "n:" opt; do
   case ${opt} in
-    n ) NAMESPACE="$OPTARG"
-      ;;
-    \? ) usage;
-      ;;
+  n)
+    NAMESPACE="$OPTARG"
+    ;;
+  \?)
+    usage
+    ;;
   esac
 done
 
-if [[ -z "${NAMESPACE// }" ]]; then
+if [[ -z "${NAMESPACE// /}" ]]; then
   echo -e "$cross ERROR: 1-click uninstall namespace is empty. Please provide a value for '-n' parameter."
   missingParams="true"
 fi
@@ -90,7 +92,7 @@ divider
 
 # Deleting the ibm-entitlement-key secret
 echo "INFO: Deleting ibm-entitlement-key secret"
-oc delete secret -n ${NAMESPACE} ibm-entitlement-key 
+oc delete secret -n ${NAMESPACE} ibm-entitlement-key
 
 divider
 

@@ -21,42 +21,49 @@
 #   -r : CP4I Asset Repository
 #   -s : Event Streams
 
-function usage {
-    echo "Usage: $0 [products...]"
-    exit 1
+function usage() {
+  echo "Usage: $0 [products...]"
+  exit 1
 }
 
 cp_releases=()
 
 while getopts "n:m:d:e:r:s:" opt; do
   case ${opt} in
-    n ) cp_releases+=("$OPTARG^PlatformNavigator")
-      ;;
-    m ) cp_releases+=("$OPTARG^QueueManager")
-      ;;
-    d ) cp_releases+=("$OPTARG^Dashboard")
-      ;;
-    e ) cp_releases+=("$OPTARG^Designer")
-      ;;
-    r ) cp_releases+=("$OPTARG^AssetRepository")
-      ;;
-    s ) cp_releases+=("$OPTARG^EventStreams")
-      ;;
-    \? ) usage
-      ;;
+  n)
+    cp_releases+=("$OPTARG^PlatformNavigator")
+    ;;
+  m)
+    cp_releases+=("$OPTARG^QueueManager")
+    ;;
+  d)
+    cp_releases+=("$OPTARG^Dashboard")
+    ;;
+  e)
+    cp_releases+=("$OPTARG^Designer")
+    ;;
+  r)
+    cp_releases+=("$OPTARG^AssetRepository")
+    ;;
+  s)
+    cp_releases+=("$OPTARG^EventStreams")
+    ;;
+  \?)
+    usage
+    ;;
   esac
 done
 
 if [[ -z "${cp_releases}" ]]; then
-    echo "No releases specified, validation complete."
-    exit 1
+  echo "No releases specified, validation complete."
+  exit 1
 fi
 
-function get_status_conditions {
+function get_status_conditions() {
   oc get ${release_type} ${release_name} -o json | jq -r '.status.conditions'
 }
 
-function is_release_ready {
+function is_release_ready() {
   release_name=${1}
   release_type=${2}
   echo -e "\nChecking $release_name with type $release_type..."
@@ -67,9 +74,9 @@ function is_release_ready {
     echo "Nothing returned from ${release_name}"
     return 0
   fi
-  
-  ready_status=$(echo $release_status | jq '.[] | select (.type | ascii_downcase == "ready") | .status | ascii_downcase'| tr -d '"')
-  deployed_status=$(echo $release_status | jq '.[] | select (.type | ascii_downcase == "deployed") | .status | ascii_downcase'| tr -d '"')
+
+  ready_status=$(echo $release_status | jq '.[] | select (.type | ascii_downcase == "ready") | .status | ascii_downcase' | tr -d '"')
+  deployed_status=$(echo $release_status | jq '.[] | select (.type | ascii_downcase == "deployed") | .status | ascii_downcase' | tr -d '"')
   warning_status=$(echo $release_status | jq '.[] | select (.type | ascii_downcase == "warning" | not)')
 
   if [[ "$ready_status" == "true" || "$deployed_status" == "true" ]]; then
@@ -95,9 +102,9 @@ while [ ! $retry_count -eq $startup_retries ] && [ "$everything_ready" = false ]
   echo "Checking releases..."
   everything_ready=true
   for release in "${cp_releases[@]}"; do
-    # Parsing out name from typea
+    # Parsing out name from type
     IFS='^'
-    read -a releasearr <<< "$release"
+    read -a releasearr <<<"$release"
     release_name_parsed=$(echo ${releasearr[0]})
     release_type_parsed=$(echo ${releasearr[1]})
 
@@ -109,7 +116,7 @@ while [ ! $retry_count -eq $startup_retries ] && [ "$everything_ready" = false ]
 
   if [ "$everything_ready" = false ]; then
     sleep $retry_interval
-    retry_count=$((retry_count+1))
+    retry_count=$((retry_count + 1))
     echo "Releases not ready, retrying... ${retry_count} attempts out of ${startup_retries}."
   fi
   echo -e "----------------------------------------\n"
