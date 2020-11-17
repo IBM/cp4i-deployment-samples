@@ -36,3 +36,7 @@ DefaultPolicies.zip
 MQEndpointPolicy.policyxml
 PostgresqlPolicy.policyxml
 server.conf.yaml
+
+# products/bash temp files
+commands.sh
+icp4i-od-cacert.pem

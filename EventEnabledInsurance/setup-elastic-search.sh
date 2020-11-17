@@ -16,10 +16,10 @@
 #   -n : <NAMESPACE> (string), Defaults to 'cp4i'
 #
 #   With defaults values
-#     ./create-elastic-search.sh
+#     ./setup-elastic-search.sh
 #
 #   With overridden values
-#     ./create-elastic-search.sh -n <NAMESPACE> -e <ELASTIC_NAMESPACE>
+#     ./setup-elastic-search.sh -n <NAMESPACE> -e <ELASTIC_NAMESPACE>
 
 function usage() {
   echo "Usage: $0 -n <NAMESPACE> -e <ELASTIC_NAMESPACE>"

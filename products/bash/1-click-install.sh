@@ -423,11 +423,11 @@ if [[ "${demoPreparation}" == "true" ]]; then
   divider
 
   if ! $CURRENT_DIR/release-mq.sh -n ${JOB_NAMESPACE} -t; then
-    echo -e "$cross : Failed to release mq" 1>&2
+    echo -e "$cross : Failed to release MQ" 1>&2
     divider
     exit 1
   else
-    echo -e "$tick INFO: Successfully released asset repo"
+    echo -e "$tick INFO: Successfully released MQ"
     divider
   fi
 fi #demoPreparation

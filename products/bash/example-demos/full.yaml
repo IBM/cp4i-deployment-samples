@@ -1,0 +1,73 @@
+apiVersion: integration.ibm.com/v1beta1
+kind: Demo
+metadata:
+  name: demos
+  namespace: cp4i
+spec:
+  # Not sure what this would be used for!
+  version: 2020.3.1
+
+  general:
+    storage:
+      block:
+        class: cp4i-block-performance
+      file:
+        class: ibmc-file-gold-gid
+    # Include this? Maybe when we turn this into an operator the samples repo would
+    # be baked in as a locally running image, so can work with airgap.
+    samplesRepoBranch: main
+
+  demos:
+    all:
+      enabled: true
+    cognitiveCarRepair:
+      enabled: true
+    drivewayDentDeletion:
+      enabled: true
+    eventEnabledInsurance:
+      enabled: true
+    mappingAssist:
+      enabled: true
+    weatherChatbot:
+      enabled: true
+
+  # Allow products to be enabled independently. Enabling a demo will automatically
+  # enable required products.
+  products:
+    - type: aceDashboard
+      enabled: true
+    - type: aceDesigner
+      enabled: true
+    - type: apic
+      enabled: true
+      emailAddress: "your@email.address"
+      mailServerHost: "smtp.mailtrap.io"
+      mailServerPort: 2525
+      mailServerUsername: "<your-username>"
+      mailServerPassword: "<your-password>"
+    - type: assetRepo
+      enabled: true
+    - type: eventStreams
+      enabled: true
+    - type: mq
+      enabled: true
+    - type: tracing
+      enabled: true
+
+  # Allow additional addon applications to be enabled independently. Enabling a
+  # demo will automatically enable required addons.
+  addons:
+    - type: postgres
+      enabled: true
+    - type: elasticSearch
+      enabled: true
+    - type: ocpPipelines
+      enabled: true
+status:
+  version: 2020.3.1
+  conditions: []
+  phase:
+  demos: []
+  products: []
+  addons: []
+  namespaces: []

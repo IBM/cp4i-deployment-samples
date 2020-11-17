@@ -1,0 +1,6 @@
+apiVersion: integration.ibm.com/v1beta1
+kind: Demo
+metadata:
+  name: demos
+  namespace: cp4i
+spec:

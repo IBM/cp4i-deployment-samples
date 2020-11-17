@@ -13,7 +13,7 @@
 #   - Logged into cluster on the OC CLI (https://docs.openshift.com/container-platform/4.4/cli_reference/openshift_cli/getting-started-cli.html)
 #
 # PARAMETERS:
-#   -n : <NAMESPACE> (string), namespace for the 1-click uninstallation. Defaults to "cp4i"
+#   -n : <NAMESPACE> (string), namespace for the 1-click un-installation. Defaults to "cp4i"
 #
 # USAGE:
 #   With defaults values
