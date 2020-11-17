@@ -277,10 +277,10 @@ function check_current_status() {
   NOT_CONFIGURED_COUNT=0
 
   if [[ ${#LIST[@]} -ne 0 ]]; then
-    $DEBUG && echo -e "\n$info [DEBUG] Received '$LIST_TYPE' list for '$DEMO_NAME'"
+    $DEBUG && echo -e "\n$info [DEBUG] Received '$LIST_TYPE' list for '$DEMO_NAME': '${LIST[@]}'"
     #  Iterate the loop to read and print each array element
     for EACH_ITEM in "${LIST[@]}"; do
-      if [[ "$(echo $STATUS | jq -r '."'$LIST_TYPE'"[] | select(.type == "'$EACH_ITEM'" and .installed == true and .readyToUse == true) ')" == "" ]]; then
+      if [[ "$(echo $STATUS | jq -r '."'$LIST_TYPE'"[] | select(.type == "'$EACH_ITEM'" and .installed == "true" and .readyToUse == "true") ')" == "" ]]; then
         NOT_CONFIGURED_COUNT=$((NOT_CONFIGURED_COUNT + 1))
       fi
     done
@@ -290,9 +290,11 @@ function check_current_status() {
 
   if [[ $NOT_CONFIGURED_COUNT -eq 0 ]]; then
     DEMO_CONFIGURED=true
+    echo -e "\n$tick [SUCCESS] All $LIST_TYPE have been installed and configured for '$DEMO_NAME' demo"
   else
     FAILED_INSTALL_DEMOS_LIST+=($DEMO_NAME)
     update_phase "Failed"
+    echo -e "$cross [ERROR] All $LIST_TYPE have not been installed/configured for '$DEMO_NAME' demo"
   fi
 }
 
@@ -821,21 +823,23 @@ fi
 # Setup the required demos
 #-------------------------------------------------------------------------------------------------------------------
 
-divider && echo -e "$info Starting demos setup..." && divider
+divider && echo -e "$info [INFO] Starting demos setup..." && divider
 for EACH_DEMO in $(echo $REQUIRED_DEMOS_JSON | jq -r 'to_entries[] | select( .value.enabled == true ) | .key'); do
   case $EACH_DEMO in
   cognitiveCarRepair)
     echo -e "$info [INFO] Setting up the cognitive car repair demo\n"
     echo -e "$info [INFO] Checking if all addons are installed and setup for the cognitive car repair demo"
     check_current_status "$EACH_DEMO" "addons" "${COGNITIVE_CAR_REPAIR_ADDONS_LIST[@]}"
+    ADDON_CONFIGURED=$DEMO_CONFIGURED
     echo -e "\n$info [INFO] Checking if all products are installed and setup for the cognitive car repair demo"
     check_current_status "$EACH_DEMO" "products" "${COGNITIVE_CAR_REPAIR_PRODUCTS_LIST[@]}"
-    if [[ "$DEMO_CONFIGURED" == "true" ]]; then
+    PRODUCT_CONFIGURED=$DEMO_CONFIGURED
+    if [[ "$ADDON_CONFIGURED" == "true" && "$PRODUCT_CONFIGURED" == "true" ]]; then
       # No pre-requisites are to be run for cognitive car repair demo, so setting installed and readyToUse to true
       update_demo_status "$EACH_DEMO" "true" "true"
     else
       # If one or more products failed to setup/configure, demo is not ready to use
-      update_demo_status "$EACH_DEMO" "true" "false"
+      update_demo_status "$EACH_DEMO" "false" "false"
     fi
     divider
     ;;
@@ -844,9 +848,11 @@ for EACH_DEMO in $(echo $REQUIRED_DEMOS_JSON | jq -r 'to_entries[] | select( .va
     echo -e "$info [INFO] Starting the setup of the event enabled insurance demo\n"
     echo -e "$info [INFO] Checking if all addons are installed and configured for the event enabled insurance demo"
     check_current_status "$EACH_DEMO" "addons" "${EVENT_ENABLED_INSURANCE_ADDONS_LIST[@]}"
+    ADDON_CONFIGURED=$DEMO_CONFIGURED
     echo -e "\n$info [INFO] Checking if all products are installed and setup for the event enabled insurance demo"
     check_current_status "$EACH_DEMO" "products" "${EVENT_ENABLED_INSURANCE_PRODUCTS_LIST[@]}"
-    if [[ "$DEMO_CONFIGURED" == "true" ]]; then
+    PRODUCT_CONFIGURED=$DEMO_CONFIGURED
+    if [[ "$ADDON_CONFIGURED" == "true" && "$PRODUCT_CONFIGURED" == "true" ]]; then
       # if all addon/products are installed and configured correctly
       update_demo_status "$EACH_DEMO" "true" "false"
     else
@@ -860,9 +866,11 @@ for EACH_DEMO in $(echo $REQUIRED_DEMOS_JSON | jq -r 'to_entries[] | select( .va
     echo -e "$info [INFO] Setting up the driveway dent deletion demo...\n"
     echo -e "$info [INFO] Checking if all addons are installed and setup for the driveway dent deletion demo"
     check_current_status "$EACH_DEMO" "addons" "${DRIVEWAY_DENT_DELETION_ADDONS_LIST[@]}"
+    ADDON_CONFIGURED=$DEMO_CONFIGURED
     echo -e "\n$info [INFO] Checking if all products are installed and setup for the driveway dent deletion demo"
     check_current_status "$EACH_DEMO" "products" "${DRIVEWAY_DENT_DELETION_PRODUCTS_LIST[@]}"
-    if [[ "$DEMO_CONFIGURED" == "true" ]]; then
+    PRODUCT_CONFIGURED=$DEMO_CONFIGURED
+    if [[ "$ADDON_CONFIGURED" == "true" && "$PRODUCT_CONFIGURED" == "true" ]]; then
       # if all addon/products are installed and configured correctly
       update_demo_status "$EACH_DEMO" "true" "false"
     else

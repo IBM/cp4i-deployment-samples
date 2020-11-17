@@ -15,3 +15,40 @@ spec:
   demos:
     cognitiveCarRepair:
       enabled: true
+status:
+  addons: []
+  conditions: []
+  demos:
+    - name: cognitiveCarRepair
+      installed: true
+      readyToUse: false
+  namespaces:
+    - name: cp4i
+  phase: Pending
+  products:
+    - name: ace-dashboard-demo
+      type: aceDashboard
+      installed: true
+      readyToUse: true
+      namespace: cp4i
+    - name: ace-designer-demo
+      type: aceDesigner
+      installed: true
+      readyToUse: true
+      namespace: cp4i
+    - name: ademo
+      type: apic
+      installed: true
+      readyToUse: true
+      namespace: cp4i
+    - name: ar-demo
+      type: assetRepo
+      installed: true
+      readyToUse: true
+      namespace: cp4i
+    - name: tracing-demo
+      type: tracing
+      installed: true
+      readyToUse: true
+      namespace: cp4i
+  version: 2020.3.1-1
