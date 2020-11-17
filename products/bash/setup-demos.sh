@@ -88,7 +88,6 @@ function product_set_defaults() {
   assetRepo) DEFAULTS='{"name":"ar-demo"}' ;;
   eventStreams) DEFAULTS='{"name":"es-demo"}' ;;
   mq) DEFAULTS='{"name":"mq-demo"}' ;;
-  navigator) DEFAULTS='{"name":"navigator"}' ;;
   tracing) DEFAULTS='{"name":"tracing-demo"}' ;;
   *)
     echo -e "$cross ERROR: Unknown product type: ${PRODUCT_TYPE}" 1>&2
@@ -438,6 +437,7 @@ for DEMO in $(echo $REQUIRED_DEMOS_JSON | jq -r 'to_entries[] | select( .value.e
   case ${DEMO} in
   cognitiveCarRepair)
     PRODUCTS_FOR_DEMO='
+      {"enabled":true,"type":"mq"}
       {"enabled":true,"type":"aceDashboard"}
       {"enabled":true,"type":"aceDesigner"}
       {"enabled":true,"type":"apic"}
@@ -445,21 +445,24 @@ for DEMO in $(echo $REQUIRED_DEMOS_JSON | jq -r 'to_entries[] | select( .value.e
       {"enabled":true,"type":"tracing"}
       '
     # get list of all cognitive car repair demo products
-    COGNITIVE_CAR_REPAIR_PRODUCTS_LIST=("aceDashboard" "aceDesigner" "apic" "assetRepo" "tracing")
+    COGNITIVE_CAR_REPAIR_PRODUCTS_LIST=("mq" "aceDashboard" "aceDesigner" "apic" "assetRepo" "tracing")
     ADDONS_FOR_DEMO=''
     COGNITIVE_CAR_REPAIR_ADDONS_LIST=()
     ;;
   drivewayDentDeletion)
     PRODUCTS_FOR_DEMO='
+      {"enabled":true,"type":"mq"}
       {"enabled":true,"type":"aceDashboard"}
       {"enabled":true,"type":"apic"}
       {"enabled":true,"type":"tracing"}
       '
-    DRIVEWAY_DENT_DELETION_PRODUCTS_LIST=("aceDashboard" "apic" "tracing")
+    DRIVEWAY_DENT_DELETION_PRODUCTS_LIST=("mq" "aceDashboard" "apic" "tracing")
+
     # Disabled as we no longer want a separate namespace for test. The following is an example
     # of how this could work if we want to re-add this support later.
     # {"enabled":true,"namespaceSuffix":"-ddd-test","type":"aceDashboard"}
     # {"enabled":true,"namespaceSuffix":"-ddd-test","type":"navigator"}
+
     ADDONS_FOR_DEMO='
       {"enabled":true,"type":"postgres"}
       {"enabled":true,"type":"ocpPipelines"}
@@ -468,12 +471,13 @@ for DEMO in $(echo $REQUIRED_DEMOS_JSON | jq -r 'to_entries[] | select( .value.e
     ;;
   eventEnabledInsurance)
     PRODUCTS_FOR_DEMO='
+      {"enabled":true,"type":"mq"}
       {"enabled":true,"type":"aceDashboard"}
       {"enabled":true,"type":"apic"}
       {"enabled":true,"type":"eventStreams"}
       {"enabled":true,"type":"tracing"}
       '
-    EVENT_ENABLED_INSURANCE_PRODUCTS_LIST=("aceDashboard" "apic" "eventStreams" "tracing")
+    EVENT_ENABLED_INSURANCE_PRODUCTS_LIST=("mq" "aceDashboard" "apic" "eventStreams" "tracing")
     ADDONS_FOR_DEMO='
       {"enabled":true,"type":"postgres"}
       {"enabled":true,"type":"elasticSearch"}
@@ -680,9 +684,9 @@ for eachProduct in $(echo "${REQUIRED_PRODUCTS_JSON}" | jq -r '.[] | select(.ena
     ;;
 
   assetRepo)
+    echo -e "$info [INFO] Releasing Asset Repository $ECHO_LINE...\n"
     # Get APIC release name for configuring APIC
     AR_RELEASE_NAME=$EACH_PRODUCT_NAME
-    echo -e "$info [INFO] Releasing Asset Repository $ECHO_LINE...\n"
     if ! $SCRIPT_DIR/release-ar.sh -n "$NAMESPACE" -r "$EACH_PRODUCT_NAME"; then
       update_conditions "Failed to release Asset Repository $ECHO_LINE" "Releasing"
       update_phase "Failed"
@@ -708,6 +712,7 @@ for eachProduct in $(echo "${REQUIRED_PRODUCTS_JSON}" | jq -r '.[] | select(.ena
     ;;
 
   apic)
+    echo -e "$info [INFO] Releasing APIC $ECHO_LINE...\n"
     APIC_RELEASE_NAME=$EACH_PRODUCT_NAME
     export PORG_ADMIN_EMAIL=$(echo ${EACH_PRODUCT_JSON} | jq -r '.emailAddress')
     export MAIL_SERVER_HOST=$(echo ${EACH_PRODUCT_JSON} | jq -r '.mailServerHost')
@@ -722,7 +727,6 @@ for eachProduct in $(echo "${REQUIRED_PRODUCTS_JSON}" | jq -r '.[] | select(.ena
       RELEASE_APIC_PARAMS="-n '$NAMESPACE' -r '$EACH_PRODUCT_NAME'"
     fi
 
-    echo -e "$info [INFO] Releasing APIC $ECHO_LINE...\n"
     if ! $SCRIPT_DIR/release-apic.sh $RELEASE_APIC_PARAMS; then
       update_conditions "Failed to release APIC $ECHO_LINE" "Releasing"
       update_phase "Failed"
@@ -803,7 +807,7 @@ if [[ ! "$(echo "${REQUIRED_PRODUCTS_JSON}" | jq -r '.[] | select(.enabled == tr
 fi
 
 #-------------------------------------------------------------------------------------------------------------------
-# If all demos are selected, create Asset Repository remote
+# If asset repository is enabled, create Asset Repository remote
 #-------------------------------------------------------------------------------------------------------------------
 
 if [[ ! "$(echo "${REQUIRED_PRODUCTS_JSON}" | jq -r '.[] | select(.enabled == true and .type == "assetRepo")')" == "" ]]; then

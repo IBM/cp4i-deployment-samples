@@ -1,12 +1,9 @@
 apiVersion: integration.ibm.com/v1beta1
 kind: Demo
 metadata:
-  name: demos
   namespace: cp4i
+  name: demos
 spec:
-  # Not sure what this would be used for!
-  version: 2020.3.1
-
   general:
     storage:
       block:
@@ -16,6 +13,13 @@ spec:
     # Include this? Maybe when we turn this into an operator the samples repo would
     # be baked in as a locally running image, so can work with airgap.
     samplesRepoBranch: main
+
+  apic:
+    emailAddress: "your@email.address"
+    mailServerHost: "smtp.mailtrap.io"
+    mailServerPort: 2525
+    mailServerUsername: "<your-username>"
+    mailServerPassword: "<your-password>"
 
   demos:
     all:
@@ -35,34 +39,20 @@ spec:
   # enable required products.
   products:
     - type: aceDashboard
-      enabled: true
     - type: aceDesigner
-      enabled: true
     - type: apic
-      enabled: true
-      emailAddress: "your@email.address"
-      mailServerHost: "smtp.mailtrap.io"
-      mailServerPort: 2525
-      mailServerUsername: "<your-username>"
-      mailServerPassword: "<your-password>"
     - type: assetRepo
-      enabled: true
     - type: eventStreams
-      enabled: true
     - type: mq
-      enabled: true
     - type: tracing
-      enabled: true
 
   # Allow additional addon applications to be enabled independently. Enabling a
   # demo will automatically enable required addons.
   addons:
     - type: postgres
-      enabled: true
     - type: elasticSearch
-      enabled: true
+    # Installs the pipelines operator cluster scoped
     - type: ocpPipelines
-      enabled: true
 status:
   addons:
     - type: postgres
@@ -76,13 +66,24 @@ status:
       readyToUse: true
   conditions: []
   demos:
-    - mappingAssist:
-      enabled: true
-    - weatherChatbot:
-      enabled: true
+    - name: cognitiveCarRepair
+      installed: true
+      readyToUse: true
+    - name: drivewayDentDeletion
+      installed: true
+      readyToUse: true
+    - name: eventEnabledInsurance
+      installed: true
+      readyToUse: true
+    - name: mappingAssist
+      installed: true
+      readyToUse: true
+    - name: weatherChatbot
+      installed: true
+      readyToUse: true
   namespaces:
     - name: cp4i
-  phase: Pending
+  phase: Ready
   products:
     - name: ace-dashboard-demo
       type: aceDashboard
@@ -111,11 +112,6 @@ status:
       namespace: cp4i
     - name: mq-demo
       type: mq
-      installed: true
-      readyToUse: true
-      namespace: cp4i
-    - name: cp4i-navigator
-      type: navigator
       installed: true
       readyToUse: true
       namespace: cp4i

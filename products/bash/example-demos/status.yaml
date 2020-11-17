@@ -60,11 +60,6 @@ status:
       installed: true
       readyToUse: true
       namespace: cp4i
-    - name: cp4i-navigator
-      type: navigator
-      installed: true
-      readyToUse: true
-      namespace: cp4i
     - name: tracing-demo
       type: tracing
       installed: true
