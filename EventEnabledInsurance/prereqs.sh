@@ -38,7 +38,7 @@ function usage() {
 NAMESPACE="cp4i"
 TICK="\xE2\x9C\x85"
 CROSS="\xE2\x9D\x8C"
-all_done="\xF0\x9F\x92\xAF"
+ALL_DONE="\xF0\x9F\x92\xAF"
 SUFFIX="eei"
 POSTGRES_NAMESPACE="postgres"
 REPO="https://github.com/IBM/cp4i-deployment-samples.git"
@@ -259,7 +259,7 @@ else
 fi #create-ace-config.sh
 
 divider
-echo -e "$TICK $all_done [SUCCESS] All prerequisites for the event enabled insurance demo have been applied successfully $all_done $TICK"
+echo -e "$TICK $ALL_DONE [SUCCESS] All prerequisites for the event enabled insurance demo have been applied successfully $ALL_DONE $TICK"
 divider
 
 time=0
