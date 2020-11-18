@@ -15,22 +15,26 @@
 # PARAMETERS:
 #   -i : <input.yaml/input.json> (string), full path to input yaml/json
 #   -o : <output.yaml/output.json> (string), full path to output yaml/json
+#   -b : <SAMPLES_REPO_BRANCH> (string), Samples deployment branch, Defaults to main
 #
 # USAGE:
-#   ./setup-demos.sh -i input.yaml -o output.yaml
+#   ./setup-demos.sh -i input.yaml -o output.yaml -b <samplesRepoBranch>
 
 function divider() {
   echo -e "\n-------------------------------------------------------------------------------------------------------------------\n"
 }
 
 function usage() {
-  echo "Usage: $0 -i input.yaml -o output.yaml"
+  echo "Usage: $0 -i input.yaml -o output.yaml -b <SAMPLES_REPO_BRANCH>"
   divider
   exit 1
 }
 
-while getopts "i:o:" opt; do
+while getopts "b:i:o:" opt; do
   case ${opt} in
+  b)
+    SAMPLES_REPO_BRANCH="$OPTARG"
+    ;;
   i)
     INPUT_FILE="$OPTARG"
     ;;
@@ -58,6 +62,7 @@ ADDON_OBJECT_FOR_STATUS='{"type":"", "installed":"", "readyToUse":""}'
 PRODUCT_OBJECT_FOR_STATUS='{"name":"","type":"", "namespace":"", "installed":"", "readyToUse":""}'
 DEMO_VERSION="2020.3.1-1"
 DEMO_OBJECT_FOR_STATUS='{"name":"", "installed":"", "readyToUse":""}'
+SAMPLES_REPO_BRANCH="main"
 
 # cognitive car repair demo list
 declare -a COGNITIVE_CAR_REPAIR_ADDONS_LIST
@@ -304,6 +309,11 @@ function update_demo_status() {
   DEMO_INSTALLED=${2}    # if the demo is installed
   DEMO_READY_TO_USE=${3} # if the demo prereqs is configured and ready to use
 
+  # in case empty installed status is passed, use existing value - done when running updating after prereqs script
+  if [[ -z "${DEMO_INSTALLED// /}" ]]; then
+    DEMO_INSTALLED=$(echo $STATUS | jq -r '.demos[] | select(.name == "'$DEMO_NAME'") | .installed ')
+  fi
+
   $DEBUG && divider && echo -e "$info [DEBUG] demoName($DEMO_NAME) - demoInstalled($DEMO_INSTALLED) - demoReadyToUse($DEMO_READY_TO_USE)"
 
   # clear any existing status for the passed demo name
@@ -334,6 +344,12 @@ if [[ -z "${OUTPUT_FILE// /}" ]]; then
   echo -e "$cross ERROR: OUTPUT_FILE is empty. Please provide a value for '-o' parameter." 1>&2
   missingParams="true"
 fi
+
+if [[ -z "${SAMPLES_REPO_BRANCH// /}" ]]; then
+  echo -e "$cross ERROR: SAMPLES_REPO_BRANCH is empty. Please provide a value for '-b' parameter." 1>&2
+  missingParams="true"
+fi
+
 if [[ "$missingParams" == "true" ]]; then
   divider
   exit 1
@@ -394,7 +410,7 @@ $DEBUG && echo "[DEBUG] Get storage classes and branch from $INPUT_FILE"
 GENERAL=$(echo $JSON | jq -r .spec.general)
 BLOCK_STORAGE_CLASS=$(echo $GENERAL | jq -r '.storage.block | if has("class") then .class else "cp4i-block-performance" end')
 FILE_STORAGE_CLASS=$(echo $GENERAL | jq -r '.storage.file | if has("class") then .class else "ibmc-file-gold-gid" end')
-SAMPLES_REPO_BRANCH=$(echo $GENERAL | jq -r 'if has("samplesRepoBranch") then .samplesRepoBranch else "main" end')
+SAMPLES_REPO_BRANCH=$(echo $GENERAL | jq -r 'if has("samplesRepoBranch") then .samplesRepoBranch else "'$SAMPLES_REPO_BRANCH'" end')
 NAMESPACE=$(echo $JSON | jq -r .metadata.namespace)
 REQUIRED_DEMOS_JSON=$(echo $JSON | jq -c '.spec | if has("demos") then .demos else {} end')
 REQUIRED_PRODUCTS_JSON=$(echo $JSON | jq -c '.spec | if has("products") then .products else [] end')
@@ -834,11 +850,11 @@ for EACH_DEMO in $(echo $REQUIRED_DEMOS_JSON | jq -r 'to_entries[] | select( .va
     echo -e "$info [INFO] Setting up the cognitive car repair demo\n"
     echo -e "$info [INFO] Checking if all addons are installed and setup for the cognitive car repair demo"
     check_current_status "$EACH_DEMO" "addons" "${COGNITIVE_CAR_REPAIR_ADDONS_LIST[@]}"
-    ADDON_CONFIGURED=$DEMO_CONFIGURED
+    ADDONS_CONFIGURED=$DEMO_CONFIGURED
     echo -e "\n$info [INFO] Checking if all products are installed and setup for the cognitive car repair demo"
     check_current_status "$EACH_DEMO" "products" "${COGNITIVE_CAR_REPAIR_PRODUCTS_LIST[@]}"
-    PRODUCT_CONFIGURED=$DEMO_CONFIGURED
-    if [[ "$ADDON_CONFIGURED" == "true" && "$PRODUCT_CONFIGURED" == "true" ]]; then
+    PRODUCTS_CONFIGURED=$DEMO_CONFIGURED
+    if [[ "$ADDONS_CONFIGURED" == "true" && "$PRODUCTS_CONFIGURED" == "true" ]]; then
       # No pre-requisites are to be run for cognitive car repair demo, so setting installed and readyToUse to true
       update_demo_status "$EACH_DEMO" "true" "true"
     else
@@ -852,17 +868,30 @@ for EACH_DEMO in $(echo $REQUIRED_DEMOS_JSON | jq -r 'to_entries[] | select( .va
     echo -e "$info [INFO] Starting the setup of the event enabled insurance demo\n"
     echo -e "$info [INFO] Checking if all addons are installed and configured for the event enabled insurance demo"
     check_current_status "$EACH_DEMO" "addons" "${EVENT_ENABLED_INSURANCE_ADDONS_LIST[@]}"
-    ADDON_CONFIGURED=$DEMO_CONFIGURED
+    ADDONS_CONFIGURED=$DEMO_CONFIGURED
     echo -e "\n$info [INFO] Checking if all products are installed and setup for the event enabled insurance demo"
     check_current_status "$EACH_DEMO" "products" "${EVENT_ENABLED_INSURANCE_PRODUCTS_LIST[@]}"
-    PRODUCT_CONFIGURED=$DEMO_CONFIGURED
-    if [[ "$ADDON_CONFIGURED" == "true" && "$PRODUCT_CONFIGURED" == "true" ]]; then
+    PRODUCTS_CONFIGURED=$DEMO_CONFIGURED
+    if [[ "$ADDONS_CONFIGURED" == "true" && "$PRODUCTS_CONFIGURED" == "true" ]]; then
       # if all addon/products are installed and configured correctly
       update_demo_status "$EACH_DEMO" "true" "false"
     else
       # If one or more products failed to setup/configure, demo is not ready to use
       update_demo_status "$EACH_DEMO" "false" "false"
     fi
+
+    divider && echo -e "$info [INFO] Setting up prereqs for Event Enabled Insurance demo in the '$NAMESPACE' namespace" && divider
+    # setup the prereqs for event enabled insurance demo
+    if ! $SCRIPT_DIR/../../EventEnabledInsurance/prereqs.sh -n "$NAMESPACE" -b "$SAMPLES_REPO_BRANCH" -e "$NAMESPACE" -p "$NAMESPACE"; then
+      echo -e "$cross [ERROR] Failed to run event enabled insurance prereqs script"
+      update_conditions "Failed to run event enabled insurance prereqs script in the '$NAMESPACE' namespace" "Prereqs"
+      update_phase "Failed"
+      update_demo_status "$EACH_DEMO" "" "false"
+      FAILED_INSTALL_DEMOS_LIST+=($EACH_DEMO)
+    else
+      echo -e "$tick [SUCCESS] Successfully ran event enabled insurance prereqs script in the '$NAMESPACE' namespace"
+      update_demo_status "$EACH_DEMO" "" "true"
+    fi # EventEnabledInsurance/prereqs.sh
     divider
     ;;
 
@@ -870,11 +899,11 @@ for EACH_DEMO in $(echo $REQUIRED_DEMOS_JSON | jq -r 'to_entries[] | select( .va
     echo -e "$info [INFO] Setting up the driveway dent deletion demo...\n"
     echo -e "$info [INFO] Checking if all addons are installed and setup for the driveway dent deletion demo"
     check_current_status "$EACH_DEMO" "addons" "${DRIVEWAY_DENT_DELETION_ADDONS_LIST[@]}"
-    ADDON_CONFIGURED=$DEMO_CONFIGURED
+    ADDONS_CONFIGURED=$DEMO_CONFIGURED
     echo -e "\n$info [INFO] Checking if all products are installed and setup for the driveway dent deletion demo"
     check_current_status "$EACH_DEMO" "products" "${DRIVEWAY_DENT_DELETION_PRODUCTS_LIST[@]}"
-    PRODUCT_CONFIGURED=$DEMO_CONFIGURED
-    if [[ "$ADDON_CONFIGURED" == "true" && "$PRODUCT_CONFIGURED" == "true" ]]; then
+    PRODUCTS_CONFIGURED=$DEMO_CONFIGURED
+    if [[ "$ADDONS_CONFIGURED" == "true" && "$PRODUCTS_CONFIGURED" == "true" ]]; then
       # if all addon/products are installed and configured correctly
       update_demo_status "$EACH_DEMO" "true" "false"
     else

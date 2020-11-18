@@ -22,37 +22,31 @@ spec:
     mailServerPassword: "<your-password>"
 
   demos:
-    all:
-      enabled: true
-    cognitiveCarRepair:
-      enabled: true
-    drivewayDentDeletion:
-      enabled: true
-    eventEnabledInsurance:
-      enabled: true
-    mappingAssist:
-      enabled: true
-    weatherChatbot:
-      enabled: true
+    all: false
+    cognitiveCarRepair: true
+    drivewayDentDeletion: false
+    eventEnabledInsurance: false
+    mappingAssist: false
+    weatherChatbot: false
 
   # Allow products to be enabled independently. Enabling a demo will automatically
   # enable required products.
   products:
-    - type: aceDashboard
-    - type: aceDesigner
-    - type: apic
-    - type: assetRepo
-    - type: eventStreams
-    - type: mq
-    - type: tracing
+    aceDashboard: false
+    aceDesigner: false
+    apic: false
+    assetRepo: false
+    eventStreams: false
+    mq: false
+    tracing: false
 
   # Allow additional addon applications to be enabled independently. Enabling a
   # demo will automatically enable required addons.
   addons:
-    - type: postgres
-    - type: elasticSearch
+    postgres: false
+    elasticSearch: false
     # Installs the pipelines operator cluster scoped
-    - type: ocpPipelines
+    ocpPipelines: false
 status:
   addons:
     - type: postgres
