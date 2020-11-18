@@ -453,7 +453,6 @@ for DEMO in $(echo $REQUIRED_DEMOS_JSON | jq -r 'to_entries[] | select( .value.e
   case ${DEMO} in
   cognitiveCarRepair)
     PRODUCTS_FOR_DEMO='
-      {"enabled":true,"type":"mq"}
       {"enabled":true,"type":"aceDashboard"}
       {"enabled":true,"type":"aceDesigner"}
       {"enabled":true,"type":"apic"}
@@ -461,7 +460,7 @@ for DEMO in $(echo $REQUIRED_DEMOS_JSON | jq -r 'to_entries[] | select( .value.e
       {"enabled":true,"type":"tracing"}
       '
     # get list of all cognitive car repair demo products
-    COGNITIVE_CAR_REPAIR_PRODUCTS_LIST=("mq" "aceDashboard" "aceDesigner" "apic" "assetRepo" "tracing")
+    COGNITIVE_CAR_REPAIR_PRODUCTS_LIST=("aceDashboard" "aceDesigner" "apic" "assetRepo" "tracing")
     ADDONS_FOR_DEMO=''
     COGNITIVE_CAR_REPAIR_ADDONS_LIST=()
     ;;
