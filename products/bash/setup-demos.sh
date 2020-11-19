@@ -63,6 +63,7 @@ PRODUCT_OBJECT_FOR_STATUS='{"name":"","type":"", "namespace":"", "installed":"",
 DEMO_VERSION="2020.3.1-1"
 DEMO_OBJECT_FOR_STATUS='{"name":"", "installed":"", "readyToUse":""}'
 SAMPLES_REPO_BRANCH="main"
+NEW_REQUIRED_ADDONS_JSON="[]"
 
 # cognitive car repair demo list
 declare -a COGNITIVE_CAR_REPAIR_ADDONS_LIST
@@ -171,24 +172,11 @@ function merge_product() {
 function merge_addon() {
   ADDON_JSON=${1}
   ADDON_ARRAY_JSON=${2}
-
-  TYPE=$(echo "${ADDON_JSON}" | jq -r '.type')
-
-  MATCH=$(echo "${ADDON_ARRAY_JSON}" | jq -c '.[] | select(.type == "'$TYPE'")')
-  if [[ -z $MATCH ]]; then
+  TYPE=$(echo ${ADDON_JSON} | jq -r '.type')
+  MATCH=$(echo ${ADDON_ARRAY_JSON} | jq -r '.[] | select(.type == "'$TYPE'")')
+  if [[ -z $MATCH || -z "${MATCH// /}" ]]; then
     # Add in the new addon
-    ADDON_ARRAY_JSON=$(echo $ADDON_ARRAY_JSON | jq -c '. += ['${ADDON_JSON}']')
-  else
-    ENABLED=$(echo "${ADDON_JSON}" | jq -r '.enabled')
-    if [[ "$ENABLED" == "true" ]]; then
-      # Filter out the old addon from the array
-      ADDON_ARRAY_JSON=$(echo "${ADDON_ARRAY_JSON}" | jq -c 'map(select(.type == "'$TYPE'" | not))')
-
-      # Re add the old addon with enabled=true
-      # TODO Should we merge any other fields for MATCH/ADDON_JSON?
-      MATCH=$(echo "${MATCH}" | jq -c '.enabled = true')
-      ADDON_ARRAY_JSON=$(echo $ADDON_ARRAY_JSON | jq -c '. += ['${MATCH}']')
-    fi
+    ADDON_ARRAY_JSON=$(echo $ADDON_ARRAY_JSON | jq -c '. += ['${ADDON_JSON}'] ')
   fi
 
   echo ${ADDON_ARRAY_JSON}
@@ -416,7 +404,7 @@ REQUIRED_DEMOS_JSON=$(echo $JSON | jq -c '.spec | if has("demos") then .demos el
 REQUIRED_PRODUCTS_JSON=$(echo $JSON | jq -c '.spec | if has("products") then .products else [] end')
 REQUIRED_ADDONS_JSON=$(echo $JSON | jq -c '.spec | if has("addons") then .addons else [] end')
 # To use for un-installation
-ORIGINAL_STATUS=$(echo $JSON | jq -r .status)
+ORIGINAL_STATUS=$(echo $JSON | jq -c .status)
 
 echo -e "\n$info Block storage class: '$BLOCK_STORAGE_CLASS'"
 echo -e "$info File storage class: '$FILE_STORAGE_CLASS'"
@@ -426,20 +414,22 @@ echo -e "$info Namespace: '$NAMESPACE'" && divider
 #-------------------------------------------------------------------------------------------------------------------
 # If all demos enabled then add all demos
 #-------------------------------------------------------------------------------------------------------------------
-ALL_DEMOS_ENABLED=$(echo $REQUIRED_DEMOS_JSON | jq -r '.all | if has("enabled") then .enabled else "false" end')
+
+ALL_DEMOS_ENABLED=$(echo $REQUIRED_DEMOS_JSON | jq -r '.all')
 $DEBUG && echo -e "$info [DEBUG] All demos enabled: '$ALL_DEMOS_ENABLED'"
 if [[ "${ALL_DEMOS_ENABLED}" == "true" ]]; then
   REQUIRED_DEMOS_JSON='{"cognitiveCarRepair": {"enabled": true},"drivewayDentDeletion": {"enabled": true},"eventEnabledInsurance": {"enabled": true}}'
 else
-  REQUIRED_DEMOS_JSON=$(echo $REQUIRED_DEMOS_JSON | jq -c 'del(.all)')
+  REQUIRED_DEMOS_JSON=$(echo $REQUIRED_DEMOS_JSON | jq -c 'del(.all) | del(.[] | select(. == false))')
 fi
 
 #-------------------------------------------------------------------------------------------------------------------
 # Loop through the products and set the name/namespace and merge the products into the array using type/namespace/name as the identifier
 #-------------------------------------------------------------------------------------------------------------------
+
 NEW_REQUIRED_PRODUCTS_JSON="[]"
-for row in $(echo "${REQUIRED_PRODUCTS_JSON}" | jq -r '.[] | @base64'); do
-  PRODUCT_JSON=$(echo ${row} | base64 --decode)
+for row in $(echo "${REQUIRED_PRODUCTS_JSON}" | jq -r 'to_entries[] | @base64'); do
+  PRODUCT_JSON=$(echo ${row} | base64 --decode | jq -c '. | with_entries(if .key == "key" then .key = "type" else . end) | with_entries(if .key == "value" then .key = "enabled" else . end)')
   NEW_REQUIRED_PRODUCTS_JSON=$(merge_product ${PRODUCT_JSON} ${NEW_REQUIRED_PRODUCTS_JSON})
 done
 REQUIRED_PRODUCTS_JSON=${NEW_REQUIRED_PRODUCTS_JSON}
@@ -447,7 +437,8 @@ REQUIRED_PRODUCTS_JSON=${NEW_REQUIRED_PRODUCTS_JSON}
 #-------------------------------------------------------------------------------------------------------------------
 # For each demo add to the requiredProducts/requiredAddons lists, including the namespaces
 #-------------------------------------------------------------------------------------------------------------------
-for DEMO in $(echo $REQUIRED_DEMOS_JSON | jq -r 'to_entries[] | select( .value.enabled == true ) | .key'); do
+
+for DEMO in $(echo $REQUIRED_DEMOS_JSON | jq -r 'keys[]'); do
   PRODUCTS_FOR_DEMO=""
   ADDONS_FOR_DEMO=""
   case ${DEMO} in
@@ -510,10 +501,17 @@ for DEMO in $(echo $REQUIRED_DEMOS_JSON | jq -r 'to_entries[] | select( .value.e
   for PRODUCT_JSON in $PRODUCTS_FOR_DEMO; do
     REQUIRED_PRODUCTS_JSON=$(merge_product ${PRODUCT_JSON} ${REQUIRED_PRODUCTS_JSON})
   done
-  for ADDON_JSON in $ADDONS_FOR_DEMO; do
-    REQUIRED_ADDONS_JSON=$(merge_addon ${ADDON_JSON} ${REQUIRED_ADDONS_JSON})
+  for row in $(echo "${ADDONS_FOR_DEMO}" | jq -r '. | @base64'); do
+    ADDON_JSON=$(echo $row | base64 --decode)
+    NEW_REQUIRED_ADDONS_JSON=$(merge_addon ${ADDON_JSON} ${NEW_REQUIRED_ADDONS_JSON})
   done
 done
+
+REQUIRED_ADDONS_JSON=${NEW_REQUIRED_ADDONS_JSON}
+
+# TODO: REMOVE
+exit 0
+# TODO: REMOVE
 
 #-------------------------------------------------------------------------------------------------------------------
 # Print previous status, clear it and set new status with Phase as Pending
