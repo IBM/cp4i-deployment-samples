@@ -63,7 +63,6 @@ PRODUCT_OBJECT_FOR_STATUS='{"name":"","type":"", "namespace":"", "installed":"",
 DEMO_VERSION="2020.3.1-1"
 DEMO_OBJECT_FOR_STATUS='{"name":"", "installed":"", "readyToUse":""}'
 SAMPLES_REPO_BRANCH="main"
-NEW_REQUIRED_ADDONS_JSON="[]"
 
 # cognitive car repair demo list
 declare -a COGNITIVE_CAR_REPAIR_ADDONS_LIST
@@ -84,108 +83,17 @@ declare -a FAILED_INSTALL_DEMOS_LIST
 # Functions
 #-------------------------------------------------------------------------------------------------------------------
 
-function product_set_defaults() {
-  PRODUCT_JSON=${1}
-  PRODUCT_TYPE=$(echo ${PRODUCT_JSON} | jq -r '.type')
-  case ${PRODUCT_TYPE} in
-  aceDashboard) DEFAULTS='{"name":"ace-dashboard-demo"}' ;;
-  aceDesigner) DEFAULTS='{"name":"ace-designer-demo"}' ;;
-  apic) DEFAULTS='{"name":"ademo","emailAddress":"your@email.address","mailServerHost":"smtp.mailtrap.io","mailServerPassword":"<your-password>","mailServerPort":2525,"mailServerUsername":"<your-username>"}' ;;
-  assetRepo) DEFAULTS='{"name":"ar-demo"}' ;;
-  eventStreams) DEFAULTS='{"name":"es-demo"}' ;;
-  mq) DEFAULTS='{"name":"mq-demo"}' ;;
-  tracing) DEFAULTS='{"name":"tracing-demo"}' ;;
-  *)
-    echo -e "$cross ERROR: Unknown product type: ${PRODUCT_TYPE}" 1>&2
-    exit 1
-    ;;
-  esac
-
-  for row in $(echo "${DEFAULTS}" | jq -r 'to_entries[] | @base64'); do
-    KEY=$(echo ${row} | base64 --decode | jq -r '.key')
-    if [[ "$(echo "$PRODUCT_JSON" | jq -r 'has("'$KEY'")')" == "false" ]]; then
-      VALUE=$(echo ${row} | base64 --decode | jq -c '.value')
-      PRODUCT_JSON=$(echo "$PRODUCT_JSON" | jq -c '.'$KEY' = '$VALUE)
-    fi
-  done
-
-  echo "${PRODUCT_JSON}"
-}
-
-#----------------------------------------------------
-
-function product_fixup_namespace() {
-  PRODUCT_JSON=${1}
-  PRODUCT_NAMESPACE=$(echo ${PRODUCT_JSON} | jq -r '.namespace')
-  PRODUCT_NAMESPACE_SUFFIX=$(echo ${PRODUCT_JSON} | jq -r '.namespaceSuffix')
-
-  if [[ -z "$PRODUCT_NAMESPACE_SUFFIX" ]] || [[ "$PRODUCT_NAMESPACE_SUFFIX" == "null" ]]; then
-    if [[ -z "$PRODUCT_NAMESPACE" ]] || [[ "$PRODUCT_NAMESPACE" == "null" ]]; then
-      PRODUCT_JSON=$(echo ${PRODUCT_JSON} | jq -c '.namespace="'${NAMESPACE}'"')
-    fi
-  else
-    if [[ -z "$PRODUCT_NAMESPACE" ]] || [[ "$PRODUCT_NAMESPACE" == "null" ]]; then
-      PRODUCT_JSON=$(echo ${PRODUCT_JSON} | jq -c '.namespace="'${NAMESPACE}${PRODUCT_NAMESPACE_SUFFIX}'" | del(.namespaceSuffix)')
-    else
-      echo -e "$cross ERROR: Cannot support both namespace and namespaceSuffix for the same product" 1>&2
-      exit 1
-    fi
-  fi
-
-  echo "${PRODUCT_JSON}"
-}
-
-#----------------------------------------------------
-
-function merge_product() {
-  PRODUCT_JSON=${1}
-  PRODUCT_ARRAY_JSON=${2}
-
-  PRODUCT_JSON=$(product_set_defaults $PRODUCT_JSON)
-  PRODUCT_JSON=$(product_fixup_namespace $PRODUCT_JSON)
-
-  TYPE=$(echo "${PRODUCT_JSON}" | jq -r '.type')
-  NAME=$(echo "${PRODUCT_JSON}" | jq -r '.name')
-  NAMESPACE=$(echo "${PRODUCT_JSON}" | jq -r '.namespace')
-
-  MATCH=$(echo "${PRODUCT_ARRAY_JSON}" | jq -c '.[] | select(.type == "'$TYPE'" and .name == "'$NAME'" and .namespace == "'$NAMESPACE'")')
-  if [[ -z $MATCH ]]; then
-    # Add in the new product
-    PRODUCT_ARRAY_JSON=$(echo $PRODUCT_ARRAY_JSON | jq -c '. += ['${PRODUCT_JSON}']')
-  else
-    ENABLED=$(echo "${PRODUCT_JSON}" | jq -r '.enabled')
-    if [[ "$ENABLED" == "true" ]]; then
-      # Filter out the old product from the array
-      PRODUCT_ARRAY_JSON=$(echo "${PRODUCT_ARRAY_JSON}" | jq -c 'map(select(.type == "'$TYPE'" and .name == "'$NAME'" and .namespace == "'$NAMESPACE'" | not))')
-
-      # Re add the old product with enabled=true
-      # TODO Should we merge any other fields for MATCH/PRODUCT_JSON?
-      MATCH=$(echo "${MATCH}" | jq -c '.enabled = true')
-      PRODUCT_ARRAY_JSON=$(echo $PRODUCT_ARRAY_JSON | jq -c '. += ['${MATCH}']')
-    fi
-  fi
-  echo ${PRODUCT_ARRAY_JSON}
-}
-
-#----------------------------------------------------
-
-function merge_addon() {
-  ADDON_JSON=${1}
-  ADDON_ARRAY_JSON=${2}
-  TYPE=$(echo ${ADDON_JSON} | jq -r '.type')
-  MATCH=$(echo ${ADDON_ARRAY_JSON} | jq -r '.[] | select(.type == "'$TYPE'")')
-  if [[ -z $MATCH || -z "${MATCH// /}" ]]; then
-    # Add in the new addon
-    ADDON_ARRAY_JSON=$(echo $ADDON_ARRAY_JSON | jq -c '. += ['${ADDON_JSON}'] ')
-  fi
-
-  echo ${ADDON_ARRAY_JSON}
+function build_required_demo_addons_and_products() {
+  ELEMENT_FOR_DEMO=${1}
+  REQUIRED_OBJECT_FOR_DEMO=${2}
+  REQUIRED_OBJECT_FOR_DEMO=$(echo $REQUIRED_OBJECT_FOR_DEMO | jq -c '. += ''{"'$ELEMENT_FOR_DEMO'":true}'' ')
+  echo ${REQUIRED_OBJECT_FOR_DEMO}
 }
 
 #----------------------------------------------------
 
 function update_conditions() {
-  MESSAGE=${1}
+  MESSAGE=${1}           # Message to update status condition with
   REASON=${2}            # command type
   CONDITION_TYPE="Error" # for the type in conditions
   TIMESTAMP=$(date -u +%FT%T.%Z)
@@ -382,6 +290,7 @@ fi
 #-------------------------------------------------------------------------------------------------------------------
 # Read in the input file and, if not already json, convert to json
 #-------------------------------------------------------------------------------------------------------------------
+
 if [[ "$INPUT_FILE" == *.json ]]; then
   JSON=$(<$INPUT_FILE)
 else
@@ -394,6 +303,7 @@ $DEBUG && echo $JSON | jq .
 #-------------------------------------------------------------------------------------------------------------------
 # Extract information from the yaml
 #-------------------------------------------------------------------------------------------------------------------
+
 $DEBUG && echo "[DEBUG] Get storage classes and branch from $INPUT_FILE"
 GENERAL=$(echo $JSON | jq -r .spec.general)
 BLOCK_STORAGE_CLASS=$(echo $GENERAL | jq -r '.storage.block | if has("class") then .class else "cp4i-block-performance" end')
@@ -401,8 +311,8 @@ FILE_STORAGE_CLASS=$(echo $GENERAL | jq -r '.storage.file | if has("class") then
 SAMPLES_REPO_BRANCH=$(echo $GENERAL | jq -r 'if has("samplesRepoBranch") then .samplesRepoBranch else "'$SAMPLES_REPO_BRANCH'" end')
 NAMESPACE=$(echo $JSON | jq -r .metadata.namespace)
 REQUIRED_DEMOS_JSON=$(echo $JSON | jq -c '.spec | if has("demos") then .demos else {} end')
-REQUIRED_PRODUCTS_JSON=$(echo $JSON | jq -c '.spec | if has("products") then .products else [] end')
-REQUIRED_ADDONS_JSON=$(echo $JSON | jq -c '.spec | if has("addons") then .addons else [] end')
+REQUIRED_PRODUCTS_JSON=$(echo $JSON | jq -c '.spec | if has("products") then .products else {} end')
+REQUIRED_ADDONS_JSON=$(echo $JSON | jq -c '.spec | if has("addons") then .addons else {} end')
 # To use for un-installation
 ORIGINAL_STATUS=$(echo $JSON | jq -c .status)
 
@@ -412,7 +322,7 @@ echo -e "$info Samples repo branch: '$SAMPLES_REPO_BRANCH'"
 echo -e "$info Namespace: '$NAMESPACE'" && divider
 
 #-------------------------------------------------------------------------------------------------------------------
-# If all demos enabled then add all demos
+# If all demos enabled then add all demos else delete all demos value and keep enabled ones
 #-------------------------------------------------------------------------------------------------------------------
 
 ALL_DEMOS_ENABLED=$(echo $REQUIRED_DEMOS_JSON | jq -r '.all')
@@ -424,15 +334,11 @@ else
 fi
 
 #-------------------------------------------------------------------------------------------------------------------
-# Loop through the products and set the name/namespace and merge the products into the array using type/namespace/name as the identifier
+# Update the required JSON with addons and products which are enabled in the CR
 #-------------------------------------------------------------------------------------------------------------------
 
-NEW_REQUIRED_PRODUCTS_JSON="[]"
-for row in $(echo "${REQUIRED_PRODUCTS_JSON}" | jq -r 'to_entries[] | @base64'); do
-  PRODUCT_JSON=$(echo ${row} | base64 --decode | jq -c '. | with_entries(if .key == "key" then .key = "type" else . end) | with_entries(if .key == "value" then .key = "enabled" else . end)')
-  NEW_REQUIRED_PRODUCTS_JSON=$(merge_product ${PRODUCT_JSON} ${NEW_REQUIRED_PRODUCTS_JSON})
-done
-REQUIRED_PRODUCTS_JSON=${NEW_REQUIRED_PRODUCTS_JSON}
+REQUIRED_PRODUCTS_JSON=$(echo $REQUIRED_PRODUCTS_JSON | jq -c 'del(.[] | select(. == false))')
+REQUIRED_ADDONS_JSON=$(echo $REQUIRED_ADDONS_JSON | jq -c 'del(.[] | select(. == false))')
 
 #-------------------------------------------------------------------------------------------------------------------
 # For each demo add to the requiredProducts/requiredAddons lists, including the namespaces
@@ -444,12 +350,13 @@ for DEMO in $(echo $REQUIRED_DEMOS_JSON | jq -r 'keys[]'); do
   case ${DEMO} in
   cognitiveCarRepair)
     PRODUCTS_FOR_DEMO='
-      {"enabled":true,"type":"aceDashboard"}
-      {"enabled":true,"type":"aceDesigner"}
-      {"enabled":true,"type":"apic"}
-      {"enabled":true,"type":"assetRepo"}
-      {"enabled":true,"type":"tracing"}
+      aceDashboard
+      aceDesigner
+      apic
+      assetRepo
+      tracing
       '
+
     # get list of all cognitive car repair demo products
     COGNITIVE_CAR_REPAIR_PRODUCTS_LIST=("aceDashboard" "aceDesigner" "apic" "assetRepo" "tracing")
     ADDONS_FOR_DEMO=''
@@ -457,11 +364,12 @@ for DEMO in $(echo $REQUIRED_DEMOS_JSON | jq -r 'keys[]'); do
     ;;
   drivewayDentDeletion)
     PRODUCTS_FOR_DEMO='
-      {"enabled":true,"type":"mq"}
-      {"enabled":true,"type":"aceDashboard"}
-      {"enabled":true,"type":"apic"}
-      {"enabled":true,"type":"tracing"}
+      mq
+      aceDashboard
+      apic
+      tracing
       '
+
     DRIVEWAY_DENT_DELETION_PRODUCTS_LIST=("mq" "aceDashboard" "apic" "tracing")
 
     # Disabled as we no longer want a separate namespace for test. The following is an example
@@ -470,25 +378,28 @@ for DEMO in $(echo $REQUIRED_DEMOS_JSON | jq -r 'keys[]'); do
     # {"enabled":true,"namespaceSuffix":"-ddd-test","type":"navigator"}
 
     ADDONS_FOR_DEMO='
-      {"enabled":true,"type":"postgres"}
-      {"enabled":true,"type":"ocpPipelines"}
+      postgres
+      ocpPipelines
       '
+
     DRIVEWAY_DENT_DELETION_ADDONS_LIST=("postgres" "ocpPipelines")
     ;;
   eventEnabledInsurance)
     PRODUCTS_FOR_DEMO='
-      {"enabled":true,"type":"mq"}
-      {"enabled":true,"type":"aceDashboard"}
-      {"enabled":true,"type":"apic"}
-      {"enabled":true,"type":"eventStreams"}
-      {"enabled":true,"type":"tracing"}
+      mq
+      aceDashboard
+      apic
+      eventStreams
+      tracing
       '
+
     EVENT_ENABLED_INSURANCE_PRODUCTS_LIST=("mq" "aceDashboard" "apic" "eventStreams" "tracing")
     ADDONS_FOR_DEMO='
-      {"enabled":true,"type":"postgres"}
-      {"enabled":true,"type":"elasticSearch"}
-      {"enabled":true,"type":"ocpPipelines"}
+      postgres
+      elasticSearch
+      ocpPipelines
       '
+
     EVENT_ENABLED_INSURANCE_ADDONS_LIST=("postgres" "elasticSearch" "ocpPipelines")
     ;;
 
@@ -498,16 +409,14 @@ for DEMO in $(echo $REQUIRED_DEMOS_JSON | jq -r 'keys[]'); do
     ;;
   esac
 
-  for PRODUCT_JSON in $PRODUCTS_FOR_DEMO; do
-    REQUIRED_PRODUCTS_JSON=$(merge_product ${PRODUCT_JSON} ${REQUIRED_PRODUCTS_JSON})
+  for EACH_REQUIRED_PRODUCT_FOR_DEMO in ${PRODUCTS_FOR_DEMO[@]}; do
+    REQUIRED_PRODUCTS_JSON=$(build_required_demo_addons_and_products ${EACH_REQUIRED_PRODUCT_FOR_DEMO} ${REQUIRED_PRODUCTS_JSON})
   done
-  for row in $(echo "${ADDONS_FOR_DEMO}" | jq -r '. | @base64'); do
-    ADDON_JSON=$(echo $row | base64 --decode)
-    NEW_REQUIRED_ADDONS_JSON=$(merge_addon ${ADDON_JSON} ${NEW_REQUIRED_ADDONS_JSON})
+
+  for EACH_REQUIRED_ADDON_FOR_DEMO in ${ADDONS_FOR_DEMO[@]}; do
+    REQUIRED_ADDONS_JSON=$(build_required_demo_addons_and_products ${EACH_REQUIRED_ADDON_FOR_DEMO} ${REQUIRED_ADDONS_JSON})
   done
 done
-
-REQUIRED_ADDONS_JSON=${NEW_REQUIRED_ADDONS_JSON}
 
 # TODO: REMOVE
 exit 0

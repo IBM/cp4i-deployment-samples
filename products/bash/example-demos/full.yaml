@@ -32,21 +32,21 @@ spec:
   # Allow products to be enabled independently. Enabling a demo will automatically
   # enable required products.
   products:
-    aceDashboard: true
-    aceDesigner: true
-    apic: true
+    aceDashboard: false
+    aceDesigner: false
+    apic: false
     assetRepo: true
     eventStreams: true
-    mq: true
+    mq: false
     tracing: true
 
   # Allow additional addon applications to be enabled independently. Enabling a
   # demo will automatically enable required addons.
   addons:
-    postgres: true
-    elasticSearch: true
+    postgres: false
+    elasticSearch: false
     # Installs the pipelines operator cluster scoped
-    ocpPipelines: true
+    ocpPipelines: false
 status:
   addons:
     - type: postgres
