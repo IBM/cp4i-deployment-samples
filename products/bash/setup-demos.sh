@@ -733,11 +733,11 @@ for EACH_DEMO in $(echo $REQUIRED_DEMOS_JSON | jq -r '. | keys[]'); do
     check_current_status "$EACH_DEMO" "products" "${COGNITIVE_CAR_REPAIR_PRODUCTS_LIST[@]}"
     PRODUCTS_CONFIGURED=$DEMO_CONFIGURED
     if [[ "$ADDONS_CONFIGURED" == "true" && "$PRODUCTS_CONFIGURED" == "true" ]]; then
-      echo -e "\n$tick $all_done [SUCCESS] Cognitive Car Repair Demo setup completed successfully. $all_done $tick"
+      divider && echo -e "\n$tick $all_done [SUCCESS] Cognitive Car Repair Demo setup completed successfully. $all_done $tick"
       # No pre-requisites are to be run for cognitive car repair demo, so setting installed and readyToUse to true
       update_demo_status "$EACH_DEMO" "true" "true"
     else
-      echo -e "$cross [ERROR] Cognitive Car Repair Demo did not setup correctly. $cross"
+      divider && echo -e "$cross [ERROR] Cognitive Car Repair Demo did not setup correctly. $cross"
       # If one or more products failed to setup/configure, demo is not ready to use
       update_demo_status "$EACH_DEMO" "false" "false"
     fi
@@ -764,13 +764,13 @@ for EACH_DEMO in $(echo $REQUIRED_DEMOS_JSON | jq -r '. | keys[]'); do
     # setup the prereqs for event enabled insurance demo
     if ! $SCRIPT_DIR/../../EventEnabledInsurance/prereqs.sh -n "$NAMESPACE" -b "$SAMPLES_REPO_BRANCH" -e "$NAMESPACE" -p "$NAMESPACE"; then
       echo -e "$cross [ERROR] Failed to run event enabled insurance prereqs script\n"
-      echo -e "$cross [ERROR] Event Enabled Insurance demo did not setup correctly. $cross"
+      divider && echo -e "$cross [ERROR] Event Enabled Insurance demo did not setup correctly. $cross"
       update_conditions "Failed to run event enabled insurance prereqs script in the '$NAMESPACE' namespace" "Prereqs"
       update_phase "Failed"
       update_demo_status "$EACH_DEMO" "" "false"
       FAILED_INSTALL_DEMOS_LIST+=($EACH_DEMO)
     else
-      echo -e "$tick $all_done [SUCCESS] Event Enabled Insurance demo setup completed successfully in the '$NAMESPACE' namespace. $all_done $tick"
+      divider && echo -e "$tick $all_done [SUCCESS] Event Enabled Insurance demo setup completed successfully in the '$NAMESPACE' namespace. $all_done $tick"
       update_demo_status "$EACH_DEMO" "" "true"
     fi # EventEnabledInsurance/prereqs.sh
     divider
