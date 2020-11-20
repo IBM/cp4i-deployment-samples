@@ -121,7 +121,7 @@ function update_conditions() {
 
 function update_phase() {
   PHASE=${1} # Pending, Running or Failed
-  $DEBUG && divider && echo -e "$info [DEBUG] update_phase(): phase($PHASE)"
+  $DEBUG && divider && echo -e "$info [DEBUG] update_phase(): phase($PHASE)" && divider
   STATUS=$(echo $STATUS | jq -c '.phase="'$PHASE'"')
 }
 
@@ -189,7 +189,7 @@ function check_current_status() {
     $DEBUG && echo -e "\n$info [DEBUG] Received '$LIST_TYPE' list for '$DEMO_NAME': '${LIST[@]}'"
     #  Iterate the loop to read and print each array element
     for EACH_ITEM in "${LIST[@]}"; do
-      if [[ "$(echo $STATUS | jq -r '."'$LIST_TYPE'"[] | select(.type == "'$EACH_ITEM'" and .installed == true and .readyToUse == true) ')" == "" ]]; then
+      if [[ "$(echo $STATUS | jq -c '."'$LIST_TYPE'"[] | select(.type == "'$EACH_ITEM'" and .installed == "true" and .readyToUse == "true") ')" == "" ]]; then
         NOT_CONFIGURED_COUNT=$((NOT_CONFIGURED_COUNT + 1))
       fi
     done
@@ -482,10 +482,10 @@ for EACH_ADDON in $(echo $REQUIRED_ADDONS_JSON | jq -r '. | keys[]'); do
     if ! $SCRIPT_DIR/release-psql.sh -n "$NAMESPACE"; then
       update_conditions "Failed to release PostgreSQL in the '$NAMESPACE' namespace" "Releasing"
       update_phase "Failed"
-      FAILED_INSTALL_ADDONS_LIST+=($ADDON_TYPE)
+      FAILED_INSTALL_ADDONS_LIST+=($EACH_ADDON)
     else
       echo -e "\n$tick [SUCCESS] Successfully released PostgresSQL in the '$NAMESPACE' namespace"
-      update_addon_status "$ADDON_TYPE" "true" "true"
+      update_addon_status "$EACH_ADDON" "true" "true"
     fi # release-psql.sh
     ;;
 
@@ -494,10 +494,10 @@ for EACH_ADDON in $(echo $REQUIRED_ADDONS_JSON | jq -r '. | keys[]'); do
     if ! $SCRIPT_DIR/../../EventEnabledInsurance/setup-elastic-search.sh -n "$NAMESPACE" -e "$NAMESPACE"; then
       update_conditions "Failed to install and configure elastic search in the '$NAMESPACE' namespace" "Releasing"
       update_phase "Failed"
-      FAILED_INSTALL_ADDONS_LIST+=($ADDON_TYPE)
+      FAILED_INSTALL_ADDONS_LIST+=($EACH_ADDON)
     else
       echo -e "\n$tick [INFO] Successfully installed and configured elastic search in the '$NAMESPACE' namespace"
-      update_addon_status "$ADDON_TYPE" "true" "true"
+      update_addon_status "$EACH_ADDON" "true" "true"
     fi # setup-elastic-search.sh
     ;;
 
@@ -506,25 +506,25 @@ for EACH_ADDON in $(echo $REQUIRED_ADDONS_JSON | jq -r '. | keys[]'); do
     if ! $SCRIPT_DIR/install-ocp-pipeline.sh; then
       update_conditions "Failed to install OCP pipelines" "Releasing"
       update_phase "Failed"
-      FAILED_INSTALL_ADDONS_LIST+=($ADDON_TYPE)
+      FAILED_INSTALL_ADDONS_LIST+=($EACH_ADDON)
     else
       echo -e "$tick [SUCCESS] Successfully installed OCP pipelines"
-      update_addon_status "$ADDON_TYPE" "true" "false"
+      update_addon_status "$EACH_ADDON" "true" "false"
     fi # install-ocp-pipeline.sh
 
     divider && echo -e "$info [INFO] Configuring secrets and permissions related to ocp pipelines in the '$NAMESPACE' namespace\n"
     if ! $SCRIPT_DIR/configure-ocp-pipeline.sh -n "$NAMESPACE"; then
       update_conditions "Failed to create secrets and permissions related to ocp pipelines in the '$NAMESPACE' namespace" "Releasing"
       update_phase "Failed"
-      FAILED_INSTALL_ADDONS_LIST+=($ADDON_TYPE)
+      FAILED_INSTALL_ADDONS_LIST+=($EACH_ADDON)
     else
       echo -e "$tick [SUCCESS] Successfully configured secrets and permissions related to ocp pipelines in the '$NAMESPACE' namespace"
-      update_addon_status "$ADDON_TYPE" "true" "true"
+      update_addon_status "$EACH_ADDON" "true" "true"
     fi # configure-ocp-pipeline.sh
     ;;
 
   *)
-    echo -e "$cross ERROR: Unknown addon type: ${ADDON_TYPE}" 1>&2
+    echo -e "$cross ERROR: Unknown addon type: ${EACH_ADDON}" 1>&2
     divider
     exit 1
     ;;
@@ -733,9 +733,11 @@ for EACH_DEMO in $(echo $REQUIRED_DEMOS_JSON | jq -r '. | keys[]'); do
     check_current_status "$EACH_DEMO" "products" "${COGNITIVE_CAR_REPAIR_PRODUCTS_LIST[@]}"
     PRODUCTS_CONFIGURED=$DEMO_CONFIGURED
     if [[ "$ADDONS_CONFIGURED" == "true" && "$PRODUCTS_CONFIGURED" == "true" ]]; then
+      echo -e "\n$tick $all_done [SUCCESS] Cognitive Car Repair Demo setup completed successfully. $all_done $tick"
       # No pre-requisites are to be run for cognitive car repair demo, so setting installed and readyToUse to true
       update_demo_status "$EACH_DEMO" "true" "true"
     else
+      echo -e "$cross [ERROR] Cognitive Car Repair Demo did not setup correctly. $cross"
       # If one or more products failed to setup/configure, demo is not ready to use
       update_demo_status "$EACH_DEMO" "false" "false"
     fi
@@ -743,8 +745,8 @@ for EACH_DEMO in $(echo $REQUIRED_DEMOS_JSON | jq -r '. | keys[]'); do
     ;;
 
   eventEnabledInsurance)
-    echo -e "$info [INFO] Starting the setup of the event enabled insurance demo\n"
-    echo -e "$info [INFO] Checking if all addons are installed and configured for the event enabled insurance demo"
+    echo -e "$info [INFO] Starting the setup of the event enabled insurance demo"
+    echo -e "\n$info [INFO] Checking if all addons are installed and configured for the event enabled insurance demo"
     check_current_status "$EACH_DEMO" "addons" "${EVENT_ENABLED_INSURANCE_ADDONS_LIST[@]}"
     ADDONS_CONFIGURED=$DEMO_CONFIGURED
     echo -e "\n$info [INFO] Checking if all products are installed and setup for the event enabled insurance demo"
@@ -754,20 +756,21 @@ for EACH_DEMO in $(echo $REQUIRED_DEMOS_JSON | jq -r '. | keys[]'); do
       # if all addon/products are installed and configured correctly
       update_demo_status "$EACH_DEMO" "true" "false"
     else
-      # If one or more products failed to setup/configure, demo is not ready to use
+      # If one or more addons/products failed to setup/configure, demo is not ready to use
       update_demo_status "$EACH_DEMO" "false" "false"
     fi
 
     divider && echo -e "$info [INFO] Setting up prereqs for Event Enabled Insurance demo in the '$NAMESPACE' namespace" && divider
     # setup the prereqs for event enabled insurance demo
     if ! $SCRIPT_DIR/../../EventEnabledInsurance/prereqs.sh -n "$NAMESPACE" -b "$SAMPLES_REPO_BRANCH" -e "$NAMESPACE" -p "$NAMESPACE"; then
-      echo -e "$cross [ERROR] Failed to run event enabled insurance prereqs script"
+      echo -e "$cross [ERROR] Failed to run event enabled insurance prereqs script\n"
+      echo -e "$cross [ERROR] Event Enabled Insurance demo did not setup correctly. $cross"
       update_conditions "Failed to run event enabled insurance prereqs script in the '$NAMESPACE' namespace" "Prereqs"
       update_phase "Failed"
       update_demo_status "$EACH_DEMO" "" "false"
       FAILED_INSTALL_DEMOS_LIST+=($EACH_DEMO)
     else
-      echo -e "$tick [SUCCESS] Successfully ran event enabled insurance prereqs script in the '$NAMESPACE' namespace"
+      echo -e "$tick $all_done [SUCCESS] Event Enabled Insurance demo setup completed successfully in the '$NAMESPACE' namespace. $all_done $tick"
       update_demo_status "$EACH_DEMO" "" "true"
     fi # EventEnabledInsurance/prereqs.sh
     divider
@@ -876,5 +879,4 @@ $DEBUG && divider && echo -e "$info [DEBUG] The overall installation took $(($SE
 
 echo -e "$tick [SUCCESS] Successfully installed all selected addons, products and demos. Changing the overall status to 'Running'"
 update_phase "Running"
-divider
 $DEBUG && echo -e "$info [DEBUG] Final status:\n" && echo $STATUS | jq . && divider
