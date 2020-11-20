@@ -315,6 +315,7 @@ REQUIRED_PRODUCTS_JSON=$(echo $JSON | jq -c '.spec | if has("products") then .pr
 REQUIRED_ADDONS_JSON=$(echo $JSON | jq -c '.spec | if has("addons") then .addons else {} end')
 # To use for un-installation
 ORIGINAL_STATUS=$(echo $JSON | jq -c .status)
+APIC_CONFIGURATION=$(echo $JSON | jq -c '.spec.apic')
 
 echo -e "\n$info Block storage class: '$BLOCK_STORAGE_CLASS'"
 echo -e "$info File storage class: '$FILE_STORAGE_CLASS'"
@@ -418,10 +419,6 @@ for DEMO in $(echo $REQUIRED_DEMOS_JSON | jq -r 'keys[]'); do
   done
 done
 
-# TODO: REMOVE
-exit 0
-# TODO: REMOVE
-
 #-------------------------------------------------------------------------------------------------------------------
 # Print previous status, clear it and set new status with Phase as Pending
 #-------------------------------------------------------------------------------------------------------------------
@@ -469,20 +466,16 @@ fi
 check_phase_and_exit_on_failed
 
 #-------------------------------------------------------------------------------------------------------------------
-# Add the required addons
+# Setup and configured the required demos
 #-------------------------------------------------------------------------------------------------------------------
 
-if [ ${#REQUIRED_ADDONS_JSON[@]} -ne 0 ]; then
+if [ "$(echo $REQUIRED_ADDONS_JSON | jq length)" -ne 0 ]; then
   divider && echo -e "$info [INFO] Installing and setting up addons:"
 fi
 
-for eachAddon in $(echo "${REQUIRED_ADDONS_JSON}" | jq -r '.[] | select(.enabled == true ) | @base64'); do
+for EACH_ADDON in $(echo $REQUIRED_ADDONS_JSON | jq -r '. | keys[]'); do
   divider
-  ADDON_JSON=$(echo ${eachAddon} | base64 --decode)
-  $DEBUG && echo ${ADDON_JSON} | jq . && echo ""
-  ADDON_TYPE=$(echo ${ADDON_JSON} | jq -r '.type')
-
-  case ${ADDON_TYPE} in
+  case ${EACH_ADDON} in
   postgres)
     echo -e "$info [INFO] Releasing postgres in the '$NAMESPACE' namespace...\n"
     if ! $SCRIPT_DIR/release-psql.sh -n "$NAMESPACE"; then
@@ -538,156 +531,142 @@ for eachAddon in $(echo "${REQUIRED_ADDONS_JSON}" | jq -r '.[] | select(.enabled
 done
 
 #-------------------------------------------------------------------------------------------------------------------
-# Display all the namespaces
-#-------------------------------------------------------------------------------------------------------------------
-
-$DEBUG && divider && echo -e "$info [DEBUG] Namespaces:"
-for eachNamespace in $(echo "${REQUIRED_PRODUCTS_JSON}" | jq -r '[ .[] | select(.enabled == true ) | .namespace ] | unique | .[]'); do
-  $DEBUG && echo "$eachNamespace"
-done
-
-#-------------------------------------------------------------------------------------------------------------------
 # Check if tracing is enabled in the selected/required products
 #-------------------------------------------------------------------------------------------------------------------
 
-divider && echo -e "$info [INFO] Checking if Tracing is enabled...\n"
-if [[ ! "$(echo "${REQUIRED_PRODUCTS_JSON}" | jq -r '.[] | select(.enabled == true and .type == "tracing")')" == "" ]]; then
-  TRACING_ENABLED=true
-fi
-echo -e "$info [INFO] Tracing enabled: '$TRACING_ENABLED'..."
+TRACING_ENABLED=$(echo $REQUIRED_PRODUCTS_JSON | jq -r '.tracing?| if true then "true" else "false" end')
+echo -e "$info [INFO] Tracing enabled: '$TRACING_ENABLED'"
 
 #-------------------------------------------------------------------------------------------------------------------
 # Install the selected/required products
 #-------------------------------------------------------------------------------------------------------------------
 
 divider && echo -e "$info Starting products installation..." && divider
-for eachProduct in $(echo "${REQUIRED_PRODUCTS_JSON}" | jq -r '.[] | select(.enabled == true ) | @base64'); do
-  EACH_PRODUCT_JSON=$(echo ${eachProduct} | base64 --decode)
-  $DEBUG && echo $EACH_PRODUCT_JSON | jq . && echo ""
+for EACH_PRODUCT in $(echo "${REQUIRED_PRODUCTS_JSON}" | jq -r '. | keys[]'); do
+  ECHO_LINE="in the '$NAMESPACE' namespace with the name"
 
-  EACH_PRODUCT_TYPE=$(echo ${EACH_PRODUCT_JSON} | jq -r '.type')
-  EACH_PRODUCT_NAME=$(echo ${EACH_PRODUCT_JSON} | jq -r '.name')
-  EACH_PRODUCT_NAMESPACE=$(echo ${EACH_PRODUCT_JSON} | jq -r '.namespace')
-  ECHO_LINE="in the '$NAMESPACE' namespace with the name '$EACH_PRODUCT_NAME'"
-
-  case ${EACH_PRODUCT_TYPE} in
+  case ${EACH_PRODUCT} in
   mq)
-    echo -e "$info [INFO] Releasing MQ $ECHO_LINE...\n"
+    MQ_RELEASE_NAME="mq-demo"
+    echo -e "$info [INFO] Releasing MQ $ECHO_LINE '$MQ_RELEASE_NAME'...\n"
 
     # if to enable or disable tracing while releasing MQ
     if [[ "$TRACING_ENABLED" == "true" ]]; then
-      RELEASE_MQ_PARAMS="-n '$NAMESPACE' -z '$NAMESPACE' -r '$EACH_PRODUCT_NAME' -t"
+      RELEASE_MQ_PARAMS="-n '$NAMESPACE' -z '$NAMESPACE' -r '$MQ_RELEASE_NAME' -t"
     else
-      RELEASE_MQ_PARAMS="-n '$NAMESPACE' -r '$EACH_PRODUCT_NAME'"
+      RELEASE_MQ_PARAMS="-n '$NAMESPACE' -r '$MQ_RELEASE_NAME'"
     fi
 
     if ! $SCRIPT_DIR/release-mq.sh $RELEASE_MQ_PARAMS; then
-      update_conditions "Failed to release MQ $ECHO_LINE" "Releasing"
+      update_conditions "Failed to release MQ $ECHO_LINE '$MQ_RELEASE_NAME'" "Releasing"
       update_phase "Failed"
-      FAILED_INSTALL_PRODUCTS_LIST+=($EACH_PRODUCT_TYPE)
+      FAILED_INSTALL_PRODUCTS_LIST+=($EACH_PRODUCT)
     else
-      echo -e "\n$tick [SUCCESS] Successfully released MQ $ECHO_LINE"
-      update_product_status "$EACH_PRODUCT_NAME" "$EACH_PRODUCT_TYPE" "true" "true"
+      echo -e "\n$tick [SUCCESS] Successfully released MQ $ECHO_LINE '$MQ_RELEASE_NAME'"
+      update_product_status "$MQ_RELEASE_NAME" "$EACH_PRODUCT" "true" "true"
     fi # release-mq.sh
     divider
     ;;
 
   aceDesigner)
-    echo -e "$info [INFO] Releasing ACE Designer $ECHO_LINE..."
-    if ! $SCRIPT_DIR/release-ace-designer.sh -n "$NAMESPACE" -r "$EACH_PRODUCT_NAME" -s "$BLOCK_STORAGE_CLASS"; then
-      update_conditions "Failed to release ACE Designer $ECHO_LINE" "Releasing"
+    ACE_DESIGNER_RELEASE_NAME="ace-designer-demo"
+    echo -e "$info [INFO] Releasing ACE Designer $ECHO_LINE '$ACE_DESIGNER_RELEASE_NAME'...\n"
+    if ! $SCRIPT_DIR/release-ace-designer.sh -n "$NAMESPACE" -r "$ACE_DESIGNER_RELEASE_NAME" -s "$BLOCK_STORAGE_CLASS"; then
+      update_conditions "Failed to release ACE Designer $ECHO_LINE '$ACE_DESIGNER_RELEASE_NAME'" "Releasing"
       update_phase "Failed"
-      FAILED_INSTALL_PRODUCTS_LIST+=($EACH_PRODUCT_TYPE)
+      FAILED_INSTALL_PRODUCTS_LIST+=($EACH_PRODUCT)
     else
-      echo -e "\n$tick [INFO] Successfully released ACE Designer $ECHO_LINE"
-      update_product_status "$EACH_PRODUCT_NAME" "$EACH_PRODUCT_TYPE" "true" "true"
+      echo -e "\n$tick [INFO] Successfully released ACE Designer $ECHO_LINE '$ACE_DESIGNER_RELEASE_NAME'"
+      update_product_status "$ACE_DESIGNER_RELEASE_NAME" "$EACH_PRODUCT" "true" "true"
     fi # release-ace-designer.sh
     divider
     ;;
 
   assetRepo)
-    echo -e "$info [INFO] Releasing Asset Repository $ECHO_LINE...\n"
-    # Get APIC release name for configuring APIC
-    AR_RELEASE_NAME=$EACH_PRODUCT_NAME
-    if ! $SCRIPT_DIR/release-ar.sh -n "$NAMESPACE" -r "$EACH_PRODUCT_NAME"; then
-      update_conditions "Failed to release Asset Repository $ECHO_LINE" "Releasing"
+    ASSET_REPOSITORY_RELEASE_NAME="ar-demo"
+    echo -e "$info [INFO] Releasing Asset Repository $ECHO_LINE '$ASSET_REPOSITORY_RELEASE_NAME'...\n"
+    if ! $SCRIPT_DIR/release-ar.sh -n "$NAMESPACE" -r "$ASSET_REPOSITORY_RELEASE_NAME"; then
+      update_conditions "Failed to release Asset Repository $ECHO_LINE '$ASSET_REPOSITORY_RELEASE_NAME'" "Releasing"
       update_phase "Failed"
-      FAILED_INSTALL_PRODUCTS_LIST+=($EACH_PRODUCT_TYPE)
+      FAILED_INSTALL_PRODUCTS_LIST+=($EACH_PRODUCT)
     else
-      echo -e "\n$tick [SUCCESS] Successfully released Asset Repository $ECHO_LINE"
-      update_product_status "$EACH_PRODUCT_NAME" "$EACH_PRODUCT_TYPE" "true" "false"
+      echo -e "\n$tick [SUCCESS] Successfully released Asset Repository $ECHO_LINE '$ASSET_REPOSITORY_RELEASE_NAME'"
+      update_product_status "$ASSET_REPOSITORY_RELEASE_NAME" "$EACH_PRODUCT" "true" "false"
     fi # release-ar.sh
     divider
     ;;
 
   aceDashboard)
-    echo -e "$info [INFO] Releasing ACE dashboard $ECHO_LINE...\n"
-    if ! $SCRIPT_DIR/release-ace-dashboard.sh -n "$NAMESPACE" -r "$EACH_PRODUCT_NAME" -s "$FILE_STORAGE_CLASS"; then
-      update_conditions "Failed to release ACE dashboard $ECHO_LINE" "Releasing"
+    ACE_DASHBOARD_RELEASE_NAME="ace-dashboard-demo"
+    echo -e "$info [INFO] Releasing ACE dashboard $ECHO_LINE '$ACE_DASHBOARD_RELEASE_NAME'...\n"
+    if ! $SCRIPT_DIR/release-ace-dashboard.sh -n "$NAMESPACE" -r "$ACE_DASHBOARD_RELEASE_NAME" -s "$FILE_STORAGE_CLASS"; then
+      update_conditions "Failed to release ACE dashboard $ECHO_LINE '$ACE_DASHBOARD_RELEASE_NAME'" "Releasing"
       update_phase "Failed"
-      FAILED_INSTALL_PRODUCTS_LIST+=($EACH_PRODUCT_TYPE)
+      FAILED_INSTALL_PRODUCTS_LIST+=($EACH_PRODUCT)
     else
-      echo -e "\n$tick [SUCCESS] Successfully released ACE dashboard $ECHO_LINE"
-      update_product_status "$EACH_PRODUCT_NAME" "$EACH_PRODUCT_TYPE" "true" "true"
+      echo -e "\n$tick [SUCCESS] Successfully released ACE dashboard $ECHO_LINE '$ACE_DASHBOARD_RELEASE_NAME'"
+      update_product_status "$ACE_DASHBOARD_RELEASE_NAME" "$EACH_PRODUCT" "true" "true"
     fi # release-ace-dashboard.sh
     divider
     ;;
 
   apic)
-    echo -e "$info [INFO] Releasing APIC $ECHO_LINE...\n"
-    APIC_RELEASE_NAME=$EACH_PRODUCT_NAME
-    export PORG_ADMIN_EMAIL=$(echo ${EACH_PRODUCT_JSON} | jq -r '.emailAddress')
-    export MAIL_SERVER_HOST=$(echo ${EACH_PRODUCT_JSON} | jq -r '.mailServerHost')
-    export MAIL_SERVER_PORT=$(echo ${EACH_PRODUCT_JSON} | jq -r '.mailServerPort')
-    export MAIL_SERVER_USERNAME=$(echo ${EACH_PRODUCT_JSON} | jq -r '.mailServerUsername')
-    export MAIL_SERVER_PASSWORD=$(echo ${EACH_PRODUCT_JSON} | jq -r '.mailServerPassword')
+    APIC_RELEASE_NAME="ademo"
+    echo -e "$info [INFO] Releasing APIC $ECHO_LINE '$APIC_RELEASE_NAME'...\n"
 
-    # if to enable or disable tracing while releasing APIC
+    export PORG_ADMIN_EMAIL=$(echo ${APIC_CONFIGURATION} | jq -r '.emailAddress')
+    export MAIL_SERVER_HOST=$(echo ${APIC_CONFIGURATION} | jq -r '.mailServerHost')
+    export MAIL_SERVER_PORT=$(echo ${APIC_CONFIGURATION} | jq -r '.mailServerPort')
+    export MAIL_SERVER_USERNAME=$(echo ${APIC_CONFIGURATION} | jq -r '.mailServerUsername')
+    export MAIL_SERVER_PASSWORD=$(echo ${APIC_CONFIGURATION} | jq -r '.mailServerPassword')
+
+    # check if to enable or disable tracing while releasing APIC
     if [[ "$TRACING_ENABLED" == "true" ]]; then
-      RELEASE_APIC_PARAMS="-n '$NAMESPACE' -r '$EACH_PRODUCT_NAME' -t"
+      RELEASE_APIC_PARAMS="-n '$NAMESPACE' -r '$APIC_RELEASE_NAME' -t"
     else
-      RELEASE_APIC_PARAMS="-n '$NAMESPACE' -r '$EACH_PRODUCT_NAME'"
+      RELEASE_APIC_PARAMS="-n '$NAMESPACE' -r '$APIC_RELEASE_NAME'"
     fi
 
     if ! $SCRIPT_DIR/release-apic.sh $RELEASE_APIC_PARAMS; then
-      update_conditions "Failed to release APIC $ECHO_LINE" "Releasing"
+      update_conditions "Failed to release APIC $ECHO_LINE '$APIC_RELEASE_NAME'" "Releasing"
       update_phase "Failed"
-      FAILED_INSTALL_PRODUCTS_LIST+=($EACH_PRODUCT_TYPE)
+      FAILED_INSTALL_PRODUCTS_LIST+=($EACH_PRODUCT)
     else
-      echo -e "\n$tick [SUCCESS] Successfully released APIC $ECHO_LINE"
-      update_product_status "$EACH_PRODUCT_NAME" "$EACH_PRODUCT_TYPE" "true" "false"
+      echo -e "\n$tick [SUCCESS] Successfully released APIC $ECHO_LINE '$APIC_RELEASE_NAME'"
+      update_product_status "$APIC_RELEASE_NAME" "$EACH_PRODUCT" "true" "false"
     fi # release-apic.sh
     divider
     ;;
 
   eventStreams)
-    echo -e "$info [INFO] Releasing Event Streams $ECHO_LINE...\n"
-    if ! $SCRIPT_DIR/release-es.sh -n "$NAMESPACE" -r "$EACH_PRODUCT_NAME"; then
-      update_conditions "Failed to release $ECHO_LINE" "Releasing"
+    EVENT_STREAM_RELEASE_NAME="es-demo"
+    echo -e "$info [INFO] Releasing Event Streams $ECHO_LINE '$EVENT_STREAM_RELEASE_NAME'...\n"
+    if ! $SCRIPT_DIR/release-es.sh -n "$NAMESPACE" -r "$EVENT_STREAM_RELEASE_NAME"; then
+      update_conditions "Failed to release $ECHO_LINE '$EVENT_STREAM_RELEASE_NAME'" "Releasing"
       update_phase "Failed"
-      FAILED_INSTALL_PRODUCTS_LIST+=($EACH_PRODUCT_TYPE)
+      FAILED_INSTALL_PRODUCTS_LIST+=($EACH_PRODUCT)
     else
-      echo -e "\n$tick [SUCCESS] Successfully release $ECHO_LINE"
-      update_product_status "$EACH_PRODUCT_NAME" "$EACH_PRODUCT_TYPE" "true" "true"
+      echo -e "\n$tick [SUCCESS] Successfully released event streams $ECHO_LINE '$EVENT_STREAM_RELEASE_NAME'"
+      update_product_status "$EVENT_STREAM_RELEASE_NAME" "$EACH_PRODUCT" "true" "true"
     fi # release-es.sh
     divider
     ;;
 
   tracing)
-    echo -e "$info [INFO] Releasing tracing $ECHO_LINE...\n"
-    TRACING_RELEASE_NAME=$EACH_PRODUCT_NAME
-    if ! $SCRIPT_DIR/release-tracing.sh -n "$NAMESPACE" -r "$EACH_PRODUCT_NAME" -b "$BLOCK_STORAGE_CLASS" -f "$FILE_STORAGE_CLASS"; then
-      update_conditions "Failed to release Tracing $ECHO_LINE" "Releasing"
+    TRACING_RELEASE_NAME="tracing-demo"
+    echo -e "$info [INFO] Releasing tracing $ECHO_LINE '$TRACING_RELEASE_NAME'...\n"
+    if ! $SCRIPT_DIR/release-tracing.sh -n "$NAMESPACE" -r "$TRACING_RELEASE_NAME" -b "$BLOCK_STORAGE_CLASS" -f "$FILE_STORAGE_CLASS"; then
+      update_conditions "Failed to release Tracing $ECHO_LINE '$TRACING_RELEASE_NAME'" "Releasing"
       update_phase "Failed"
-      FAILED_INSTALL_PRODUCTS_LIST+=($EACH_PRODUCT_TYPE)
+      FAILED_INSTALL_PRODUCTS_LIST+=($EACH_PRODUCT)
     else
-      echo -e "\n$tick [SUCCESS] Successfully released Tracing $ECHO_LINE"
-      update_product_status "$EACH_PRODUCT_NAME" "$EACH_PRODUCT_TYPE" "true" "false"
+      echo -e "\n$tick [SUCCESS] Successfully released Tracing $ECHO_LINE '$TRACING_RELEASE_NAME'"
+      update_product_status "$TRACING_RELEASE_NAME" "$EACH_PRODUCT" "true" "false"
     fi # release-tracing.sh
     ;;
 
   *)
-    divider && echo -e "$cross ERROR: Unknown product type: ${EACH_PRODUCT_TYPE}" 1>&2
+    divider && echo -e "$cross ERROR: Unknown product type: ${EACH_PRODUCT}" 1>&2
     divider
     exit 1
     ;;
@@ -701,12 +680,12 @@ done
 if [[ "$TRACING_ENABLED" == "true" ]]; then
   divider && echo -e "$info [INFO] Registering tracing in the '$NAMESPACE' namespace...\n"
   if ! $SCRIPT_DIR/register-tracing.sh -n "$NAMESPACE"; then
-    update_conditions "Failed to register Tracing in the '$NAMESPACE' namespace" "Releasing"
+    update_conditions "Failed to register tracing in the '$NAMESPACE' namespace" "Releasing"
     update_phase "Failed"
     update_product_status "$TRACING_RELEASE_NAME" "tracing" "true" "false"
     FAILED_INSTALL_PRODUCTS_LIST+=(tracing)
   else
-    echo -e "\n$tick [SUCCESS] Successfully registered Tracing in the '$NAMESPACE' namespace"
+    echo -e "\n$tick [SUCCESS] Successfully registered tracing in the '$NAMESPACE' namespace"
     update_product_status "$TRACING_RELEASE_NAME" "tracing" "true" "true"
   fi # release-tracing.sh
 fi
@@ -715,7 +694,7 @@ fi
 # Configure APIC if APIC is amongst selected product. Tracing registration is a pre-req for this step.
 #-------------------------------------------------------------------------------------------------------------------
 
-if [[ ! "$(echo "${REQUIRED_PRODUCTS_JSON}" | jq -r '.[] | select(.enabled == true and .type == "apic")')" == "" ]]; then
+if [[ "$(echo $REQUIRED_PRODUCTS_JSON | jq '.apic?')" == "true" ]]; then
   divider && echo -e "$info [INFO] Configuring APIC in the '$NAMESPACE' namespace...\n"
   if ! $SCRIPT_DIR/configure-apic-v10.sh -n "$NAMESPACE" -r "$APIC_RELEASE_NAME"; then
     update_conditions "Failed to configure APIC in the '$NAMESPACE' namespace" "Releasing"
@@ -732,16 +711,16 @@ fi
 # If asset repository is enabled, create Asset Repository remote
 #-------------------------------------------------------------------------------------------------------------------
 
-if [[ ! "$(echo "${REQUIRED_PRODUCTS_JSON}" | jq -r '.[] | select(.enabled == true and .type == "assetRepo")')" == "" ]]; then
-  divider && echo -e "$info [INFO] Creating Asset Repository remote in the '$NAMESPACE' namespace with the name '$AR_RELEASE_NAME'...\n"
-  if ! $SCRIPT_DIR/ar_remote_create.sh -r "$AR_RELEASE_NAME" -n "$NAMESPACE" -o; then
-    update_conditions "Failed to create Asset Repository remote in the '$NAMESPACE' namespace with the name '$AR_RELEASE_NAME'" "Releasing"
+if [[ "$(echo $REQUIRED_PRODUCTS_JSON | jq '.assetRepo?')" == "true" ]]; then
+  divider && echo -e "$info [INFO] Creating Asset Repository remote in the '$NAMESPACE' namespace with the name '$ASSET_REPOSITORY_RELEASE_NAME'...\n"
+  if ! $SCRIPT_DIR/ar_remote_create.sh -r "$ASSET_REPOSITORY_RELEASE_NAME" -n "$NAMESPACE" -o; then
+    update_conditions "Failed to create Asset Repository remote in the '$NAMESPACE' namespace with the name '$ASSET_REPOSITORY_RELEASE_NAME'" "Releasing"
     update_phase "Failed"
-    update_product_status "$AR_RELEASE_NAME" "assetRepo" "true" "false"
+    update_product_status "$ASSET_REPOSITORY_RELEASE_NAME" "assetRepo" "true" "false"
     FAILED_INSTALL_PRODUCTS_LIST+=(assetRepo)
   else
-    echo -e "\n$tick [SUCCESS] Successfully created Asset Repository remote in the '$NAMESPACE' namespace with the name '$AR_RELEASE_NAME'"
-    update_product_status "$AR_RELEASE_NAME" "assetRepo" "true" "true"
+    echo -e "\n$tick [SUCCESS] Successfully created Asset Repository remote in the '$NAMESPACE' namespace with the name '$ASSET_REPOSITORY_RELEASE_NAME'"
+    update_product_status "$ASSET_REPOSITORY_RELEASE_NAME" "assetRepo" "true" "true"
   fi # ar_remote_create.sh
 fi
 
@@ -750,7 +729,7 @@ fi
 #-------------------------------------------------------------------------------------------------------------------
 
 divider && echo -e "$info [INFO] Starting demos setup..." && divider
-for EACH_DEMO in $(echo $REQUIRED_DEMOS_JSON | jq -r 'to_entries[] | select( .value.enabled == true ) | .key'); do
+for EACH_DEMO in $(echo $REQUIRED_DEMOS_JSON | jq -r '. | keys[]'); do
   case $EACH_DEMO in
   cognitiveCarRepair)
     echo -e "$info [INFO] Setting up the cognitive car repair demo\n"

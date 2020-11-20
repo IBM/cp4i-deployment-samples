@@ -12,5 +12,4 @@ spec:
         class: ibmc-file-gold-gid
     samplesRepoBranch: main
   demos:
-    eventEnabledInsurance:
-      enabled: true
+    eventEnabledInsurance: true

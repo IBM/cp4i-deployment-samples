@@ -31,14 +31,14 @@ spec:
 
   # Allow products to be enabled independently. Enabling a demo will automatically
   # enable required products.
-  products:
-    aceDashboard: false
-    aceDesigner: false
-    apic: false
-    assetRepo: true
-    eventStreams: true
-    mq: false
-    tracing: true
+  # products:
+  #   aceDashboard: false
+  #   aceDesigner: false
+  #   apic: false
+  #   assetRepo: true
+  #   eventStreams: true
+  #   mq: false
+  #   tracing: true
 
   # Allow additional addon applications to be enabled independently. Enabling a
   # demo will automatically enable required addons.
