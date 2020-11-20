@@ -100,6 +100,12 @@ if [[ "$missingParams" == "true" ]]; then
   usage
 fi
 
+if [[ $(oc get node -o json | jq -r '.items[].metadata.labels["ibm-cloud.kubernetes.io/zone"]' | uniq | wc -l | xargs) != 1 ]]; then
+  echo "ERROR: 1-click install does not currently support MZR clusters, please try again with nodes from the same region"
+  divider
+  exit 1
+fi
+
 divider
 echo -e "$info Current directory: $CURRENT_DIR"
 echo -e "$info Project name: $namespace"
