@@ -65,14 +65,23 @@ DEMO_OBJECT_FOR_STATUS='{"name":"", "installed":"", "readyToUse":""}'
 SAMPLES_REPO_BRANCH="main"
 
 # cognitive car repair demo list
-declare -a COGNITIVE_CAR_REPAIR_ADDONS_LIST
-declare -a COGNITIVE_CAR_REPAIR_PRODUCTS_LIST
-# event insurance demo list
-declare -a EVENT_ENABLED_INSURANCE_ADDONS_LIST
-declare -a EVENT_ENABLED_INSURANCE_PRODUCTS_LIST
+COGNITIVE_CAR_REPAIR_PRODUCTS_LIST=("aceDashboard" "aceDesigner" "apic" "assetRepo" "tracing")
+COGNITIVE_CAR_REPAIR_ADDONS_LIST=()
 # driveway dent deletion demo list
-declare -a DRIVEWAY_DENT_DELETION_ADDONS_LIST
-declare -a DRIVEWAY_DENT_DELETION_PRODUCTS_LIST
+DRIVEWAY_DENT_DELETION_PRODUCTS_LIST=("mq" "aceDashboard" "apic" "tracing")
+DRIVEWAY_DENT_DELETION_ADDONS_LIST=("postgres" "ocpPipelines")
+# event insurance demo list
+EVENT_ENABLED_INSURANCE_PRODUCTS_LIST=("mq" "aceDashboard" "apic" "eventStreams" "tracing")
+EVENT_ENABLED_INSURANCE_ADDONS_LIST=("postgres" "elasticSearch" "ocpPipelines")
+
+# Default release name variables
+MQ_RELEASE_NAME="mq-demo"
+ACE_DESIGNER_RELEASE_NAME="ace-designer-demo"
+ASSET_REPOSITORY_RELEASE_NAME="ar-demo"
+ACE_DASHBOARD_RELEASE_NAME="ace-dashboard-demo"
+APIC_RELEASE_NAME="ademo"
+EVENT_STREAM_RELEASE_NAME="es-demo"
+TRACING_RELEASE_NAME="tracing-demo"
 
 # failed install/setup list
 declare -a FAILED_INSTALL_PRODUCTS_LIST
@@ -180,7 +189,8 @@ function check_current_status() {
     $DEBUG && echo -e "\n$info [DEBUG] Received '$LIST_TYPE' list for '$DEMO_NAME': '${LIST[@]}'"
     #  Iterate the loop to read and print each array element
     for EACH_ITEM in "${LIST[@]}"; do
-      if [[ "$(echo $STATUS | jq -r '."'$LIST_TYPE'"[] | select(.type == "'$EACH_ITEM'" and .installed == "true" and .readyToUse == "true") ')" == "" ]]; then
+      # echo "match?:" && echo $ORIGINAL_STATUS | jq -r '."'$LIST_TYPE'"[] | select(.type == "'$EACH_ITEM'")'
+      if [[ "$(echo $ORIGINAL_STATUS | jq -r '."'$LIST_TYPE'"[] | select(.type == "'$EACH_ITEM'" and .installed == true and .readyToUse == true) ')" == "" ]]; then
         NOT_CONFIGURED_COUNT=$((NOT_CONFIGURED_COUNT + 1))
       fi
     done
@@ -207,6 +217,7 @@ function update_demo_status() {
 
   # in case empty installed status is passed, use existing value - done when running updating after prereqs script
   if [[ -z "${DEMO_INSTALLED// /}" ]]; then
+    echo "empty demo installed status"
     DEMO_INSTALLED=$(echo $STATUS | jq -r '.demos[] | select(.name == "'$DEMO_NAME'") | .installed ')
   fi
 
@@ -358,10 +369,7 @@ for DEMO in $(echo $REQUIRED_DEMOS_JSON | jq -r 'keys[]'); do
       tracing
       '
 
-    # get list of all cognitive car repair demo products
-    COGNITIVE_CAR_REPAIR_PRODUCTS_LIST=("aceDashboard" "aceDesigner" "apic" "assetRepo" "tracing")
     ADDONS_FOR_DEMO=''
-    COGNITIVE_CAR_REPAIR_ADDONS_LIST=()
     ;;
   drivewayDentDeletion)
     PRODUCTS_FOR_DEMO='
@@ -370,8 +378,6 @@ for DEMO in $(echo $REQUIRED_DEMOS_JSON | jq -r 'keys[]'); do
       apic
       tracing
       '
-
-    DRIVEWAY_DENT_DELETION_PRODUCTS_LIST=("mq" "aceDashboard" "apic" "tracing")
 
     # Disabled as we no longer want a separate namespace for test. The following is an example
     # of how this could work if we want to re-add this support later.
@@ -383,7 +389,6 @@ for DEMO in $(echo $REQUIRED_DEMOS_JSON | jq -r 'keys[]'); do
       ocpPipelines
       '
 
-    DRIVEWAY_DENT_DELETION_ADDONS_LIST=("postgres" "ocpPipelines")
     ;;
   eventEnabledInsurance)
     PRODUCTS_FOR_DEMO='
@@ -394,14 +399,12 @@ for DEMO in $(echo $REQUIRED_DEMOS_JSON | jq -r 'keys[]'); do
       tracing
       '
 
-    EVENT_ENABLED_INSURANCE_PRODUCTS_LIST=("mq" "aceDashboard" "apic" "eventStreams" "tracing")
     ADDONS_FOR_DEMO='
       postgres
       elasticSearch
       ocpPipelines
       '
 
-    EVENT_ENABLED_INSURANCE_ADDONS_LIST=("postgres" "elasticSearch" "ocpPipelines")
     ;;
 
   *)
@@ -465,9 +468,9 @@ fi
 
 check_phase_and_exit_on_failed
 
-#-------------------------------------------------------------------------------------------------------------------
-# Setup and configured the required demos
-#-------------------------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------------------------
+# Setup and configure the required demos
+# -------------------------------------------------------------------------------------------------------------------
 
 if [ "$(echo $REQUIRED_ADDONS_JSON | jq length)" -ne 0 ]; then
   divider && echo -e "$info [INFO] Installing and setting up addons:"
@@ -547,7 +550,6 @@ for EACH_PRODUCT in $(echo "${REQUIRED_PRODUCTS_JSON}" | jq -r '. | keys[]'); do
 
   case ${EACH_PRODUCT} in
   mq)
-    MQ_RELEASE_NAME="mq-demo"
     echo -e "$info [INFO] Releasing MQ $ECHO_LINE '$MQ_RELEASE_NAME'...\n"
 
     # if to enable or disable tracing while releasing MQ
@@ -569,7 +571,6 @@ for EACH_PRODUCT in $(echo "${REQUIRED_PRODUCTS_JSON}" | jq -r '. | keys[]'); do
     ;;
 
   aceDesigner)
-    ACE_DESIGNER_RELEASE_NAME="ace-designer-demo"
     echo -e "$info [INFO] Releasing ACE Designer $ECHO_LINE '$ACE_DESIGNER_RELEASE_NAME'...\n"
     if ! $SCRIPT_DIR/release-ace-designer.sh -n "$NAMESPACE" -r "$ACE_DESIGNER_RELEASE_NAME" -s "$BLOCK_STORAGE_CLASS"; then
       update_conditions "Failed to release ACE Designer $ECHO_LINE '$ACE_DESIGNER_RELEASE_NAME'" "Releasing"
@@ -583,7 +584,6 @@ for EACH_PRODUCT in $(echo "${REQUIRED_PRODUCTS_JSON}" | jq -r '. | keys[]'); do
     ;;
 
   assetRepo)
-    ASSET_REPOSITORY_RELEASE_NAME="ar-demo"
     echo -e "$info [INFO] Releasing Asset Repository $ECHO_LINE '$ASSET_REPOSITORY_RELEASE_NAME'...\n"
     if ! $SCRIPT_DIR/release-ar.sh -n "$NAMESPACE" -r "$ASSET_REPOSITORY_RELEASE_NAME"; then
       update_conditions "Failed to release Asset Repository $ECHO_LINE '$ASSET_REPOSITORY_RELEASE_NAME'" "Releasing"
@@ -597,7 +597,6 @@ for EACH_PRODUCT in $(echo "${REQUIRED_PRODUCTS_JSON}" | jq -r '. | keys[]'); do
     ;;
 
   aceDashboard)
-    ACE_DASHBOARD_RELEASE_NAME="ace-dashboard-demo"
     echo -e "$info [INFO] Releasing ACE dashboard $ECHO_LINE '$ACE_DASHBOARD_RELEASE_NAME'...\n"
     if ! $SCRIPT_DIR/release-ace-dashboard.sh -n "$NAMESPACE" -r "$ACE_DASHBOARD_RELEASE_NAME" -s "$FILE_STORAGE_CLASS"; then
       update_conditions "Failed to release ACE dashboard $ECHO_LINE '$ACE_DASHBOARD_RELEASE_NAME'" "Releasing"
@@ -611,9 +610,7 @@ for EACH_PRODUCT in $(echo "${REQUIRED_PRODUCTS_JSON}" | jq -r '. | keys[]'); do
     ;;
 
   apic)
-    APIC_RELEASE_NAME="ademo"
     echo -e "$info [INFO] Releasing APIC $ECHO_LINE '$APIC_RELEASE_NAME'...\n"
-
     export PORG_ADMIN_EMAIL=$(echo ${APIC_CONFIGURATION} | jq -r '.emailAddress')
     export MAIL_SERVER_HOST=$(echo ${APIC_CONFIGURATION} | jq -r '.mailServerHost')
     export MAIL_SERVER_PORT=$(echo ${APIC_CONFIGURATION} | jq -r '.mailServerPort')
@@ -639,7 +636,6 @@ for EACH_PRODUCT in $(echo "${REQUIRED_PRODUCTS_JSON}" | jq -r '. | keys[]'); do
     ;;
 
   eventStreams)
-    EVENT_STREAM_RELEASE_NAME="es-demo"
     echo -e "$info [INFO] Releasing Event Streams $ECHO_LINE '$EVENT_STREAM_RELEASE_NAME'...\n"
     if ! $SCRIPT_DIR/release-es.sh -n "$NAMESPACE" -r "$EVENT_STREAM_RELEASE_NAME"; then
       update_conditions "Failed to release $ECHO_LINE '$EVENT_STREAM_RELEASE_NAME'" "Releasing"
@@ -653,7 +649,6 @@ for EACH_PRODUCT in $(echo "${REQUIRED_PRODUCTS_JSON}" | jq -r '. | keys[]'); do
     ;;
 
   tracing)
-    TRACING_RELEASE_NAME="tracing-demo"
     echo -e "$info [INFO] Releasing tracing $ECHO_LINE '$TRACING_RELEASE_NAME'...\n"
     if ! $SCRIPT_DIR/release-tracing.sh -n "$NAMESPACE" -r "$TRACING_RELEASE_NAME" -b "$BLOCK_STORAGE_CLASS" -f "$FILE_STORAGE_CLASS"; then
       update_conditions "Failed to release Tracing $ECHO_LINE '$TRACING_RELEASE_NAME'" "Releasing"
