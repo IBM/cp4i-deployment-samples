@@ -189,8 +189,7 @@ function check_current_status() {
     $DEBUG && echo -e "\n$info [DEBUG] Received '$LIST_TYPE' list for '$DEMO_NAME': '${LIST[@]}'"
     #  Iterate the loop to read and print each array element
     for EACH_ITEM in "${LIST[@]}"; do
-      # echo "match?:" && echo $ORIGINAL_STATUS | jq -r '."'$LIST_TYPE'"[] | select(.type == "'$EACH_ITEM'")'
-      if [[ "$(echo $ORIGINAL_STATUS | jq -r '."'$LIST_TYPE'"[] | select(.type == "'$EACH_ITEM'" and .installed == true and .readyToUse == true) ')" == "" ]]; then
+      if [[ "$(echo $STATUS | jq -r '."'$LIST_TYPE'"[] | select(.type == "'$EACH_ITEM'" and .installed == true and .readyToUse == true) ')" == "" ]]; then
         NOT_CONFIGURED_COUNT=$((NOT_CONFIGURED_COUNT + 1))
       fi
     done
@@ -217,7 +216,6 @@ function update_demo_status() {
 
   # in case empty installed status is passed, use existing value - done when running updating after prereqs script
   if [[ -z "${DEMO_INSTALLED// /}" ]]; then
-    echo "empty demo installed status"
     DEMO_INSTALLED=$(echo $STATUS | jq -r '.demos[] | select(.name == "'$DEMO_NAME'") | .installed ')
   fi
 
