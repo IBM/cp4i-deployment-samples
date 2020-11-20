@@ -183,7 +183,7 @@ fi #demoPreparation
 
 if [[ $(oc get node -o json | jq -r '.items[].metadata.labels["ibm-cloud.kubernetes.io/zone"]' | uniq | wc -l | xargs) != 1 ]]; then
   echo -e "$cross ERROR: MRZ clusters are not supported, please try again with a cluster with all nodes in a single zone"
-  check 1
+  check=1
 else
   echo -e "$tick INFO: Cluster nodes are all in a single zone"
 fi
