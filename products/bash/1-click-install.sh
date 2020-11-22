@@ -451,7 +451,7 @@ if [[ "${eventEnabledInsuranceDemo}" == "true" || "${demoPreparation}" == "true"
     divider
   fi
 
-  if ! $CURRENT_DIR/release-ace-dashboard.sh -n ${NAMESPACE}; then
+  if ! $CURRENT_DIR/release-ace-dashboard.sh -n ${JOB_NAMESPACE}; then
     echo "ERROR: Failed to release ace dashboard" 1>&2
     exit 1
   else
