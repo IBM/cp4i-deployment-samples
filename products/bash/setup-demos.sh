@@ -18,7 +18,7 @@
 #   -b : <SAMPLES_REPO_BRANCH> (string), Samples deployment branch, Defaults to main
 #
 # USAGE:
-#   ./setup-demos.sh -i input.yaml -o output.yaml -b <samplesRepoBranch>
+#   ./setup-demos.sh -i input.yaml -o output.yaml -b <SAMPLES_REPO_BRANCH>
 
 function divider() {
   echo -e "\n-------------------------------------------------------------------------------------------------------------------\n"
