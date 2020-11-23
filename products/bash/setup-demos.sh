@@ -83,6 +83,13 @@ APIC_RELEASE_NAME="ademo"
 EVENT_STREAM_RELEASE_NAME="es-demo"
 TRACING_RELEASE_NAME="tracing-demo"
 
+# Default APIC Configuration
+DEFAULT_APIC_EMAIL_ADDRESS="your@email.address"
+DEFAULT_APIC_MAIL_SERVER_HOST="smtp.mailtrap.io"
+DEFAULT_APIC_MAIL_SERVER_PORT="2525"
+DEFAULT_APIC_MAIL_SERVER_USERNAME="<your-username>"
+DEFAULT_APIC_MAIL_SERVER_PASSWORD="<your-password>"
+
 # failed install/setup list
 declare -a FAILED_INSTALL_PRODUCTS_LIST
 declare -a FAILED_INSTALL_ADDONS_LIST
@@ -324,7 +331,7 @@ REQUIRED_PRODUCTS_JSON=$(echo $JSON | jq -c '.spec | if has("products") then .pr
 REQUIRED_ADDONS_JSON=$(echo $JSON | jq -c '.spec | if has("addons") then .addons else {} end')
 # To use for un-installation
 ORIGINAL_STATUS=$(echo $JSON | jq -c .status)
-APIC_CONFIGURATION=$(echo $JSON | jq -c '.spec.apic')
+APIC_CONFIGURATION=$(echo $JSON | jq -c '.spec | if has("apic") then .apic else {} end')
 
 echo -e "\n$info Block storage class: '$BLOCK_STORAGE_CLASS'"
 echo -e "$info File storage class: '$FILE_STORAGE_CLASS'"
@@ -335,7 +342,7 @@ echo -e "$info Namespace: '$NAMESPACE'" && divider
 # If all demos enabled then add all demos else delete all demos value and keep enabled ones
 #-------------------------------------------------------------------------------------------------------------------
 
-ALL_DEMOS_ENABLED=$(echo $REQUIRED_DEMOS_JSON | jq -r '.all')
+ALL_DEMOS_ENABLED=$(echo $REQUIRED_DEMOS_JSON | jq -r '. | if has("all") then .all else false end')
 $DEBUG && echo -e "$info [DEBUG] All demos enabled: '$ALL_DEMOS_ENABLED'"
 if [[ "${ALL_DEMOS_ENABLED}" == "true" ]]; then
   REQUIRED_DEMOS_JSON='{"cognitiveCarRepair": {"enabled": true},"drivewayDentDeletion": {"enabled": true},"eventEnabledInsurance": {"enabled": true}}'
@@ -548,14 +555,14 @@ for EACH_PRODUCT in $(echo "${REQUIRED_PRODUCTS_JSON}" | jq -r '. | keys[]'); do
 
   case ${EACH_PRODUCT} in
   mq)
-    echo -e "$info [INFO] Releasing MQ $ECHO_LINE '$MQ_RELEASE_NAME'...\n"
-
     # if to enable or disable tracing while releasing MQ
     if [[ "$TRACING_ENABLED" == "true" ]]; then
       RELEASE_MQ_PARAMS="-n '$NAMESPACE' -z '$NAMESPACE' -r '$MQ_RELEASE_NAME' -t"
     else
       RELEASE_MQ_PARAMS="-n '$NAMESPACE' -r '$MQ_RELEASE_NAME'"
     fi
+
+    echo -e "$info [INFO] Releasing MQ $ECHO_LINE '$MQ_RELEASE_NAME' with release parameters as '$RELEASE_APIC_PARAMS'...\n"
 
     if ! $SCRIPT_DIR/release-mq.sh $RELEASE_MQ_PARAMS; then
       update_conditions "Failed to release MQ $ECHO_LINE '$MQ_RELEASE_NAME'" "Releasing"
@@ -608,12 +615,12 @@ for EACH_PRODUCT in $(echo "${REQUIRED_PRODUCTS_JSON}" | jq -r '. | keys[]'); do
     ;;
 
   apic)
-    echo -e "$info [INFO] Releasing APIC $ECHO_LINE '$APIC_RELEASE_NAME'...\n"
-    export PORG_ADMIN_EMAIL=$(echo ${APIC_CONFIGURATION} | jq -r '.emailAddress')
-    export MAIL_SERVER_HOST=$(echo ${APIC_CONFIGURATION} | jq -r '.mailServerHost')
-    export MAIL_SERVER_PORT=$(echo ${APIC_CONFIGURATION} | jq -r '.mailServerPort')
-    export MAIL_SERVER_USERNAME=$(echo ${APIC_CONFIGURATION} | jq -r '.mailServerUsername')
-    export MAIL_SERVER_PASSWORD=$(echo ${APIC_CONFIGURATION} | jq -r '.mailServerPassword')
+    # if no config value passed for APIC in the input configuration, set to default values else take from passed apic configuration
+    export PORG_ADMIN_EMAIL=$(echo ${APIC_CONFIGURATION} | jq -r '. | if has("emailAddress") then .emailAddress else "'$DEFAULT_APIC_EMAIL_ADDRESS'" end')
+    export MAIL_SERVER_HOST=$(echo ${APIC_CONFIGURATION} | jq -r '. | if has("mailServerHost") then .mailServerHost else "'$DEFAULT_APIC_MAIL_SERVER_HOST'" end')
+    export MAIL_SERVER_PORT=$(echo ${APIC_CONFIGURATION} | jq -r '. | if has("mailServerPort") then .mailServerPort else "'$DEFAULT_APIC_MAIL_SERVER_PORT'" end')
+    export MAIL_SERVER_USERNAME=$(echo ${APIC_CONFIGURATION} | jq -r '. | if has("mailServerUsername") then .mailServerUsername else "'$DEFAULT_APIC_MAIL_SERVER_USERNAME'" end')
+    export MAIL_SERVER_PASSWORD=$(echo ${APIC_CONFIGURATION} | jq -r '. | if has("mailServerPassword") then .mailServerPassword else "'$DEFAULT_APIC_MAIL_SERVER_PASSWORD'" end')
 
     # check if to enable or disable tracing while releasing APIC
     if [[ "$TRACING_ENABLED" == "true" ]]; then
@@ -621,6 +628,8 @@ for EACH_PRODUCT in $(echo "${REQUIRED_PRODUCTS_JSON}" | jq -r '. | keys[]'); do
     else
       RELEASE_APIC_PARAMS="-n '$NAMESPACE' -r '$APIC_RELEASE_NAME'"
     fi
+
+    echo -e "$info [INFO] Releasing APIC $ECHO_LINE '$APIC_RELEASE_NAME' with release parameters as '$RELEASE_APIC_PARAMS'...\n"
 
     if ! $SCRIPT_DIR/release-apic.sh $RELEASE_APIC_PARAMS; then
       update_conditions "Failed to release APIC $ECHO_LINE '$APIC_RELEASE_NAME'" "Releasing"
