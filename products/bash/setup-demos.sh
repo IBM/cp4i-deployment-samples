@@ -794,10 +794,10 @@ for EACH_DEMO in $(echo $REQUIRED_DEMOS_JSON | jq -r '. | keys[]'); do
     check_current_status "$EACH_DEMO" "products" "${DRIVEWAY_DENT_DELETION_PRODUCTS_LIST[@]}"
     PRODUCTS_CONFIGURED=$DEMO_CONFIGURED
     if [[ "$ADDONS_CONFIGURED" == "true" && "$PRODUCTS_CONFIGURED" == "true" ]]; then
-      # if all addon/products are installed and configured correctly
+      # if all addon/products are installed and configured correctly, set installed to true, but ready to false as configuration still left
       update_demo_status "$EACH_DEMO" "true" "false"
     else
-      # If one or more products failed to setup/configure, demo is not ready to use
+      # If one or more products failed to setup/configure, demo is not ready to use, set installed and ready to false
       update_demo_status "$EACH_DEMO" "false" "false"
     fi
     divider
