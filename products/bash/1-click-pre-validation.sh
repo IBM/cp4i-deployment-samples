@@ -181,6 +181,13 @@ if [[ "${demoPreparation}" == "true" ]]; then
   fi
 fi #demoPreparation
 
+if [[ $(oc get node -o json | jq -r '.items[].metadata.labels["ibm-cloud.kubernetes.io/zone"]' | uniq | wc -l | xargs) != 1 ]]; then
+  echo -e "$cross ERROR: MRZ clusters are not supported, please try again with a cluster with all nodes in a single zone"
+  check=1
+else
+  echo -e "$tick INFO: Cluster nodes are all in a single zone"
+fi
+
 if [[ ! -z $namespace ]] && [[ "${demoPreparation}" == "true" ]]; then
   if [ "${#namespace}" -gt 9 ]; then
     echo -e "$cross ERROR: When using demo preparation the project name must be 9 characters long or less"
