@@ -105,14 +105,14 @@ if [[ "$MISSING_PARAMS" == "true" ]]; then
 fi
 
 CURRENT_DIR=$(dirname $0)
-echo -e "$INFO [INFO] Current directory: '$CURRENT_DIR'"
-echo -e "$INFO [INFO] Namespace for running prereqs: '$NAMESPACE'"
-echo -e "$INFO [INFO] Namespace for postgres: '$POSTGRES_NAMESPACE'"
-echo -e "$INFO [INFO] Namespace for elastic search: '$ELASTIC_NAMESPACE'"
-echo -e "$INFO [INFO] Suffix for the postgres is: '$SUFFIX'"
-echo -e "$INFO [INFO] Samples Repo: '$REPO'"
-echo -e "$INFO [INFO] Samples repo branch: '$BRANCH'"
-echo -e "$INFO [INFO] Omit initial setup: '$OMIT_INITIAL_SETUP'"
+echo -e "$INFO [INFO] Current directory for the event enabled insurance demo: '$CURRENT_DIR'"
+echo -e "$INFO [INFO] Namespace for running event enabled insurance demo prereqs: '$NAMESPACE'"
+echo -e "$INFO [INFO] Namespace for postgres for the event enabled insurance demo: '$POSTGRES_NAMESPACE'"
+echo -e "$INFO [INFO] Namespace for elastic search for the event enabled insurance demo: '$ELASTIC_NAMESPACE'"
+echo -e "$INFO [INFO] Suffix for the postgres for the event enabled insurance demo: '$SUFFIX'"
+echo -e "$INFO [INFO] Samples repository for the event enabled insurance demo: '$REPO'"
+echo -e "$INFO [INFO] Samples repo branch for the event enabled insurance demo: '$BRANCH'"
+echo -e "$INFO [INFO] Omit initial setup for the event enabled insurance demo: '$OMIT_INITIAL_SETUP'"
 
 divider
 
