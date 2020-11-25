@@ -15,26 +15,22 @@
 # PARAMETERS:
 #   -i : <input.yaml/input.json> (string), full path to input yaml/json
 #   -o : <output.yaml/output.json> (string), full path to output yaml/json
-#   -b : <SAMPLES_REPO_BRANCH> (string), Samples deployment branch, Defaults to main
 #
 # USAGE:
-#   ./setup-demos.sh -i input.yaml -o output.yaml -b <SAMPLES_REPO_BRANCH>
+#   ./setup-demos.sh -i input.yaml -o output.yaml
 
 function divider() {
   echo -e "\n-------------------------------------------------------------------------------------------------------------------\n"
 }
 
 function usage() {
-  echo "Usage: $0 -i input.yaml -o output.yaml -b <SAMPLES_REPO_BRANCH>"
+  echo "Usage: $0 -i input.yaml -o output.yaml"
   divider
   exit 1
 }
 
-while getopts "b:i:o:" opt; do
+while getopts "i:o:" opt; do
   case ${opt} in
-  b)
-    SAMPLES_REPO_BRANCH="$OPTARG"
-    ;;
   i)
     INPUT_FILE="$OPTARG"
     ;;
@@ -254,11 +250,6 @@ fi
 
 if [[ -z "${OUTPUT_FILE// /}" ]]; then
   echo -e "$cross ERROR: OUTPUT_FILE is empty. Please provide a value for '-o' parameter." 1>&2
-  missingParams="true"
-fi
-
-if [[ -z "${SAMPLES_REPO_BRANCH// /}" ]]; then
-  echo -e "$cross ERROR: SAMPLES_REPO_BRANCH is empty. Please provide a value for '-b' parameter." 1>&2
   missingParams="true"
 fi
 
