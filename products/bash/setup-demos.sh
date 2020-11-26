@@ -193,7 +193,7 @@ function check_current_status() {
   NOT_CONFIGURED_COUNT=0
 
   if [[ ${#LIST[@]} -ne 0 ]]; then
-    $DEBUG && echo -e "\n$INFO [DEBUG] Received '$LIST_TYPE' list for '$DEMO_NAME': '${LIST[@]}'"
+    $DEBUG && echo -e "$INFO [DEBUG] Received '$LIST_TYPE' list for '$DEMO_NAME': '${LIST[@]}'"
     #  Iterate the loop to read and print each array element
     for EACH_ITEM in "${LIST[@]}"; do
       if [[ "$(echo $STATUS | jq -c '."'$LIST_TYPE'"[] | select(.type == "'$EACH_ITEM'" and .installed == "true" and .readyToUse == "true") ')" == "" ]]; then
@@ -215,11 +215,11 @@ function check_current_status() {
 
   if [[ $NOT_CONFIGURED_COUNT -eq 0 ]]; then
     DEMO_CONFIGURED=true
-    echo -e "\n$TICK [SUCCESS] All $LIST_TYPE have been installed and configured for '$DEMO_NAME' demo"
+    echo -e "$TICK [SUCCESS] All $LIST_TYPE have been installed and configured for '$DEMO_NAME' demo"
   else
     FAILED_INSTALL_DEMOS_LIST+=($DEMO_NAME)
     update_phase "Failed"
-    echo -e "\n$CROSS [ERROR] All $LIST_TYPE have not been installed/configured for '$DEMO_NAME' demo"
+    echo -e "$CROSS [ERROR] All $LIST_TYPE have not been installed/configured for '$DEMO_NAME' demo"
   fi
 }
 
@@ -500,14 +500,14 @@ for EACH_ADDON in $(echo $REQUIRED_ADDONS_JSON | jq -r '. | keys[]'); do
 
   elasticSearch)
     echo -e "$INFO [INFO] Setting up elastic search operator and elastic search instance in the '$NAMESPACE' namespace..."
-    # if ! $SCRIPT_DIR/../../EventEnabledInsurance/setup-elastic-search.sh -n "$NAMESPACE" -e "$NAMESPACE"; then
-    #   update_conditions "Failed to install and configure elastic search in the '$NAMESPACE' namespace" "Releasing"
-    #   update_phase "Failed"
-    #   FAILED_INSTALL_ADDONS_LIST+=($EACH_ADDON)
-    # else
-    #   echo -e "\n$TICK [INFO] Successfully installed and configured elastic search in the '$NAMESPACE' namespace"
-    #   update_addon_status "$EACH_ADDON" "true" "true"
-    # fi # setup-elastic-search.sh
+    if ! $SCRIPT_DIR/../../EventEnabledInsurance/setup-elastic-search.sh -n "$NAMESPACE" -e "$NAMESPACE"; then
+      update_conditions "Failed to install and configure elastic search in the '$NAMESPACE' namespace" "Releasing"
+      update_phase "Failed"
+      FAILED_INSTALL_ADDONS_LIST+=($EACH_ADDON)
+    else
+      echo -e "\n$TICK [INFO] Successfully installed and configured elastic search in the '$NAMESPACE' namespace"
+      update_addon_status "$EACH_ADDON" "true" "true"
+    fi # setup-elastic-search.sh
     ;;
 
   ocpPipelines)
@@ -605,14 +605,14 @@ for EACH_PRODUCT in $(echo "${REQUIRED_PRODUCTS_JSON}" | jq -r '. | keys[]'); do
 
   aceDashboard)
     echo -e "$INFO [INFO] Releasing ACE dashboard $ECHO_LINE '$ACE_DASHBOARD_RELEASE_NAME'...\n"
-    # if ! $SCRIPT_DIR/release-ace-dashboard.sh -n "$NAMESPACE" -r "$ACE_DASHBOARD_RELEASE_NAME" -s "$FILE_STORAGE_CLASS"; then
-    #   update_conditions "Failed to release ACE dashboard $ECHO_LINE '$ACE_DASHBOARD_RELEASE_NAME'" "Releasing"
-    #   update_phase "Failed"
-    #   FAILED_INSTALL_PRODUCTS_LIST+=($EACH_PRODUCT)
-    # else
-    #   echo -e "\n$TICK [SUCCESS] Successfully released ACE dashboard $ECHO_LINE '$ACE_DASHBOARD_RELEASE_NAME'"
-    #   update_product_status "$ACE_DASHBOARD_RELEASE_NAME" "$EACH_PRODUCT" "true" "true"
-    # fi # release-ace-dashboard.sh
+    if ! $SCRIPT_DIR/release-ace-dashboard.sh -n "$NAMESPACE" -r "$ACE_DASHBOARD_RELEASE_NAME" -s "$FILE_STORAGE_CLASS"; then
+      update_conditions "Failed to release ACE dashboard $ECHO_LINE '$ACE_DASHBOARD_RELEASE_NAME'" "Releasing"
+      update_phase "Failed"
+      FAILED_INSTALL_PRODUCTS_LIST+=($EACH_PRODUCT)
+    else
+      echo -e "\n$TICK [SUCCESS] Successfully released ACE dashboard $ECHO_LINE '$ACE_DASHBOARD_RELEASE_NAME'"
+      update_product_status "$ACE_DASHBOARD_RELEASE_NAME" "$EACH_PRODUCT" "true" "true"
+    fi # release-ace-dashboard.sh
     divider
     ;;
 
@@ -789,10 +789,10 @@ for EACH_DEMO in $(echo $REQUIRED_DEMOS_JSON | jq -r '. | keys[]'); do
 
   drivewayDentDeletion)
     echo -e "$INFO [INFO] Setting up the driveway dent deletion demo...\n"
-    echo -e "$INFO [INFO] Checking if all addons are installed and setup for the driveway dent deletion demo"
+    echo -e "$INFO [INFO] Checking if all addons are installed and setup for the driveway dent deletion demo\n"
     check_current_status "$EACH_DEMO" "addons" "${DRIVEWAY_DENT_DELETION_ADDONS_LIST[@]}"
     ADDONS_CONFIGURED=$DEMO_CONFIGURED
-    echo -e "\n$INFO [INFO] Checking if all products are installed and setup for the driveway dent deletion demo"
+    echo -e "\n$INFO [INFO] Checking if all products are installed and setup for the driveway dent deletion demo\n"
     check_current_status "$EACH_DEMO" "products" "${DRIVEWAY_DENT_DELETION_PRODUCTS_LIST[@]}"
     PRODUCTS_CONFIGURED=$DEMO_CONFIGURED
     if [[ "$ADDONS_CONFIGURED" == "true" && "$PRODUCTS_CONFIGURED" == "true" ]]; then
@@ -903,4 +903,5 @@ $DEBUG && divider && echo -e "$INFO [DEBUG] The overall installation took $(($SE
 
 echo -e "$TICK [SUCCESS] Successfully installed all selected addons, products and demos. Changing the overall status to 'Running'"
 update_phase "Running"
-$DEBUG && echo -e "$INFO [DEBUG] Final status:\n" && echo $STATUS | jq . && divider
+$DEBUG && echo -e "$INFO [DEBUG] Final status:\n" && echo $STATUS | jq .
+divider

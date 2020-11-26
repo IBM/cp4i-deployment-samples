@@ -97,7 +97,7 @@ if [[ "$MISSING_PARAMS" == "true" ]]; then
   usage
 fi
 
-echo -e "$INFO [INFO] Waiting for postgres to be ready in the '$POSTGRES_NAMESPACE' namespace"
+echo -e "$INFO [INFO] Waiting for postgres to be ready in the '$POSTGRES_NAMESPACE' namespace\n"
 oc wait -n $POSTGRES_NAMESPACE --for=condition=available deploymentconfig --timeout=20m postgresql
 
 divider
@@ -128,7 +128,7 @@ EOF
     exit 1
   fi
 else
-  echo -e "$INFO [INFO] Database and user already exist, updating user password only"
+  echo -e "$INFO [INFO] Database and user already exist, updating user password only\n"
   oc exec -n $POSTGRES_NAMESPACE -i $DB_POD \
     -- psql <<EOF
 ALTER USER $DB_USER WITH PASSWORD $(echo "'${DB_PASS}'");
@@ -138,7 +138,7 @@ fi
 divider
 
 if [[ "$DEMO" == "ddd" ]]; then
-  echo -e "$INFO [INFO] Creating the table 'QUOTES' in the database '$DB_NAME' with the username '$DB_USER'"
+  echo -e "$INFO [INFO] Creating the table 'QUOTES' in the database '$DB_NAME' with the username '$DB_USER'\n"
   if ! oc exec -n $POSTGRES_NAMESPACE -it $DB_POD \
     -- psql -U $DB_USER -d $DB_NAME -c \
     '
