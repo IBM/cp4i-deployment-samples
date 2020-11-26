@@ -56,7 +56,7 @@ ALL_DONE="\xF0\x9F\x92\xAF"
 INFO="\xE2\x84\xB9"
 POSTGRES_NAMESPACE=$NAMESPACE
 
-while getopts "n:u:t:acdisz" opt; do
+while getopts "n:u:t:p:acdisz" opt; do
   case ${opt} in
   n)
     NAMESPACE="$OPTARG"
@@ -85,7 +85,7 @@ while getopts "n:u:t:acdisz" opt; do
   z)
     NUMBER_OF_CALLS=1
     ;;
-  z)
+  p)
     POSTGRES_NAMESPACE="$OPTARG"
     ;;
   \?)
