@@ -112,45 +112,6 @@ fi
 
 divider
 
-# create service accounts
-echo -e "$INFO [INFO] Create service accounts for the dev pipeline of the driveway dent deletion demo"
-if cat $CURRENT_DIR/cicd-dev/cicd-service-accounts.yaml |
-  sed "s#{{NAMESPACE}}#$NAMESPACE#g;" |
-  oc apply -f -; then
-  echo -e "$TICK [SUCCESS] Successfully applied service accounts in the '$NAMESPACE' namespace"
-else
-  echo -e "$CROSS [ERROR] Failed to apply service accounts in the '$NAMESPACE' namespace"
-  SUM=$((SUM + 1))
-fi
-
-divider
-
-# create roles for tasks
-echo -e "$INFO [INFO] Create roles for tasks for the dev pipeline of the driveway dent deletion demo"
-if cat $CURRENT_DIR/cicd-dev/cicd-roles.yaml |
-  sed "s#{{NAMESPACE}}#$NAMESPACE#g;" |
-  oc apply -f -; then
-  echo -e "$TICK [SUCCESS] Successfully created roles for tasks in the '$NAMESPACE' namespace"
-else
-  echo -e "$CROSS [ERROR] Failed to create roles for tasks in the '$NAMESPACE' namespace"
-  SUM=$((SUM + 1))
-fi
-
-divider
-
-# create role bindings for roles
-echo -e "$INFO [INFO] Create role bindings for roles for the dev pipeline of the driveway dent deletion demo"
-if cat $CURRENT_DIR/cicd-dev/cicd-rolebindings.yaml |
-  sed "s#{{NAMESPACE}}#$NAMESPACE#g;" |
-  oc apply -f -; then
-  echo -e "$TICK [SUCCESS] Successfully applied role bindings for roles in the '$NAMESPACE' namespace"
-else
-  echo -e "$CROSS [ERROR] Failed to apply role bindings for roles in the '$NAMESPACE' namespace"
-  SUM=$((SUM + 1))
-fi
-
-divider
-
 # create tekton tasks
 tracing="-t -z $NAMESPACE"
 echo -e "$INFO [INFO] Create tekton tasks for the dev pipeline of the driveway dent deletion demo"
@@ -166,16 +127,16 @@ fi
 
 divider
 
-# create the pipeline to run tasks to build, deploy to dev, test e2e
+# create the pipeline to run tasks to build and deploy to dev
 echo -e "$INFO [INFO] Create the pipeline to run tasks for the dev pipeline of the driveway dent deletion demo in '$NAMESPACE' namespace"
 if cat $CURRENT_DIR/cicd-dev/cicd-pipeline.yaml |
   sed "s#{{NAMESPACE}}#$NAMESPACE#g;" |
   sed "s#{{FORKED_REPO}}#$REPO#g;" |
   sed "s#{{BRANCH}}#$BRANCH#g;" |
   oc apply -f -; then
-  echo -e "$TICK [SUCCESS] Successfully applied the pipeline to run tasks to build, deploy to dev, test e2e in '$NAMESPACE' namespace"
+  echo -e "$TICK [SUCCESS] Successfully applied the pipeline to run tasks to build and deploy to '$NAMESPACE' namespace"
 else
-  echo -e "$CROSS [ERROR] Failed to apply the pipeline to run tasks to build, deploy to dev, test e2e in '$NAMESPACE' namespace"
+  echo -e "$CROSS [ERROR] Failed to apply the pipeline to run tasks to build and deploy to '$NAMESPACE' namespace"
   SUM=$((SUM + 1))
 fi
 

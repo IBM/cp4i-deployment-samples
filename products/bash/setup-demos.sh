@@ -193,7 +193,7 @@ function check_current_status() {
   NOT_CONFIGURED_COUNT=0
 
   if [[ ${#LIST[@]} -ne 0 ]]; then
-    $DEBUG && echo -e "$INFO [DEBUG] Received '$LIST_TYPE' list for '$DEMO_NAME': '${LIST[@]}'"
+    $DEBUG && echo -e "$INFO [DEBUG] Received '$LIST_TYPE' list for '$DEMO_NAME': '${LIST[@]}'\n"
     #  Iterate the loop to read and print each array element
     for EACH_ITEM in "${LIST[@]}"; do
       if [[ "$(echo $STATUS | jq -c '."'$LIST_TYPE'"[] | select(.type == "'$EACH_ITEM'" and .installed == "true" and .readyToUse == "true") ')" == "" ]]; then

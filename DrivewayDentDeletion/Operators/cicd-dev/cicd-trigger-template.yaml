@@ -15,25 +15,25 @@ spec:
           - taskName: clone-git-source
             serviceAccountName: pipeline
           - taskName: build-mq
-            serviceAccountName: cicd-mq-sa
+            serviceAccountName: pipeline
           - taskName: deploy-wait-mq
-            serviceAccountName: cicd-mq-sa
+            serviceAccountName: pipeline
           - taskName: build-ace-int-server-ace-api
-            serviceAccountName: cicd-ace-sa
+            serviceAccountName: pipeline
           - taskName: build-ace-int-server-ace-bernie
-            serviceAccountName: cicd-ace-sa
+            serviceAccountName: pipeline
           - taskName: build-ace-int-server-ace-acme
-            serviceAccountName: cicd-ace-sa
+            serviceAccountName: pipeline
           - taskName: build-ace-int-server-ace-chris
-            serviceAccountName: cicd-ace-sa
+            serviceAccountName: pipeline
           - taskName: deploy-wait-ace-api
-            serviceAccountName: cicd-ace-sa
+            serviceAccountName: pipeline
           - taskName: deploy-wait-ace-chris
-            serviceAccountName: cicd-ace-sa
+            serviceAccountName: pipeline
           - taskName: deploy-wait-ace-acme
-            serviceAccountName: cicd-ace-sa
+            serviceAccountName: pipeline
           - taskName: deploy-wait-ace-bernie
-            serviceAccountName: cicd-ace-sa
+            serviceAccountName: pipeline
         workspaces:
           - name: git-source
             persistentvolumeclaim:

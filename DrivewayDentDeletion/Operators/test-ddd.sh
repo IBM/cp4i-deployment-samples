@@ -132,7 +132,7 @@ function wait_and_trigger_pipeline() {
         print_pipelineruns_taskruns
         exit 1
     else
-        echo -e "$TICK INFO: The '$PIPELINE_TYPE' pipeline completed successfully."
+        echo -e "$TICK INFO: The '$PIPELINE_TYPE' pipeline for the driveway dent deletion demo completed successfully."
     fi
 }
 

@@ -129,7 +129,7 @@ DB_PASS=$(
 )
 PASSWORD_ENCODED=$(echo -n $DB_PASS | base64)
 divider
-echo -e "$INFO [INFO] Creating a secret for the database user '$DB_USER' in the database '$DB_NAME' with the password generated"
+echo -e "$INFO [INFO] Creating a secret for the database user '$DB_USER' in the database '$DB_NAME' with the password generated\n"
 # everything inside 'data' must be in the base64 encoded form
 cat <<EOF | oc apply -f -
 apiVersion: v1

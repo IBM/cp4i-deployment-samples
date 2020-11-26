@@ -20,6 +20,7 @@
 #   -i : CONDENSED_INFO (true/false), whether to show the full post response or a condensed version - DEFAULT: false
 #   -s : SAVE_ROW_AFTER_RUN (true/false), whether to save each row in the database after a run or delete it - DEFAULT: false
 #   -z : NUMBER_OF_CALLS (integer), run continuous load calls fixed number of times.
+#   -p : <POSTGRES_NAMESPACE> (string), Namespace where postgres is setup, Defaults to value for '<NAMESPACE>'
 #
 # USAGE:
 #   CAUTION - running without TABLE_CLEANUP enabled can result in data leftover in the postgres table
@@ -31,7 +32,7 @@
 #     ./continuous-load.sh -t 2 -c
 
 function usage() {
-  echo "Usage: $0 [-n NAMESPACE] [-u API_BASE_URL] [-t RETRY_INTERVAL] [-acdisz]"
+  echo "Usage: $0 [-n NAMESPACE] [-u API_BASE_URL] [-t RETRY_INTERVAL] [-p POSTGRES_NAMESPACE] [-acdisz]"
   exit 1
 }
 
@@ -53,6 +54,7 @@ TICK="\xE2\x9C\x85"
 CROSS="\xE2\x9D\x8C"
 ALL_DONE="\xF0\x9F\x92\xAF"
 INFO="\xE2\x84\xB9"
+POSTGRES_NAMESPACE=$NAMESPACE
 
 while getopts "n:u:t:acdisz" opt; do
   case ${opt} in
@@ -83,6 +85,9 @@ while getopts "n:u:t:acdisz" opt; do
   z)
     NUMBER_OF_CALLS=1
     ;;
+  z)
+    POSTGRES_NAMESPACE="$OPTARG"
+    ;;
   \?)
     usage
     ;;
@@ -92,7 +97,7 @@ done
 DB_USER=$(echo $NAMESPACE | sed 's/-/_/g')_ddd
 DB_NAME=db_${DB_USER}
 DB_PASS=$(oc get secret -n $NAMESPACE postgres-credential --template={{.data.password}} | base64 --decode)
-DB_POD=$(oc get pod -n postgres -l name=postgresql -o jsonpath='{.items[].metadata.name}')
+DB_POD=$(oc get pod -n $POSTGRES_NAMESPACE -l name=postgresql -o jsonpath='{.items[].metadata.name}')
 echo "[INFO]  Username name is: '${DB_USER}'"
 echo "[INFO]  Database name is: '${DB_NAME}'"
 
@@ -196,7 +201,7 @@ while true; do
     # - DELETE ---
     if [ "$SAVE_ROW_AFTER_RUN" = false ]; then
       echo -e "\nDeleting row from database..."
-      oc exec -n postgres -it ${DB_POD} -- \
+      oc exec -n $POSTGRES_NAMESPACE -it ${DB_POD} -- \
         psql -U ${DB_USER} -d ${DB_NAME} -c \
         "DELETE FROM quotes WHERE quotes.quoteid = ${quote_id};"
     fi
@@ -209,7 +214,6 @@ while true; do
     if [[ ("$GET_ERROR" -eq 0) && ("$POST_ERROR" -eq 0) ]]; then
       divider
       echo -e "$INFO INFO: Continuous load testing successfully completed with $NUMBER_OF_CALLS call(s) and zero errors."
-      divider
       exit 0
     fi
   fi
