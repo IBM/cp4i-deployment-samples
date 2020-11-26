@@ -43,12 +43,11 @@ while getopts "i:o:" opt; do
   esac
 done
 
-tick="\xE2\x9C\x85"
+TICK="\xE2\x9C\x85"
 CROSS="\xE2\x9D\x8C"
 ALL_DONE="\xF0\x9F\x92\xAF"
 INFO="\xE2\x84\xB9"
 SCRIPT_DIR=$(dirname $0)
-DEBUG=true
 FAILURE_CODE=1
 SUCCESS_CODE=0
 CONDITION_ELEMENT_OBJECT='{"lastTransitionTime":"","message":"","reason":"","status":"","type":""}'
@@ -59,6 +58,8 @@ PRODUCT_OBJECT_FOR_STATUS='{"name":"","type":"", "namespace":"", "installed":"",
 DEMO_VERSION="2020.3.1-1"
 DEMO_OBJECT_FOR_STATUS='{"name":"", "installed":"", "readyToUse":""}'
 SAMPLES_REPO_BRANCH="main"
+MISSING_PARAMS="false"
+MISSING_PREREQS="false"
 
 # cognitive car repair demo list
 COGNITIVE_CAR_REPAIR_PRODUCTS_LIST=("aceDashboard" "aceDesigner" "apic" "assetRepo" "tracing")
@@ -90,6 +91,9 @@ DEFAULT_APIC_MAIL_SERVER_PASSWORD="<your-password>"
 declare -a FAILED_INSTALL_PRODUCTS_LIST
 declare -a FAILED_INSTALL_ADDONS_LIST
 declare -a FAILED_INSTALL_DEMOS_LIST
+
+# set to true to print development logs
+export DEBUG=false
 
 #-------------------------------------------------------------------------------------------------------------------
 # Functions
@@ -134,7 +138,7 @@ function check_phase_and_exit_on_failed() {
   CURRENT_PHASE=$(echo $STATUS | jq -r '.phase')
   # if the current phase is failed, then exit status (case insensitive checking)
   if echo $CURRENT_PHASE | grep -iqF failed; then
-    divider && echo -e "$INFO [INFO] Current installation phase is '$CURRENT_PHASE', exiting now." && divider
+    echo -e "$INFO [INFO] Current installation phase is '$CURRENT_PHASE', exiting now." && divider
     exit 1
   else
     $DEBUG && divider && echo -e "$INFO [DEBUG] Current installation phase is '$CURRENT_PHASE', continuing the installation..."
@@ -211,11 +215,11 @@ function check_current_status() {
 
   if [[ $NOT_CONFIGURED_COUNT -eq 0 ]]; then
     DEMO_CONFIGURED=true
-    echo -e "\n$tick [SUCCESS] All $LIST_TYPE have been installed and configured for '$DEMO_NAME' demo"
+    echo -e "\n$TICK [SUCCESS] All $LIST_TYPE have been installed and configured for '$DEMO_NAME' demo"
   else
     FAILED_INSTALL_DEMOS_LIST+=($DEMO_NAME)
     update_phase "Failed"
-    echo -e "$CROSS [ERROR] All $LIST_TYPE have not been installed/configured for '$DEMO_NAME' demo"
+    echo -e "\n$CROSS [ERROR] All $LIST_TYPE have not been installed/configured for '$DEMO_NAME' demo"
   fi
 }
 
@@ -251,18 +255,17 @@ SECONDS=0
 # Validate the parameters passed in
 #-------------------------------------------------------------------------------------------------------------------
 
-missingParams="false"
 if [[ -z "${INPUT_FILE// /}" ]]; then
   echo -e "$CROSS ERROR: INPUT_FILE is empty. Please provide a value for '-i' parameter." 1>&2
-  missingParams="true"
+  MISSING_PARAMS="true"
 fi
 
 if [[ -z "${OUTPUT_FILE// /}" ]]; then
   echo -e "$CROSS ERROR: OUTPUT_FILE is empty. Please provide a value for '-o' parameter." 1>&2
-  missingParams="true"
+  MISSING_PARAMS="true"
 fi
 
-if [[ "$missingParams" == "true" ]]; then
+if [[ "$MISSING_PARAMS" == "true" ]]; then
   divider
   exit 1
 fi
@@ -279,26 +282,25 @@ echo -e "$INFO Output yaml file : '$OUTPUT_FILE'\n"
 # Validate the prereqs
 #-------------------------------------------------------------------------------------------------------------------
 
-missingPrereqs="false"
 # Only require yq to be installed if either file is not json (I.e. yaml)
 if [[ "$INPUT_FILE" != *.json ]] || [[ "$OUTPUT_FILE" != *.json ]]; then
   yq --version
   if [ $? -ne 0 ]; then
     echo -e "$CROSS [ERROR] 'yq' needs to be installed before running this script" 1>&2
-    missingPrereqs="true"
+    MISSING_PREREQS="true"
   fi
 fi
 jq --version
 if [ $? -ne 0 ]; then
   echo -e "$CROSS [ERROR] 'jq' needs to be installed before running this script" 1>&2
-  missingPrereqs="true"
+  MISSING_PREREQS="true"
 fi
 oc version --client
 if [ $? -ne 0 ]; then
   echo -e "$CROSS [ERROR] 'oc' needs to be installed before running this script" 1>&2
-  missingPrereqs="true"
+  MISSING_PREREQS="true"
 fi
-if [[ "$missingPrereqs" == "true" ]]; then
+if [[ "$MISSING_PREREQS" == "true" ]]; then
   divider
   exit 1
 fi
@@ -454,7 +456,7 @@ if [ $? -ne 0 ]; then
   update_conditions "Namespace '$NAMESPACE' does not exist" "Getting"
   update_phase "Failed"
 else
-  echo -e "$tick [SUCCESS] Namespace '$NAMESPACE' exists"
+  echo -e "$TICK [SUCCESS] Namespace '$NAMESPACE' exists"
   NAMESPACE_TO_ADD=$(echo $NAMESPACE_OBJECT_FOR_STATUS | jq -r '.name="'$NAMESPACE'" ')
   STATUS=$(echo $STATUS | jq -c '.namespaces += ['"${NAMESPACE_TO_ADD}"']')
 fi
@@ -468,7 +470,7 @@ if [ $? -ne 0 ]; then
   update_conditions "Secret 'ibm-entitlement-key' not found in '$NAMESPACE' namespace" "Getting"
   update_phase "Failed"
 else
-  echo -e "$tick [SUCCESS] Secret 'ibm-entitlement-key' exists in the '$NAMESPACE' namespace"
+  echo -e "$TICK [SUCCESS] Secret 'ibm-entitlement-key' exists in the '$NAMESPACE' namespace"
 fi
 
 check_phase_and_exit_on_failed
@@ -491,21 +493,21 @@ for EACH_ADDON in $(echo $REQUIRED_ADDONS_JSON | jq -r '. | keys[]'); do
       update_phase "Failed"
       FAILED_INSTALL_ADDONS_LIST+=($EACH_ADDON)
     else
-      echo -e "\n$tick [SUCCESS] Successfully released PostgresSQL in the '$NAMESPACE' namespace"
+      echo -e "\n$TICK [SUCCESS] Successfully released PostgresSQL in the '$NAMESPACE' namespace"
       update_addon_status "$EACH_ADDON" "true" "true"
     fi # release-psql.sh
     ;;
 
   elasticSearch)
     echo -e "$INFO [INFO] Setting up elastic search operator and elastic search instance in the '$NAMESPACE' namespace..."
-    if ! $SCRIPT_DIR/../../EventEnabledInsurance/setup-elastic-search.sh -n "$NAMESPACE" -e "$NAMESPACE"; then
-      update_conditions "Failed to install and configure elastic search in the '$NAMESPACE' namespace" "Releasing"
-      update_phase "Failed"
-      FAILED_INSTALL_ADDONS_LIST+=($EACH_ADDON)
-    else
-      echo -e "\n$tick [INFO] Successfully installed and configured elastic search in the '$NAMESPACE' namespace"
-      update_addon_status "$EACH_ADDON" "true" "true"
-    fi # setup-elastic-search.sh
+    # if ! $SCRIPT_DIR/../../EventEnabledInsurance/setup-elastic-search.sh -n "$NAMESPACE" -e "$NAMESPACE"; then
+    #   update_conditions "Failed to install and configure elastic search in the '$NAMESPACE' namespace" "Releasing"
+    #   update_phase "Failed"
+    #   FAILED_INSTALL_ADDONS_LIST+=($EACH_ADDON)
+    # else
+    #   echo -e "\n$TICK [INFO] Successfully installed and configured elastic search in the '$NAMESPACE' namespace"
+    #   update_addon_status "$EACH_ADDON" "true" "true"
+    # fi # setup-elastic-search.sh
     ;;
 
   ocpPipelines)
@@ -515,7 +517,7 @@ for EACH_ADDON in $(echo $REQUIRED_ADDONS_JSON | jq -r '. | keys[]'); do
       update_phase "Failed"
       FAILED_INSTALL_ADDONS_LIST+=($EACH_ADDON)
     else
-      echo -e "$tick [SUCCESS] Successfully installed OCP pipelines"
+      echo -e "$TICK [SUCCESS] Successfully installed OCP pipelines"
       update_addon_status "$EACH_ADDON" "true" "false"
     fi # install-ocp-pipeline.sh
 
@@ -525,7 +527,7 @@ for EACH_ADDON in $(echo $REQUIRED_ADDONS_JSON | jq -r '. | keys[]'); do
       update_phase "Failed"
       FAILED_INSTALL_ADDONS_LIST+=($EACH_ADDON)
     else
-      echo -e "$tick [SUCCESS] Successfully configured secrets and permissions related to ocp pipelines in the '$NAMESPACE' namespace"
+      echo -e "$TICK [SUCCESS] Successfully configured secrets and permissions related to ocp pipelines in the '$NAMESPACE' namespace"
       update_addon_status "$EACH_ADDON" "true" "true"
     fi # configure-ocp-pipeline.sh
     ;;
@@ -569,7 +571,7 @@ for EACH_PRODUCT in $(echo "${REQUIRED_PRODUCTS_JSON}" | jq -r '. | keys[]'); do
       update_phase "Failed"
       FAILED_INSTALL_PRODUCTS_LIST+=($EACH_PRODUCT)
     else
-      echo -e "\n$tick [SUCCESS] Successfully released MQ $ECHO_LINE '$MQ_RELEASE_NAME'"
+      echo -e "\n$TICK [SUCCESS] Successfully released MQ $ECHO_LINE '$MQ_RELEASE_NAME'"
       update_product_status "$MQ_RELEASE_NAME" "$EACH_PRODUCT" "true" "true"
     fi # release-mq.sh
     divider
@@ -582,7 +584,7 @@ for EACH_PRODUCT in $(echo "${REQUIRED_PRODUCTS_JSON}" | jq -r '. | keys[]'); do
       update_phase "Failed"
       FAILED_INSTALL_PRODUCTS_LIST+=($EACH_PRODUCT)
     else
-      echo -e "\n$tick [INFO] Successfully released ACE Designer $ECHO_LINE '$ACE_DESIGNER_RELEASE_NAME'"
+      echo -e "\n$TICK [INFO] Successfully released ACE Designer $ECHO_LINE '$ACE_DESIGNER_RELEASE_NAME'"
       update_product_status "$ACE_DESIGNER_RELEASE_NAME" "$EACH_PRODUCT" "true" "true"
     fi # release-ace-designer.sh
     divider
@@ -595,7 +597,7 @@ for EACH_PRODUCT in $(echo "${REQUIRED_PRODUCTS_JSON}" | jq -r '. | keys[]'); do
       update_phase "Failed"
       FAILED_INSTALL_PRODUCTS_LIST+=($EACH_PRODUCT)
     else
-      echo -e "\n$tick [SUCCESS] Successfully released Asset Repository $ECHO_LINE '$ASSET_REPOSITORY_RELEASE_NAME'"
+      echo -e "\n$TICK [SUCCESS] Successfully released Asset Repository $ECHO_LINE '$ASSET_REPOSITORY_RELEASE_NAME'"
       update_product_status "$ASSET_REPOSITORY_RELEASE_NAME" "$EACH_PRODUCT" "true" "false"
     fi # release-ar.sh
     divider
@@ -603,14 +605,14 @@ for EACH_PRODUCT in $(echo "${REQUIRED_PRODUCTS_JSON}" | jq -r '. | keys[]'); do
 
   aceDashboard)
     echo -e "$INFO [INFO] Releasing ACE dashboard $ECHO_LINE '$ACE_DASHBOARD_RELEASE_NAME'...\n"
-    if ! $SCRIPT_DIR/release-ace-dashboard.sh -n "$NAMESPACE" -r "$ACE_DASHBOARD_RELEASE_NAME" -s "$FILE_STORAGE_CLASS"; then
-      update_conditions "Failed to release ACE dashboard $ECHO_LINE '$ACE_DASHBOARD_RELEASE_NAME'" "Releasing"
-      update_phase "Failed"
-      FAILED_INSTALL_PRODUCTS_LIST+=($EACH_PRODUCT)
-    else
-      echo -e "\n$tick [SUCCESS] Successfully released ACE dashboard $ECHO_LINE '$ACE_DASHBOARD_RELEASE_NAME'"
-      update_product_status "$ACE_DASHBOARD_RELEASE_NAME" "$EACH_PRODUCT" "true" "true"
-    fi # release-ace-dashboard.sh
+    # if ! $SCRIPT_DIR/release-ace-dashboard.sh -n "$NAMESPACE" -r "$ACE_DASHBOARD_RELEASE_NAME" -s "$FILE_STORAGE_CLASS"; then
+    #   update_conditions "Failed to release ACE dashboard $ECHO_LINE '$ACE_DASHBOARD_RELEASE_NAME'" "Releasing"
+    #   update_phase "Failed"
+    #   FAILED_INSTALL_PRODUCTS_LIST+=($EACH_PRODUCT)
+    # else
+    #   echo -e "\n$TICK [SUCCESS] Successfully released ACE dashboard $ECHO_LINE '$ACE_DASHBOARD_RELEASE_NAME'"
+    #   update_product_status "$ACE_DASHBOARD_RELEASE_NAME" "$EACH_PRODUCT" "true" "true"
+    # fi # release-ace-dashboard.sh
     divider
     ;;
 
@@ -636,7 +638,7 @@ for EACH_PRODUCT in $(echo "${REQUIRED_PRODUCTS_JSON}" | jq -r '. | keys[]'); do
       update_phase "Failed"
       FAILED_INSTALL_PRODUCTS_LIST+=($EACH_PRODUCT)
     else
-      echo -e "\n$tick [SUCCESS] Successfully released APIC $ECHO_LINE '$APIC_RELEASE_NAME'"
+      echo -e "\n$TICK [SUCCESS] Successfully released APIC $ECHO_LINE '$APIC_RELEASE_NAME'"
       update_product_status "$APIC_RELEASE_NAME" "$EACH_PRODUCT" "true" "false"
     fi # release-apic.sh
     divider
@@ -649,7 +651,7 @@ for EACH_PRODUCT in $(echo "${REQUIRED_PRODUCTS_JSON}" | jq -r '. | keys[]'); do
       update_phase "Failed"
       FAILED_INSTALL_PRODUCTS_LIST+=($EACH_PRODUCT)
     else
-      echo -e "\n$tick [SUCCESS] Successfully released event streams $ECHO_LINE '$EVENT_STREAM_RELEASE_NAME'"
+      echo -e "\n$TICK [SUCCESS] Successfully released event streams $ECHO_LINE '$EVENT_STREAM_RELEASE_NAME'"
       update_product_status "$EVENT_STREAM_RELEASE_NAME" "$EACH_PRODUCT" "true" "true"
     fi # release-es.sh
     divider
@@ -662,7 +664,7 @@ for EACH_PRODUCT in $(echo "${REQUIRED_PRODUCTS_JSON}" | jq -r '. | keys[]'); do
       update_phase "Failed"
       FAILED_INSTALL_PRODUCTS_LIST+=($EACH_PRODUCT)
     else
-      echo -e "\n$tick [SUCCESS] Successfully released Tracing $ECHO_LINE '$TRACING_RELEASE_NAME'"
+      echo -e "\n$TICK [SUCCESS] Successfully released Tracing $ECHO_LINE '$TRACING_RELEASE_NAME'"
       update_product_status "$TRACING_RELEASE_NAME" "$EACH_PRODUCT" "true" "false"
     fi # release-tracing.sh
     ;;
@@ -687,7 +689,7 @@ if [[ "$TRACING_ENABLED" == "true" ]]; then
     update_product_status "$TRACING_RELEASE_NAME" "tracing" "true" "false"
     FAILED_INSTALL_PRODUCTS_LIST+=(tracing)
   else
-    echo -e "\n$tick [SUCCESS] Successfully registered tracing in the '$NAMESPACE' namespace"
+    echo -e "\n$TICK [SUCCESS] Successfully registered tracing in the '$NAMESPACE' namespace"
     update_product_status "$TRACING_RELEASE_NAME" "tracing" "true" "true"
   fi # release-tracing.sh
 fi
@@ -704,7 +706,7 @@ if [[ "$(echo $REQUIRED_PRODUCTS_JSON | jq '.apic?')" == "true" ]]; then
     update_product_status "$APIC_RELEASE_NAME" "apic" "true" "false"
     FAILED_INSTALL_PRODUCTS_LIST+=(apic)
   else
-    echo -e "$tick [SUCCESS] Successfully configured APIC in the '$NAMESPACE' namespace"
+    echo -e "$TICK [SUCCESS] Successfully configured APIC in the '$NAMESPACE' namespace"
     update_product_status "$APIC_RELEASE_NAME" "apic" "true" "true"
   fi # configure-apic-v10.sh
 fi
@@ -721,7 +723,7 @@ if [[ "$(echo $REQUIRED_PRODUCTS_JSON | jq '.assetRepo?')" == "true" ]]; then
     update_product_status "$ASSET_REPOSITORY_RELEASE_NAME" "assetRepo" "true" "false"
     FAILED_INSTALL_PRODUCTS_LIST+=(assetRepo)
   else
-    echo -e "\n$tick [SUCCESS] Successfully created Asset Repository remote in the '$NAMESPACE' namespace with the name '$ASSET_REPOSITORY_RELEASE_NAME'"
+    echo -e "\n$TICK [SUCCESS] Successfully created Asset Repository remote in the '$NAMESPACE' namespace with the name '$ASSET_REPOSITORY_RELEASE_NAME'"
     update_product_status "$ASSET_REPOSITORY_RELEASE_NAME" "assetRepo" "true" "true"
   fi # ar_remote_create.sh
 fi
@@ -742,7 +744,7 @@ for EACH_DEMO in $(echo $REQUIRED_DEMOS_JSON | jq -r '. | keys[]'); do
     check_current_status "$EACH_DEMO" "products" "${COGNITIVE_CAR_REPAIR_PRODUCTS_LIST[@]}"
     PRODUCTS_CONFIGURED=$DEMO_CONFIGURED
     if [[ "$ADDONS_CONFIGURED" == "true" && "$PRODUCTS_CONFIGURED" == "true" ]]; then
-      divider && echo -e "\n$tick $ALL_DONE [SUCCESS] Cognitive Car Repair Demo setup completed successfully. $ALL_DONE $tick"
+      divider && echo -e "\n$TICK $ALL_DONE [SUCCESS] Cognitive Car Repair Demo setup completed successfully. $ALL_DONE $TICK"
       # No pre-requisites are to be run for cognitive car repair demo, so setting installed and readyToUse to true
       update_demo_status "$EACH_DEMO" "true" "true"
     else
@@ -775,7 +777,7 @@ for EACH_DEMO in $(echo $REQUIRED_DEMOS_JSON | jq -r '. | keys[]'); do
         update_demo_status "$EACH_DEMO" "" "false"
         FAILED_INSTALL_DEMOS_LIST+=($EACH_DEMO)
       else
-        echo -e "$tick $ALL_DONE [SUCCESS] Event Enabled Insurance demo setup completed successfully in the '$NAMESPACE' namespace. $ALL_DONE $tick"
+        echo -e "$TICK $ALL_DONE [SUCCESS] Event Enabled Insurance demo setup completed successfully in the '$NAMESPACE' namespace. $ALL_DONE $TICK"
         update_demo_status "$EACH_DEMO" "" "true"
       fi # EventEnabledInsurance/prereqs.sh
     else
@@ -799,14 +801,14 @@ for EACH_DEMO in $(echo $REQUIRED_DEMOS_JSON | jq -r '. | keys[]'); do
       divider && echo -e "$INFO [INFO] Setting up prereqs for driveway dent deletion demo in the '$NAMESPACE' namespace" && divider
       # setup the prereqs for driveway dent deletion demo
       if ! $SCRIPT_DIR/../../DrivewayDentDeletion/Operators/prereqs.sh -n "$NAMESPACE" -p "$NAMESPACE" -o; then
-        echo -e "$CROSS [ERROR] Failed to run driveway dent deletion prereqs script\n"
+        echo -e "\n$CROSS [ERROR] Failed to run driveway dent deletion prereqs script"
         divider && echo -e "$CROSS [ERROR] Driveway Dent Deletion demo did not setup correctly. $CROSS"
         update_conditions "Failed to run driveway dent deletion prereqs script in the '$NAMESPACE' namespace" "Prereqs"
         update_phase "Failed"
         update_demo_status "$EACH_DEMO" "" "false"
         FAILED_INSTALL_DEMOS_LIST+=($EACH_DEMO)
       else
-        divider && echo -e "$tick $ALL_DONE [SUCCESS] Driveway Dent Deletion demo setup completed successfully in the '$NAMESPACE' namespace. $ALL_DONE $tick"
+        echo -e "$TICK $ALL_DONE [SUCCESS] Driveway Dent Deletion demo setup completed successfully in the '$NAMESPACE' namespace. $ALL_DONE $TICK"
         update_demo_status "$EACH_DEMO" "" "true"
       fi # DrivewayDentDeletion/Operators/prereqs.sh
     else
@@ -899,6 +901,6 @@ $DEBUG && divider && echo -e "$INFO [DEBUG] The overall installation took $(($SE
 # Change final status to Running at end of installation
 #-------------------------------------------------------------------------------------------------------------------
 
-echo -e "$tick [SUCCESS] Successfully installed all selected addons, products and demos. Changing the overall status to 'Running'"
+echo -e "$TICK [SUCCESS] Successfully installed all selected addons, products and demos. Changing the overall status to 'Running'"
 update_phase "Running"
 $DEBUG && echo -e "$INFO [DEBUG] Final status:\n" && echo $STATUS | jq . && divider

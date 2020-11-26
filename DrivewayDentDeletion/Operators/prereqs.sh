@@ -29,6 +29,7 @@ function divider() {
 
 function usage() {
   echo "Usage: $0 -n <NAMESPACE> -r <NAV_REPLICAS> -p <POSTGRES_NAMESPACE> [-o]"
+  divider
   exit 1
 }
 
@@ -103,18 +104,18 @@ if [[ "$OMIT_INITIAL_SETUP" == "false" ]]; then
 
   divider
 
-  echo -e "$INFO [INFO] Configuring secrets and permissions related to ocp pipelines in the '$NAMESPACE' namespace for the ddd demo..."
+  echo -e "$INFO [INFO] Configuring secrets and permissions related to ocp pipelines in the '$NAMESPACE' namespace for the driveway dent deletion demo..."
   if ! $CURRENT_DIR/../../products/bash/configure-ocp-pipeline.sh -n "$NAMESPACE"; then
-    echo -e "$CROSS [ERROR] Failed to create secrets and permissions related to ocp pipelines in the '$NAMESPACE' namespace for the ddd demo\n"
+    echo -e "$CROSS [ERROR] Failed to create secrets and permissions related to ocp pipelines in the '$NAMESPACE' namespace for the driveway dent deletion demo\n"
     exit 1
   else
-    echo -e "$TICK [SUCCESS] Successfully configured secrets and permissions related to ocp pipelines in the '$NAMESPACE' namespace for the ddd demo"
+    echo -e "$TICK [SUCCESS] Successfully configured secrets and permissions related to ocp pipelines in the '$NAMESPACE' namespace for the driveway dent deletion demo"
   fi # configure-ocp-pipeline.sh
 
   divider
 fi
 
-echo -e "$INFO [INFO] Installing prerequisites for the driveway dent deletion demo in the '$NAMESPACE' namespace...\n"
+echo -e "$INFO [INFO] Installing prerequisites for the driveway dent deletion demo in the '$NAMESPACE' namespace..."
 
 divider
 
@@ -127,7 +128,7 @@ DB_PASS=$(
   echo
 )
 PASSWORD_ENCODED=$(echo -n $DB_PASS | base64)
-
+divider
 echo -e "$INFO [INFO] Creating a secret for the database user '$DB_USER' in the database '$DB_NAME' with the password generated"
 # everything inside 'data' must be in the base64 encoded form
 cat <<EOF | oc apply -f -
@@ -143,7 +144,9 @@ data:
   password: $PASSWORD_ENCODED
 EOF
 
-echo -e "$INFO [INFO] Creating '$DB_NAME' database and '$DB_USER' user in the postgres instance in the '$POSTGRES_NAMESPACE' namespace\n"
+divider
+
+echo -e "$INFO [INFO] Creating '$DB_NAME' database and '$DB_USER' user in the postgres instance in the '$POSTGRES_NAMESPACE' namespace" && divider
 if ! $CURRENT_DIR/../../products/bash/configure-postgres-db.sh -n "$POSTGRES_NAMESPACE" -u "$DB_USER" -d "$DB_NAME" -p "$DB_PASS" -e "$SUFFIX"; then
   echo -e "\n$CROSS [ERROR] Failed to configure postgres in the '$POSTGRES_NAMESPACE' namespace with the user '$DB_USER' and database name '$DB_NAME'\n"
   exit 1
@@ -153,12 +156,12 @@ fi # configure-postgres-db.sh
 
 divider
 
-echo -e "$INFO [INFO] Creating ace postgres configuration and policy in the namespace '$NAMESPACE' with the user '$DB_USER', database name '$DB_NAME' and suffix '$SUFFIX'"
+echo -e "$INFO [INFO] Creating ace postgres configuration and policy in the namespace '$NAMESPACE' with the user '$DB_USER', database name '$DB_NAME' and suffix '$SUFFIX'" && divider
 if ! $CURRENT_DIR/../../products/bash/create-ace-config.sh -n "$NAMESPACE" -g "$POSTGRES_NAMESPACE" -u "$DB_USER" -d "$DB_NAME" -p "$DB_PASS" -s "$SUFFIX"; then
   echo -e "\n$CROSS [ERROR] Failed to configure ace in the '$NAMESPACE' namespace with the user '$DB_USER', database name '$DB_NAME' and suffix '$SUFFIX'"
   exit 1
 else
-  echo -e "\n$TICK [SUCCESS] Successfully configured ace in the '$NAMESPACE' namespace with the user '$DB_USER', database name '$DB_NAME' and suffix '$SUFFIX'"
+  echo -e "$TICK [SUCCESS] Successfully configured ace in the '$NAMESPACE' namespace with the user '$DB_USER', database name '$DB_NAME' and suffix '$SUFFIX'"
 fi # create-ace-config.sh
 
 divider
