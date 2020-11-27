@@ -115,7 +115,7 @@ function handle_res() {
   fi
 }
 
-NAMESPACE=$([[ $ENVIRONMENT == "dev" ]] && echo "${MAIN_NAMESPACE}" || echo "${MAIN_NAMESPACE}-ddd-test")
+NAMESPACE=$MAIN_NAMESPACE
 ORG=$([[ $ENVIRONMENT == "dev" ]] && echo "main-demo" || echo "ddd-demo-test")
 CATALOG=${ORG}-catalog
 PRODUCT=${NAMESPACE}-product-${DEMO_NAME}
