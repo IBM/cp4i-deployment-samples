@@ -116,49 +116,6 @@ fi
 
 divider
 
-# # create service accounts
-# echo -e "$INFO [INFO] Create service accounts for the test apic pipeline of the driveway dent deletion demo"
-# if cat $CURRENT_DIR/cicd-test-apic/cicd-service-accounts.yaml |
-#   sed "s#{{NAMESPACE}}#$NAMESPACE#g;" |
-#   oc apply -f -; then
-#   printf "$tick "
-#   echo "Successfully applied service accounts in the '$NAMESPACE' namespace for the test apic pipeline of the driveway dent deletion demo"
-# else
-#   printf "$cross "
-#   echo -e "$CROSS [ERROR] Failed to apply service accounts in the '$NAMESPACE' namespace for the test apic pipeline of the driveway dent deletion demo"
-#   sum=$((sum + 1))
-# fi
-
-# divider
-
-# # create roles for tasks
-# echo -e "$INFO [INFO] Create roles for tasks for the test apic pipeline of the driveway dent deletion demo"
-# if cat $CURRENT_DIR/cicd-test-apic/cicd-roles.yaml |
-#   sed "s#{{NAMESPACE}}#$NAMESPACE#g;" |
-#   oc apply -f -; then
-#   printf "$tick "
-#   echo "Successfully created roles for tasks in the '$NAMESPACE' namespace for the test apic pipeline of the driveway dent deletion demo"
-# else
-#   printf "$cross "
-#   echo -e "$CROSS [ERROR] Failed to create roles for tasks in the '$NAMESPACE' namespace for the test apic pipeline of the driveway dent deletion demo"
-#   sum=$((sum + 1))
-# fi
-
-# divider
-
-# # create role bindings for roles
-# echo -e "$INFO [INFO] Create role bindings for roles for the test apic pipeline of the driveway dent deletion demo"
-# if cat $CURRENT_DIR/cicd-test-apic/cicd-rolebindings.yaml |
-#   sed "s#{{NAMESPACE}}#$NAMESPACE#g;" |
-#   oc apply -f -; then
-#   printf "$tick "
-#   echo "Successfully applied role bindings for roles in the '$NAMESPACE' namespace for the test apic pipeline of the driveway dent deletion demo"
-# else
-#   printf "$cross "
-#   echo -e "$CROSS [ERROR] Failed to apply role bindings for roles in the '$NAMESPACE' namespace for the test apic pipeline of the driveway dent deletion demo"
-#   sum=$((sum + 1))
-# fi
-
 # create tekton tasks
 echo -e "$INFO [INFO] Create tekton tasks for the test apic pipeline of the driveway dent deletion demo\n"
 TRACING="-t -z $NAMESPACE"

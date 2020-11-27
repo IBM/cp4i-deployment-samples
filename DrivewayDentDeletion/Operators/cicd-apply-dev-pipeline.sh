@@ -108,24 +108,24 @@ divider
 # apply pvc for buildah tasks
 echo -e "$INFO [INFO] Apply pvc for buildah tasks for the dev pipeline of the driveway dent deletion demo"
 if oc apply -f $CURRENT_DIR/cicd-dev/cicd-pvc.yaml; then
-  echo -e "$TICK [SUCCESS] Successfully applied pvc in the '$NAMESPACE' namespace"
+  echo -e "\n$TICK [SUCCESS] Successfully applied pvc in the '$NAMESPACE' namespace"
 else
-  echo -e "$CROSS [ERROR] Failed to apply pvc in the '$NAMESPACE' namespace"
+  echo -e "\n$CROSS [ERROR] Failed to apply pvc in the '$NAMESPACE' namespace"
   SUM=$((SUM + 1))
 fi
 
 divider
 
 # create tekton tasks
-tracing="-t -z $NAMESPACE"
+TRACING="-t -z $NAMESPACE"
 echo -e "$INFO [INFO] Create tekton tasks for the dev pipeline of the driveway dent deletion demo"
 if cat $CURRENT_DIR/../../CommonPipelineResources/cicd-tasks.yaml |
   sed "s#{{NAMESPACE}}#$NAMESPACE#g;" |
-  sed "s#{{TRACING}}#$tracing#g;" |
+  sed "s#{{TRACING}}#$TRACING#g;" |
   oc apply -f -; then
-  echo -e "$TICK [SUCCESS] Successfully applied tekton tasks in the '$NAMESPACE' namespace"
+  echo -e "\n$TICK [SUCCESS] Successfully applied tekton tasks in the '$NAMESPACE' namespace for the dev pipeline of the driveway dent deletion demo"
 else
-  echo -e "$CROSS [ERROR] Failed to apply tekton tasks in the '$NAMESPACE' namespace"
+  echo -e "\n$CROSS [ERROR] Failed to apply tekton tasks in the '$NAMESPACE' namespace for the dev pipeline of the driveway dent deletion demo"
   SUM=$((SUM + 1))
 fi
 
@@ -138,9 +138,9 @@ if cat $CURRENT_DIR/cicd-dev/cicd-pipeline.yaml |
   sed "s#{{FORKED_REPO}}#$REPO#g;" |
   sed "s#{{BRANCH}}#$BRANCH#g;" |
   oc apply -f -; then
-  echo -e "$TICK [SUCCESS] Successfully applied the pipeline to run tasks to build and deploy to '$NAMESPACE' namespace"
+  echo -e "\n$TICK [SUCCESS] Successfully applied the pipeline to run tasks to build and deploy to '$NAMESPACE' namespace for the dev pipeline of the driveway dent deletion demo"
 else
-  echo -e "$CROSS [ERROR] Failed to apply the pipeline to run tasks to build and deploy to '$NAMESPACE' namespace"
+  echo -e "\n$CROSS [ERROR] Failed to apply the pipeline to run tasks to build and deploy to '$NAMESPACE' namespace for the dev pipeline of the driveway dent deletion demo"
   SUM=$((SUM + 1))
 fi
 
@@ -149,9 +149,9 @@ divider
 # create the trigger template containing the pipelinerun
 echo -e "$INFO [INFO] Create the trigger template for the dev pipeline of the driveway dent deletion demo in the '$NAMESPACE' namespace"
 if oc apply -f $CURRENT_DIR/cicd-dev/cicd-trigger-template.yaml; then
-  echo -e "$TICK [SUCCESS] Successfully applied the trigger template containing the pipelinerun in the '$NAMESPACE' namespace"
+  echo -e "\n$TICK [SUCCESS] Successfully applied the trigger template containing the pipelinerun in the '$NAMESPACE' namespace for the dev pipeline of the driveway dent deletion demo"
 else
-  echo -e "$CROSS [ERROR] Failed to apply the trigger template containing the pipelinerun in the '$NAMESPACE' namespace"
+  echo -e "\n$CROSS [ERROR] Failed to apply the trigger template containing the pipelinerun in the '$NAMESPACE' namespace for the dev pipeline of the driveway dent deletion demo"
   SUM=$((SUM + 1))
 fi
 
@@ -160,20 +160,20 @@ divider
 # create the event listener and route for webhook
 echo "INFO : Create the event listener and route for webhook for the dev pipeline of the driveway dent deletion demo in the '$NAMESPACE' namespace"
 if oc apply -f $CURRENT_DIR/cicd-dev/cicd-events-routes.yaml; then
-  echo -e "$TICK [SUCCESS] Successfully created the event listener and route for webhook in the '$NAMESPACE' namespace"
+  echo -e "\n$TICK [SUCCESS] Successfully created the event listener and route for webhook in the '$NAMESPACE' namespace for the dev pipeline of the driveway dent deletion demo"
 else
-  echo -e "$CROSS [ERROR] Failed to apply the event listener and route for webhook in the '$NAMESPACE' namespace"
+  echo -e "\n$CROSS [ERROR] Failed to apply the event listener and route for webhook in the '$NAMESPACE' namespace for the dev pipeline of the driveway dent deletion demo"
   SUM=$((SUM + 1))
 fi
 
 divider
 
-echo -e "$INFO [INFO] Waiting for webhook to appear in the '$NAMESPACE' namespace..."
+echo -e "$INFO [INFO] Waiting for webhook to appear in the '$NAMESPACE' namespace for the dev pipeline of the driveway dent deletion demo..."
 
 time=0
 while ! oc get route -n $NAMESPACE el-main-trigger-route --template='http://{{.spec.host}}'; do
   if [ $time -gt 5 ]; then
-    echo -e "$CROSS [ERROR] Timed-out trying to wait for webhook to appear in the '$NAMESPACE' namespace"
+    echo -e "\n$CROSS [ERROR] Timed-out trying to wait for webhook to appear in the '$NAMESPACE' namespace for the dev pipeline of the driveway dent deletion demo"
     divider
     exit 1
   fi
@@ -183,13 +183,13 @@ while ! oc get route -n $NAMESPACE el-main-trigger-route --template='http://{{.s
 done
 
 WEBHOOK_ROUTE=$(oc get route -n $NAMESPACE el-main-trigger-route --template='http://{{.spec.host}}')
-echo -e "\n\n$TICK [INFO] Webhook route in the '$NAMESPACE' namespace: $WEBHOOK_ROUTE"
+echo -e "\n\n$TICK [INFO] Webhook route in the '$NAMESPACE' namespace for the dev pipeline of the driveway dent deletion demo: $WEBHOOK_ROUTE"
 
 if [[ -z $WEBHOOK_ROUTE ]]; then
-  echo -e "$CROSS [ERROR] Failed to get route for the webhook in the '$NAMESPACE' namespace"
+  echo -e "\n$CROSS [ERROR] Failed to get route for the webhook in the '$NAMESPACE' namespace for the dev pipeline of the driveway dent deletion demo"
   SUM=$((SUM + 1))
 else
-  echo -e "$TICK [SUCCESS] Successfully got route for the webhook in the '$NAMESPACE' namespace"
+  echo -e "\n$TICK [SUCCESS] Successfully got route for the webhook in the '$NAMESPACE' namespace for the dev pipeline of the driveway dent deletion demo"
 fi
 
 divider
@@ -199,9 +199,9 @@ if [[ $SUM -gt 0 ]]; then
   exit 1
 else
   # print route for webhook
-  echo -e "$INFO [INFO] Your trigger route for the github webhook is: $WEBHOOK_ROUTE"
+  echo -e "$INFO [INFO] Your trigger route for the github webhook for the dev pipeline of the driveway dent deletion demo is: $WEBHOOK_ROUTE"
   echo -e "\n$INFO [INFO] The next step is to add the trigger URL to the forked repository as a webhook with the Content type as 'application/json', which triggers an initial run of the pipeline.\n"
-  echo -e "$TICK  $ALL_DONE Successfully applied all the cicd pipeline resources and requirements in the '$NAMESPACE' namespace"
+  echo -e "$TICK  $ALL_DONE Successfully applied all the cicd pipeline resources and requirements in the '$NAMESPACE' namespace for the dev pipeline of the driveway dent deletion demo"
 fi
 
 divider
