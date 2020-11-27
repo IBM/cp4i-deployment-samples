@@ -180,8 +180,8 @@ divider
 echo -e "$INFO [INFO] Create the pipeline to run tasks to build, deploy, test e2e in '$NAMESPACE' namespace for the test apic pipeline of the driveway dent deletion demo"
 if cat $CURRENT_DIR/cicd-test-apic/cicd-pipeline.yaml |
   sed "s#{{NAMESPACE}}#$NAMESPACE#g;" |
-  sed "s#{{FORKED_REPO}}#$repo#g;" |
-  sed "s#{{BRANCH}}#$branch#g;" |
+  sed "s#{{FORKED_REPO}}#$REPO#g;" |
+  sed "s#{{BRANCH}}#$BRANCH#g;" |
   oc apply -f -; then
   echo -e "$TICK [SUCCESS] Successfully applied the pipeline to run tasks to build, deploy, test e2e in '$NAMESPACE' namespace for the test apic pipeline of the driveway dent deletion demo"
 else
@@ -245,7 +245,7 @@ if [[ $sum -gt 0 ]]; then
 else
   # print route for webhook
   echo -e "$INFO [INFO] Your trigger route for the github webhook for the test apic pipeline of the driveway dent deletion demo is: $WEBHOOK_ROUTE"
-  echo -e "\n$TICK [INFO] The next step is to add the trigger URL to the forked repo as a webhook with the Content type as 'application/json', which triggers an initial run of the pipeline.\n"
+  echo -e "\n$TICK [INFO] The next step is to add the trigger URL to the forked repository as a webhook with the Content type as 'application/json', which triggers an initial run of the pipeline.\n"
   echo -e "$TICK $ALL_DONE [SUCCESS] Successfully applied all the cicd pipeline resources and requirements in the '$NAMESPACE' namespace for the test apic pipeline of the driveway dent deletion demo"
 fi
 
