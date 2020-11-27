@@ -106,20 +106,18 @@ oc project $NAMESPACE
 divider
 
 # apply pvc for buildah tasks
-echo "INFO: Apply pvc for buildah tasks for the test apic pipeline of the driveway dent deletion demo"
+echo -e "$INFO [INFO] Apply pvc for buildah tasks for the test apic pipeline of the driveway dent deletion demo"
 if oc apply -f $CURRENT_DIR/cicd-test-apic/cicd-pvc.yaml; then
-  printf "$tick "
-  echo "Successfully applied pvc in the '$NAMESPACE' namespace"
+  echo -e "$TICK [SUCCESS] Successfully applied pvc in the '$NAMESPACE' namespace"
 else
-  printf "$cross "
-  echo "Failed to apply pvc in the '$NAMESPACE' namespace"
+  echo -e "$CROSS [ERROR] Failed to apply pvc in the '$NAMESPACE' namespace"
   sum=$((sum + 1))
 fi
 
 divider
 
 # # create service accounts
-# echo "INFO: Create service accounts for the test apic pipeline of the driveway dent deletion demo"
+# echo -e "$INFO [INFO] Create service accounts for the test apic pipeline of the driveway dent deletion demo"
 # if cat $CURRENT_DIR/cicd-test-apic/cicd-service-accounts.yaml |
 #   sed "s#{{NAMESPACE}}#$NAMESPACE#g;" |
 #   oc apply -f -; then
@@ -127,14 +125,14 @@ divider
 #   echo "Successfully applied service accounts in the '$NAMESPACE' namespace for the test apic pipeline of the driveway dent deletion demo"
 # else
 #   printf "$cross "
-#   echo "Failed to apply service accounts in the '$NAMESPACE' namespace for the test apic pipeline of the driveway dent deletion demo"
+#   echo -e "$CROSS [ERROR] Failed to apply service accounts in the '$NAMESPACE' namespace for the test apic pipeline of the driveway dent deletion demo"
 #   sum=$((sum + 1))
 # fi
 
 # divider
 
 # # create roles for tasks
-# echo "INFO: Create roles for tasks for the test apic pipeline of the driveway dent deletion demo"
+# echo -e "$INFO [INFO] Create roles for tasks for the test apic pipeline of the driveway dent deletion demo"
 # if cat $CURRENT_DIR/cicd-test-apic/cicd-roles.yaml |
 #   sed "s#{{NAMESPACE}}#$NAMESPACE#g;" |
 #   oc apply -f -; then
@@ -142,14 +140,14 @@ divider
 #   echo "Successfully created roles for tasks in the '$NAMESPACE' namespace for the test apic pipeline of the driveway dent deletion demo"
 # else
 #   printf "$cross "
-#   echo "Failed to create roles for tasks in the '$NAMESPACE' namespace for the test apic pipeline of the driveway dent deletion demo"
+#   echo -e "$CROSS [ERROR] Failed to create roles for tasks in the '$NAMESPACE' namespace for the test apic pipeline of the driveway dent deletion demo"
 #   sum=$((sum + 1))
 # fi
 
 # divider
 
 # # create role bindings for roles
-# echo "INFO: Create role bindings for roles for the test apic pipeline of the driveway dent deletion demo"
+# echo -e "$INFO [INFO] Create role bindings for roles for the test apic pipeline of the driveway dent deletion demo"
 # if cat $CURRENT_DIR/cicd-test-apic/cicd-rolebindings.yaml |
 #   sed "s#{{NAMESPACE}}#$NAMESPACE#g;" |
 #   oc apply -f -; then
@@ -157,54 +155,48 @@ divider
 #   echo "Successfully applied role bindings for roles in the '$NAMESPACE' namespace for the test apic pipeline of the driveway dent deletion demo"
 # else
 #   printf "$cross "
-#   echo "Failed to apply role bindings for roles in the '$NAMESPACE' namespace for the test apic pipeline of the driveway dent deletion demo"
+#   echo -e "$CROSS [ERROR] Failed to apply role bindings for roles in the '$NAMESPACE' namespace for the test apic pipeline of the driveway dent deletion demo"
 #   sum=$((sum + 1))
 # fi
 
 divider
 
 # create tekton tasks
-echo "INFO: Create tekton tasks for the test apic pipeline of the driveway dent deletion demo"
+echo -e "$INFO [INFO] Create tekton tasks for the test apic pipeline of the driveway dent deletion demo"
 tracing="-t -z $NAMESPACE"
 if cat $CURRENT_DIR/cicd-test-apic/cicd-tasks.yaml |
   sed "s#{{NAMESPACE}}#$NAMESPACE#g;" |
   sed "s#{{TRACING}}#$tracing#g;" |
   oc apply -f -; then
-  printf "$tick "
-  echo "Successfully applied tekton tasks in the '$NAMESPACE' namespace for the test apic pipeline of the driveway dent deletion demo"
+  echo -e "$TICK [SUCCESS] Successfully applied tekton tasks in the '$NAMESPACE' namespace for the test apic pipeline of the driveway dent deletion demo"
 else
-  printf "$cross "
-  echo "Failed to apply tekton tasks in the '$NAMESPACE' namespace for the test apic pipeline of the driveway dent deletion demo"
+  echo -e "$CROSS [ERROR] Failed to apply tekton tasks in the '$NAMESPACE' namespace for the test apic pipeline of the driveway dent deletion demo"
   sum=$((sum + 1))
 fi
 
 divider
 
 # create the pipeline to run tasks to build, deploy, test e2e and push to test namespace
-echo "INFO: Create the pipeline to run tasks to build, deploy, test e2e in '$NAMESPACE' namespace for the test apic pipeline of the driveway dent deletion demo"
+echo -e "$INFO [INFO] Create the pipeline to run tasks to build, deploy, test e2e in '$NAMESPACE' namespace for the test apic pipeline of the driveway dent deletion demo"
 if cat $CURRENT_DIR/cicd-test-apic/cicd-pipeline.yaml |
   sed "s#{{NAMESPACE}}#$NAMESPACE#g;" |
   sed "s#{{FORKED_REPO}}#$repo#g;" |
   sed "s#{{BRANCH}}#$branch#g;" |
   oc apply -f -; then
-  printf "$tick "
-  echo "Successfully applied the pipeline to run tasks to build, deploy, test e2e in '$NAMESPACE' namespace for the test apic pipeline of the driveway dent deletion demo"
+  echo -e "$TICK [SUCCESS] Successfully applied the pipeline to run tasks to build, deploy, test e2e in '$NAMESPACE' namespace for the test apic pipeline of the driveway dent deletion demo"
 else
-  printf "$cross "
-  echo "Failed to apply the pipeline to run tasks to build, deploy test e2e in '$NAMESPACE' namespace for the test apic pipeline of the driveway dent deletion demo"
+  echo -e "$CROSS [ERROR] Failed to apply the pipeline to run tasks to build, deploy test e2e in '$NAMESPACE' namespace for the test apic pipeline of the driveway dent deletion demo"
   sum=$((sum + 1))
 fi
 
 divider
 
 # create the trigger template containing the pipelinerun
-echo "INFO: Create the trigger template containing the pipelinerun in the '$NAMESPACE' namespace for the test apic pipeline of the driveway dent deletion demo"
+echo -e "$INFO [INFO] Create the trigger template containing the pipelinerun in the '$NAMESPACE' namespace for the test apic pipeline of the driveway dent deletion demo"
 if oc apply -f $CURRENT_DIR/cicd-test-apic/cicd-trigger-template.yaml; then
-  printf "$tick "
-  echo "Successfully applied the trigger template containing the pipelinerun in the '$NAMESPACE' namespace for the test apic pipeline of the driveway dent deletion demo"
+  echo -e "$TICK [SUCCESS] Successfully applied the trigger template containing the pipelinerun in the '$NAMESPACE' namespace for the test apic pipeline of the driveway dent deletion demo"
 else
-  printf "$cross "
-  echo "Failed to apply the trigger template containing the pipelinerun in the '$NAMESPACE' namespace for the test apic pipeline of the driveway dent deletion demo"
+  echo -e "$CROSS [ERROR] Failed to apply the trigger template containing the pipelinerun in the '$NAMESPACE' namespace for the test apic pipeline of the driveway dent deletion demo"
   sum=$((sum + 1))
 fi
 
@@ -213,26 +205,24 @@ divider
 # create the event listener and route for webhook
 echo "INFO : Create the event listener and route for webhook in the '$NAMESPACE' namespace for the test apic pipeline of the driveway dent deletion demo"
 if oc apply -f $CURRENT_DIR/cicd-test-apic/cicd-events-routes.yaml; then
-  printf "$tick "
-  echo "Successfully created the event listener and route for webhook in the '$NAMESPACE' namespace for the test apic pipeline of the driveway dent deletion demo"
+  echo -e "$TICK [SUCCESS] Successfully created the event listener and route for webhook in the '$NAMESPACE' namespace for the test apic pipeline of the driveway dent deletion demo"
 else
-  printf "$cross "
-  echo "Failed to apply the event listener and route for webhook in the '$NAMESPACE' namespace for the test apic pipeline of the driveway dent deletion demo"
+  echo -e "$CROSS [ERROR] Failed to apply the event listener and route for webhook in the '$NAMESPACE' namespace for the test apic pipeline of the driveway dent deletion demo"
   sum=$((sum + 1))
 fi
 
 divider
 
-echo -e "INFO: Waiting for webhook to appear in the '$NAMESPACE' namespace for the test apic pipeline of the driveway dent deletion demo\n"
+echo -e -e "$INFO [INFO] Waiting for webhook to appear in the '$NAMESPACE' namespace for the test apic pipeline of the driveway dent deletion demo\n"
 
 time=0
 while ! oc get route -n $NAMESPACE el-main-trigger-route --template='http://{{.spec.host}}'; do
   if [ $time -gt 5 ]; then
-    echo "ERROR: Timed-out trying to wait for webhook to appear in the '$NAMESPACE' namespace"
+    echo -e "$CROSS [ERROR] Timed-out trying to wait for webhook to appear in the '$NAMESPACE' namespace"
     divider
     exit 1
   fi
-  echo "INFO: Waiting for upto 5 minutes for the webhook route to appear for the tekton pipeline trigger in the '$NAMESPACE' namespace. Waited $time minute(s)"
+  echo -e "$INFO [INFO] Waiting for upto 5 minutes for the webhook route to appear for the tekton pipeline trigger in the '$NAMESPACE' namespace. Waited $time minute(s)"
   time=$((time + 1))
   sleep 60
 done
@@ -241,25 +231,22 @@ WEBHOOK_ROUTE=$(oc get route -n $NAMESPACE el-main-trigger-route --template='htt
 echo -e "\n\nINFO: Webhook route in the '$NAMESPACE' namespace: $WEBHOOK_ROUTE"
 
 if [[ -z $WEBHOOK_ROUTE ]]; then
-  printf "$cross "
-  echo "Failed to get route for the webhook in the '$NAMESPACE' namespace for the test apic pipeline of the driveway dent deletion demo"
+  echo -e "$CROSS [ERROR] Failed to get route for the webhook in the '$NAMESPACE' namespace for the test apic pipeline of the driveway dent deletion demo"
   sum=$((sum + 1))
 else
-  printf "$tick "
-  echo "Successfully got route for the webhook in the '$NAMESPACE' namespace for the test apic pipeline of the driveway dent deletion demo"
+  echo -e "$TICK [SUCCESS] Successfully got route for the webhook in the '$NAMESPACE' namespace for the test apic pipeline of the driveway dent deletion demo"
 fi
 
 divider
 
 if [[ $sum -gt 0 ]]; then
-  echo "ERROR: Creating the webhook is not recommended as some resources have not been applied successfully in the '$NAMESPACE' namespace for the test apic pipeline of the driveway dent deletion demo"
+  echo -e "$CROSS [ERROR] Creating the webhook is not recommended as some resources have not been applied successfully in the '$NAMESPACE' namespace for the test apic pipeline of the driveway dent deletion demo"
   exit 1
 else
   # print route for webhook
-  echo "INFO: Your trigger route for the github webhook for the test apic pipeline of the driveway dent deletion demo is: $WEBHOOK_ROUTE"
-  echo -e "\nINFO: The next step is to add the trigger URL to the forked repo as a webhook with the Content type as 'application/json', which triggers an initial run of the pipeline.\n"
-  printf "$tick  $all_done "
-  echo "Successfully applied all the cicd pipeline resources and requirements in the '$NAMESPACE' namespace for the test apic pipeline of the driveway dent deletion demo"
+  echo -e "$INFO [INFO] Your trigger route for the github webhook for the test apic pipeline of the driveway dent deletion demo is: $WEBHOOK_ROUTE"
+  echo -e "\n$TICK [INFO] The next step is to add the trigger URL to the forked repo as a webhook with the Content type as 'application/json', which triggers an initial run of the pipeline.\n"
+  echo -e "$TICK $ALL_DONE [SUCCESS] Successfully applied all the cicd pipeline resources and requirements in the '$NAMESPACE' namespace for the test apic pipeline of the driveway dent deletion demo"
 fi
 
 divider
