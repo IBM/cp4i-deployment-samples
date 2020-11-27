@@ -236,9 +236,6 @@ spec:
       taskRef:
         name: api-test-e2e
       params:
-        - name: namespaceSuffix
-          #this will not be appended to the namespace name in the test-api-e2e script
-          value: "dev"
         - name: suffix
           value: "ddd"
       workspaces:
@@ -432,8 +429,6 @@ spec:
       taskRef:
         name: api-test-e2e
       params:
-        - name: namespaceSuffix
-          value: "ddd-test"
         - name: suffix
           value: "ddd"
       workspaces:

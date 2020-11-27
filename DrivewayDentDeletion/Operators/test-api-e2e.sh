@@ -13,11 +13,9 @@
 #
 # PARAMETERS:
 #   -n : <NAMESPACE> (string), defaults to "cp4i"
-#   -r : <RELEASE> (string), defaults to "ademo"
-#   -p : <NAMESPACE_SUFFIX> (string), defaults to ""
 #   -s : <USER_DB_SUFFIX> (string), defaults to ""
 #   -a : <APIC_ENABLED>
-#   -g : <POSTGRES_NAMESPACE> (string), Namespace where postgres is setup, Defaults to 'cp4i'
+#   -p : <POSTGRES_NAMESPACE> (string), Namespace where postgres is setup, Defaults to 'cp4i'
 #
 #   With default values
 #     ./test-api-e2e.sh
@@ -27,7 +25,7 @@ function divider() {
 }
 
 function usage() {
-  echo "Usage: $0 -n <NAMESPACE> -r <RELEASE> -p <NAMESPACE_SUFFIX> -s <USER_DB_SUFFIX> -g <POSTGRES_NAMESPACE> -a"
+  echo "Usage: $0 -n <NAMESPACE> -s <USER_DB_SUFFIX> -p <POSTGRES_NAMESPACE> -a"
   divider
   exit 1
 }
@@ -36,7 +34,6 @@ CURRENT_DIR=$(dirname $0)
 TICK="\xE2\x9C\x85"
 CROSS="\xE2\x9D\x8C"
 NAMESPACE="cp4i"
-RELEASE="ademo"
 APIC=false
 os_sed_flag=""
 POSTGRES_NAMESPACE=$NAMESPACE
@@ -45,21 +42,15 @@ if [[ $(uname) == Darwin ]]; then
   os_sed_flag="-e"
 fi
 
-while getopts "n:r:p:s:g:a" opt; do
+while getopts "n:p:s:a" opt; do
   case ${opt} in
   n)
     NAMESPACE="$OPTARG"
     ;;
-  r)
-    RELEASE="$OPTARG"
-    ;;
-  p)
-    NAMESPACE_SUFFIX="$OPTARG"
-    ;;
   s)
     USER_DB_SUFFIX="$OPTARG"
     ;;
-  g)
+  p)
     POSTGRES_NAMESPACE="$OPTARG"
     ;;
   a)
@@ -72,22 +63,9 @@ while getopts "n:r:p:s:g:a" opt; do
   esac
 done
 
-# -------------------------------------- CHECK SUFFIX FOR NAMESPACE, USER AND DATABASE NAME ---------------------------------------------------------------------
-
 echo "Namespace passed: $NAMESPACE"
 echo "User name suffix: $USER_DB_SUFFIX"
 echo "Postgres namespace passed: $POSTGRES_NAMESPACE"
-
-MAIN_NAMESPACE=${NAMESPACE}
-
-# check if the namespace is dev or test
-if [[ "$NAMESPACE_SUFFIX" == "dev" ]]; then
-  NAMESPACE="${NAMESPACE}"
-else
-  echo "Namespace suffix: $NAMESPACE_SUFFIX"
-  NAMESPACE="${NAMESPACE}-${NAMESPACE_SUFFIX}"
-fi
-
 divider
 
 # -------------------------------------- INSTALL JQ ---------------------------------------------------------------------
@@ -183,7 +161,7 @@ if [ "$post_response_code" == "200" ]; then
   # The usage of sed here is to prevent an error caused between the -w flag of curl and jq not interacting well
   echo ${post_response} | $JQ '.' | sed $os_sed_flag '$ d'
 
-  echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------"
+  divider
 
   # ------- Get from the database -------
   echo -e "\nINFO: GET request..."
@@ -195,7 +173,7 @@ if [ "$post_response_code" == "200" ]; then
     # The usage of sed here is to prevent an error caused between the -w flag of curl and jq not interacting well
     echo ${get_response} | $JQ '.' | sed $os_sed_flag '$ d'
 
-    echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------"
+    divider
 
     #  ------- Get row to confirm post -------
     echo -e "\nINFO: Select and print the row as user '${DB_USER}' from database '${DB_NAME}' with id '$quote_id' to confirm POST and GET..."
@@ -215,7 +193,7 @@ if [ "$post_response_code" == "200" ]; then
     exit 1
   fi
 
-  echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------"
+  divider
   # ------- Delete from the database -------
   echo -e "\nINFO: Deleting row from database '${DB_NAME}' as user '${DB_USER}' with quote id '$quote_id'..."
   if ! oc exec -n $POSTGRES_NAMESPACE -it ${DB_POD} \
@@ -228,7 +206,7 @@ if [ "$post_response_code" == "200" ]; then
     echo -e "\n$TICK INFO: Successfully deleted the row with quote id '$quote_id'"
   fi
 
-  echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------"
+  divider
 
   #  ------- Get row output and check for '0 rows' in output to confirm deletion -------
   echo -e "\nINFO: Confirming the deletion of the row with the quote id '$quote_id' from database '${DB_NAME}' as the user '${DB_USER}'..."
@@ -251,4 +229,4 @@ else
   divider
   exit 1
 fi
-echo -e "----------------------------------------------------------------------------------------------------------------------------------------------------------"
+divider
