@@ -325,7 +325,7 @@ spec:
         - name: releaseScript
           value: release-mq.sh
         - name: namespace
-          value: "{{NAMESPACE}}-ddd-test"
+          value: "{{NAMESPACE}}"
       workspaces:
         - name: git-source
           workspace: git-source
@@ -346,7 +346,7 @@ spec:
         - name: releaseScript
           value: release-ace-integration-server.sh
         - name: namespace
-          value: "{{NAMESPACE}}-ddd-test"
+          value: "{{NAMESPACE}}"
       workspaces:
         - name: git-source
           workspace: git-source
@@ -367,7 +367,7 @@ spec:
         - name: releaseScript
           value: release-ace-integration-server.sh
         - name: namespace
-          value: "{{NAMESPACE}}-ddd-test"
+          value: "{{NAMESPACE}}"
       workspaces:
         - name: git-source
           workspace: git-source
@@ -388,7 +388,7 @@ spec:
         - name: releaseScript
           value: release-ace-integration-server.sh
         - name: namespace
-          value: "{{NAMESPACE}}-ddd-test"
+          value: "{{NAMESPACE}}"
       workspaces:
         - name: git-source
           workspace: git-source
@@ -409,7 +409,7 @@ spec:
         - name: releaseScript
           value: release-ace-integration-server.sh
         - name: namespace
-          value: "{{NAMESPACE}}-ddd-test"
+          value: "{{NAMESPACE}}"
       workspaces:
         - name: git-source
           workspace: git-source

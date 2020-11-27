@@ -108,9 +108,9 @@ spec:
           image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}/$(params.imageName):$(params.imageTag)
         buildah tag \
           image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}/$(params.imageName):$(params.imageTag) \
-          image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}-ddd-test/$(params.imageName):$(params.imageTag)-test
+          image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}/$(params.imageName):$(params.imageTag)-test
         buildah push --tls-verify=false \
-          image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}-ddd-test/$(params.imageName):$(params.imageTag)-test
+          image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}/$(params.imageName):$(params.imageTag)-test
         df -h /var/lib/containers
       volumeMounts:
         - mountPath: /var/lib/containers
@@ -134,9 +134,6 @@ metadata:
   name: api-test-e2e
 spec:
   params:
-    - name: namespaceSuffix
-      type: string
-      description: The namespace suffix
     - name: suffix
       type: string
       description: The suffix for the user and database name
@@ -145,7 +142,7 @@ spec:
   steps:
     - name: oc
       image: quay.io/openshift/origin-cli:latest
-      script: "/workspace/git-source/DrivewayDentDeletion/Operators/test-api-e2e.sh -n {{NAMESPACE}} -s $(params.suffix) -p $(params.namespaceSuffix) -a"
+      script: "/workspace/git-source/DrivewayDentDeletion/Operators/test-api-e2e.sh -n {{NAMESPACE}} -s $(params.suffix) -a"
 
 ---
 apiVersion: tekton.dev/v1beta1
