@@ -63,17 +63,17 @@ while getopts "n:r:b:" opt; do
 done
 
 if [[ -z "${NAMESPACE// /}" ]]; then
-  echo -e "$CROSS [ERROR] Namespace for driveway dent deletion demo is empty. Please provide a value for '-n' parameter."
+  echo -e "$CROSS [ERROR] Namespace parameter for test pipeline of driveway dent deletion demo is empty. Please provide a value for '-n' parameter."
   MISSING_PARAMS="true"
 fi
 
 if [[ -z "${REPO// /}" ]]; then
-  echo -e "$CROSS [ERROR] Repository name parameter for dev pipeline of driveway dent deletion demo is empty. Please provide a value for '-r' parameter."
+  echo -e "$CROSS [ERROR] Repository name parameter for test pipeline of driveway dent deletion demo is empty. Please provide a value for '-r' parameter."
   MISSING_PARAMS="true"
 fi
 
 if [[ -z "${BRANCH// /}" ]]; then
-  echo -e "$CROSS [ERROR] Branch name parameter for dev pipeline of driveway dent deletion demo is empty. Please provide a value for '-b' parameter."
+  echo -e "$CROSS [ERROR] Branch name parameter for test pipeline of driveway dent deletion demo is empty. Please provide a value for '-b' parameter."
   MISSING_PARAMS="true"
 fi
 
