@@ -241,17 +241,17 @@ divider
 
 # -------------------------------------------- DEV PIPELINE RUN -----------------------------------------------------------
 
-# echo -e "$INFO INFO: Applying the dev pipeline resources...\n"
-# if ! $CURRENT_DIR/cicd-apply-dev-pipeline.sh -n $NAMESPACE -r $FORKED_REPO -b $BRANCH; then
-#     echo -e "$CROSS ERROR: Could not apply the dev pipeline resources."
-#     exit 1
-# fi
+echo -e "$INFO INFO: Applying the dev pipeline resources...\n"
+if ! $CURRENT_DIR/cicd-apply-dev-pipeline.sh -n $NAMESPACE -r $FORKED_REPO -b $BRANCH; then
+    echo -e "$CROSS ERROR: Could not apply the dev pipeline resources."
+    exit 1
+fi
 
-# wait_and_trigger_pipeline "dev"
+wait_and_trigger_pipeline "dev"
 
-# run_continuous_load_script "$NAMESPACE" "false" "dev"
+run_continuous_load_script "$NAMESPACE" "false" "dev"
 
-# run_continuous_load_script "$NAMESPACE" "false" "dev"
+run_continuous_load_script "$NAMESPACE" "false" "dev"
 
 # -------------------------------------------- TEST PIPELINE RUN ----------------------------------------------------------
 
@@ -267,24 +267,24 @@ run_continuous_load_script "$NAMESPACE" "false" "test"
 
 run_continuous_load_script "$NAMESPACE" "false" "test"
 
-# # -------------------------------------------- TEST APIC PIPELINE RUN -----------------------------------------------------
+# -------------------------------------------- TEST APIC PIPELINE RUN -----------------------------------------------------
 
-# echo -e "$INFO INFO: Applying the test apic pipeline resources...\n"
-# if ! $CURRENT_DIR/cicd-apply-test-apic-pipeline.sh -n $NAMESPACE -r $FORKED_REPO -b $BRANCH; then
-#     echo -e "$CROSS ERROR: Could not apply the test apic pipeline resources."
-#     exit 1
-# fi
+echo -e "$INFO INFO: Applying the test apic pipeline resources...\n"
+if ! $CURRENT_DIR/cicd-apply-test-apic-pipeline.sh -n $NAMESPACE -r $FORKED_REPO -b $BRANCH; then
+    echo -e "$CROSS ERROR: Could not apply the test apic pipeline resources."
+    exit 1
+fi
 
-# wait_and_trigger_pipeline "test-apic"
+wait_and_trigger_pipeline "test-apic"
 
-# run_continuous_load_script "$NAMESPACE" "true" "test-apic"
+run_continuous_load_script "$NAMESPACE" "true" "test-apic"
 
-# run_continuous_load_script "$NAMESPACE-ddd-test" "true" "test-apic"
+run_continuous_load_script "$NAMESPACE-ddd-test" "true" "test-apic"
 
-# # -------------------------------------------PRINT PIPELINERUN, TASKRUN, EXIT ---------------------------------------------
+# -------------------------------------------PRINT PIPELINERUN, TASKRUN, EXIT ---------------------------------------------
 
-# print_pipelineruns_taskruns
+print_pipelineruns_taskruns
 
-# echo -e "$TICK $ALL_DONE INFO: The DDD E2E test ran successfully $ALL_DONE $TICK"
+echo -e "$TICK $ALL_DONE INFO: The DDD E2E test ran successfully $ALL_DONE $TICK"
 
-# divider
+divider
