@@ -147,6 +147,8 @@ DB_SVC="postgresql.$POSTGRES_NAMESPACE.svc.cluster.local"
 
 echo -e "$INFO [INFO] Current directory: $CURRENT_DIR"
 echo -e "$INFO [INFO] Config directory: $CONFIG_DIR"
+echo -e "$INFO [INFO] Namespace passed: '$NAMESPACE'"
+echo -e "$INFO [INFO] Namespace passed for postgres: '$POSTGRES_NAMESPACE'"
 echo -e "$INFO [INFO] Database username: '$DB_USER'"
 echo -e "$INFO [INFO] Database name: '$DB_NAME'"
 echo -e "$INFO [INFO] Postgres pod name in the '$POSTGRES_NAMESPACE' namespace: '$DB_POD'"

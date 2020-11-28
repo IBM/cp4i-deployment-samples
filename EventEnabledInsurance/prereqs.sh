@@ -251,7 +251,7 @@ stringData:
 EOF
 
 echo -e "\n$INFO [INFO] Creating ace postgres configuration and policy in the '$NAMESPACE' namespace with the user '$DB_USER' and database name '$DB_NAME' and suffix '$SUFFIX'"
-if ! $CURRENT_DIR/../products/bash/create-ace-config.sh -n $NAMESPACE -u $DB_USER -d $DB_NAME -p $DB_PASS -s $SUFFIX; then
+if ! $CURRENT_DIR/../products/bash/create-ace-config.sh -n $NAMESPACE -u $DB_USER -d $DB_NAME -p $DB_PASS -s $SUFFIX -g $POSTGRES_NAMESPACE; then
   echo -e "\n$CROSS [ERROR] Failed to configure ace in the '$NAMESPACE' namespace with the user '$DB_USER' and database name '$DB_NAME' and suffix '$SUFFIX'"
   exit 1
 else
