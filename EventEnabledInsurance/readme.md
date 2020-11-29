@@ -443,7 +443,7 @@ curl -X DELETE -u "${ELASTIC_USER}:${ELASTIC_PASSWORD}" -k https://localhost:920
 # Working directly with the System Of Record database
 Setup some env vars
 ```
-POSTGRES_NAMESPACE=postgres
+POSTGRES_NAMESPACE=cp4i
 DB_POD=$(oc get pod -n ${POSTGRES_NAMESPACE} -l name=postgresql -o jsonpath='{.items[].metadata.name}')
 DB_NAME=$(oc get secret eei-postgres-replication-credential -o json | \
   jq -r '.data["connector.properties"]' | base64 --decode | grep dbName | awk '{print $2}')
@@ -601,7 +601,7 @@ Prereqs:
 
 1. Setup some env vars:
     ```sh
-    POSTGRES_NAMESPACE=postgres
+    POSTGRES_NAMESPACE=cp4i
     DB_POD=$(oc get pod -n ${POSTGRES_NAMESPACE} -l name=postgresql -o jsonpath='{.items[].metadata.name}')
     DB_NAME=$(oc get secret eei-postgres-replication-credential -o json | \
     jq -r '.data["connector.properties"]' | base64 --decode | grep dbName | awk '{print $2}')

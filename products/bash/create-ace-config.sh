@@ -10,7 +10,7 @@
 
 # PARAMETERS:
 #   -n : <NAMESPACE> (string), namespace defaults to 'cp4i'
-#   -g : <POSTGRES_NAMESPACE> psql namespace defaults to 'postgres'
+#   -g : <POSTGRES_NAMESPACE> psql namespace defaults to the value of <NAMESPACE>
 #   -u : <DB_USER> (string), psql db user defaults to 'cp4i'
 #   -d : <DB_NAME> (string), psql db name defaults to 'db_cp4i'
 #   -p : <DB_PASS> (string), psql db password defaults to ''
@@ -37,7 +37,7 @@ CROSS="\xE2\x9D\x8C"
 INFO="\xE2\x84\xB9"
 TICK="\xE2\x9C\x85"
 NAMESPACE="cp4i"
-POSTGRES_NAMESPACE="postgres"
+POSTGRES_NAMESPACE=$NAMESPACE
 DB_USER="cp4i"
 DB_NAME="db_cp4i"
 DB_PASS=""

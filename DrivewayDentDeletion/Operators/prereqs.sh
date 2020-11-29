@@ -14,7 +14,7 @@
 # PARAMETERS:
 #   -n : <NAMESPACE> (string), Defaults to 'cp4i'
 #   -r : <NAV_REPLICAS> (string), Defaults to '2'
-#   -p : <POSTGRES_NAMESPACE> (string), Namespace where postgres is setup, Defaults to 'postgres'
+#   -p : <POSTGRES_NAMESPACE> (string), Namespace where postgres is setup, Defaults to the value of <NAMESPACE>
 #   -o : <OMIT_INITIAL_SETUP> (optional), Parameter to decide if initial setup is to be done or not, Defaults to false
 #
 #   With defaults values
@@ -40,7 +40,7 @@ CROSS="\xE2\x9D\x8C"
 ALL_DONE="\xF0\x9F\x92\xAF"
 INFO="\xE2\x84\xB9"
 SUFFIX="ddd"
-POSTGRES_NAMESPACE="postgres"
+POSTGRES_NAMESPACE=$NAMESPACE
 MISSING_PARAMS="false"
 
 while getopts "n:op:r:" opt; do

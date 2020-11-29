@@ -34,7 +34,7 @@ function usage() {
   exit 1
 }
 
-POSTGRES_NAMESPACE="postgres"
+POSTGRES_NAMESPACE="cp4i"
 DB_USER="cp4i"
 DB_NAME="db_cp4i"
 DB_PASS=""

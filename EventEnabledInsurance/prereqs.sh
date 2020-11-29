@@ -16,7 +16,7 @@
 #   -r : <REPO> (string), Defaults to 'https://github.com/IBM/cp4i-deployment-samples.git'
 #   -b : <BRANCH> (string), Defaults to 'main'
 #   -e : <ELASTIC_NAMESPACE> (string), Namespace for elastic search , Defaults to 'elasticsearch'
-#   -p : <POSTGRES_NAMESPACE> (string), Namespace where postgres is setup, Defaults to 'postgres'
+#   -p : <POSTGRES_NAMESPACE> (string), Namespace where postgres is setup, Defaults to the value of <NAMESPACE>
 #   -o : <OMIT_INITIAL_SETUP> (optional), Parameter to decide if initial setup is to be done or not, Defaults to false
 #
 #   With defaults values
@@ -40,7 +40,7 @@ TICK="\xE2\x9C\x85"
 CROSS="\xE2\x9D\x8C"
 ALL_DONE="\xF0\x9F\x92\xAF"
 SUFFIX="eei"
-POSTGRES_NAMESPACE="postgres"
+POSTGRES_NAMESPACE=$NAMESPACE
 REPO="https://github.com/IBM/cp4i-deployment-samples.git"
 BRANCH="main"
 INFO="\xE2\x84\xB9"

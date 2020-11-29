@@ -15,7 +15,7 @@
 #   -n : <NAMESPACE> (string), defaults to "cp4i"
 #   -s : <USER_DB_SUFFIX> (string), defaults to ""
 #   -a : <APIC_ENABLED>
-#   -p : <POSTGRES_NAMESPACE> (string), Namespace where postgres is setup, Defaults to 'cp4i'
+#   -p : <POSTGRES_NAMESPACE> (string), Namespace where postgres is setup, Defaults to the value of <NAMESPACE>
 #
 #   With default values
 #     ./test-api-e2e.sh
