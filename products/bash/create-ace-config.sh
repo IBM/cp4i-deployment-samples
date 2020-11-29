@@ -146,10 +146,12 @@ echo "[INFO]  Creating policyproject for ace in the '$NAMESPACE' namespace"
 DB_POD=$(oc get pod -n $POSTGRES_NAMESPACE -l name=postgresql -o jsonpath='{.items[].metadata.name}')
 DB_SVC="postgresql.$POSTGRES_NAMESPACE.svc.cluster.local"
 
-echo "[INFO]  Database user: '$DB_USER'"
-echo "[INFO]  Database name: '$DB_NAME'"
-echo "[INFO]  Postgres pod name in the '$POSTGRES_NAMESPACE' namespace: '$DB_POD'"
-echo "[INFO]  Postgres svc name: '$DB_SVC'"
+echo "[INFO] Namespace passed: '$NAMESPACE'"
+echo "[INFO] Namespace passed for postgres: '$POSTGRES_NAMESPACE'"
+echo "[INFO] Database user: '$DB_USER'"
+echo "[INFO] Database name: '$DB_NAME'"
+echo "[INFO] Postgres pod name in the '$POSTGRES_NAMESPACE' namespace: '$DB_POD'"
+echo "[INFO] Postgres svc name: '$DB_SVC'"
 
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
