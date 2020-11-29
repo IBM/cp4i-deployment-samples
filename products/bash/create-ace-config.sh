@@ -142,6 +142,10 @@ if [[ "$MISSING_PARAMS" == "true" ]]; then
   usage
 fi
 
+if [[ -z "$DEBUG" ]]; then
+  DEBUG="false"
+fi
+
 DB_POD=$(oc get pod -n $POSTGRES_NAMESPACE -l name=postgresql -o jsonpath='{.items[].metadata.name}')
 DB_SVC="postgresql.$POSTGRES_NAMESPACE.svc.cluster.local"
 

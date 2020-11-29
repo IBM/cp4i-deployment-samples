@@ -42,6 +42,7 @@ INFO="\xE2\x84\xB9"
 SUFFIX="ddd"
 POSTGRES_NAMESPACE=$NAMESPACE
 MISSING_PARAMS="false"
+OMIT_INITIAL_SETUP="false"
 
 while getopts "n:op:r:" opt; do
   case ${opt} in
