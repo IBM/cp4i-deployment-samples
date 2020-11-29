@@ -25,7 +25,7 @@
 tick="\xE2\x9C\x85"
 cross="\xE2\x9D\x8C"
 NAMESPACE="cp4i"
-POSTGRES_NAMESPACE="postgres"
+POSTGRES_NAMESPACE=$NAMESPACE
 DB_USER="cp4i"
 DB_NAME="db_cp4i"
 DB_PASS=""
