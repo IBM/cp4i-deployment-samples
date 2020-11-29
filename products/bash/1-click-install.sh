@@ -389,7 +389,7 @@ divider
 # ----------------------------------------------- Postgres for ddd and eei ------------------------------------------------------------
 
 if [[ "${demoPreparation}" == "true" || "${eventEnabledInsuranceDemo}" == "true" || "${drivewayDentDeletionDemo}" == "true" ]]; then
-  if ! $CURRENT_DIR/release-psql.sh; then
+  if ! $CURRENT_DIR/release-psql.sh -n "$JOB_NAMESPACE"; then
     echo -e "$cross ERROR: Failed to release PostgreSQL" 1>&2
     divider
     exit 1
