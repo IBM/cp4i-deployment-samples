@@ -10,7 +10,7 @@ spec:
   tasksMax: 1
   config:
     # These are connection details to the Postgres database setup by the prereqs.
-    database.hostname: "postgresql.postgres.svc.cluster.local"
+    database.hostname: "postgresql.cp4i.svc.cluster.local"
     database.port: "5432"
     # The following credentials refer to the mounted secret and use the FileConfigProvider
     # from the KafkaConnectS2I to extract properties from the properties file.

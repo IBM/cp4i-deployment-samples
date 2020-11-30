@@ -4,14 +4,12 @@ metadata:
   name: demos
   namespace: cp4i
 spec:
-  version: 2020.3.1
   general:
     storage:
       block:
         class: cp4i-block-performance
       file:
         class: ibmc-file-gold-gid
-    samplesRepoBranch: main
+    samplesRepoBranch: demos-ccr-eei
   demos:
-    eventEnabledInsurance:
-      enabled: true
+    eventEnabledInsurance: true

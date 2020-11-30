@@ -32,7 +32,7 @@ tick="\xE2\x9C\x85"
 cross="\xE2\x9D\x8C"
 all_done="\xF0\x9F\x92\xAF"
 SUFFIX="ddd"
-POSTGRES_NAMESPACE="postgres"
+POSTGRES_NAMESPACE=$namespace
 
 while getopts "n:r:" opt; do
   case ${opt} in
