@@ -492,7 +492,7 @@ if [[ "${eventEnabledInsuranceDemo}" == "true" || "${demoPreparation}" == "true"
   # call prereqs for event enabled without branch and repo params
   # branch defaults to 'main' inside the prereqs
   # repo defaults to 'https://github.com/IBM/cp4i-deployment-samples.git' inside the prereqs
-  if ! $CURRENT_DIR/../../EventEnabledInsurance/prereqs.sh -n ${JOB_NAMESPACE} -b ${demoDeploymentBranch}; then
+  if ! $CURRENT_DIR/../../EventEnabledInsurance/prereqs.sh -n ${JOB_NAMESPACE} -e ${JOB_NAMESPACE} -p ${JOB_NAMESPACE} -b ${demoDeploymentBranch}; then
     echo "ERROR: Failed to run event enabled insurance prereqs script" 1>&2
     divider
     exit 1
