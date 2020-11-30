@@ -17,10 +17,8 @@ The script carries out the following:
   - Creates a PUBLICATION named `DB_EEI_QUOTES` for the `QUOTES` table. (The Debezium connector can do this, but would then require super user privileges)
   - Creates a replication user that has the replication role and access to the `QUOTES` table
   - Creates a secret with the replication username/password that can be used by the `KafkaConnector`
-- Installs Elasticsearch in the `elasticsearch` project. The Elasticsearch CR is also setup to add a `subjectAltNames`
-  so the self signed certificate can be used to access the service cross namespace.
-- Creates a secret to allow the Elasticsearch connector to connect to Elasticsearch. This secret includes credentials and
-  also a truststore in jks format. The truststore includes the self-signed certificate created by Elasticsearch.
+- Installs Elasticsearch in the default `cp4i` project. The Elasticsearch CR is also setup to add a `subjectAltNames` so the self signed certificate can be used to access the service cross namespace.
+- Creates a secret to allow the Elasticsearch connector to connect to Elasticsearch. This secret includes credentials and also a truststore in jks format. The truststore includes the self-signed certificate created by Elasticsearch.
 
 # Set up a Kafka Connect environment
 Download the [example kafka-connect-s2i.yaml](kafkaconnect/kafka-connect-s2i.yaml). This is based on the one in
