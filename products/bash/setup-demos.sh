@@ -547,7 +547,7 @@ done
 #-------------------------------------------------------------------------------------------------------------------
 
 TRACING_ENABLED=$(echo $REQUIRED_PRODUCTS_JSON | jq -r '.tracing?| if true then "true" else "false" end')
-echo -e "$INFO [INFO] Tracing enabled: '$TRACING_ENABLED'"
+divider && echo -e "$INFO [INFO] Tracing enabled: '$TRACING_ENABLED'"
 
 #-------------------------------------------------------------------------------------------------------------------
 # Install the selected/required products

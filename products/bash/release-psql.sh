@@ -13,7 +13,7 @@
 #   - Logged into cluster on the OC CLI (https://docs.openshift.com/container-platform/4.4/cli_reference/openshift_cli/getting-started-cli.html)
 #
 # PARAMETERS:
-#   -n : <POSTGRES_NAMESPACE> (string), Defaults to 'postgres'
+#   -n : <POSTGRES_NAMESPACE> (string), Defaults to 'cp4i'
 #
 # USAGE:
 #   ./release-psql.sh
@@ -24,7 +24,7 @@ function usage() {
   exit 1
 }
 
-POSTGRES_NAMESPACE="postgres"
+POSTGRES_NAMESPACE="cp4i"
 
 while getopts "n:u:d:p:" opt; do
   case ${opt} in
@@ -36,6 +36,8 @@ while getopts "n:u:d:p:" opt; do
     ;;
   esac
 done
+
+echo -e "Postgres namespace for release-psql: '$POSTGRES_NAMESPACE'\n"
 
 echo "Installing PostgreSQL..."
 cat <<EOF >postgres.env
