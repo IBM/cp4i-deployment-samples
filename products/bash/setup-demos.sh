@@ -55,7 +55,7 @@ NAMESPACE_OBJECT_FOR_STATUS='{"name":""}'
 TRACING_ENABLED=false
 ADDON_OBJECT_FOR_STATUS='{"type":"", "installed":"", "readyToUse":""}'
 PRODUCT_OBJECT_FOR_STATUS='{"name":"","type":"", "namespace":"", "installed":"", "readyToUse":""}'
-DEMO_VERSION="2020.3.1-1"
+DEFAULT_DEMO_VERSION="2020.3.1-1"
 DEMO_OBJECT_FOR_STATUS='{"name":"", "installed":"", "readyToUse":""}'
 SAMPLES_REPO_BRANCH="main"
 MISSING_PARAMS="false"
@@ -331,6 +331,7 @@ NAMESPACE=$(echo $JSON | jq -r .metadata.namespace)
 REQUIRED_DEMOS_JSON=$(echo $JSON | jq -c '.spec | if has("demos") then .demos else {} end')
 REQUIRED_PRODUCTS_JSON=$(echo $JSON | jq -c '.spec | if has("products") then .products else {} end')
 REQUIRED_ADDONS_JSON=$(echo $JSON | jq -c '.spec | if has("addons") then .addons else {} end')
+DEMO_VERSION=$(echo $JSON | jq -r '.spec | if has("version") then .version else "'$DEFAULT_DEMO_VERSION'" end ')
 # To use for un-installation
 ORIGINAL_STATUS=$(echo $JSON | jq -c .status)
 APIC_CONFIGURATION=$(echo $JSON | jq -c '.spec | if has("apic") then .apic else {} end')
@@ -338,6 +339,7 @@ APIC_CONFIGURATION=$(echo $JSON | jq -c '.spec | if has("apic") then .apic else 
 echo -e "\n$INFO Block storage class: '$BLOCK_STORAGE_CLASS'"
 echo -e "$INFO File storage class: '$FILE_STORAGE_CLASS'"
 echo -e "$INFO Samples repo branch: '$SAMPLES_REPO_BRANCH'"
+echo -e "$INFO Demo version: '$DEMO_VERSION'"
 echo -e "$INFO Namespace: '$NAMESPACE'" && divider
 
 #-------------------------------------------------------------------------------------------------------------------
