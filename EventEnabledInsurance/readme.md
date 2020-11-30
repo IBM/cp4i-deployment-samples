@@ -369,13 +369,13 @@ And now the connector is monitoring the `sor.public.quotes` topic and writing to
 # Verify contents of Elasticsearch
 Port forward the Elasticsearch service to your localhost:
 ```
-ELASTIC_NAMESPACE=elasticsearch
+ELASTIC_NAMESPACE=cp4i
 oc port-forward -n ${ELASTIC_NAMESPACE} service/elasticsearch-eei-es-http 9200
 ```
 
 In a separate terminal setup some env vars to allow curl to call Elasticsearch:
 ```
-ELASTIC_NAMESPACE=elasticsearch
+ELASTIC_NAMESPACE=cp4i
 ELASTIC_PASSWORD=$(oc get secret elasticsearch-eei-es-elastic-user -n $ELASTIC_NAMESPACE -o go-template='{{.data.elastic | base64decode}}')
 ELASTIC_USER="elastic"
 ```
