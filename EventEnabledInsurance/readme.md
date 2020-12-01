@@ -5,7 +5,7 @@ This dir is for a demo named "Event Enabled Insurance".
 A [script](prereqs.sh) is provided to setup the prerequisites for this demo
 and this script is automatically run as part of the 1-click demo preparation.
 The script carries out the following:
-- Installs Openshift pipelines from the ocp-4.4 channel.
+- Installs Openshift pipelines from the ocp-4.5 channel.
 - Creates a secret to allow the pipeline to pull from the entitled registry.
 - Creates secrets to allow the pipeline to push images to the default project (`cp4i`).
 - Creates a username and password for the dev (this is the namespace where the 1-click install ran in).
