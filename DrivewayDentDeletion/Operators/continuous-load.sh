@@ -21,6 +21,7 @@
 #   -s : SAVE_ROW_AFTER_RUN (true/false), whether to save each row in the database after a run or delete it - DEFAULT: false
 #   -z : NUMBER_OF_CALLS (integer), run continuous load calls fixed number of times.
 #   -p : <POSTGRES_NAMESPACE> (string), Namespace where postgres is setup, Defaults to value for '<NAMESPACE>'
+#   -b : <DDD_TYPE> (string), Driveway dent deletion demo type for postgres credential, Defaults to "dev"
 #
 # USAGE:
 #   CAUTION - running without TABLE_CLEANUP enabled can result in data leftover in the postgres table
@@ -32,7 +33,7 @@
 #     ./continuous-load.sh -t 2 -c
 
 function usage() {
-  echo "Usage: $0 [-n NAMESPACE] [-u API_BASE_URL] [-t RETRY_INTERVAL] [-p POSTGRES_NAMESPACE] [-acdisz]"
+  echo "Usage: $0 [-n NAMESPACE] [-u API_BASE_URL] [-t RETRY_INTERVAL] [-p POSTGRES_NAMESPACE] [-b DDD_TYPE] [-acdisz]"
   exit 1
 }
 
@@ -55,8 +56,10 @@ CROSS="\xE2\x9D\x8C"
 ALL_DONE="\xF0\x9F\x92\xAF"
 INFO="\xE2\x84\xB9"
 POSTGRES_NAMESPACE=$NAMESPACE
+DDD_TYPE="dev"
+DEFAULT_POSTGRES_CREDENTIAL_SECRET="postgres-credential-ddd-"
 
-while getopts "n:u:t:p:acdisz" opt; do
+while getopts "n:u:t:p:b:acdisz" opt; do
   case ${opt} in
   n)
     NAMESPACE="$OPTARG"
@@ -88,18 +91,22 @@ while getopts "n:u:t:p:acdisz" opt; do
   p)
     POSTGRES_NAMESPACE="$OPTARG"
     ;;
+  b)
+    DDD_TYPE="$OPTARG"
+    ;;
   \?)
     usage
     ;;
   esac
 done
 
+echo "[INFO]  Driveway dent deletion demo type: '$DDD_TYPE'"
 DB_USER=$(echo $NAMESPACE | sed 's/-/_/g')_ddd
 DB_NAME=db_${DB_USER}
-DB_PASS=$(oc get secret -n $NAMESPACE postgres-credential --template={{.data.password}} | base64 --decode)
+DB_PASS=$(oc get secret -n $NAMESPACE ${DEFAULT_POSTGRES_CREDENTIAL_SECRET}-${DDD_TYPE} --template={{.data.password}} | base64 --decode)
 DB_POD=$(oc get pod -n $POSTGRES_NAMESPACE -l name=postgresql -o jsonpath='{.items[].metadata.name}')
-echo "[INFO]  Username name is: '${DB_USER}'"
-echo "[INFO]  Database name is: '${DB_NAME}'"
+echo "[INFO]  Username name is: '$DB_USER'"
+echo "[INFO]  Database name is: '$DB_NAME'"
 
 CURL_OPTS=(-s -L -S)
 if [[ $APIC == true ]]; then
