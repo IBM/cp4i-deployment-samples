@@ -10,6 +10,6 @@ spec:
         class: cp4i-block-performance
       file:
         class: ibmc-file-gold-gid
-    samplesRepoBranch: demo-ddd
+    samplesRepoBranch: main
   demos:
     drivewayDentDeletion: true
