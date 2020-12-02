@@ -43,10 +43,13 @@ POLICY_PROJECT_TYPE="policyproject-ddd-dev"
 ace_replicas="2"
 echo "Current directory: $CURRENT_DIR"
 
-while getopts "c:i:n:p:r:tz:" opt; do
+while getopts "c:d:i:n:p:r:tz:" opt; do
   case ${opt} in
   c)
     ace_policy_names="$OPTARG"
+    ;;
+  d)
+    POLICY_PROJECT_TYPE="$OPTARG"
     ;;
   i)
     is_image_name="$OPTARG"
