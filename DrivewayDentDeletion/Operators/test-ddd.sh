@@ -241,31 +241,31 @@ fi
 
 divider
 
-# -------------------------------------------- DEV PIPELINE RUN -----------------------------------------------------------
+# # -------------------------------------------- DEV PIPELINE RUN -----------------------------------------------------------
 
-echo -e "$INFO [INFO] Applying the dev pipeline resources...\n"
-if ! $CURRENT_DIR/cicd-apply-dev-pipeline.sh -n $NAMESPACE -r $FORKED_REPO -b $BRANCH; then
-  echo -e "$CROSS [ERROR] Could not apply the dev pipeline resources."
-  exit 1
-fi
+# echo -e "$INFO [INFO] Applying the dev pipeline resources...\n"
+# if ! $CURRENT_DIR/cicd-apply-dev-pipeline.sh -n $NAMESPACE -r $FORKED_REPO -b $BRANCH; then
+#   echo -e "$CROSS [ERROR] Could not apply the dev pipeline resources."
+#   exit 1
+# fi
 
-wait_and_trigger_pipeline "dev"
+# wait_and_trigger_pipeline "dev"
 
-run_continuous_load_script "$NAMESPACE" "false" "dev" "dev"
+# run_continuous_load_script "$NAMESPACE" "false" "dev" "dev"
 
-# -------------------------------------------- TEST PIPELINE RUN ----------------------------------------------------------
+# # -------------------------------------------- TEST PIPELINE RUN ----------------------------------------------------------
 
-echo -e "$INFO [INFO] Applying the test pipeline resources...\n"
-if ! $CURRENT_DIR/cicd-apply-test-pipeline.sh -n $NAMESPACE -r $FORKED_REPO -b $BRANCH; then
-  echo -e "$CROSS [ERROR] Could not apply the test pipeline resources."
-  exit 1
-fi
+# echo -e "$INFO [INFO] Applying the test pipeline resources...\n"
+# if ! $CURRENT_DIR/cicd-apply-test-pipeline.sh -n $NAMESPACE -r $FORKED_REPO -b $BRANCH; then
+#   echo -e "$CROSS [ERROR] Could not apply the test pipeline resources."
+#   exit 1
+# fi
 
-wait_and_trigger_pipeline "test"
+# wait_and_trigger_pipeline "test"
 
-run_continuous_load_script "$NAMESPACE" "false" "test" "dev"
+# run_continuous_load_script "$NAMESPACE" "false" "test" "dev"
 
-run_continuous_load_script "$NAMESPACE" "false" "test" "test"
+# run_continuous_load_script "$NAMESPACE" "false" "test" "test"
 
 # # -------------------------------------------- TEST APIC PIPELINE RUN -----------------------------------------------------
 

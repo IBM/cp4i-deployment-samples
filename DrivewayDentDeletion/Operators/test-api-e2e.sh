@@ -14,7 +14,7 @@
 # PARAMETERS:
 #   -n : <NAMESPACE> (string), defaults to "cp4i"
 #   -s : <USER_DB_SUFFIX> (string), defaults to ""
-#   -a : <APIC_ENABLED>
+#   -a : <APIC_ENABLED> (boolean) (optional), Defaults to false
 #   -p : <POSTGRES_NAMESPACE> (string), Namespace where postgres is setup, Defaults to the value of <NAMESPACE>
 #   -d : <DDD_TYPE> (string), Driveway dent deletion demo type for postgres credential, Defaults to "dev"
 #
@@ -44,7 +44,7 @@ if [[ $(uname) == Darwin ]]; then
   os_sed_flag="-e"
 fi
 
-while getopts "n:p:s:a:d:" opt; do
+while getopts "n:p:s:ad:" opt; do
   case ${opt} in
   n)
     NAMESPACE="$OPTARG"
