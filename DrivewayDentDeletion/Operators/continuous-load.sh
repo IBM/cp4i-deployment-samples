@@ -101,7 +101,7 @@ while getopts "n:u:t:p:b:acdisz" opt; do
 done
 
 echo "[INFO]  Driveway dent deletion demo type: '$DDD_TYPE'"
-DB_USER=$(echo $NAMESPACE | sed 's/-/_/g')_ddd
+DB_USER=$(echo $NAMESPACE | sed 's/-/_/g')_${DDD_TYPE}_ddd
 DB_NAME=db_${DB_USER}
 DB_PASS=$(oc get secret -n $NAMESPACE ${DEFAULT_POSTGRES_CREDENTIAL_SECRET}-${DDD_TYPE} --template={{.data.password}} | base64 --decode)
 DB_POD=$(oc get pod -n $POSTGRES_NAMESPACE -l name=postgresql -o jsonpath='{.items[].metadata.name}')
