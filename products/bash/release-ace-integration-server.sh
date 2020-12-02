@@ -11,6 +11,7 @@
 #******************************************************************************
 # PARAMETERS:
 #   -c : <ace_policy_names> (boolean), Parameter for changing ace config
+#   -d : <POLICY_PROJECT_TYPE> (string), Policyproject configuration, Defaults to "policyproject-ddd-dev"
 #   -i : <is_image_name> (string), Defaults to "image-registry.openshift-image-registry.svc:5000/cp4i/ace-11.0.0.9-r2:new-1"
 #   -n : <namespace> (string), Defaults to "cp4i"
 #   -p : <ace_replicas> (int), allow changing the number of pods (replicas), Defaults to 2
@@ -23,10 +24,10 @@
 #     ./release-ace-integration-server.sh
 #
 #   Overriding the namespace and release-name
-#     ./release-ace-integration-server -n cp4i -r cp4i-bernie-ace
+#     ./release-ace-integration-server -d policyproject-ddd-test -n cp4i -r cp4i-bernie-ace
 
 function usage() {
-  echo "Usage: $0 -c <ace_policy_names> -i <is_image_name> -n <namespace> -p <ace_replicas> -r <is_release_name> -t -z <tracing_namespace>"
+  echo "Usage: $0 -c <ace_policy_names> -d <POLICY_PROJECT_TYPE> -i <is_image_name> -n <namespace> -p <ace_replicas> -r <is_release_name> -t -z <tracing_namespace>"
   exit 1
 }
 
@@ -38,7 +39,7 @@ is_release_name="ace-is"
 tracing_enabled="false"
 tracing_namespace=""
 CURRENT_DIR=$(dirname $0)
-ace_policy_names="[keystore-ddd, policyproject-ddd, serverconf-ddd, setdbparms-ddd, application.kdb, application.sth, application.jks]"
+POLICY_PROJECT_TYPE="policyproject-ddd-dev"
 ace_replicas="2"
 echo "Current directory: $CURRENT_DIR"
 
@@ -78,6 +79,7 @@ else
   tracing_namespace=${namespace}
 fi
 
+ace_policy_names="[keystore-ddd, $POLICY_PROJECT_TYPE, serverconf-ddd, setdbparms-ddd, application.kdb, application.sth, application.jks]"
 echo -e "\nINFO: ACE policy configurations: '$ace_policy_names'"
 
 # ------------------------------------------------ FIND IMAGE TAG --------------------------------------------------

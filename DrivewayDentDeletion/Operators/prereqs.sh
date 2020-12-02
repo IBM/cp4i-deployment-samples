@@ -43,6 +43,7 @@ SUFFIX="ddd"
 POSTGRES_NAMESPACE=$NAMESPACE
 MISSING_PARAMS="false"
 OMIT_INITIAL_SETUP="false"
+WITH_TEST_TYPE=""
 
 export DEV_DEPLOY_NAME="dev"
 export TEST_DEPLOY_NAME="test"
@@ -136,13 +137,6 @@ for EACH_DEPLOY_TYPE in "${DEPLOY_NAMES[@]}"; do
   )
   PASSWORD_ENCODED=$(echo -n $DB_PASS | base64)
 
-  echo -e "$INFO [INFO] EACH_DEPLOY_TYPE: '$EACH_DEPLOY_TYPE'"
-  echo -e "$INFO [INFO] DB_POD: '$DB_POD'"
-  echo -e "$INFO [INFO] DB_USER: '$DB_USER'"
-  echo -e "$INFO [INFO] DB_NAME: '$DB_NAME'"
-  echo -e "$INFO [INFO] DB_PASS: '$DB_PASS'"
-  echo -e "$INFO [INFO] PASSWORD_ENCODED: '$PASSWORD_ENCODED'"
-
   divider
 
   echo -e "$INFO [INFO] Creating a secret for the database user '$DB_USER' in the database '$DB_NAME' with the password generated\n"
@@ -172,8 +166,12 @@ EOF
 
   divider
 
+  if [[ "$EACH_DEPLOY_TYPE" == "test" ]]; then
+    WITH_TEST_TYPE="-t"
+  fi
+
   echo -e "$INFO [INFO] Creating ace postgres configuration and policy in the namespace '$NAMESPACE' with the user '$DB_USER', database name '$DB_NAME' and suffix '$SUFFIX'" && divider
-  if ! $CURRENT_DIR/../../products/bash/create-ace-config.sh -n "$NAMESPACE" -g "$POSTGRES_NAMESPACE" -u "$DB_USER" -d "$DB_NAME" -p "$DB_PASS" -s "$SUFFIX"; then
+  if ! $CURRENT_DIR/../../products/bash/create-ace-config.sh -n "$NAMESPACE" -g "$POSTGRES_NAMESPACE" -u "$DB_USER" -d "$DB_NAME" -p "$DB_PASS" -s "$SUFFIX" "$WITH_TEST_TYPE"; then
     echo -e "\n$CROSS [ERROR] Failed to configure ace in the '$NAMESPACE' namespace with the user '$DB_USER', database name '$DB_NAME' and suffix '$SUFFIX'"
     exit 1
   else

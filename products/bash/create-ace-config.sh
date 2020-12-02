@@ -15,23 +15,25 @@
 #   -d : <DB_NAME> (string), psql db name defaults to 'db_cp4i'
 #   -p : <DB_PASS> (string), psql db password defaults to ''
 #   -s : <SUFFIX> (string), project suffix defaults to 'ddd'
+#   -t : <DDD_DEMO_TYPE> (string), demo type defaults to 'dev' for driveway dent deletion demo, optional
 #
 #   With defaults values
 #     ./create-ace-config.sh
 #
 #   With overridden values
-#     ./create-ace-config.sh -n <NAMESPACE> -g <POSTGRES_NAMESPACE> -u <DB_USER> -d <DB_NAME> -p <DB_PASS> -s <SUFFIX>
+#     ./create-ace-config.sh -n <NAMESPACE> -g <POSTGRES_NAMESPACE> -u <DB_USER> -d <DB_NAME> -p <DB_PASS> -s <SUFFIX> -t
 
 function divider() {
   echo -e "\n-------------------------------------------------------------------------------------------------------------------\n"
 }
 
 function usage() {
-  echo "Usage: $0 -n <NAMESPACE> -g <POSTGRES_NAMESPACE> -u <DB_USER> -d <DB_NAME> -p <DB_PASS> -s <SUFFIX>"
+  echo "Usage: $0 -n <NAMESPACE> -g <POSTGRES_NAMESPACE> -u <DB_USER> -d <DB_NAME> -p <DB_PASS> -s <SUFFIX> [-t]"
   divider
   exit 1
 }
 
+DDD_DEMO_TYPE="dev"
 MISSING_PARAMS="false"
 CROSS="\xE2\x9D\x8C"
 INFO="\xE2\x84\xB9"
@@ -81,7 +83,7 @@ function buildConfigurationCR() {
   echo "---" >>$CONFIG_YAML
 }
 
-while getopts "n:g:u:d:p:s:" opt; do
+while getopts "n:g:u:d:p:s:t" opt; do
   case ${opt} in
   n)
     NAMESPACE="$OPTARG"
@@ -100,6 +102,9 @@ while getopts "n:g:u:d:p:s:" opt; do
     ;;
   s)
     SUFFIX="$OPTARG"
+    ;;
+  t)
+    DDD_DEMO_TYPE="test"
     ;;
   \?)
     usage
@@ -153,6 +158,8 @@ echo -e "$INFO [INFO] Current directory: $CURRENT_DIR"
 echo -e "$INFO [INFO] Config directory: $CONFIG_DIR"
 echo -e "$INFO [INFO] Namespace passed: '$NAMESPACE'"
 echo -e "$INFO [INFO] Namespace passed for postgres: '$POSTGRES_NAMESPACE'"
+echo -e "$INFO [INFO] Demo suffix passed for postgres: '$SUFFIX'"
+echo -e "$INFO [INFO] Demo type for postgres (applicable only for driveway dent deletion demo): '$DDD_DEMO_TYPE'"
 echo -e "$INFO [INFO] Database username: '$DB_USER'"
 echo -e "$INFO [INFO] Database name: '$DB_NAME'"
 echo -e "$INFO [INFO] Postgres pod name in the '$POSTGRES_NAMESPACE' namespace: '$DB_POD'"
@@ -163,7 +170,7 @@ divider
 
 TYPES=("serverconf" "keystore" "keystore" "keystore" "truststore" "policyproject" "setdbparms")
 FILES=("$CONFIG_DIR/$SUFFIX/server.conf.yaml" "$KEYSTORE" "$MQ_CERT/application.kdb" "$MQ_CERT/application.sth" "$MQ_CERT/application.jks" "$CONFIG_DIR/$SUFFIX/DefaultPolicies" "$CONFIG_DIR/$SUFFIX/setdbparms.txt")
-NAMES=("serverconf-$SUFFIX" "keystore-$SUFFIX" "application.kdb" "application.sth" "application.jks" "policyproject-$SUFFIX" "setdbparms-$SUFFIX")
+NAMES=("serverconf-$SUFFIX" "keystore-$SUFFIX" "application.kdb" "application.sth" "application.jks" "policyproject-$SUFFIX-${DDD_DEMO_TYPE}" "setdbparms-$SUFFIX")
 
 EXISTING_PASS=$(oc get secret ace-api-creds-$SUFFIX -ojsonpath='{.data.pass}' | base64 --decode)
 if [[ -z $EXISTING_SECRET ]]; then
@@ -236,7 +243,7 @@ divider
 
 echo -e "$INFO [INFO] Templating mq policy"
 QM_NAME=$([[ $SUFFIX == "ddd" ]] && echo "QUICKSTART" || echo "eei")
-QM_HOST=$([[ $SUFFIX == "ddd" ]] && echo "mq-ddd-qm-ibm-mq" || echo "mq-eei-ibm-mq")
+QM_HOST=$([[ $SUFFIX == "ddd" ]] && echo "mq-ddd-qm-${DDD_DEMO_TYPE}-ibm-mq" || echo "mq-eei-ibm-mq")
 cat $CONFIG_DIR/MQEndpointPolicy.policyxml.template |
   sed "s#{{QM_NAME}}#$QM_NAME#g;" |
   sed "s#{{QM_HOST}}#$QM_HOST#g;" >$CONFIG_DIR/$SUFFIX/DefaultPolicies/MQEndpointPolicy.policyxml

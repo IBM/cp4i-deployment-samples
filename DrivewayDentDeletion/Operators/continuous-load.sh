@@ -57,7 +57,7 @@ ALL_DONE="\xF0\x9F\x92\xAF"
 INFO="\xE2\x84\xB9"
 POSTGRES_NAMESPACE=$NAMESPACE
 DDD_TYPE="dev"
-DEFAULT_POSTGRES_CREDENTIAL_SECRET="postgres-credential-ddd-"
+DEFAULT_POSTGRES_CREDENTIAL_SECRET="postgres-credential-ddd"
 
 while getopts "n:u:t:p:b:acdisz" opt; do
   case ${opt} in
@@ -117,7 +117,7 @@ if [[ $APIC == true ]]; then
   echo -e "[INFO]  api base url: ${API_BASE_URL}\n[INFO]  client id: ${API_CLIENT_ID}"
 fi
 if [ -z "${API_BASE_URL}" ]; then
-  API_BASE_URL=$(echo "https://$(oc get routes -n $NAMESPACE | grep ace-api-int-srv-https | awk '{print $2}')/drivewayrepair")
+  API_BASE_URL=$(echo "https://$(oc get routes -n $NAMESPACE | grep ddd-${DDD_TYPE}-ace-api-https | awk '{print $2}')/drivewayrepair")
   echo "[INFO]  api base URL: ${API_BASE_URL}"
 fi
 
@@ -129,7 +129,7 @@ fi
 function cleanup_table() {
   table_name="quotes"
   echo -e "\Clearing '${table_name}' database of all rows..."
-  oc exec -n postgres -it ${DB_POD} -- \
+  oc exec -n $POSTGRES_NAMESPACE -it ${DB_POD} -- \
     psql -U ${DB_USER} -d ${DB_NAME} -c \
     "TRUNCATE ${table_name};"
 }

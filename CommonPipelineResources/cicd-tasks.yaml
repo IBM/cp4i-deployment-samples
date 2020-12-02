@@ -73,6 +73,10 @@ spec:
     - name: namespace
       type: string
       description: release namespace
+    - name: policyproject
+      type: string
+      description: policyproject for ace integration server
+      default: policyproject-ddd-dev
   workspaces:
     - name: git-source
   steps:
