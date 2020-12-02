@@ -73,12 +73,16 @@ spec:
     - name: namespace
       type: string
       description: release name of script
+    - name: acePolicyProjectParam
+      type: string
+      description: Policy project configuration for ACE integration server
+      default: ""
   workspaces:
     - name: git-source
   steps:
     - name: oc
       image: quay.io/openshift/origin-cli:latest
-      script: "/workspace/git-source/products/bash/$(params.releaseScript) -n $(params.namespace) -r $(params.releaseName) -i image-registry.openshift-image-registry.svc:5000/$(params.namespace)/$(params.imageName):$(params.imageTag) {{TRACING}}"
+      script: "/workspace/git-source/products/bash/$(params.releaseScript) -n $(params.namespace) -r $(params.releaseName) -i image-registry.openshift-image-registry.svc:5000/$(params.namespace)/$(params.imageName):$(params.imageTag) {{TRACING}} $(params.acePolicyProjectParam)"
 
 ---
 # this task is to push the images that our tested to test namespace
@@ -137,12 +141,15 @@ spec:
     - name: suffix
       type: string
       description: The suffix for the user and database name
+    - name: dddType
+      type: string
+      description: The ddd demo type
   workspaces:
     - name: git-source
   steps:
     - name: oc
       image: quay.io/openshift/origin-cli:latest
-      script: "/workspace/git-source/DrivewayDentDeletion/Operators/test-api-e2e.sh -n {{NAMESPACE}} -s $(params.suffix) -a"
+      script: "/workspace/git-source/DrivewayDentDeletion/Operators/test-api-e2e.sh -n {{NAMESPACE}} -s $(params.suffix) -d $(params.dddType) -a"
 
 ---
 apiVersion: tekton.dev/v1beta1
