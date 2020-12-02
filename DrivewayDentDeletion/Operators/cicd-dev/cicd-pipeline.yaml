@@ -35,7 +35,7 @@ spec:
         name: build-task
       params:
         - name: imageName
-          value: "mq-ddd-dev"
+          value: "mq-ddd"
         - name: imageTag
           value: "latest"
         - name: dockerfile
@@ -58,7 +58,7 @@ spec:
         - name: imageTag
           value: "latest"
         - name: imageName
-          value: "mq-ddd-dev"
+          value: "mq-ddd"
         - name: releaseName
           value: "mq-ddd-qm-dev"
         - name: releaseScript
@@ -79,7 +79,7 @@ spec:
         - name: imageTag
           value: "$(params.imageTag)"
         - name: imageName
-          value: "ddd-dev-ace-api"
+          value: "ddd-ace-api"
         - name: dockerfile
           value: "ACE-API.Dockerfile"
         - name: contextPath
@@ -99,7 +99,7 @@ spec:
         - name: imageTag
           value: "$(params.imageTag)"
         - name: imageName
-          value: "ddd-dev-ace-acme"
+          value: "ddd-ace-acme"
         - name: dockerfile
           value: "ACE-Acme.Dockerfile"
         - name: contextPath
@@ -119,7 +119,7 @@ spec:
         - name: imageTag
           value: "$(params.imageTag)"
         - name: imageName
-          value: "ddd-dev-ace-bernie"
+          value: "ddd-ace-bernie"
         - name: dockerfile
           value: "ACE-Bernie.Dockerfile"
         - name: contextPath
@@ -139,7 +139,7 @@ spec:
         - name: imageTag
           value: "$(params.imageTag)"
         - name: imageName
-          value: "ddd-dev-ace-chris"
+          value: "ddd-ace-chris"
         - name: dockerfile
           value: "ACE-Chris.Dockerfile"
         - name: contextPath
@@ -160,7 +160,7 @@ spec:
         - name: imageTag
           value: "$(params.imageTag)"
         - name: imageName
-          value: "ddd-dev-ace-api"
+          value: "ddd-ace-api"
         - name: releaseName
           value: "ddd-dev-ace-api"
         - name: releaseScript
@@ -180,7 +180,7 @@ spec:
         - name: imageTag
           value: "$(params.imageTag)"
         - name: imageName
-          value: "ddd-dev-ace-bernie"
+          value: "ddd-ace-bernie"
         - name: releaseName
           value: "ddd-dev-ace-bernie"
         - name: releaseScript
@@ -200,7 +200,7 @@ spec:
         - name: imageTag
           value: "$(params.imageTag)"
         - name: imageName
-          value: "ddd-dev-ace-acme"
+          value: "ddd-ace-acme"
         - name: releaseName
           value: "ddd-dev-ace-acme"
         - name: releaseScript
@@ -220,7 +220,7 @@ spec:
         - name: imageTag
           value: "$(params.imageTag)"
         - name: imageName
-          value: "ddd-dev-ace-chris"
+          value: "ddd-ace-chris"
         - name: releaseName
           value: "ddd-dev-ace-chris"
         - name: releaseScript
