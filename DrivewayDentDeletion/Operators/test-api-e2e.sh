@@ -59,7 +59,7 @@ while getopts "n:p:s:a:d:" opt; do
     APIC=true
     ;;
   d)
-    DDD_TYPE="test"
+    DDD_TYPE="$OPTARG"
     ;;
   \?)
     usage

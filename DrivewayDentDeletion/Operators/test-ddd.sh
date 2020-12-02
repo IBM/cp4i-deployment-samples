@@ -243,15 +243,15 @@ divider
 
 # -------------------------------------------- DEV PIPELINE RUN -----------------------------------------------------------
 
-echo -e "$INFO INFO: Applying the dev pipeline resources...\n"
-if ! $CURRENT_DIR/cicd-apply-dev-pipeline.sh -n $NAMESPACE -r $FORKED_REPO -b $BRANCH; then
-  echo -e "$CROSS ERROR: Could not apply the dev pipeline resources."
-  exit 1
-fi
+# echo -e "$INFO INFO: Applying the dev pipeline resources...\n"
+# if ! $CURRENT_DIR/cicd-apply-dev-pipeline.sh -n $NAMESPACE -r $FORKED_REPO -b $BRANCH; then
+#   echo -e "$CROSS ERROR: Could not apply the dev pipeline resources."
+#   exit 1
+# fi
 
-wait_and_trigger_pipeline "dev"
+# wait_and_trigger_pipeline "dev"
 
-run_continuous_load_script "$NAMESPACE" "false" "dev" "dev"
+# run_continuous_load_script "$NAMESPACE" "false" "dev" "dev"
 
 # -------------------------------------------- TEST PIPELINE RUN ----------------------------------------------------------
 
