@@ -252,6 +252,8 @@ spec:
       params:
         - name: suffix
           value: "ddd"
+        - name: dddType
+          value: "dev"
       workspaces:
         - name: git-source
           workspace: git-source
@@ -451,6 +453,8 @@ spec:
       params:
         - name: suffix
           value: "ddd"
+        - name: dddType
+          value: "test"
       workspaces:
         - name: git-source
           workspace: git-source

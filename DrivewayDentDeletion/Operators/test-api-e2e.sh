@@ -16,6 +16,7 @@
 #   -s : <USER_DB_SUFFIX> (string), defaults to ""
 #   -a : <APIC_ENABLED>
 #   -p : <POSTGRES_NAMESPACE> (string), Namespace where postgres is setup, Defaults to the value of <NAMESPACE>
+#   -d : <DDD_TYPE> (string), Driveway dent deletion demo type for postgres credential, Defaults to "dev"
 #
 #   With default values
 #     ./test-api-e2e.sh
@@ -25,7 +26,7 @@ function divider() {
 }
 
 function usage() {
-  echo "Usage: $0 -n <NAMESPACE> -s <USER_DB_SUFFIX> -p <POSTGRES_NAMESPACE> -a"
+  echo "Usage: $0 -n <NAMESPACE> -s <USER_DB_SUFFIX> -p <POSTGRES_NAMESPACE> -d <DDD_TYPE> -a"
   divider
   exit 1
 }
@@ -37,12 +38,13 @@ NAMESPACE="cp4i"
 APIC=false
 os_sed_flag=""
 POSTGRES_NAMESPACE=$NAMESPACE
+DDD_TYPE="dev"
 
 if [[ $(uname) == Darwin ]]; then
   os_sed_flag="-e"
 fi
 
-while getopts "n:p:s:a" opt; do
+while getopts "n:p:s:a:d:" opt; do
   case ${opt} in
   n)
     NAMESPACE="$OPTARG"
@@ -56,6 +58,9 @@ while getopts "n:p:s:a" opt; do
   a)
     APIC=true
     ;;
+  d)
+    DDD_TYPE="test"
+    ;;
   \?)
     usage
     exit
@@ -66,6 +71,7 @@ done
 echo "Namespace passed: $NAMESPACE"
 echo "User name suffix: $USER_DB_SUFFIX"
 echo "Postgres namespace passed: $POSTGRES_NAMESPACE"
+echo "Driveway dent deletion demo type: '$DDD_TYPE'"
 divider
 
 # -------------------------------------- INSTALL JQ ---------------------------------------------------------------------
@@ -101,7 +107,7 @@ divider
 
 # -------------------------------------- TEST E2E API ------------------------------------------
 # BASE_PATH=/basepath, all ready contains /
-HOST=https://$(oc get routes -n ${NAMESPACE} | grep ace-api-int-srv-https | awk '{print $2}')/drivewayrepair
+HOST=https://$(oc get routes -n ${NAMESPACE} | grep ddd-${DDD_TYPE}-ace-api-https | awk '{print $2}')/drivewayrepair
 if [[ $APIC == true ]]; then
   # Grab bearer token
   echo "[INFO]  Getting the host and client id..."
@@ -113,7 +119,7 @@ fi
 
 echo "INFO: Host: ${HOST}"
 
-DB_USER=$(echo ${NAMESPACE}_${USER_DB_SUFFIX} | sed 's/-/_/g')
+DB_USER=$(echo ${NAMESPACE}_${DDD_TYPE}_${USER_DB_SUFFIX} | sed 's/-/_/g')
 DB_NAME="db_${DB_USER}"
 DB_POD=$(oc get pod -n $POSTGRES_NAMESPACE -l name=postgresql -o jsonpath='{.items[].metadata.name}')
 echo "INFO: Username name is: '${DB_USER}'"
