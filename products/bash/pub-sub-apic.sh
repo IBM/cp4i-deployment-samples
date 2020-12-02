@@ -13,14 +13,13 @@
 #   - Logged into cluster on the OC CLI (https://docs.openshift.com/container-platform/4.4/cli_reference/openshift_cli/getting-started-cli.html)
 #
 # PARAMETERS:
-#   -e : <environment> (string), can be either "dev" or "test", defaults to "dev". "test" currently only suitable for DDD.
-#   -n : <namespace> (string), defaults to "cp4i"
-#   -a : <apic_namespace> (string), defaults to same value as $NAMESPACE
-#   -r : <apic_release> (string), defaults to "ademo"
-#   -d : <demo name> (string), default to "ddd".
-#   -t : <target url> (string), default to "". If "" then constructs the URL to point to the ace-api-int-srv-is service
-#   -p : <product yaml> (string), Path relative to root of the repo, defaults to "DrivewayDentDeletion/Operators/apic-resources/apic-product-ddd.yaml"
-#   -s : <swagger yaml> (string), Path relative to root of the repo, defaults to "DrivewayDentDeletion/Operators/apic-resources/apic-api-ddd.yaml"
+#   -e : <ENVIRONMENT> (string), can be either "dev" or "test", defaults to "dev". "test" currently only suitable for DDD.
+#   -n : <NAMESPACE> (string), defaults to "cp4i"
+#   -r : <RELEASE> (string), defaults to "ademo"
+#   -d : <DEMO_NAME> (string), default to "ddd".
+#   -t : <TARGET_URL> (string), default to "". If "" then constructs the URL to point to the ace-api-int-srv-is service
+#   -p : <PRODUCT_YAML_TEMPLATE> (string), Path relative to root of the repo, defaults to "DrivewayDentDeletion/Operators/apic-resources/apic-product-ddd.yaml"
+#   -s : <SWAGGER_YAML_TEMPLATE> (string), Path relative to root of the repo, defaults to "DrivewayDentDeletion/Operators/apic-resources/apic-api-ddd.yaml"
 #
 # USAGE:
 #   With default values
@@ -161,7 +160,7 @@ fi
 echo "[INFO]  jq version: $($JQ --version)"
 
 if [[ -z $TARGET_URL ]]; then
-  ACE_API="ace-api-int-srv-is"
+  ACE_API="ddd-${ENVIRONMENT}-ace-api-is"
   ACE_API_INT_SRV_PORT=$(oc get svc -n $NAMESPACE ${ACE_API} -ojson | $JQ -r '.spec.ports[] | select(.name == "https").port')
   TARGET_URL="https://${ACE_API}.${NAMESPACE}.svc.cluster.local:$ACE_API_INT_SRV_PORT"
 fi
