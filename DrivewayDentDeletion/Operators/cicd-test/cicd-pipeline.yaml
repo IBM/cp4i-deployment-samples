@@ -150,7 +150,7 @@ spec:
         - name: git-source
           workspace: git-source
 
-    # deploy all ace for test
+    # deploy all ace for dev
     - name: deploy-wait-ace-api
       runAfter:
         - build-ace-int-server-ace-api
@@ -167,6 +167,8 @@ spec:
           value: release-ace-integration-server.sh
         - name: namespace
           value: "{{NAMESPACE}}"
+        - name: acePolicyProjectParam
+          value: "-d policyproject-ddd-dev"
       workspaces:
         - name: git-source
           workspace: git-source
@@ -187,6 +189,8 @@ spec:
           value: release-ace-integration-server.sh
         - name: namespace
           value: "{{NAMESPACE}}"
+        - name: acePolicyProjectParam
+          value: "-d policyproject-ddd-dev"
       workspaces:
         - name: git-source
           workspace: git-source
@@ -207,6 +211,8 @@ spec:
           value: release-ace-integration-server.sh
         - name: namespace
           value: "{{NAMESPACE}}"
+        - name: acePolicyProjectParam
+          value: "-d policyproject-ddd-dev"
       workspaces:
         - name: git-source
           workspace: git-source
@@ -227,6 +233,8 @@ spec:
           value: release-ace-integration-server.sh
         - name: namespace
           value: "{{NAMESPACE}}"
+        - name: acePolicyProjectParam
+          value: "-d policyproject-ddd-dev"
       workspaces:
         - name: git-source
           workspace: git-source
@@ -248,7 +256,7 @@ spec:
         - name: git-source
           workspace: git-source
 
-    # push ace images to test namespace
+    # push ace images for test
     - name: image-push-to-test-ace-chris
       runAfter:
         - test-e2e-api-in-dev-namespace
@@ -322,7 +330,6 @@ spec:
       runAfter:
         - image-push-to-test-mq
       taskRef:
-        # name: deploy-test-task
         name: deploy-task
       params:
         - name: imageTag
@@ -344,7 +351,6 @@ spec:
       runAfter:
         - image-push-to-test-ace-api
       taskRef:
-        # name: deploy-test-task
         name: deploy-task
       params:
         - name: imageTag
@@ -357,8 +363,8 @@ spec:
           value: release-ace-integration-server.sh
         - name: namespace
           value: "{{NAMESPACE}}"
-        - name: acePolicyProjectName
-          value: "policyproject-ddd-test"
+        - name: acePolicyProjectParam
+          value: "-d policyproject-ddd-test"
       workspaces:
         - name: git-source
           workspace: git-source
@@ -368,7 +374,6 @@ spec:
       runAfter:
         - image-push-to-test-ace-bernie
       taskRef:
-        # name: deploy-test-task
         name: deploy-task
       params:
         - name: imageTag
@@ -381,8 +386,8 @@ spec:
           value: release-ace-integration-server.sh
         - name: namespace
           value: "{{NAMESPACE}}"
-        - name: acePolicyProjectName
-          value: "policyproject-ddd-test"
+        - name: acePolicyProjectParam
+          value: "-d policyproject-ddd-test"
       workspaces:
         - name: git-source
           workspace: git-source
@@ -392,7 +397,6 @@ spec:
       runAfter:
         - image-push-to-test-ace-acme
       taskRef:
-        # name: deploy-test-task
         name: deploy-task
       params:
         - name: imageTag
@@ -405,8 +409,8 @@ spec:
           value: release-ace-integration-server.sh
         - name: namespace
           value: "{{NAMESPACE}}"
-        - name: acePolicyProjectName
-          value: "policyproject-ddd-test"
+        - name: acePolicyProjectParam
+          value: "-d policyproject-ddd-test"
       workspaces:
         - name: git-source
           workspace: git-source
@@ -416,7 +420,6 @@ spec:
       runAfter:
         - image-push-to-test-ace-chris
       taskRef:
-        # name: deploy-test-task
         name: deploy-task
       params:
         - name: imageTag
@@ -429,8 +432,8 @@ spec:
           value: release-ace-integration-server.sh
         - name: namespace
           value: "{{NAMESPACE}}"
-        - name: acePolicyProjectName
-          value: "policyproject-ddd-test"
+        - name: acePolicyProjectParam
+          value: "-d policyproject-ddd-test"
       workspaces:
         - name: git-source
           workspace: git-source
