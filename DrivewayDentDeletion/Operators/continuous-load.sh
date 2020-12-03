@@ -58,7 +58,6 @@ INFO="\xE2\x84\xB9"
 POSTGRES_NAMESPACE=$NAMESPACE
 DDD_TYPE="dev"
 DEFAULT_POSTGRES_CREDENTIAL_SECRET="postgres-credential-ddd"
-NUMBER_OF_CALLS=1
 
 while getopts "n:u:t:p:b:z:acdis" opt; do
   case ${opt} in
