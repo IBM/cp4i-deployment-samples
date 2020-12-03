@@ -56,7 +56,7 @@ SWAGGER_YAML_TEMPLATE="DrivewayDentDeletion/Operators/apic-resources/apic-api-dd
 DEBUG=true
 
 function usage() {
-  echo "Usage: $0 -e <environment> -n <namespace> -s <namespace_suffix> -r <release> -d <demo name> -t <target url> -p <product yaml> -s <swagger yaml>"
+  echo "Usage: $0 -e <ENVIRONMENT> -n <MAIN_NAMESPACE> -r <RELEASE> -d <DEMO_NAME> -t <TARGET_URL> -p <PRODUCT_YAML_TEMPLATE> -s <SWAGGER_YAML_TEMPLATE>"
 }
 
 while getopts "e:n:r:d:t:p:s:" opt; do
