@@ -59,7 +59,7 @@ POSTGRES_NAMESPACE=$NAMESPACE
 DDD_TYPE="dev"
 DEFAULT_POSTGRES_CREDENTIAL_SECRET="postgres-credential-ddd"
 
-while getopts "n:u:t:p:b:acdisz:" opt; do
+while getopts "n:u:t:p:b:z:acdis" opt; do
   case ${opt} in
   n)
     NAMESPACE="$OPTARG"
@@ -100,7 +100,7 @@ while getopts "n:u:t:p:b:acdisz:" opt; do
   esac
 done
 
-echo "[INFO]  Driveway dent deletion demo type: '$DDD_TYPE'"
+echo "[INFO] Driveway dent deletion demo type: '$DDD_TYPE'"
 DB_USER=$(echo $NAMESPACE | sed 's/-/_/g')_${DDD_TYPE}_ddd
 DB_NAME=db_${DB_USER}
 DB_PASS=$(oc get secret -n $NAMESPACE ${DEFAULT_POSTGRES_CREDENTIAL_SECRET}-${DDD_TYPE} --template={{.data.password}} | base64 --decode)
@@ -221,7 +221,7 @@ while true; do
   if [[ ($NUMBER_OF_CALLS) && ("$NUMBER_OF_CALLS" -eq "$CALLS_DONE") ]]; then
     if [[ ("$GET_ERROR" -eq 0) && ("$POST_ERROR" -eq 0) ]]; then
       divider
-      echo -e "$INFO INFO: Continuous load testing successfully completed with $NUMBER_OF_CALLS call(s) and zero errors."
+      echo -e "$INFO INFO: Continuous load testing successfully completed with '$NUMBER_OF_CALLS' call(s) and zero errors."
       exit 0
     fi
   fi
