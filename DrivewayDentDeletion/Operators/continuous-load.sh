@@ -59,7 +59,7 @@ POSTGRES_NAMESPACE=$NAMESPACE
 DDD_TYPE="dev"
 DEFAULT_POSTGRES_CREDENTIAL_SECRET="postgres-credential-ddd"
 
-while getopts "n:u:t:p:b:acdisz" opt; do
+while getopts "n:u:t:p:b:acdisz:" opt; do
   case ${opt} in
   n)
     NAMESPACE="$OPTARG"
@@ -112,8 +112,9 @@ CURL_OPTS=(-s -L -S)
 if [[ $APIC == true ]]; then
   $DEBUG && echo "[DEBUG] apic integration enabled"
   CURL_OPTS+=(-k)
-  API_BASE_URL=$(oc get secret -n $NAMESPACE ddd-api-endpoint-client-id -o jsonpath='{.data.api}' | base64 --decode)
-  API_CLIENT_ID=$(oc get secret -n $NAMESPACE ddd-api-endpoint-client-id -o jsonpath='{.data.cid}' | base64 --decode)
+  ENDPOINT_SECRET_NAME="ddd-${DDD_TYPE}-api-endpoint-client-id"
+  API_BASE_URL=$(oc get secret -n $NAMESPACE ${ENDPOINT_SECRET_NAME} -o jsonpath='{.data.api}' | base64 --decode)
+  API_CLIENT_ID=$(oc get secret -n $NAMESPACE ${ENDPOINT_SECRET_NAME} -o jsonpath='{.data.cid}' | base64 --decode)
   echo -e "[INFO]  api base url: ${API_BASE_URL}\n[INFO]  client id: ${API_CLIENT_ID}"
 fi
 if [ -z "${API_BASE_URL}" ]; then

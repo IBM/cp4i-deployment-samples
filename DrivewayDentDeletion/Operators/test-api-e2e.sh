@@ -111,8 +111,9 @@ HOST=https://$(oc get routes -n ${NAMESPACE} | grep ddd-${DDD_TYPE}-ace-api-http
 if [[ $APIC == true ]]; then
   # Grab bearer token
   echo "[INFO]  Getting the host and client id..."
-  HOST=$(oc get secret -n ${NAMESPACE} ddd-api-endpoint-client-id -o jsonpath='{.data.api}' | base64 --decode)
-  CLIENT_ID=$(oc get secret -n ${NAMESPACE} ddd-api-endpoint-client-id -o jsonpath='{.data.cid}' | base64 --decode)
+  ENDPOINT_SECRET_NAME="ddd-${DDD_TYPE}-api-endpoint-client-id"
+  HOST=$(oc get secret -n ${NAMESPACE} ${ENDPOINT_SECRET_NAME} -o jsonpath='{.data.api}' | base64 --decode)
+  CLIENT_ID=$(oc get secret -n ${NAMESPACE} ${ENDPOINT_SECRET_NAME} -o jsonpath='{.data.cid}' | base64 --decode)
   $DEBUG && echo "[DEBUG] Client id: ${CLIENT_ID}"
   [[ $CLIENT_ID == "null" ]] && echo -e "[ERROR] ${CROSS} Couldn't get client id" && exit 1
 fi

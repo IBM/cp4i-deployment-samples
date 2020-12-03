@@ -419,7 +419,14 @@ $DEBUG && echo "[DEBUG] Client id: ${CLIENT_ID}"
 [[ $CLIENT_ID == "null" ]] && echo -e "[ERROR] ${CROSS} Couldn't get client id" && exit 1
 echo -e "[INFO]  ${TICK} Got client id"
 
-echo "[INFO]  Creating secret ${DEMO_NAME}-api-endpoint-client-id"
+
+if [[ "$DEMO_NAME" == "ddd" ]]; then
+  ENDPOINT_SECRET_NAME="${DEMO_NAME}-${ENVIRONMENT}-api-endpoint-client-id"
+else
+  ENDPOINT_SECRET_NAME="${DEMO_NAME}-api-endpoint-client-id"
+fi
+
+echo "[INFO]  Creating secret ${ENDPOINT_SECRET_NAME}"
 BASE_PATH=$(grep 'basePath:' ${CURRENT_DIR}/api.yaml | head -1 | awk '{print $2}')
 $DEBUG && echo "[DEBUG] BASE_PATH: ${BASE_PATH}"
 HOST="https://$(oc get route -n $MAIN_NAMESPACE ${RELEASE}-gw-gateway -o jsonpath='{.spec.host}')/$ORG/$CATALOG$BASE_PATH"
@@ -430,7 +437,7 @@ cat <<EOF | oc apply -n ${NAMESPACE} -f -
 apiVersion: v1
 kind: Secret
 metadata:
-  name: ${DEMO_NAME}-api-endpoint-client-id
+  name: ${ENDPOINT_SECRET_NAME}
 type: Opaque
 stringData:
   api: ${HOST}
