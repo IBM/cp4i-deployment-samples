@@ -100,7 +100,7 @@ while getopts "n:u:t:p:b:z:acdis" opt; do
   esac
 done
 
-echo "[INFO]  Driveway dent deletion demo type: '$DDD_TYPE'"
+echo "[INFO] Driveway dent deletion demo type: '$DDD_TYPE'"
 DB_USER=$(echo $NAMESPACE | sed 's/-/_/g')_${DDD_TYPE}_ddd
 DB_NAME=db_${DB_USER}
 DB_PASS=$(oc get secret -n $NAMESPACE ${DEFAULT_POSTGRES_CREDENTIAL_SECRET}-${DDD_TYPE} --template={{.data.password}} | base64 --decode)
