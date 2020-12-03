@@ -34,7 +34,6 @@ function usage() {
 }
 
 DDD_DEMO_TYPE="dev"
-DDD_SUFFIX_FOR_ACE_POLICYPROJECT="-${DDD_DEMO_TYPE}"
 MISSING_PARAMS="false"
 CROSS="\xE2\x9D\x8C"
 INFO="\xE2\x84\xB9"
@@ -152,11 +151,7 @@ if [[ -z "$DEBUG" ]]; then
   DEBUG="false"
 fi
 
-# if [[ "$SUFFIX" == "eei" ]]; then
-#   DDD_SUFFIX_FOR_ACE_POLICYPROJECT=""
-# fi
-
-DDD_SUFFIX_FOR_ACE_POLICYPROJECT=$([[ $SUFFIX == "ddd" ]] && echo "$DDD_SUFFIX_FOR_ACE_POLICYPROJECT" || echo "")
+DDD_SUFFIX_FOR_ACE_POLICYPROJECT=$([[ $SUFFIX == "ddd" ]] && echo "-${DDD_DEMO_TYPE}" || echo "")
 
 DB_POD=$(oc get pod -n $POSTGRES_NAMESPACE -l name=postgresql -o jsonpath='{.items[].metadata.name}')
 DB_SVC="postgresql.$POSTGRES_NAMESPACE.svc.cluster.local"
@@ -166,8 +161,7 @@ echo -e "$INFO [INFO] Config directory: $CONFIG_DIR"
 echo -e "$INFO [INFO] Namespace passed: '$NAMESPACE'"
 echo -e "$INFO [INFO] Namespace passed for postgres: '$POSTGRES_NAMESPACE'"
 echo -e "$INFO [INFO] Demo suffix passed for postgres: '$SUFFIX'"
-echo -e "$INFO [INFO] Demo type for driveway dent deletion demo: '$DDD_DEMO_TYPE'"
-echo -e "$INFO [INFO] Suffix for ace policyproject name for driveway dent deletion demo: '$DDD_SUFFIX_FOR_ACE_POLICYPROJECT'"
+[[ $SUFFIX == "ddd" ]] && echo -e "$INFO [INFO] Demo type for driveway dent deletion demo: '$DDD_DEMO_TYPE'" && echo -e "$INFO [INFO] Suffix for ace policyproject name for driveway dent deletion demo: '$DDD_SUFFIX_FOR_ACE_POLICYPROJECT'"
 echo -e "$INFO [INFO] Database username: '$DB_USER'"
 echo -e "$INFO [INFO] Database name: '$DB_NAME'"
 echo -e "$INFO [INFO] Postgres pod name in the '$POSTGRES_NAMESPACE' namespace: '$DB_POD'"
