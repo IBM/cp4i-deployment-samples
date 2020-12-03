@@ -39,7 +39,6 @@ cross="\xE2\x9D\x8C"
 all_done="\xF0\x9F\x92\xAF"
 SUFFIX="eei"
 POSTGRES_NAMESPACE=$namespace
-ACE_CONFIGURATION_NAME="ace-policyproject-$SUFFIX"
 REPO="https://github.com/IBM/cp4i-deployment-samples.git"
 BRANCH="main"
 TKN=tkn

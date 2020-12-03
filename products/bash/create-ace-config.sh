@@ -34,6 +34,7 @@ function usage() {
 }
 
 DDD_DEMO_TYPE="dev"
+DDD_SUFFIX_FOR_ACE_POLICYPROJECT="-${DDD_DEMO_TYPE}"
 MISSING_PARAMS="false"
 CROSS="\xE2\x9D\x8C"
 INFO="\xE2\x84\xB9"
@@ -159,7 +160,8 @@ echo -e "$INFO [INFO] Config directory: $CONFIG_DIR"
 echo -e "$INFO [INFO] Namespace passed: '$NAMESPACE'"
 echo -e "$INFO [INFO] Namespace passed for postgres: '$POSTGRES_NAMESPACE'"
 echo -e "$INFO [INFO] Demo suffix passed for postgres: '$SUFFIX'"
-echo -e "$INFO [INFO] Demo type for postgres (applicable only for driveway dent deletion demo): '$DDD_DEMO_TYPE'"
+echo -e "$INFO [INFO] Demo type for driveway dent deletion demo: '$DDD_DEMO_TYPE'"
+echo -e "$INFO [INFO] Suffix for ace policyproject name for driveway dent deletion demo: '$DDD_SUFFIX_FOR_ACE_POLICYPROJECT'"
 echo -e "$INFO [INFO] Database username: '$DB_USER'"
 echo -e "$INFO [INFO] Database name: '$DB_NAME'"
 echo -e "$INFO [INFO] Postgres pod name in the '$POSTGRES_NAMESPACE' namespace: '$DB_POD'"
@@ -170,7 +172,7 @@ divider
 
 TYPES=("serverconf" "keystore" "keystore" "keystore" "truststore" "policyproject" "setdbparms")
 FILES=("$CONFIG_DIR/$SUFFIX/server.conf.yaml" "$KEYSTORE" "$MQ_CERT/application.kdb" "$MQ_CERT/application.sth" "$MQ_CERT/application.jks" "$CONFIG_DIR/$SUFFIX/DefaultPolicies" "$CONFIG_DIR/$SUFFIX/setdbparms.txt")
-NAMES=("serverconf-$SUFFIX" "keystore-$SUFFIX" "application.kdb" "application.sth" "application.jks" "policyproject-$SUFFIX-${DDD_DEMO_TYPE}" "setdbparms-$SUFFIX")
+NAMES=("serverconf-$SUFFIX" "keystore-$SUFFIX" "application.kdb" "application.sth" "application.jks" "policyproject-${SUFFIX}${DDD_SUFFIX_FOR_ACE_POLICYPROJECT}" "setdbparms-$SUFFIX")
 
 EXISTING_PASS=$(oc get secret ace-api-creds-$SUFFIX -ojsonpath='{.data.pass}' | base64 --decode)
 if [[ -z $EXISTING_SECRET ]]; then
