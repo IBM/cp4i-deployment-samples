@@ -152,6 +152,12 @@ if [[ -z "$DEBUG" ]]; then
   DEBUG="false"
 fi
 
+# if [[ "$SUFFIX" == "eei" ]]; then
+#   DDD_SUFFIX_FOR_ACE_POLICYPROJECT=""
+# fi
+
+DDD_SUFFIX_FOR_ACE_POLICYPROJECT=$([[ $SUFFIX == "ddd" ]] && echo "$DDD_SUFFIX_FOR_ACE_POLICYPROJECT" || echo "")
+
 DB_POD=$(oc get pod -n $POSTGRES_NAMESPACE -l name=postgresql -o jsonpath='{.items[].metadata.name}')
 DB_SVC="postgresql.$POSTGRES_NAMESPACE.svc.cluster.local"
 
