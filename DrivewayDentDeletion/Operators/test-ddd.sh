@@ -146,13 +146,13 @@ function run_continuous_load_script() {
   echo -e "$INFO INFO Running the continuous-load.sh after '$PIPELINE_TYPE' pipeline with apic set to '$APIC_ENABLED' in the '$CONTINUOUS_LOAD_NAMESPACE' namespace with driveway dent deletion demo type '$DDD_TYPE'...\n"
 
   if [[ "$APIC_ENABLED" == "true" ]]; then
-    if ! $CURRENT_DIR/continuous-load.sh -n "$CONTINUOUS_LOAD_NAMESPACE" -b "$DDD_TYPE" -a -z; then
+    if ! $CURRENT_DIR/continuous-load.sh -n "$CONTINUOUS_LOAD_NAMESPACE" -b "$DDD_TYPE" -a -z 1; then
       echo -e "$CROSS [ERROR] Could not start or finish the continuous load testing with apic enabled."
       divider
       exit 1
     fi
   else
-    if ! $CURRENT_DIR/continuous-load.sh -n "$CONTINUOUS_LOAD_NAMESPACE" -b "$DDD_TYPE" -z; then
+    if ! $CURRENT_DIR/continuous-load.sh -n "$CONTINUOUS_LOAD_NAMESPACE" -b "$DDD_TYPE" -z 1; then
       echo -e "$CROSS [ERROR] Could not start or finish the continuous load testing without apic enabled."
       divider
       exit 1
