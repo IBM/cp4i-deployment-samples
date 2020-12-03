@@ -86,7 +86,7 @@ while getopts "n:u:t:p:b:acdisz" opt; do
     SAVE_ROW_AFTER_RUN=true
     ;;
   z)
-    NUMBER_OF_CALLS=1
+    NUMBER_OF_CALLS="$OPTARG"
     ;;
   p)
     POSTGRES_NAMESPACE="$OPTARG"
