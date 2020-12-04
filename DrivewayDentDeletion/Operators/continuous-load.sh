@@ -105,21 +105,20 @@ DB_USER=$(echo $NAMESPACE | sed 's/-/_/g')_${DDD_TYPE}_ddd
 DB_NAME=db_${DB_USER}
 DB_PASS=$(oc get secret -n $NAMESPACE ${DEFAULT_POSTGRES_CREDENTIAL_SECRET}-${DDD_TYPE} --template={{.data.password}} | base64 --decode)
 DB_POD=$(oc get pod -n $POSTGRES_NAMESPACE -l name=postgresql -o jsonpath='{.items[].metadata.name}')
-echo "[INFO]  Username name is: '$DB_USER'"
-echo "[INFO]  Database name is: '$DB_NAME'"
+echo "[INFO] Username name is: '$DB_USER'"
+echo "[INFO] Database name is: '$DB_NAME'"
 
-CURL_OPTS=(-s -L -S)
+CURL_OPTS=(-s -L -S -k)
 if [[ $APIC == true ]]; then
   $DEBUG && echo "[DEBUG] apic integration enabled"
-  CURL_OPTS+=(-k)
   ENDPOINT_SECRET_NAME="ddd-${DDD_TYPE}-api-endpoint-client-id"
   API_BASE_URL=$(oc get secret -n $NAMESPACE ${ENDPOINT_SECRET_NAME} -o jsonpath='{.data.api}' | base64 --decode)
   API_CLIENT_ID=$(oc get secret -n $NAMESPACE ${ENDPOINT_SECRET_NAME} -o jsonpath='{.data.cid}' | base64 --decode)
-  echo -e "[INFO]  api base url: ${API_BASE_URL}\n[INFO]  client id: ${API_CLIENT_ID}"
+  echo -e "[INFO] api base url: ${API_BASE_URL}\n[INFO] client id: ${API_CLIENT_ID}"
 fi
 if [ -z "${API_BASE_URL}" ]; then
   API_BASE_URL=$(echo "https://$(oc get routes -n $NAMESPACE | grep ddd-${DDD_TYPE}-ace-api-https | awk '{print $2}')/drivewayrepair")
-  echo "[INFO]  api base URL: ${API_BASE_URL}"
+  echo "[INFO] api base URL: ${API_BASE_URL}"
 fi
 
 os_sed_flag=""
@@ -167,6 +166,7 @@ while true; do
         }
       ]
     }")
+
   post_response_code=$(echo "${post_response##* }")
   $DEBUG && echo "[DEBUG] post response: ${post_response}"
 
