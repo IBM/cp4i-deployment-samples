@@ -54,7 +54,7 @@ These steps will need to be documented in the demo docs:
 
   > :information_source:
   >
-  > As part of this pipeline we create a sample consumer org whose owner's credential details can be found in the secret `corg-owner-creds`.
+  > As part of this pipeline we create a sample consumer org whose owner's credential details can be found in the secret `ddd-dev-api-endpoint-client-id` for dev environment and in `ddd-test-api-endpoint-client-id` for the test environment.
   >
   > Should the user wish to receive the portal admin login reset link they can run 1-click with a set of valid mailtrap credentials and obtain the link from mailtrap.
 
@@ -73,5 +73,5 @@ These steps will need to be documented in the demo docs:
 - Deploy to dev/test and wait for rollout tasks: Each of these tasks applies a CR to deploy/update an MQ/ACE microservice and waits for the deploy/update to rollout so the microservice is running the newly built image once the task has completed.
 - Test APIC API in Dev environment: Runs a test of the POST/GET endpoints to verify that the dev environment is working. This acts as a gate for rolling out the change to the test environment.
 - Copy images to test tasks: Copies the images from the dev project to the test project (this primarily involves re-tagging the dev image with a new test tag).
-- Configure APIC resources task: Creates APIC Product, users, subscription in `Dev provider organisation` at later stage in `test provider organisation`
+- Configure APIC resources task: Creates APIC Product, users, subscription in `Dev provider organisation` and at a later stage, in `test provider organisation`
 - Test APIC API in Test environment task: This task will run a final test of the POST/GET endpoints to verify the API published in the APIC catalog i.e. `test provider org`.
