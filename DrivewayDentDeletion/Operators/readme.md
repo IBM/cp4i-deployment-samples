@@ -74,4 +74,4 @@ These steps will need to be documented in the demo docs:
 - Test APIC API in Dev environment: Runs a test of the POST/GET endpoints to verify that the dev environment is working. This acts as a gate for rolling out the change to the test environment.
 - Copy images to test tasks: Copies the images from the dev project to the test project (this primarily involves re-tagging the dev image with a new test tag).
 - Configure APIC resources task: Creates APIC Product, users, subscription in `Dev provider organisation` and at a later stage, in `test provider organisation`
-- Test APIC API in Test environment task: This task will run a final test of the POST/GET endpoints to verify the API published in the APIC catalog i.e. `test provider org`.
+- Test APIC API in Test environment task: This task will run a final test of the POST/GET endpoints to verify the API published in the APIC catalog in test environment i.e. `test provider org`.
