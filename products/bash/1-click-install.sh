@@ -425,6 +425,8 @@ echo -e "$INFO [INFO] eventEnabledInsuranceDemo: $eventEnabledInsuranceDemo"
 echo -e "$INFO [INFO] MAPPING_ASSIST_DEMO: $mappingAssistDemo"
 echo -e "$INFO [INFO] WEATHER_CHATBOT_DEMO: $weatherChatbotDemo"
 
+divider
+
 echo -e "$INFO [INFO] Setting up the selected demos..."
 if cat $CURRENT_DIR/demos.yaml |
   sed "s#JOB_NAMESPACE#$JOB_NAMESPACE#g;" |
@@ -447,9 +449,11 @@ else
   echo -e "\n$CROSS [ERROR] Failed to setup all required addons, products and demos in the '$JOB_NAMESPACE' namespace"
 fi
 
+divider
+
 cat $CURRENT_DIR/demos.yaml
 
-divider
+# divider
 
 # if [[ ("${demoPreparation}" == "true" || "${drivewayDentDeletionDemo}" == "true") && ("${testDrivewayDentDeletionDemoE2E}" == "true") ]]; then
 #   if ! $CURRENT_DIR/../../DrivewayDentDeletion/Operators/test-ddd.sh -n ${JOB_NAMESPACE} -b $demoDeploymentBranch; then
