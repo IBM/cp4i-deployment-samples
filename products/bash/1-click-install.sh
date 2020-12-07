@@ -240,46 +240,46 @@ fi
 
 export IMAGE_REPO=${tempRepo:-$IMAGE_REPO}
 
-if oc get namespace $JOB_NAMESPACE >/dev/null 2>&1; then
-  echo -e "INFO INFO: namespace $JOB_NAMESPACE already exists"
-  divider
-else
-  echo "INFO: Creating $JOB_NAMESPACE namespace"
-  if ! oc create namespace $JOB_NAMESPACE; then
-    echo -e "$CROSS ERROR: Failed to create the $JOB_NAMESPACE namespace" 1>&2
-    divider
-    exit 1
-  fi
-fi
+# if oc get namespace $JOB_NAMESPACE >/dev/null 2>&1; then
+#   echo -e "INFO INFO: namespace $JOB_NAMESPACE already exists"
+#   divider
+# else
+#   echo "INFO: Creating $JOB_NAMESPACE namespace"
+#   if ! oc create namespace $JOB_NAMESPACE; then
+#     echo -e "$CROSS ERROR: Failed to create the $JOB_NAMESPACE namespace" 1>&2
+#     divider
+#     exit 1
+#   fi
+# fi
 
 divider
 
-# This storage class improves the pvc performance for small PVCs
-echo "INFO: Creating new cp4i-block-performance storage class"
-cat <<EOF | oc apply -n $JOB_NAMESPACE -f -
-apiVersion: storage.k8s.io/v1
-kind: StorageClass
-metadata:
-  name: cp4i-block-performance
-  labels:
-    kubernetes.io/cluster-service: "true"
-provisioner: ibm.io/ibmc-block
-parameters:
-  billingType: "hourly"
-  classVersion: "2"
-  sizeIOPSRange: |-
-    "[1-39]Gi:[1000]"
-    "[40-79]Gi:[2000]"
-    "[80-99]Gi:[4000]"
-    "[100-499]Gi:[5000-6000]"
-    "[500-999]Gi:[5000-10000]"
-    "[1000-1999]Gi:[10000-20000]"
-    "[2000-2999]Gi:[20000-40000]"
-    "[3000-12000]Gi:[24000-48000]"
-  type: "Performance"
-reclaimPolicy: Delete
-volumeBindingMode: Immediate
-EOF
+# # This storage class improves the pvc performance for small PVCs
+# echo "INFO: Creating new cp4i-block-performance storage class"
+# cat <<EOF | oc apply -n $JOB_NAMESPACE -f -
+# apiVersion: storage.k8s.io/v1
+# kind: StorageClass
+# metadata:
+#   name: cp4i-block-performance
+#   labels:
+#     kubernetes.io/cluster-service: "true"
+# provisioner: ibm.io/ibmc-block
+# parameters:
+#   billingType: "hourly"
+#   classVersion: "2"
+#   sizeIOPSRange: |-
+#     "[1-39]Gi:[1000]"
+#     "[40-79]Gi:[2000]"
+#     "[80-99]Gi:[4000]"
+#     "[100-499]Gi:[5000-6000]"
+#     "[500-999]Gi:[5000-10000]"
+#     "[1000-1999]Gi:[10000-20000]"
+#     "[2000-2999]Gi:[20000-40000]"
+#     "[3000-12000]Gi:[24000-48000]"
+#   type: "Performance"
+# reclaimPolicy: Delete
+# volumeBindingMode: Immediate
+# EOF
 
 defaultStorageClass=$(oc get sc -o json | jq -r '.items[].metadata | select(.annotations["storageclass.kubernetes.io/is-default-class"] == "true") | .name')
 
@@ -302,97 +302,97 @@ divider
 echo -e "INFO INFO: Current storage classes:"
 oc get sc
 
+# divider
+
+# # Create secret to pull images from the ER
+# echo "INFO: Creating secret to pull images from the ER"
+# oc -n ${JOB_NAMESPACE} create secret docker-registry ibm-entitlement-key \
+#   --docker-server=${IMAGE_REPO} \
+#   --docker-username=${DOCKER_REGISTRY_USER} \
+#   --docker-password=${DOCKER_REGISTRY_PASS} \
+#   --dry-run -o yaml | oc apply -f -
+
+# divider
+
+# echo "INFO: Checking for the platform-auth-idp-credentials secret"
+# if oc get secrets platform-auth-idp-credentials -n ibm-common-services; then
+#   PASSWORD_CHANGE=false
+#   echo -e "INFO INFO: Secret platform-auth-idp-credentials already exist so not updating password and username in the installation with provided values"
+# else
+#   echo -e "INFO INFO: Secret platform-auth-idp-credentials does exist so will update password and username in the installation with provided values"
+# fi
+
+# divider
+
+# echo "INFO: Applying catalogsources"
+# cat <<EOF | oc apply -f -
+# ---
+# apiVersion: operators.coreos.com/v1alpha1
+# kind: CatalogSource
+# metadata:
+#   name: opencloud-operators
+#   namespace: openshift-marketplace
+# spec:
+#   displayName: IBMCS Operators
+#   publisher: IBM
+#   sourceType: grpc
+#   image: docker.io/ibmcom/ibm-common-service-catalog:latest
+#   updateStrategy:
+#     registryPoll:
+#       interval: 45m
+
+# ---
+
+# apiVersion: operators.coreos.com/v1alpha1
+# kind: CatalogSource
+# metadata:
+#   name: ibm-operator-catalog
+#   namespace: openshift-marketplace
+# spec:
+#   displayName: ibm-operator-catalog
+#   publisher: IBM Content
+#   sourceType: grpc
+#   image: docker.io/ibmcom/ibm-operator-catalog
+#   updateStrategy:
+#     registryPoll:
+#       interval: 45m
+# EOF
+
+# divider
+
+# if ! $CURRENT_DIR/deploy-og-sub.sh -n ${JOB_NAMESPACE}; then
+#   echo -e "$CROSS ERROR: Failed to deploy the operator group and subscriptions" 1>&2
+#   divider
+#   exit 1
+# else
+#   echo -e "$TICK INFO: Deployed the operator groups and subscriptions"
+# fi
+
+# divider
+
+# if ! $CURRENT_DIR/release-navigator.sh -n ${JOB_NAMESPACE} -r ${navReplicaCount}; then
+#   echo -e "$CROSS ERROR: Failed to release navigator" 1>&2
+#   divider
+#   exit 1
+# else
+#   echo -e "$TICK INFO: Successfully released the platform navigator"
+# fi
+
 divider
 
-# Create secret to pull images from the ER
-echo "INFO: Creating secret to pull images from the ER"
-oc -n ${JOB_NAMESPACE} create secret docker-registry ibm-entitlement-key \
-  --docker-server=${IMAGE_REPO} \
-  --docker-username=${DOCKER_REGISTRY_USER} \
-  --docker-password=${DOCKER_REGISTRY_PASS} \
-  --dry-run -o yaml | oc apply -f -
-
-divider
-
-echo "INFO: Checking for the platform-auth-idp-credentials secret"
-if oc get secrets platform-auth-idp-credentials -n ibm-common-services; then
-  PASSWORD_CHANGE=false
-  echo -e "INFO INFO: Secret platform-auth-idp-credentials already exist so not updating password and username in the installation with provided values"
-else
-  echo -e "INFO INFO: Secret platform-auth-idp-credentials does exist so will update password and username in the installation with provided values"
-fi
-
-divider
-
-echo "INFO: Applying catalogsources"
-cat <<EOF | oc apply -f -
----
-apiVersion: operators.coreos.com/v1alpha1
-kind: CatalogSource
-metadata:
-  name: opencloud-operators
-  namespace: openshift-marketplace
-spec:
-  displayName: IBMCS Operators
-  publisher: IBM
-  sourceType: grpc
-  image: docker.io/ibmcom/ibm-common-service-catalog:latest
-  updateStrategy:
-    registryPoll:
-      interval: 45m
-
----
-
-apiVersion: operators.coreos.com/v1alpha1
-kind: CatalogSource
-metadata:
-  name: ibm-operator-catalog
-  namespace: openshift-marketplace
-spec:
-  displayName: ibm-operator-catalog
-  publisher: IBM Content
-  sourceType: grpc
-  image: docker.io/ibmcom/ibm-operator-catalog
-  updateStrategy:
-    registryPoll:
-      interval: 45m
-EOF
-
-divider
-
-if ! $CURRENT_DIR/deploy-og-sub.sh -n ${JOB_NAMESPACE}; then
-  echo -e "$CROSS ERROR: Failed to deploy the operator group and subscriptions" 1>&2
-  divider
-  exit 1
-else
-  echo -e "$TICK INFO: Deployed the operator groups and subscriptions"
-fi
-
-divider
-
-if ! $CURRENT_DIR/release-navigator.sh -n ${JOB_NAMESPACE} -r ${navReplicaCount}; then
-  echo -e "$CROSS ERROR: Failed to release navigator" 1>&2
-  divider
-  exit 1
-else
-  echo -e "$TICK INFO: Successfully released the platform navigator"
-fi
-
-divider
-
-# Only update common services username and password if common services is not already installed
-if [ "${PASSWORD_CHANGE}" == "true" ]; then
-  if ! $CURRENT_DIR/change-cs-credentials.sh -u ${csDefaultAdminUser} -p ${csDefaultAdminPassword}; then
-    echo -e "$CROSS ERROR: Failed to update the common services admin username/password" 1>&2
-    divider
-    exit 1
-  else
-    echo -e "$TICK INFO: Successfully updated the common services admin username/password"
-  fi
-else
-  echo -e "INFO INFO: Retrieve the common service username using the command 'oc get secrets -n ibm-common-services platform-auth-idp-credentials -o jsonpath='{.data.admin_username}' | base64 --decode' "
-  echo -e "INFO INFO: Retrieve the common service password using the command 'oc get secrets -n ibm-common-services platform-auth-idp-credentials -o jsonpath='{.data.admin_password}' | base64 --decode' "
-fi
+# # Only update common services username and password if common services is not already installed
+# if [ "${PASSWORD_CHANGE}" == "true" ]; then
+#   if ! $CURRENT_DIR/change-cs-credentials.sh -u ${csDefaultAdminUser} -p ${csDefaultAdminPassword}; then
+#     echo -e "$CROSS ERROR: Failed to update the common services admin username/password" 1>&2
+#     divider
+#     exit 1
+#   else
+#     echo -e "$TICK INFO: Successfully updated the common services admin username/password"
+#   fi
+# else
+#   echo -e "INFO INFO: Retrieve the common service username using the command 'oc get secrets -n ibm-common-services platform-auth-idp-credentials -o jsonpath='{.data.admin_username}' | base64 --decode' "
+#   echo -e "INFO INFO: Retrieve the common service password using the command 'oc get secrets -n ibm-common-services platform-auth-idp-credentials -o jsonpath='{.data.admin_password}' | base64 --decode' "
+# fi
 
 divider
 
@@ -424,13 +424,15 @@ else
   echo -e "\n$CROSS [ERROR] Failed to setup all required addons, products and demos in the '$JOB_NAMESPACE' namespace"
 fi
 
+cat $CURRENT_DIR/demos.yaml
+
 divider
 
-if [[ ("${demoPreparation}" == "true" || "${drivewayDentDeletionDemo}" == "true") && ("${testDrivewayDentDeletionDemoE2E}" == "true") ]]; then
-  if ! $CURRENT_DIR/../../DrivewayDentDeletion/Operators/test-ddd.sh -n ${JOB_NAMESPACE} -b $demoDeploymentBranch; then
-    echo "ERROR: Failed to run automated test for driveway dent deletion demo" 1>&2
-    divider
-    exit 1
-  fi
-fi
+# if [[ ("${demoPreparation}" == "true" || "${drivewayDentDeletionDemo}" == "true") && ("${testDrivewayDentDeletionDemoE2E}" == "true") ]]; then
+#   if ! $CURRENT_DIR/../../DrivewayDentDeletion/Operators/test-ddd.sh -n ${JOB_NAMESPACE} -b $demoDeploymentBranch; then
+#     echo "ERROR: Failed to run automated test for driveway dent deletion demo" 1>&2
+#     divider
+#     exit 1
+#   fi
+# fi
 divider
