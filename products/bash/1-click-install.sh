@@ -429,20 +429,20 @@ divider
 
 echo -e "$INFO [INFO] Setting up the selected demos..."
 if cat $CURRENT_DIR/demos.yaml |
-  sed "s#JOB_NAMESPACE#$JOB_NAMESPACE#g;" |
-  sed "s#DEFAULT_BLOCK_STORAGE#$DEFAULT_BLOCK_STORAGE#g;" |
-  sed "s#DEFAULT_FILE_STORAGE#$DEFAULT_FILE_STORAGE#g;" |
-  sed "s#DEMO_DEPLOYMENT_BRANCH#$demoDeploymentBranch#g;" |
-  sed "s#PORG_ADMIN_EMAIL#$PORG_ADMIN_EMAIL#g;" |
-  sed "s#MAIL_SERVER_HOST#$MAIL_SERVER_HOST#g;" |
-  sed "s#MAIL_SERVER_PORT#$MAIL_SERVER_PORT#g;" |
-  sed "s#MAIL_SERVER_USERNAME#$MAIL_SERVER_USERNAME#g;" |
-  sed "s#DEMO_PREPARATION#$demoPreparation#g;" |
-  sed "s#COGNITIVE_CAR_REPAIR_DEMO#$cognitiveCarRepairDemo#g;" |
-  sed "s#DRIVEWAY_DENT_DELETION_DEMO#$drivewayDentDeletionDemo#g;" |
-  sed "s#EVENT_ENABLED_INSURANCE_DEMO#$eventEnabledInsuranceDemo#g;" |
-  sed "s#MAPPING_ASSIST_DEMO#$mappingAssistDemo#g;" |
-  sed "s#WEATHER_CHATBOT_DEMO#$weatherChatbotDemo#g;" |
+  sed "s#{{JOB_NAMESPACE}}#$JOB_NAMESPACE#g;" |
+  sed "s#{{DEFAULT_BLOCK_STORAGE}}#$DEFAULT_BLOCK_STORAGE#g;" |
+  sed "s#{{DEFAULT_FILE_STORAGE}}#$DEFAULT_FILE_STORAGE#g;" |
+  sed "s#{{DEMO_DEPLOYMENT_BRANCH}}#$demoDeploymentBranch#g;" |
+  sed "s#{{PORG_ADMIN_EMAIL}}#$PORG_ADMIN_EMAIL#g;" |
+  sed "s#{{MAIL_SERVER_HOST}}#$MAIL_SERVER_HOST#g;" |
+  sed "s#{{MAIL_SERVER_PORT}}#$MAIL_SERVER_PORT#g;" |
+  sed "s#{{MAIL_SERVER_USERNAME}}#$MAIL_SERVER_USERNAME#g;" |
+  sed "s#{{DEMO_PREPARATION}}#$demoPreparation#g;" |
+  sed "s#{{COGNITIVE_CAR_REPAIR_DEMO}}#$cognitiveCarRepairDemo#g;" |
+  sed "s#{{DRIVEWAY_DENT_DELETION_DEMO}}#$drivewayDentDeletionDemo#g;" |
+  sed "s#{{EVENT_ENABLED_INSURANCE_DEMO}}#$eventEnabledInsuranceDemo#g;" |
+  sed "s#{{MAPPING_ASSIST_DEMO}}#$mappingAssistDemo#g;" |
+  sed "s#{{WEATHER_CHATBOT_DEMO}}#$weatherChatbotDemo#g;" |
   oc apply -f -; then
   echo -e "\n$TICK [SUCCESS] Successfully setup all required addons, products and demos in the '$JOB_NAMESPACE' namespace"
 else
