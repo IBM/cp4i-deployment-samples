@@ -231,6 +231,10 @@ while [ "$numberOfMatchesForImageTag" -ne "$numberOfReplicas" ]; do
     allCorrespondingPods=$(oc get pods -n $namespace | grep $is_release_name | grep 1/1 | grep Running | awk '{print $1}')
   fi
 
+  # TODO
+  echo "TEST POD NUMBERS allCorrespondingPods = $allCorrespondingPods"
+  # TODO
+
   echo "[INFO] Total pods for ACE Integration Server $allCorrespondingPods"
 
   echo -e "\nINFO: For ACE Integration server '$is_release_name':"
@@ -247,7 +251,7 @@ while [ "$numberOfMatchesForImageTag" -ne "$numberOfReplicas" ]; do
 
   echo -e "\nINFO: Total $is_release_name demo pods deployed with new image: $numberOfMatchesForImageTag"
   echo -e "\nINFO: All current $is_release_name demo pods are:\n"
-  oc get pods -n $namespace | grep $is_release_name | grep $ace_replicas/$ace_replicas | grep Running
+  oc get pods -n $namespace | grep $is_release_name | grep $allCorrespondingPods/$allCorrespondingPods | grep Running
   if [[ $? -eq 1 ]]; then
     echo -e "No Ready and Running pods found for $is_release_name yet"
   fi
