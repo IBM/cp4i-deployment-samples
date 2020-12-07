@@ -1,0 +1,26 @@
+apiVersion: integration.ibm.com/v1beta1
+kind: Demo
+metadata:
+  namespace: "JOB_NAMESPACE"
+  name: demos
+spec:
+  general:
+    storage:
+      block:
+        class: "DEFAULT_BLOCK_STORAGE"
+      file:
+        class: "DEFAULT_FILE_STORAGE"
+    samplesRepoBranch: "demoDeploymentBranch"
+  apic:
+    emailAddress: "PORG_ADMIN_EMAIL"
+    mailServerHost: "MAIL_SERVER_HOST"
+    mailServerPort: MAIL_SERVER_PORT
+    mailServerUsername: "MAIL_SERVER_USERNAME"
+    mailServerPassword: "MAIL_SERVER_PASSWORD"
+  demos:
+    all: demoPreparation
+    cognitiveCarRepair: cognitiveCarRepairDemo
+    drivewayDentDeletion: drivewayDentDeletionDemo
+    eventEnabledInsurance: eventEnabledInsuranceDemo
+    mappingAssist: mappingAssistDemo
+    weatherChatbot: weatherChatbotDemo

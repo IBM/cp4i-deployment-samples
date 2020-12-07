@@ -60,6 +60,11 @@ CURRENT_DIR=$(dirname $0)
 missingParams="false"
 IMAGE_REPO="cp.icr.io"
 pwdChange="true"
+DEFAULT_BLOCK_STORAGE=""
+DEFAULT_FILE_STORAGE="ibmc-file-gold-gid"
+cognitiveCarRepairDemo=false
+mappingAssistDemo=false
+weatherChatbotDemo=false
 
 while getopts "a:b:d:e:f:h:j:k:l:m:n:o:p:q:r:s:t:u:v:w:" opt; do
   case ${opt} in
@@ -255,29 +260,32 @@ cat <<EOF | oc apply -n $JOB_NAMESPACE -f -
 apiVersion: storage.k8s.io/v1
 kind: StorageClass
 metadata:
- name: cp4i-block-performance
- labels:
-   kubernetes.io/cluster-service: "true"
+  name: cp4i-block-performance
+  labels:
+    kubernetes.io/cluster-service: "true"
 provisioner: ibm.io/ibmc-block
 parameters:
- billingType: "hourly"
- classVersion: "2"
- sizeIOPSRange: |-
-   "[1-39]Gi:[1000]"
-   "[40-79]Gi:[2000]"
-   "[80-99]Gi:[4000]"
-   "[100-499]Gi:[5000-6000]"
-   "[500-999]Gi:[5000-10000]"
-   "[1000-1999]Gi:[10000-20000]"
-   "[2000-2999]Gi:[20000-40000]"
-   "[3000-12000]Gi:[24000-48000]"
- type: "Performance"
+  billingType: "hourly"
+  classVersion: "2"
+  sizeIOPSRange: |-
+    "[1-39]Gi:[1000]"
+    "[40-79]Gi:[2000]"
+    "[80-99]Gi:[4000]"
+    "[100-499]Gi:[5000-6000]"
+    "[500-999]Gi:[5000-10000]"
+    "[1000-1999]Gi:[10000-20000]"
+    "[2000-2999]Gi:[20000-40000]"
+    "[3000-12000]Gi:[24000-48000]"
+  type: "Performance"
 reclaimPolicy: Delete
 volumeBindingMode: Immediate
 EOF
 
+defaultStorageClass=$(oc get sc -o json | jq -r '.items[].metadata | select(.annotations["storageclass.kubernetes.io/is-default-class"] == "true") | .name')
+
+DEFAULT_BLOCK_STORAGE=$defaultStorageClass
+
 if [[ "${useFastStorageClass}" == "true" ]]; then
-  defaultStorageClass=$(oc get sc -o json | jq -r '.items[].metadata | select(.annotations["storageclass.kubernetes.io/is-default-class"] == "true") | .name')
   echo -e "$info INFO: Current default storage class is: $defaultStorageClass"
 
   echo -e "$info INFO: Making $defaultStorageClass non-default"
@@ -285,6 +293,8 @@ if [[ "${useFastStorageClass}" == "true" ]]; then
 
   echo -e "$info INFO: Making cp4i-block-performance default"
   oc patch storageclass cp4i-block-performance -p '{"metadata": {"annotations":{"storageclass.kubernetes.io/is-default-class":"true"}}}'
+
+  DEFAULT_BLOCK_STORAGE="cp4i-block-performance"
 fi
 
 divider
@@ -386,205 +396,33 @@ fi
 
 divider
 
-# ----------------------------------------------- Postgres for ddd and eei ------------------------------------------------------------
+export PORG_ADMIN_EMAIL=${demoAPICEmailAddress}
+export MAIL_SERVER_HOST=${demoAPICMailServerHost}
+export MAIL_SERVER_PORT=${demoAPICMailServerPort}
+export MAIL_SERVER_USERNAME=${demoAPICMailServerUsername}
+export MAIL_SERVER_PASSWORD=${demoAPICMailServerPassword}
 
-if [[ "${demoPreparation}" == "true" || "${eventEnabledInsuranceDemo}" == "true" || "${drivewayDentDeletionDemo}" == "true" ]]; then
-  if ! $CURRENT_DIR/release-psql.sh -n "$JOB_NAMESPACE"; then
-    echo -e "$cross ERROR: Failed to release PostgreSQL" 1>&2
-    divider
-    exit 1
-  else
-    echo -e "$tick INFO: Successfully released PostgresSQL"
-    divider
-  fi
-fi #postgres
-
-# -------------------------------------------------- All other demos ----------------------------------------------------------------
-
-if [[ "${demoPreparation}" == "true" ]]; then
-
-  if ! $CURRENT_DIR/release-ar.sh -r ar-demo -n ${JOB_NAMESPACE}; then
-    echo -e "$cross ERROR: Failed to release asset repo" 1>&2
-    divider
-    exit 1
-  else
-    echo -e "$tick INFO: Successfully released asset repo"
-  fi
-
-  divider
-
-  if ! $CURRENT_DIR/release-ace.sh -n ${JOB_NAMESPACE}; then
-    echo -e "$cross : Failed to release ace dashboard and ace designer" 1>&2
-    exit 1
-  else
-    echo -e "$tick INFO: Successfully released ace dashboard and ace designer"
-  fi
-
-  divider
-
-  if ! $CURRENT_DIR/release-mq.sh -n ${JOB_NAMESPACE} -t; then
-    echo -e "$cross : Failed to release MQ" 1>&2
-    divider
-    exit 1
-  else
-    echo -e "$tick INFO: Successfully released MQ"
-    divider
-  fi
-fi #demoPreparation
-
-# ------------------------------------------- Event Enabled Insurance demo specific ---------------------------------------------------
-
-if [[ "${eventEnabledInsuranceDemo}" == "true" || "${demoPreparation}" == "true" ]]; then
-  if ! $CURRENT_DIR/release-tracing.sh -n ${JOB_NAMESPACE}; then
-    echo "ERROR: Failed to release tracing" 1>&2
-    exit 1
-  else
-    echo -e "$tick INFO: Successfully released tracing"
-    divider
-  fi
-
-  if ! $CURRENT_DIR/release-es.sh -n ${JOB_NAMESPACE}; then
-    echo "ERROR: Failed to release event streams" 1>&2
-    exit 1
-  else
-    echo -e "$tick INFO: Successfully released event streams"
-    divider
-  fi
-
-  if ! $CURRENT_DIR/release-ace-dashboard.sh -n ${JOB_NAMESPACE}; then
-    echo "ERROR: Failed to release ace dashboard" 1>&2
-    exit 1
-  else
-    echo -e "$tick INFO: Successfully released ace dashboard"
-    divider
-  fi
-
-  if ! $CURRENT_DIR/release-apic.sh -n ${JOB_NAMESPACE} -t; then
-    echo "ERROR: Failed to release apic" 1>&2
-    exit 1
-  else
-    echo -e "$tick INFO: Successfully released apic"
-    divider
-  fi
-
-  if ! $CURRENT_DIR/register-tracing.sh -n ${JOB_NAMESPACE}; then
-    echo "ERROR: Failed to register tracing. Tracing secret not created" 1>&2
-    exit 1
-  else
-    echo -e "$tick INFO: Successfully registered tracing"
-    divider
-  fi
-
-  export PORG_ADMIN_EMAIL=${demoAPICEmailAddress}
-  export MAIL_SERVER_HOST=${demoAPICMailServerHost}
-  export MAIL_SERVER_PORT=${demoAPICMailServerPort}
-  export MAIL_SERVER_USERNAME=${demoAPICMailServerUsername}
-  export MAIL_SERVER_PASSWORD=${demoAPICMailServerPassword}
-
-  if ! $CURRENT_DIR/configure-apic-v10.sh -n ${JOB_NAMESPACE}; then
-    echo "ERROR: Failed to configure apic" 1>&2
-    exit 1
-  else
-    echo -e "$tick INFO: Successfully configured apic"
-    divider
-  fi
-
-  # call prereqs for event enabled without branch and repo params
-  # branch defaults to 'main' inside the prereqs
-  # repo defaults to 'https://github.com/IBM/cp4i-deployment-samples.git' inside the prereqs
-  if ! $CURRENT_DIR/../../EventEnabledInsurance/prereqs.sh -n ${JOB_NAMESPACE} -e ${JOB_NAMESPACE} -p ${JOB_NAMESPACE} -b ${demoDeploymentBranch}; then
-    echo "ERROR: Failed to run event enabled insurance prereqs script" 1>&2
-    divider
-    exit 1
-  fi
-fi #eventEnabledInsuranceDemo
-
-# ------------------------------------------- Driveway Dent Deletion demo specific ---------------------------------------------------
-
-if [[ "${drivewayDentDeletionDemo}" == "true" || "${demoPreparation}" == "true" ]]; then
-
-  divider
-
-  if ! $CURRENT_DIR/../../DrivewayDentDeletion/Operators/prereqs.sh -n ${JOB_NAMESPACE}; then
-    echo "ERROR: Failed to run driveway dent deletion prereqs script" 1>&2
-    divider
-    exit 1
-  fi
-
-  divider
-
-  if ! $CURRENT_DIR/release-tracing.sh -n ${JOB_NAMESPACE}; then
-    echo "ERROR: Failed to release tracing" 1>&2
-    exit 1
-  else
-    echo -e "$tick INFO: Successfully released tracing"
-    divider
-  fi
-
-  if ! $CURRENT_DIR/release-ace-dashboard.sh -n ${JOB_NAMESPACE}; then
-    echo "ERROR: Failed to release ace dashboard" 1>&2
-    exit 1
-  else
-    echo -e "$tick INFO: Successfully released ace dashboard"
-    divider
-  fi
-
-  if ! $CURRENT_DIR/release-apic.sh -n ${JOB_NAMESPACE} -t; then
-    echo "ERROR: Failed to release apic" 1>&2
-    exit 1
-  else
-    echo -e "$tick INFO: Successfully released apic"
-    divider
-  fi
-
-  if ! $CURRENT_DIR/register-tracing.sh -n ${JOB_NAMESPACE}; then
-    echo "ERROR: Failed to register tracing. Tracing secret not created" 1>&2
-    exit 1
-  else
-    echo -e "$tick INFO: Successfully registered tracing"
-    divider
-  fi
-
-  export PORG_ADMIN_EMAIL=${demoAPICEmailAddress}
-  export MAIL_SERVER_HOST=${demoAPICMailServerHost}
-  export MAIL_SERVER_PORT=${demoAPICMailServerPort}
-  export MAIL_SERVER_USERNAME=${demoAPICMailServerUsername}
-  export MAIL_SERVER_PASSWORD=${demoAPICMailServerPassword}
-
-  if ! $CURRENT_DIR/configure-apic-v10.sh -n ${JOB_NAMESPACE}; then
-    echo "ERROR: Failed to configure apic" 1>&2
-    exit 1
-  else
-    echo -e "$tick INFO: Successfully configured apic"
-    divider
-  fi
-fi #drivewayDentDeletionDemo
-
-# -------------------------------------------------- All other demos ----------------------------------------------------------------
-
-if [[ "${demoPreparation}" == "true" ]]; then
-  export CP_USERNAME=${csDefaultAdminUser}
-  export CP_PASSWORD=${csDefaultAdminPassword}
-  export CP_CONSOLE=$(oc get routes -n ibm-common-services cp-console -o jsonpath='{.spec.host}')
-  if [ -z "$CP_CONSOLE" ]; then
-    echo "ERROR: Failed to get cp-console host" 1>&2
-    divider
-    exit 1
-  else
-    echo -e "$tick INFO: Successfully got cp-console host"
-  fi
-
-  divider
-
-  export CP_CONSOLE_URL="https://${CP_CONSOLE}"
-  if ! $CURRENT_DIR/ar_remote_create.sh -r ar-demo -n ${JOB_NAMESPACE} -o; then
-    echo "ERROR: Failed to create remote for Asset repo" 1>&2
-    divider
-    exit 1
-  else
-    echo -e "$tick INFO: Successfully created remote for Asset repo"
-  fi
-fi #demoPreparation
+echo -e "$INFO [INFO] Setting up the selected demos..."
+if cat $CURRENT_DIR/demos.yaml |
+  sed "s#JOB_NAMESPACE#$JOB_NAMESPACE#g;" |
+  sed "s#DEFAULT_BLOCK_STORAGE#$DEFAULT_BLOCK_STORAGE#g;" |
+  sed "s#DEFAULT_FILE_STORAGE#$DEFAULT_FILE_STORAGE#g;" |
+  sed "s#demoDeploymentBranch#$demoDeploymentBranch#g;" |
+  sed "s#PORG_ADMIN_EMAIL#$PORG_ADMIN_EMAIL#g;" |
+  sed "s#MAIL_SERVER_HOST#$MAIL_SERVER_HOST#g;" |
+  sed "s#MAIL_SERVER_PORT#$MAIL_SERVER_PORT#g;" |
+  sed "s#MAIL_SERVER_USERNAME#$MAIL_SERVER_USERNAME#g;" |
+  sed "s#demoPreparation#$demoPreparation#g;" |
+  sed "s#cognitiveCarRepairDemo#$cognitiveCarRepairDemo#g;" |
+  sed "s#drivewayDentDeletionDemo#$drivewayDentDeletionDemo#g;" |
+  sed "s#eventEnabledInsuranceDemo#$eventEnabledInsuranceDemo#g;" |
+  sed "s#mappingAssistDemo#$mappingAssistDemo#g;" |
+  sed "s#weatherChatbotDemo#$weatherChatbotDemo#g;" |
+  oc apply -f -; then
+  echo -e "\n$TICK [SUCCESS] Successfully setup all required addons, products and demos in the '$JOB_NAMESPACE' namespace"
+else
+  echo -e "\n$CROSS [ERROR] Failed to setup all required addons, products and demos in the '$JOB_NAMESPACE' namespace"
+fi
 
 divider
 
