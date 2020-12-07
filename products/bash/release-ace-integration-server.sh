@@ -237,7 +237,7 @@ while [ "$numberOfMatchesForImageTag" -ne "$numberOfReplicas" ]; do
     numberOfContainers=1
   fi
 
-  echo "[INFO] Total pods for ACE Integration Server:\n $allCorrespondingPods"
+  echo -e "[INFO] Total pods for ACE Integration Server:\n$allCorrespondingPods"
 
   echo -e "\nINFO: For ACE Integration server '$is_release_name':"
   for eachAcePod in $allCorrespondingPods; do

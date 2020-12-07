@@ -79,6 +79,12 @@ fi
 
 echo "[INFO] tracing is set to $tracing_enabled"
 
+if [[ "$release_name" =~ "ddd" ]]; then
+  numberOfContainers=3
+elif [[ "$release_name" =~ "eei" ]]; then
+  numberOfContainers=1
+fi
+
 if [ -z $image_name ]; then
 
   cat <<EOF | oc apply -f -
@@ -319,7 +325,7 @@ EOF
 
     echo -e "\nINFO: Total $release_name demo pods deployed with new image: $numberOfMatchesForImageTag"
     echo -e "\nINFO: All current $release_name demo pods are:\n"
-    oc get pods -n $namespace | grep $release_name | grep 1/1 | grep Running
+    oc get pods -n $namespace | grep $release_name | grep $numberOfContainers/$numberOfContainers | grep Running
     if [[ $? -eq 1 ]]; then
       echo -e "No Ready and Running pods found for '$release_name' yet"
     fi
