@@ -12,29 +12,6 @@ spec:
         pipelineRef:
           name: dev-pipeline
         serviceAccountName: pipeline
-        # serviceAccountNames:
-        #   - taskName: clone-git-source
-        #     serviceAccountName: pipeline
-        #   - taskName: build-mq
-        #     serviceAccountName: pipeline
-        #   - taskName: deploy-wait-mq
-        #     serviceAccountName: pipeline
-        #   - taskName: build-ace-int-server-ace-api
-        #     serviceAccountName: pipeline
-        #   - taskName: build-ace-int-server-ace-bernie
-        #     serviceAccountName: pipeline
-        #   - taskName: build-ace-int-server-ace-acme
-        #     serviceAccountName: pipeline
-        #   - taskName: build-ace-int-server-ace-chris
-        #     serviceAccountName: pipeline
-        #   - taskName: deploy-wait-ace-api
-        #     serviceAccountName: pipeline
-        #   - taskName: deploy-wait-ace-chris
-        #     serviceAccountName: pipeline
-        #   - taskName: deploy-wait-ace-acme
-        #     serviceAccountName: pipeline
-        #   - taskName: deploy-wait-ace-bernie
-        #     serviceAccountName: pipeline
         workspaces:
           - name: git-source
             persistentvolumeclaim:

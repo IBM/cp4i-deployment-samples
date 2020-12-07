@@ -253,33 +253,33 @@ wait_and_trigger_pipeline "dev"
 
 run_continuous_load_script "$NAMESPACE" "false" "dev" "dev"
 
-# # -------------------------------------------- TEST PIPELINE RUN ----------------------------------------------------------
+# -------------------------------------------- TEST PIPELINE RUN ----------------------------------------------------------
 
-# echo -e "$INFO [INFO] Applying the test pipeline resources...\n"
-# if ! $CURRENT_DIR/cicd-apply-test-pipeline.sh -n $NAMESPACE -r $FORKED_REPO -b $BRANCH; then
-#   echo -e "$CROSS [ERROR] Could not apply the test pipeline resources."
-#   exit 1
-# fi
+echo -e "$INFO [INFO] Applying the test pipeline resources...\n"
+if ! $CURRENT_DIR/cicd-apply-test-pipeline.sh -n $NAMESPACE -r $FORKED_REPO -b $BRANCH; then
+  echo -e "$CROSS [ERROR] Could not apply the test pipeline resources."
+  exit 1
+fi
 
-# wait_and_trigger_pipeline "test"
+wait_and_trigger_pipeline "test"
 
-# run_continuous_load_script "$NAMESPACE" "false" "test" "dev"
+run_continuous_load_script "$NAMESPACE" "false" "test" "dev"
 
-# run_continuous_load_script "$NAMESPACE" "false" "test" "test"
+run_continuous_load_script "$NAMESPACE" "false" "test" "test"
 
-# # -------------------------------------------- TEST APIC PIPELINE RUN -----------------------------------------------------
+# -------------------------------------------- TEST APIC PIPELINE RUN -----------------------------------------------------
 
-# echo -e "$INFO [INFO] Applying the test apic pipeline resources...\n"
-# if ! $CURRENT_DIR/cicd-apply-test-apic-pipeline.sh -n $NAMESPACE -r $FORKED_REPO -b $BRANCH; then
-#   echo -e "$CROSS [ERROR] Could not apply the test apic pipeline resources."
-#   exit 1
-# fi
+echo -e "$INFO [INFO] Applying the test apic pipeline resources...\n"
+if ! $CURRENT_DIR/cicd-apply-test-apic-pipeline.sh -n $NAMESPACE -r $FORKED_REPO -b $BRANCH; then
+  echo -e "$CROSS [ERROR] Could not apply the test apic pipeline resources."
+  exit 1
+fi
 
-# wait_and_trigger_pipeline "test-apic"
+wait_and_trigger_pipeline "test-apic"
 
-# run_continuous_load_script "$NAMESPACE" "true" "test-apic" "dev"
+run_continuous_load_script "$NAMESPACE" "true" "test-apic" "dev"
 
-# run_continuous_load_script "$NAMESPACE" "true" "test-apic" "test"
+run_continuous_load_script "$NAMESPACE" "true" "test-apic" "test"
 
 # -------------------------------------------PRINT PIPELINERUN, TASKRUN, EXIT ---------------------------------------------
 

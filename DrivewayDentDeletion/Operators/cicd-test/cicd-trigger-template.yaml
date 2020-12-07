@@ -12,53 +12,6 @@ spec:
         pipelineRef:
           name: test-pipeline
         serviceAccountName: pipeline
-        # serviceAccountNames:
-        #   - taskName: clone-git-source
-        #     serviceAccountName: pipeline
-        #   - taskName: build-mq
-        #     serviceAccountName: pipeline
-        #   - taskName: deploy-wait-mq
-        #     serviceAccountName: pipeline
-        #   - taskName: build-ace-int-server-ace-api
-        #     serviceAccountName: pipeline
-        #   - taskName: build-ace-int-server-ace-bernie
-        #     serviceAccountName: pipeline
-        #   - taskName: build-ace-int-server-ace-acme
-        #     serviceAccountName: pipeline
-        #   - taskName: build-ace-int-server-ace-chris
-        #     serviceAccountName: pipeline
-        #   - taskName: deploy-wait-ace-api
-        #     serviceAccountName: pipeline
-        #   - taskName: deploy-wait-ace-chris
-        #     serviceAccountName: pipeline
-        #   - taskName: deploy-wait-ace-acme
-        #     serviceAccountName: pipeline
-        #   - taskName: deploy-wait-ace-bernie
-        #     serviceAccountName: pipeline
-        #   - taskName: test-e2e-api-in-dev-namespace
-        #     serviceAccountName: pipeline
-        #   - taskName: image-push-to-test-ace-chris
-        #     serviceAccountName: pipeline
-        #   - taskName: image-push-to-test-ace-acme
-        #     serviceAccountName: pipeline
-        #   - taskName: image-push-to-test-ace-bernie
-        #     serviceAccountName: pipeline
-        #   - taskName: image-push-to-test-ace-api
-        #     serviceAccountName: pipeline
-        #   - taskName: image-push-to-test-mq
-        #     serviceAccountName: pipeline
-        #   - taskName: deploy-wait-mq-test
-        #     serviceAccountName: pipeline
-        #   - taskName: deploy-wait-ace-api-test
-        #     serviceAccountName: pipeline
-        #   - taskName: deploy-wait-ace-bernie-test
-        #     serviceAccountName: pipeline
-        #   - taskName: deploy-wait-ace-chris-test
-        #     serviceAccountName: pipeline
-        #   - taskName: deploy-wait-ace-acme-test
-        #     serviceAccountName: pipeline
-        #   - taskName: test-e2e-api-in-test-namespace
-        #     serviceAccountName: pipeline
         workspaces:
           - name: git-source
             persistentvolumeclaim:
