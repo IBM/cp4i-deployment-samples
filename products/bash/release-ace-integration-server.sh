@@ -26,8 +26,13 @@
 #   Overriding the namespace and release-name
 #     ./release-ace-integration-server -d policyproject-ddd-test -n cp4i -r cp4i-bernie-ace
 
+function divider() {
+  echo -e "\n-------------------------------------------------------------------------------------------------------------------\n"
+}
+
 function usage() {
   echo "Usage: $0 -c <ace_policy_names> -d <POLICY_PROJECT_TYPE> -i <is_image_name> -n <namespace> -p <ace_replicas> -r <is_release_name> -t -z <tracing_namespace>"
+  divider
   exit 1
 }
 
@@ -105,7 +110,7 @@ echo "[INFO] tracing is set to $tracing_enabled"
 
 echo -e "INFO: Going ahead to apply the CR for '$is_release_name'"
 
-echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
+divider
 
 cat <<EOF | oc apply -f -
 apiVersion: appconnect.ibm.com/v1beta1
@@ -169,7 +174,7 @@ if [ "$tracing_enabled" == "true" ]; then
 fi
 # -------------------------------------- INSTALL JQ ---------------------------------------------------------------------
 
-echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
+divider
 
 echo -e "\nINFO: Checking if jq is pre-installed..."
 jqInstalled=false
@@ -199,14 +204,14 @@ fi
 
 echo -e "\nINFO: Installed JQ version is $($JQ --version)"
 
-echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
+divider
 
 # -------------------------------------- FIND TOTAL ACE REPLICAS DEPLOYED -----------------------------------------------
 
 numberOfReplicas=$(oc get integrationservers $is_release_name -n $namespace -o json | $JQ -r '.spec.replicas')
 echo "INFO: Number of Replicas for '$is_release_name' is $numberOfReplicas"
 echo -e "\nINFO: Total number of ACE integration server '$is_release_name' related pods after deployment should be $numberOfReplicas"
-echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
+divider
 
 # -------------------------------------- CHECK FOR NEW IMAGE DEPLOYMENT STATUS ------------------------------------------
 
@@ -219,7 +224,7 @@ time=0
 while [ "$numberOfMatchesForImageTag" -ne "$numberOfReplicas" ]; do
   if [ $time -gt 90 ]; then
     echo "ERROR: Timed-out trying to wait for all $is_release_name demo pods to be deployed with a new image containing the image tag '$imageTag'"
-    echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
+    divider
     exit 1
   fi
 
@@ -229,12 +234,6 @@ while [ "$numberOfMatchesForImageTag" -ne "$numberOfReplicas" ]; do
     allCorrespondingPods=$(oc get pods -n $namespace | grep $is_release_name | grep 3/3 | grep Running | awk '{print $1}')
   else
     allCorrespondingPods=$(oc get pods -n $namespace | grep $is_release_name | grep 1/1 | grep Running | awk '{print $1}')
-  fi
-
-  if [[ "${ace_replicas}" -eq 2 ]]; then
-    numberOfContainers=3
-  else
-    numberOfContainers=1
   fi
 
   echo -e "[INFO] Total pods for ACE Integration Server:\n$allCorrespondingPods"
@@ -253,9 +252,9 @@ while [ "$numberOfMatchesForImageTag" -ne "$numberOfReplicas" ]; do
 
   echo -e "\nINFO: Total $is_release_name demo pods deployed with new image: $numberOfMatchesForImageTag"
   echo -e "\nINFO: All current $is_release_name demo pods are:\n"
-  oc get pods -n $namespace | grep $is_release_name | grep $numberOfContainers/$numberOfContainers | grep Running
+  oc get pods -n $namespace | grep $is_release_name | grep Running
   if [[ $? -eq 1 ]]; then
-    echo -e "No Ready and Running pods found for $is_release_name yet"
+    echo -e "No running pods found for $is_release_name yet"
   fi
   if [[ $numberOfMatchesForImageTag != "$numberOfReplicas" ]]; then
     echo -e "\nINFO: Not all $is_release_name pods have been deployed with the new image having the image tag '$imageTag', retrying for upto 10 minutes for new $is_release_name demo pods to be deployed with new image. Waited ${time} minute(s)."
@@ -264,8 +263,7 @@ while [ "$numberOfMatchesForImageTag" -ne "$numberOfReplicas" ]; do
     echo -e "\nINFO: All $is_release_name demo pods have been deployed with the new image"
   fi
   time=$((time + 1))
-  echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------"
-
+  divider
 done
 
 GOT_SERVICE=false
