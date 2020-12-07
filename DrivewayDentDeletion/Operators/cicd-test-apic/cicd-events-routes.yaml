@@ -3,7 +3,7 @@ kind: EventListener
 metadata:
   name: test-apic-event-listener
 spec:
-  serviceAccountName: cicd-pipeline
+  serviceAccountName: pipeline
   triggers:
     - template:
         name: test-apic-triggertemplate

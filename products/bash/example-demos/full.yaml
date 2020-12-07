@@ -12,7 +12,7 @@ spec:
         class: ibmc-file-gold-gid
     # Include this? Maybe when we turn this into an operator the samples repo would
     # be baked in as a locally running image, so can work with airgap.
-    samplesRepoBranch: demos-ccr-eei
+    samplesRepoBranch: main
 
   apic:
     emailAddress: "your@email.address"

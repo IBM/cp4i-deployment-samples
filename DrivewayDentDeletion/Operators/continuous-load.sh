@@ -20,6 +20,8 @@
 #   -i : CONDENSED_INFO (true/false), whether to show the full post response or a condensed version - DEFAULT: false
 #   -s : SAVE_ROW_AFTER_RUN (true/false), whether to save each row in the database after a run or delete it - DEFAULT: false
 #   -z : NUMBER_OF_CALLS (integer), run continuous load calls fixed number of times.
+#   -p : <POSTGRES_NAMESPACE> (string), Namespace where postgres is setup, Defaults to value for '<NAMESPACE>'
+#   -b : <DDD_TYPE> (string), Driveway dent deletion demo type for postgres credential, Defaults to "dev"
 #
 # USAGE:
 #   CAUTION - running without TABLE_CLEANUP enabled can result in data leftover in the postgres table
@@ -31,7 +33,7 @@
 #     ./continuous-load.sh -t 2 -c
 
 function usage() {
-  echo "Usage: $0 [-n NAMESPACE] [-u API_BASE_URL] [-t RETRY_INTERVAL] [-acdisz]"
+  echo "Usage: $0 [-n NAMESPACE] [-u API_BASE_URL] [-t RETRY_INTERVAL] [-p POSTGRES_NAMESPACE] [-b DDD_TYPE] [-acdisz]"
   exit 1
 }
 
@@ -53,8 +55,11 @@ TICK="\xE2\x9C\x85"
 CROSS="\xE2\x9D\x8C"
 ALL_DONE="\xF0\x9F\x92\xAF"
 INFO="\xE2\x84\xB9"
+POSTGRES_NAMESPACE=$NAMESPACE
+DDD_TYPE="dev"
+DEFAULT_POSTGRES_CREDENTIAL_SECRET="postgres-credential-ddd"
 
-while getopts "n:u:t:acdisz" opt; do
+while getopts "n:u:t:p:b:z:acdis" opt; do
   case ${opt} in
   n)
     NAMESPACE="$OPTARG"
@@ -81,7 +86,13 @@ while getopts "n:u:t:acdisz" opt; do
     SAVE_ROW_AFTER_RUN=true
     ;;
   z)
-    NUMBER_OF_CALLS=1
+    NUMBER_OF_CALLS="$OPTARG"
+    ;;
+  p)
+    POSTGRES_NAMESPACE="$OPTARG"
+    ;;
+  b)
+    DDD_TYPE="$OPTARG"
     ;;
   \?)
     usage
@@ -89,24 +100,25 @@ while getopts "n:u:t:acdisz" opt; do
   esac
 done
 
-DB_USER=$(echo $NAMESPACE | sed 's/-/_/g')_ddd
+echo "[INFO] Driveway dent deletion demo type: '$DDD_TYPE'"
+DB_USER=$(echo $NAMESPACE | sed 's/-/_/g')_${DDD_TYPE}_ddd
 DB_NAME=db_${DB_USER}
-DB_PASS=$(oc get secret -n $NAMESPACE postgres-credential --template={{.data.password}} | base64 --decode)
-DB_POD=$(oc get pod -n postgres -l name=postgresql -o jsonpath='{.items[].metadata.name}')
-echo "[INFO]  Username name is: '${DB_USER}'"
-echo "[INFO]  Database name is: '${DB_NAME}'"
+DB_PASS=$(oc get secret -n $NAMESPACE ${DEFAULT_POSTGRES_CREDENTIAL_SECRET}-${DDD_TYPE} --template={{.data.password}} | base64 --decode)
+DB_POD=$(oc get pod -n $POSTGRES_NAMESPACE -l name=postgresql -o jsonpath='{.items[].metadata.name}')
+echo "[INFO] Username name is: '$DB_USER'"
+echo "[INFO] Database name is: '$DB_NAME'"
 
-CURL_OPTS=(-s -L -S)
+CURL_OPTS=(-s -L -S -k)
 if [[ $APIC == true ]]; then
   $DEBUG && echo "[DEBUG] apic integration enabled"
-  CURL_OPTS+=(-k)
-  API_BASE_URL=$(oc get secret -n $NAMESPACE ddd-api-endpoint-client-id -o jsonpath='{.data.api}' | base64 --decode)
-  API_CLIENT_ID=$(oc get secret -n $NAMESPACE ddd-api-endpoint-client-id -o jsonpath='{.data.cid}' | base64 --decode)
-  echo -e "[INFO]  api base url: ${API_BASE_URL}\n[INFO]  client id: ${API_CLIENT_ID}"
+  ENDPOINT_SECRET_NAME="ddd-${DDD_TYPE}-api-endpoint-client-id"
+  API_BASE_URL=$(oc get secret -n $NAMESPACE ${ENDPOINT_SECRET_NAME} -o jsonpath='{.data.api}' | base64 --decode)
+  API_CLIENT_ID=$(oc get secret -n $NAMESPACE ${ENDPOINT_SECRET_NAME} -o jsonpath='{.data.cid}' | base64 --decode)
+  echo -e "[INFO] api base url: ${API_BASE_URL}\n[INFO] client id: ${API_CLIENT_ID}"
 fi
 if [ -z "${API_BASE_URL}" ]; then
-  API_BASE_URL=$(echo "https://$(oc get routes -n $NAMESPACE | grep ace-api-int-srv-https | awk '{print $2}')/drivewayrepair")
-  echo "[INFO]  api base URL: ${API_BASE_URL}"
+  API_BASE_URL=$(echo "https://$(oc get routes -n $NAMESPACE | grep ddd-${DDD_TYPE}-ace-api-https | awk '{print $2}')/drivewayrepair")
+  echo "[INFO] api base URL: ${API_BASE_URL}"
 fi
 
 os_sed_flag=""
@@ -117,7 +129,7 @@ fi
 function cleanup_table() {
   table_name="quotes"
   echo -e "\Clearing '${table_name}' database of all rows..."
-  oc exec -n postgres -it ${DB_POD} -- \
+  oc exec -n $POSTGRES_NAMESPACE -it ${DB_POD} -- \
     psql -U ${DB_USER} -d ${DB_NAME} -c \
     "TRUNCATE ${table_name};"
 }
@@ -154,6 +166,7 @@ while true; do
         }
       ]
     }")
+
   post_response_code=$(echo "${post_response##* }")
   $DEBUG && echo "[DEBUG] post response: ${post_response}"
 
@@ -196,7 +209,7 @@ while true; do
     # - DELETE ---
     if [ "$SAVE_ROW_AFTER_RUN" = false ]; then
       echo -e "\nDeleting row from database..."
-      oc exec -n postgres -it ${DB_POD} -- \
+      oc exec -n $POSTGRES_NAMESPACE -it ${DB_POD} -- \
         psql -U ${DB_USER} -d ${DB_NAME} -c \
         "DELETE FROM quotes WHERE quotes.quoteid = ${quote_id};"
     fi
@@ -208,8 +221,7 @@ while true; do
   if [[ ($NUMBER_OF_CALLS) && ("$NUMBER_OF_CALLS" -eq "$CALLS_DONE") ]]; then
     if [[ ("$GET_ERROR" -eq 0) && ("$POST_ERROR" -eq 0) ]]; then
       divider
-      echo -e "$INFO INFO: Continuous load testing successfully completed with $NUMBER_OF_CALLS call(s) and zero errors."
-      divider
+      echo -e "$INFO INFO: Continuous load testing successfully completed with '$NUMBER_OF_CALLS' call(s) and zero errors."
       exit 0
     fi
   fi

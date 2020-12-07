@@ -73,9 +73,13 @@ spec:
     - name: namespace
       type: string
       description: release namespace
+    - name: acePolicyProjectParam
+      type: string
+      description: Policy project configuration for ACE integration server
+      default: ""
   workspaces:
     - name: git-source
   steps:
     - name: oc
       image: quay.io/openshift/origin-cli:latest
-      script: "/workspace/git-source/products/bash/$(params.releaseScript) -n $(params.namespace) -r $(params.releaseName) -i image-registry.openshift-image-registry.svc:5000/$(params.namespace)/$(params.imageName):$(params.imageTag) {{TRACING}}"
+      script: "/workspace/git-source/products/bash/$(params.releaseScript) -n $(params.namespace) -r $(params.releaseName) -i image-registry.openshift-image-registry.svc:5000/$(params.namespace)/$(params.imageName):$(params.imageTag) {{TRACING}} $(params.acePolicyProjectParam)"

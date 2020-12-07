@@ -33,7 +33,6 @@ cross="\xE2\x9D\x8C"
 all_done="\xF0\x9F\x92\xAF"
 SUFFIX="eei"
 POSTGRES_NAMESPACE=$namespace
-ACE_CONFIGURATION_NAME="ace-policyproject-$SUFFIX"
 PG_PORT=5432
 TICK_MILLIS=1000
 MOBILE_TEST_ROWS=10

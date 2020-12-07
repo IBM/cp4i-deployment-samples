@@ -13,16 +13,21 @@
 #
 # PARAMETERS:
 #   -n : <NAMESPACE> (string), defaults to "cp4i"
-#   -r : <RELEASE> (string), defaults to "ademo"
-#   -p : <NAMESPACE_SUFFIX> (string), defaults to ""
 #   -s : <USER_DB_SUFFIX> (string), defaults to ""
-#   -a : <APIC_ENABLED>
+#   -a : <APIC_ENABLED> (boolean) (optional), Defaults to false
+#   -p : <POSTGRES_NAMESPACE> (string), Namespace where postgres is setup, Defaults to the value of <NAMESPACE>
+#   -d : <DDD_TYPE> (string), Driveway dent deletion demo type for postgres credential, Defaults to "dev"
 #
 #   With default values
 #     ./test-api-e2e.sh
 
+function divider() {
+  echo -e "\n-------------------------------------------------------------------------------------------------------------------\n"
+}
+
 function usage() {
-  echo "Usage: $0 -n <NAMESPACE> -r <RELEASE> -p <NAMESPACE_SUFFIX> -s <USER_DB_SUFFIX> -a"
+  echo "Usage: $0 -n <NAMESPACE> -s <USER_DB_SUFFIX> -p <POSTGRES_NAMESPACE> -d <DDD_TYPE> -a"
+  divider
   exit 1
 }
 
@@ -30,30 +35,31 @@ CURRENT_DIR=$(dirname $0)
 TICK="\xE2\x9C\x85"
 CROSS="\xE2\x9D\x8C"
 NAMESPACE="cp4i"
-RELEASE="ademo"
 APIC=false
 os_sed_flag=""
+POSTGRES_NAMESPACE=$NAMESPACE
+DDD_TYPE="dev"
 
 if [[ $(uname) == Darwin ]]; then
   os_sed_flag="-e"
 fi
 
-while getopts "n:r:p:s:a" opt; do
+while getopts "n:p:s:ad:" opt; do
   case ${opt} in
   n)
     NAMESPACE="$OPTARG"
     ;;
-  r)
-    RELEASE="$OPTARG"
-    ;;
-  p)
-    NAMESPACE_SUFFIX="$OPTARG"
-    ;;
   s)
     USER_DB_SUFFIX="$OPTARG"
     ;;
+  p)
+    POSTGRES_NAMESPACE="$OPTARG"
+    ;;
   a)
     APIC=true
+    ;;
+  d)
+    DDD_TYPE="$OPTARG"
     ;;
   \?)
     usage
@@ -62,22 +68,11 @@ while getopts "n:r:p:s:a" opt; do
   esac
 done
 
-# -------------------------------------- CHECK SUFFIX FOR NAMESPACE, USER AND DATABASE NAME ---------------------------------------------------------------------
-
 echo "Namespace passed: $NAMESPACE"
 echo "User name suffix: $USER_DB_SUFFIX"
-
-MAIN_NAMESPACE=${NAMESPACE}
-
-# check if the namespace is dev or test
-if [[ "$NAMESPACE_SUFFIX" == "dev" ]]; then
-  NAMESPACE="${NAMESPACE}"
-else
-  echo "Namespace suffix: $NAMESPACE_SUFFIX"
-  NAMESPACE="${NAMESPACE}-${NAMESPACE_SUFFIX}"
-fi
-
-echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
+echo "Postgres namespace passed: $POSTGRES_NAMESPACE"
+echo "Driveway dent deletion demo type: '$DDD_TYPE'"
+divider
 
 # -------------------------------------- INSTALL JQ ---------------------------------------------------------------------
 
@@ -108,29 +103,30 @@ fi
 
 echo -e "\n$TICK INFO: Installed JQ version is $($JQ --version)"
 
-echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
+divider
 
 # -------------------------------------- TEST E2E API ------------------------------------------
 # BASE_PATH=/basepath, all ready contains /
-HOST=https://$(oc get routes -n ${NAMESPACE} | grep ace-api-int-srv-https | awk '{print $2}')/drivewayrepair
+HOST=https://$(oc get routes -n ${NAMESPACE} | grep ddd-${DDD_TYPE}-ace-api-https | awk '{print $2}')/drivewayrepair
 if [[ $APIC == true ]]; then
   # Grab bearer token
   echo "[INFO]  Getting the host and client id..."
-  HOST=$(oc get secret -n ${NAMESPACE} ddd-api-endpoint-client-id -o jsonpath='{.data.api}' | base64 --decode)
-  CLIENT_ID=$(oc get secret -n ${NAMESPACE} ddd-api-endpoint-client-id -o jsonpath='{.data.cid}' | base64 --decode)
+  ENDPOINT_SECRET_NAME="ddd-${DDD_TYPE}-api-endpoint-client-id"
+  HOST=$(oc get secret -n ${NAMESPACE} ${ENDPOINT_SECRET_NAME} -o jsonpath='{.data.api}' | base64 --decode)
+  CLIENT_ID=$(oc get secret -n ${NAMESPACE} ${ENDPOINT_SECRET_NAME} -o jsonpath='{.data.cid}' | base64 --decode)
   $DEBUG && echo "[DEBUG] Client id: ${CLIENT_ID}"
   [[ $CLIENT_ID == "null" ]] && echo -e "[ERROR] ${CROSS} Couldn't get client id" && exit 1
 fi
 
 echo "INFO: Host: ${HOST}"
 
-DB_USER=$(echo ${NAMESPACE}_${USER_DB_SUFFIX} | sed 's/-/_/g')
+DB_USER=$(echo ${NAMESPACE}_${DDD_TYPE}_${USER_DB_SUFFIX} | sed 's/-/_/g')
 DB_NAME="db_${DB_USER}"
-DB_POD=$(oc get pod -n postgres -l name=postgresql -o jsonpath='{.items[].metadata.name}')
+DB_POD=$(oc get pod -n $POSTGRES_NAMESPACE -l name=postgresql -o jsonpath='{.items[].metadata.name}')
 echo "INFO: Username name is: '${DB_USER}'"
 echo "INFO: Database name is: '${DB_NAME}'"
 
-echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
+divider
 
 echo -e "INFO: Testing E2E API now..."
 
@@ -172,7 +168,7 @@ if [ "$post_response_code" == "200" ]; then
   # The usage of sed here is to prevent an error caused between the -w flag of curl and jq not interacting well
   echo ${post_response} | $JQ '.' | sed $os_sed_flag '$ d'
 
-  echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------"
+  divider
 
   # ------- Get from the database -------
   echo -e "\nINFO: GET request..."
@@ -184,40 +180,44 @@ if [ "$post_response_code" == "200" ]; then
     # The usage of sed here is to prevent an error caused between the -w flag of curl and jq not interacting well
     echo ${get_response} | $JQ '.' | sed $os_sed_flag '$ d'
 
-    echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------"
+    divider
 
     #  ------- Get row to confirm post -------
     echo -e "\nINFO: Select and print the row as user '${DB_USER}' from database '${DB_NAME}' with id '$quote_id' to confirm POST and GET..."
-    if ! oc exec -n postgres -it ${DB_POD} \
+    if ! oc exec -n $POSTGRES_NAMESPACE -it ${DB_POD} \
       -- psql -U ${DB_USER} -d ${DB_NAME} -c \
       "SELECT * FROM quotes WHERE quotes.quoteid=${quote_id};"; then
       echo -e "\n$CROSS ERROR: Cannot get row with quote id '$quote_id' to confirm POST and GET"
+      divider
+      exit 1
     else
       echo -e "\n$TICK INFO: Successfully got row to confirm POST and GET"
     fi
 
   else
     echo "$CROSS ERROR: FAILED - Error code: ${get_response_code}"
-    echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
+    divider
     exit 1
   fi
 
-  echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------"
+  divider
   # ------- Delete from the database -------
   echo -e "\nINFO: Deleting row from database '${DB_NAME}' as user '${DB_USER}' with quote id '$quote_id'..."
-  if ! oc exec -n postgres -it ${DB_POD} \
+  if ! oc exec -n $POSTGRES_NAMESPACE -it ${DB_POD} \
     -- psql -U ${DB_USER} -d ${DB_NAME} -c \
     "DELETE FROM quotes WHERE quotes.quoteid=${quote_id};"; then
     echo -e "\n$CROSS ERROR: Cannot delete the row with quote id '$quote_id'"
+    divider
+    exit 1
   else
     echo -e "\n$TICK INFO: Successfully deleted the row with quote id '$quote_id'"
   fi
 
-  echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------"
+  divider
 
   #  ------- Get row output and check for '0 rows' in output to confirm deletion -------
   echo -e "\nINFO: Confirming the deletion of the row with the quote id '$quote_id' from database '${DB_NAME}' as the user '${DB_USER}'..."
-  oc exec -n postgres -it ${DB_POD} \
+  oc exec -n $POSTGRES_NAMESPACE -it ${DB_POD} \
     -- psql -U ${DB_USER} -d ${DB_NAME} -c \
     "SELECT * FROM quotes WHERE quotes.quoteid=${quote_id};" |
     grep '0 rows'
@@ -226,11 +226,14 @@ if [ "$post_response_code" == "200" ]; then
     echo -e "\n$TICK INFO: Successfully confirmed deletion of row with quote id '$quote_id'"
   else
     echo -e "\n$CROSS ERROR: Deletion of the row with quote id '$quote_id' failed"
+    divider
+    exit 1
   fi
 
 else
   # Failure catch during POST
   echo "$CROSS ERROR: Post request failed - Error code: ${post_response_code}"
+  divider
   exit 1
 fi
-echo -e "----------------------------------------------------------------------------------------------------------------------------------------------------------"
+divider
