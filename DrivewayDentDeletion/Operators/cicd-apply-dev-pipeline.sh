@@ -84,8 +84,6 @@ fi
 
 echo -e "$INFO [INFO] Current directory for the dev pipeline of the driveway dent deletion demo: '$CURRENT_DIR'"
 echo -e "$INFO [INFO] Namespace provided for the dev pipeline of the driveway dent deletion demo: '$NAMESPACE'"
-echo -e "$INFO [INFO] Dev Namespace for the dev pipeline of the driveway dent deletion demo: '$NAMESPACE'"
-echo -e "$INFO [INFO] Test Namespace for the dev pipeline of the driveway dent deletion demo: '$NAMESPACE'"
 echo -e "$INFO [INFO] Branch name for the dev pipeline of the driveway dent deletion demo: '$BRANCH'"
 echo -e "$INFO [INFO] Repository name for the dev pipeline of the driveway dent deletion demo: '$REPO'"
 

@@ -247,7 +247,7 @@ while [ "$numberOfMatchesForImageTag" -ne "$numberOfReplicas" ]; do
 
   echo -e "\nINFO: Total $is_release_name demo pods deployed with new image: $numberOfMatchesForImageTag"
   echo -e "\nINFO: All current $is_release_name demo pods are:\n"
-  oc get pods -n $namespace | grep $is_release_name | grep 3/3 | grep Running
+  oc get pods -n $namespace | grep $is_release_name | grep $ace_replicas/$ace_replicas | grep Running
   if [[ $? -eq 1 ]]; then
     echo -e "No Ready and Running pods found for $is_release_name yet"
   fi
