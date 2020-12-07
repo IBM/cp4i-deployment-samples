@@ -62,9 +62,9 @@ IMAGE_REPO="cp.icr.io"
 PASSWORD_CHANGE="true"
 DEFAULT_BLOCK_STORAGE=""
 DEFAULT_FILE_STORAGE="ibmc-file-gold-gid"
-COGNITIVE_CAR_REPAIR_DEMO=false
-MAPPING_ASSIST_DEMO=false
-WEATHER_CHATBOT_DEMO=false
+cognitiveCarRepairDemo=false
+mappingAssistDemo=false
+weatherChatbotDemo=false
 
 while getopts "a:b:d:e:f:h:j:k:l:m:n:o:p:q:r:s:t:u:v:w:" opt; do
   case ${opt} in
@@ -402,6 +402,29 @@ export MAIL_SERVER_PORT=${demoAPICMailServerPort}
 export MAIL_SERVER_USERNAME=${demoAPICMailServerUsername}
 export MAIL_SERVER_PASSWORD=${demoAPICMailServerPassword}
 
+if [[ "$demoPreparation" == "true" ]]; then
+  cognitiveCarRepairDemo=true
+  drivewayDentDeletionDemo=true
+  eventEnabledInsuranceDemo=true
+  mappingAssistDemo=true
+  weatherChatbotDemo=true
+fi
+
+if [[ "$drivewayDentDeletionDemo" == "true" ]]; then
+  drivewayDentDeletionDemo=true
+fi
+
+if [[ "$eventEnabledInsuranceDemo" == "true" ]]; then
+  eventEnabledInsuranceDemo=true
+fi
+
+echo -e "$INFO [INFO] demoPreparation: $demoPreparation"
+echo -e "$INFO [INFO] COGNITIVE_CAR_REPAIR_DEMO: $cognitiveCarRepairDemo"
+echo -e "$INFO [INFO] drivewayDentDeletionDemo: $drivewayDentDeletionDemo"
+echo -e "$INFO [INFO] eventEnabledInsuranceDemo: $eventEnabledInsuranceDemo"
+echo -e "$INFO [INFO] MAPPING_ASSIST_DEMO: $mappingAssistDemo"
+echo -e "$INFO [INFO] WEATHER_CHATBOT_DEMO: $weatherChatbotDemo"
+
 echo -e "$INFO [INFO] Setting up the selected demos..."
 if cat $CURRENT_DIR/demos.yaml |
   sed "s#JOB_NAMESPACE#$JOB_NAMESPACE#g;" |
@@ -413,11 +436,11 @@ if cat $CURRENT_DIR/demos.yaml |
   sed "s#MAIL_SERVER_PORT#$MAIL_SERVER_PORT#g;" |
   sed "s#MAIL_SERVER_USERNAME#$MAIL_SERVER_USERNAME#g;" |
   sed "s#DEMO_PREPARATION#$demoPreparation#g;" |
-  sed "s#COGNITIVE_CAR_REPAIR_DEMO#$COGNITIVE_CAR_REPAIR_DEMO#g;" |
+  sed "s#COGNITIVE_CAR_REPAIR_DEMO#$cognitiveCarRepairDemo#g;" |
   sed "s#DRIVEWAY_DENT_DELETION_DEMO#$drivewayDentDeletionDemo#g;" |
   sed "s#EVENT_ENABLED_INSURANCE_DEMO#$eventEnabledInsuranceDemo#g;" |
-  sed "s#MAPPING_ASSIST_DEMO#$MAPPING_ASSIST_DEMO#g;" |
-  sed "s#WEATHER_CHATBOT_DEMO#$WEATHER_CHATBOT_DEMO#g;" |
+  sed "s#MAPPING_ASSIST_DEMO#$mappingAssistDemo#g;" |
+  sed "s#WEATHER_CHATBOT_DEMO#$weatherChatbotDemo#g;" |
   oc apply -f -; then
   echo -e "\n$TICK [SUCCESS] Successfully setup all required addons, products and demos in the '$JOB_NAMESPACE' namespace"
 else
