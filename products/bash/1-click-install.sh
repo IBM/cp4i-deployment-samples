@@ -297,10 +297,10 @@ divider
 # Create secret to pull images from the ER
 echo "INFO: Creating secret to pull images from the ER"
 oc -n ${JOB_NAMESPACE} create secret docker-registry ibm-entitlement-key \
-  --docker-server=${IMAGE_REPO} \
-  --docker-username=${DOCKER_REGISTRY_USER} \
-  --docker-password=${DOCKER_REGISTRY_PASS} \
-  --dry-run -o yaml | oc apply -f -
+--docker-server=${IMAGE_REPO} \
+--docker-username=${DOCKER_REGISTRY_USER} \
+--docker-password=${DOCKER_REGISTRY_PASS} \
+--dry-run -o yaml | oc apply -f -
 
 divider
 
@@ -360,12 +360,20 @@ fi
 
 divider
 
-if ! $CURRENT_DIR/release-navigator.sh -n ${JOB_NAMESPACE} -r ${navReplicaCount}; then
-  echo -e "$cross ERROR: Failed to release navigator" 1>&2
-  divider
-  exit 1
-else
-  echo -e "$tick INFO: Successfully released the platform navigator"
+if ! oc get subscription -n ${JOB_NAMESPACE} ibm-integration-platform-navigator-v4.0-ibm-operator-catalog-openshift-marketplace -o json | jq -r .status.currentCSV; then
+  echo -e "INFO:No ibm-integration-platform-navigator-v4.0-ibm-operator-catalog-openshift-marketplace present in ${JOB_NAMESPACE}"
+  if ! oc get PlatformNavigator -n ${JOB_NAMESPACE}; then
+    echo -e "INFO: No Operand PlatformNavigator in ${JOB_NAMESPACE}"
+    if ! $CURRENT_DIR/release-navigator.sh -n ${JOB_NAMESPACE} -r ${navReplicaCount}; then
+      echo -e "$cross ERROR: Failed to release navigator" 1>&2
+      divider
+      exit 1
+    else
+      echo -e "$tick INFO: Successfully released the platform navigator"
+    fi
+  else
+    echo -e "$tick INFO: Platform Navigator already installed in ${JOB_NAMESPACE}"
+  fi
 fi
 
 divider
