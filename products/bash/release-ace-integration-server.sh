@@ -226,11 +226,15 @@ while [ "$numberOfMatchesForImageTag" -ne "$numberOfReplicas" ]; do
   numberOfMatchesForImageTag=0
 
   if [ "${tracing_enabled}" == "true" ]; then
+    allCorrespondingPods=$(oc get pods -n $namespace | grep $is_release_name | grep 3/3 | grep Running | awk '{print $1}')
+  else
+    allCorrespondingPods=$(oc get pods -n $namespace | grep $is_release_name | grep 1/1 | grep Running | awk '{print $1}')
+  fi
+
+  if [[ "${ace_replicas}" -eq 2 ]]; then
     numberOfContainers=3
-    allCorrespondingPods=$(oc get pods -n $namespace | grep $is_release_name | grep $numberOfContainers/$numberOfContainers | grep Running | awk '{print $1}')
   else
     numberOfContainers=1
-    allCorrespondingPods=$(oc get pods -n $namespace | grep $is_release_name | grep $numberOfContainers/$numberOfContainers | grep Running | awk '{print $1}')
   fi
 
   echo "[INFO] Total pods for ACE Integration Server:\n $allCorrespondingPods"
