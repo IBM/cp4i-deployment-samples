@@ -342,6 +342,8 @@ echo -e "$INFO Samples repo branch: '$SAMPLES_REPO_BRANCH'"
 echo -e "$INFO Demo version: '$DEMO_VERSION'"
 echo -e "$INFO Namespace: '$NAMESPACE'" && divider
 
+exit 0
+
 #-------------------------------------------------------------------------------------------------------------------
 # If all demos enabled then add all demos else delete all demos value and keep enabled ones
 #-------------------------------------------------------------------------------------------------------------------
