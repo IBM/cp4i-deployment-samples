@@ -135,57 +135,57 @@ while getopts "a:b:d:e:f:h:j:k:l:m:n:o:p:q:r:s:t:u:v:w:" opt; do
 done
 
 if [[ -z "${JOB_NAMESPACE// /}" ]]; then
-  echo -e "$CROSS ERROR: 1-click install namespace is empty. Please provide a value for '-n' parameter."
+  echo -e "$CROSS [ERROR] 1-click install namespace is empty. Please provide a value for '-n' parameter."
   MISSING_PARAMS="true"
 fi
 
 if [[ -z "${navReplicaCount// /}" ]]; then
-  echo -e "$CROSS ERROR: 1-click install platform navigator replica count is empty. Please provide a value for '-r' parameter."
+  echo -e "$CROSS [ERROR] 1-click install platform navigator replica count is empty. Please provide a value for '-r' parameter."
   MISSING_PARAMS="true"
 fi
 
 if [[ -z "${csDefaultAdminUser// /}" ]]; then
-  echo -e "$CROSS ERROR: 1-click install default admin username is empty. Please provide a value for '-u' parameter."
+  echo -e "$CROSS [ERROR] 1-click install default admin username is empty. Please provide a value for '-u' parameter."
   MISSING_PARAMS="true"
 fi
 
 if [[ -z "${demoPreparation// /}" ]]; then
-  echo -e "$CROSS ERROR: 1-click install demo preparation parameter is empty. Please provide a value for '-d' parameter."
+  echo -e "$CROSS [ERROR] 1-click install demo preparation parameter is empty. Please provide a value for '-d' parameter."
   MISSING_PARAMS="true"
 fi
 
 if [[ -z "${csDefaultAdminPassword// /}" ]]; then
-  echo -e "$CROSS ERROR: 1-click install default admin password is empty. Please provide a value for '-p' parameter."
+  echo -e "$CROSS [ERROR] 1-click install default admin password is empty. Please provide a value for '-p' parameter."
   MISSING_PARAMS="true"
 fi
 
 if [[ -z "${ENVIRONMENT// /}" ]]; then
-  echo -e "$CROSS ERROR: 1-click install environment is empty. Please provide a value for '-t' parameter."
+  echo -e "$CROSS [ERROR] 1-click install environment is empty. Please provide a value for '-t' parameter."
   MISSING_PARAMS="true"
 fi
 
 if [[ -z "${demoDeploymentBranch// /}" ]]; then
-  echo -e "INFO INFO: 1-click install demo deployment branch is empty. Setting the default value of 'main' for it."
+  echo -e "$INFO [INFO] 1-click install demo deployment branch is empty. Setting the default value of 'main' for it."
   demoDeploymentBranch="main"
 fi
 
 if [[ -z "${eventEnabledInsuranceDemo// /}" ]]; then
-  echo -e "INFO INFO: 1-click install event enabled insurance parameter is empty. Setting the default value of 'false' for it."
+  echo -e "$INFO [INFO] 1-click install event enabled insurance parameter is empty. Setting the default value of 'false' for it."
   eventEnabledInsuranceDemo="false"
 fi
 
 if [[ -z "${drivewayDentDeletionDemo// /}" ]]; then
-  echo -e "INFO INFO: 1-click install driveway dent deletion parameter is empty. Setting the default value of 'false' for it."
+  echo -e "$INFO [INFO] 1-click install driveway dent deletion parameter is empty. Setting the default value of 'false' for it."
   drivewayDentDeletionDemo="false"
 fi
 
 if [[ -z "${useFastStorageClass// /}" ]]; then
-  echo -e "INFO INFO: 1-click install fast storage class flag is empty. Setting the default value of 'false' for it."
+  echo -e "$INFO [INFO] 1-click install fast storage class flag is empty. Setting the default value of 'false' for it."
   useFastStorageClass="false"
 fi
 
 if [[ -z "${testDrivewayDentDeletionDemoE2E// /}" ]]; then
-  echo -e "INFO INFO: 1-click install test driveway dent deletion demo parameter is empty. Setting the default value of 'false' for it."
+  echo -e "$INFO [INFO] 1-click install test driveway dent deletion demo parameter is empty. Setting the default value of 'false' for it."
   testDrivewayDentDeletionDemoE2E="false"
 fi
 
@@ -194,30 +194,55 @@ if [[ "$MISSING_PARAMS" == "true" ]]; then
   exit 1
 fi
 
-echo -e "INFO Current directory: '$CURRENT_DIR'"
-echo -e "INFO 1-click namespace: '$JOB_NAMESPACE'"
-echo -e "INFO Navigator replica count: '$navReplicaCount'"
-echo -e "INFO Demo deployment branch: '$demoDeploymentBranch'"
-echo -e "INFO Default common service username: '$csDefaultAdminUser'"
-echo -e "INFO Setup all demos: '$demoPreparation'"
-echo -e "INFO Setup only event enabled insurance demo: '$eventEnabledInsuranceDemo'"
-echo -e "INFO Setup only driveway dent deletion demo: '$drivewayDentDeletionDemo'"
-echo -e "INFO APIC email address: '$demoAPICEmailAddress'"
-echo -e "INFO APIC mail server hostname: '$demoAPICMailServerHost'"
-echo -e "INFO APIC mail server port: '$demoAPICMailServerPort'"
-echo -e "INFO APIC mail server username: '$demoAPICMailServerUsername'"
-echo -e "INFO Image repository for downloading images: '$IMAGE_REPO'"
-echo -e "INFO Temporary ER repository: '$tempRepo'"
-echo -e "INFO Docker registry username: '$DOCKER_REGISTRY_USER'"
-echo -e "INFO Environment for installation: '$ENVIRONMENT'"
-echo -e "INFO If using fast storage for the installation: '$useFastStorageClass'"
-echo -e "INFO If testing the driveway dent deletion demo E2E: '$testDrivewayDentDeletionDemoE2E'"
+export PORG_ADMIN_EMAIL=${demoAPICEmailAddress}
+export MAIL_SERVER_HOST=${demoAPICMailServerHost}
+export MAIL_SERVER_PORT=${demoAPICMailServerPort}
+export MAIL_SERVER_USERNAME=${demoAPICMailServerUsername}
+export MAIL_SERVER_PASSWORD=${demoAPICMailServerPassword}
+
+if [[ "$demoPreparation" == "true" ]]; then
+  cognitiveCarRepairDemo=true
+  drivewayDentDeletionDemo=true
+  eventEnabledInsuranceDemo=true
+  mappingAssistDemo=true
+  weatherChatbotDemo=true
+fi
+
+if [[ "$drivewayDentDeletionDemo" == "true" ]]; then
+  drivewayDentDeletionDemo=true
+fi
+
+if [[ "$eventEnabledInsuranceDemo" == "true" ]]; then
+  eventEnabledInsuranceDemo=true
+fi
+
+echo -e "$INFO [INFO] Current directory for 1-click install: '$CURRENT_DIR'"
+echo -e "$INFO [INFO] 1-click namespace: '$JOB_NAMESPACE'"
+echo -e "$INFO [INFO] Navigator replica count: '$navReplicaCount'"
+echo -e "$INFO [INFO] Demo deployment branch: '$demoDeploymentBranch'"
+echo -e "$INFO [INFO] Default common service username: '$csDefaultAdminUser'"
+echo -e "$INFO [INFO] Setup all demos: '$demoPreparation'"
+echo -e "$INFO [INFO] Setup event enabled insurance demo: '$eventEnabledInsuranceDemo'"
+echo -e "$INFO [INFO] Setup driveway dent deletion demo: '$drivewayDentDeletionDemo'"
+echo -e "$INFO [INFO] Setup cognitive car repair demo: '$cognitiveCarRepairDemo'"
+echo -e "$INFO [INFO] Setup mapping assist demo: '$mappingAssistDemo'"
+echo -e "$INFO [INFO] Setup weather chatbot demo: '$weatherChatbotDemo'"
+echo -e "$INFO [INFO] APIC email address: '$demoAPICEmailAddress'"
+echo -e "$INFO [INFO] APIC mail server hostname: '$demoAPICMailServerHost'"
+echo -e "$INFO [INFO] APIC mail server port: '$demoAPICMailServerPort'"
+echo -e "$INFO [INFO] APIC mail server username: '$demoAPICMailServerUsername'"
+echo -e "$INFO [INFO] Image repository for downloading images: '$IMAGE_REPO'"
+echo -e "$INFO [INFO] Temporary ER repository: '$tempRepo'"
+echo -e "$INFO [INFO] Docker registry username: '$DOCKER_REGISTRY_USER'"
+echo -e "$INFO [INFO] Environment for installation: '$ENVIRONMENT'"
+echo -e "$INFO [INFO] If using fast storage for the installation: '$useFastStorageClass'"
+echo -e "$INFO [INFO] If testing the driveway dent deletion demo E2E: '$testDrivewayDentDeletionDemoE2E'"
 
 divider
 
-echo "INFO: Doing a validation check before installation..."
+echo -e "$INFO [INFO] Doing a validation check before installation..."
 if ! $CURRENT_DIR/1-click-pre-validation.sh -n "$JOB_NAMESPACE" -p "$csDefaultAdminPassword" -r "$navReplicaCount" -u "$csDefaultAdminUser" -d "$demoPreparation"; then
-  echo -e "$CROSS ERROR: 1-click pre validation failed"
+  echo -e "$CROSS [ERROR] 1-click pre validation failed"
   divider
   exit 1
 fi
@@ -240,22 +265,24 @@ fi
 
 export IMAGE_REPO=${tempRepo:-$IMAGE_REPO}
 
-# if oc get namespace $JOB_NAMESPACE >/dev/null 2>&1; then
-#   echo -e "INFO INFO: namespace $JOB_NAMESPACE already exists"
-#   divider
-# else
-#   echo "INFO: Creating $JOB_NAMESPACE namespace"
-#   if ! oc create namespace $JOB_NAMESPACE; then
-#     echo -e "$CROSS ERROR: Failed to create the $JOB_NAMESPACE namespace" 1>&2
-#     divider
-#     exit 1
-#   fi
-# fi
+if oc get namespace $JOB_NAMESPACE >/dev/null 2>&1; then
+  echo -e "$INFO [INFO] namespace $JOB_NAMESPACE already exists"
+  divider
+else
+  echo -e "$INFO [INFO] Creating the '$JOB_NAMESPACE' namespace"
+  if ! oc create namespace $JOB_NAMESPACE; then
+    echo -e "$CROSS [ERROR] Failed to create the '$JOB_NAMESPACE' namespace"
+    divider
+    exit 1
+  else
+    echo -e "$TICK [SUCCESS] Succesfully created the '$JOB_NAMESPACE' namespace"
+  fi
+fi
 
 divider
 
 # # This storage class improves the pvc performance for small PVCs
-# echo "INFO: Creating new cp4i-block-performance storage class"
+# echo -e "$INFO [INFO] Creating new cp4i-block-performance storage class"
 # cat <<EOF | oc apply -n $JOB_NAMESPACE -f -
 # apiVersion: storage.k8s.io/v1
 # kind: StorageClass
@@ -286,12 +313,12 @@ defaultStorageClass=$(oc get sc -o json | jq -r '.items[].metadata | select(.ann
 DEFAULT_BLOCK_STORAGE=$defaultStorageClass
 
 if [[ "${useFastStorageClass}" == "true" ]]; then
-  echo -e "INFO INFO: Current default storage class is: $defaultStorageClass"
+  echo -e "$INFO [INFO] Current default storage class is: $defaultStorageClass"
 
-  echo -e "INFO INFO: Making $defaultStorageClass non-default"
+  echo -e "$INFO [INFO] Making $defaultStorageClass non-default"
   oc patch storageclass $defaultStorageClass -p '{"metadata": {"annotations":{"storageclass.kubernetes.io/is-default-class":"false"}}}'
 
-  echo -e "INFO INFO: Making cp4i-block-performance default"
+  echo -e "$INFO [INFO] Making cp4i-block-performance default"
   oc patch storageclass cp4i-block-performance -p '{"metadata": {"annotations":{"storageclass.kubernetes.io/is-default-class":"true"}}}'
 
   DEFAULT_BLOCK_STORAGE="cp4i-block-performance"
@@ -299,13 +326,13 @@ fi
 
 divider
 
-echo -e "INFO INFO: Current storage classes:"
+echo -e "$INFO [INFO] Current storage classes:"
 oc get sc
 
 # divider
 
 # # Create secret to pull images from the ER
-# echo "INFO: Creating secret to pull images from the ER"
+# echo -e "$INFO [INFO] Creating secret to pull images from the ER"
 # oc -n ${JOB_NAMESPACE} create secret docker-registry ibm-entitlement-key \
 #   --docker-server=${IMAGE_REPO} \
 #   --docker-username=${DOCKER_REGISTRY_USER} \
@@ -314,17 +341,17 @@ oc get sc
 
 # divider
 
-# echo "INFO: Checking for the platform-auth-idp-credentials secret"
+# echo -e "$INFO [INFO] Checking for the platform-auth-idp-credentials secret"
 # if oc get secrets platform-auth-idp-credentials -n ibm-common-services; then
 #   PASSWORD_CHANGE=false
-#   echo -e "INFO INFO: Secret platform-auth-idp-credentials already exist so not updating password and username in the installation with provided values"
+#   echo -e "$INFO [INFO] Secret platform-auth-idp-credentials already exist so not updating password and username in the installation with provided values"
 # else
-#   echo -e "INFO INFO: Secret platform-auth-idp-credentials does exist so will update password and username in the installation with provided values"
+#   echo -e "$INFO [INFO] Secret platform-auth-idp-credentials does exist so will update password and username in the installation with provided values"
 # fi
 
 # divider
 
-# echo "INFO: Applying catalogsources"
+# echo -e "$INFO [INFO] Applying catalogsources"
 # cat <<EOF | oc apply -f -
 # ---
 # apiVersion: operators.coreos.com/v1alpha1
@@ -361,21 +388,21 @@ oc get sc
 # divider
 
 # if ! $CURRENT_DIR/deploy-og-sub.sh -n ${JOB_NAMESPACE}; then
-#   echo -e "$CROSS ERROR: Failed to deploy the operator group and subscriptions" 1>&2
+#   echo -e "$CROSS [ERROR] Failed to deploy the operator group and subscriptions"
 #   divider
 #   exit 1
 # else
-#   echo -e "$TICK INFO: Deployed the operator groups and subscriptions"
+#   echo -e "$TICK [SUCCESS] Deployed the operator groups and subscriptions"
 # fi
 
 # divider
 
 # if ! $CURRENT_DIR/release-navigator.sh -n ${JOB_NAMESPACE} -r ${navReplicaCount}; then
-#   echo -e "$CROSS ERROR: Failed to release navigator" 1>&2
+#   echo -e "$CROSS [ERROR] Failed to release navigator"
 #   divider
 #   exit 1
 # else
-#   echo -e "$TICK INFO: Successfully released the platform navigator"
+#   echo -e "$TICK [SUCCESS] Successfully released the platform navigator"
 # fi
 
 divider
@@ -383,71 +410,43 @@ divider
 # # Only update common services username and password if common services is not already installed
 # if [ "${PASSWORD_CHANGE}" == "true" ]; then
 #   if ! $CURRENT_DIR/change-cs-credentials.sh -u ${csDefaultAdminUser} -p ${csDefaultAdminPassword}; then
-#     echo -e "$CROSS ERROR: Failed to update the common services admin username/password" 1>&2
+#     echo -e "$CROSS [ERROR] Failed to update the common services admin username/password"
 #     divider
 #     exit 1
 #   else
-#     echo -e "$TICK INFO: Successfully updated the common services admin username/password"
+#     echo -e "$TICK [SUCCESS] Successfully updated the common services admin username/password"
 #   fi
 # else
-#   echo -e "INFO INFO: Retrieve the common service username using the command 'oc get secrets -n ibm-common-services platform-auth-idp-credentials -o jsonpath='{.data.admin_username}' | base64 --decode' "
-#   echo -e "INFO INFO: Retrieve the common service password using the command 'oc get secrets -n ibm-common-services platform-auth-idp-credentials -o jsonpath='{.data.admin_password}' | base64 --decode' "
+#   echo -e "$INFO [INFO] Retrieve the common service username using the command 'oc get secrets -n ibm-common-services platform-auth-idp-credentials -o jsonpath='{.data.admin_username}' | base64 --decode' "
+#   echo -e "$INFO [INFO] Retrieve the common service password using the command 'oc get secrets -n ibm-common-services platform-auth-idp-credentials -o jsonpath='{.data.admin_password}' | base64 --decode' "
 # fi
 
 divider
 
-export PORG_ADMIN_EMAIL=${demoAPICEmailAddress}
-export MAIL_SERVER_HOST=${demoAPICMailServerHost}
-export MAIL_SERVER_PORT=${demoAPICMailServerPort}
-export MAIL_SERVER_USERNAME=${demoAPICMailServerUsername}
-export MAIL_SERVER_PASSWORD=${demoAPICMailServerPassword}
+echo -e "$INFO [INFO] Replacing all variables with their values in the demo json file to use as input for the demo script..."
 
-if [[ "$demoPreparation" == "true" ]]; then
-  cognitiveCarRepairDemo=true
-  drivewayDentDeletionDemo=true
-  eventEnabledInsuranceDemo=true
-  mappingAssistDemo=true
-  weatherChatbotDemo=true
-fi
+sed -i "s/JOB_NAMESPACE/$JOB_NAMESPACE/g" $CURRENT_DIR/demos.json
+sed -i "s/DEFAULT_BLOCK_STORAGE/$DEFAULT_BLOCK_STORAGE/g" $CURRENT_DIR/demos.json
+sed -i "s/DEFAULT_FILE_STORAGE/$DEFAULT_FILE_STORAGE/g" $CURRENT_DIR/demos.json
+sed -i "s/DEMO_DEPLOYMENT_BRANCH/$demoDeploymentBranch/g" $CURRENT_DIR/demos.json
+sed -i "s/PORG_ADMIN_EMAIL/$demoAPICEmailAddress/g" $CURRENT_DIR/demos.json
+sed -i "s/MAIL_SERVER_HOST/$demoAPICMailServerHost/g" $CURRENT_DIR/demos.json
+sed -i "s/MAIL_SERVER_PORT/$demoAPICMailServerPort/g" $CURRENT_DIR/demos.json
+sed -i "s/MAIL_SERVER_USERNAME/$demoAPICMailServerUsername/g" $CURRENT_DIR/demos.json
+sed -i "s/MAIL_SERVER_PASSWORD/$demoAPICMailServerPassword/g" $CURRENT_DIR/demos.json
+sed -i "s/DEMO_PREPARATION/$demoPreparation/g" $CURRENT_DIR/demos.json
+sed -i "s/COGNITIVE_CAR_REPAIR_DEMO/$cognitiveCarRepairDemo/g" $CURRENT_DIR/demos.json
+sed -i "s/DRIVEWAY_DENT_DELETION_DEMO/$drivewayDentDeletionDemo/g" $CURRENT_DIR/demos.json
+sed -i "s/EVENT_ENABLED_INSURANCE_DEMO/$eventEnabledInsuranceDemo/g" $CURRENT_DIR/demos.json
+sed -i "s/MAPPING_ASSIST_DEMO/$mappingAssistDemo/g" $CURRENT_DIR/demos.json
+sed -i "s/WEATHER_CHATBOT_DEMO/$weatherChatbotDemo/g" $CURRENT_DIR/demos.json
 
-if [[ "$drivewayDentDeletionDemo" == "true" ]]; then
-  drivewayDentDeletionDemo=true
-fi
-
-if [[ "$eventEnabledInsuranceDemo" == "true" ]]; then
-  eventEnabledInsuranceDemo=true
-fi
-
-echo -e "$INFO [INFO] demoPreparation: $demoPreparation"
-echo -e "$INFO [INFO] COGNITIVE_CAR_REPAIR_DEMO: $cognitiveCarRepairDemo"
-echo -e "$INFO [INFO] drivewayDentDeletionDemo: $drivewayDentDeletionDemo"
-echo -e "$INFO [INFO] eventEnabledInsuranceDemo: $eventEnabledInsuranceDemo"
-echo -e "$INFO [INFO] MAPPING_ASSIST_DEMO: $mappingAssistDemo"
-echo -e "$INFO [INFO] WEATHER_CHATBOT_DEMO: $weatherChatbotDemo"
-
+echo -e "$INFO [INFO] The input demo json file is:\n"
+cat $CURRENT_DIR/demos.json
 divider
 
-echo -e "$INFO [INFO] Setting up the selected demos..."
-
-sed -i "s/JOB_NAMESPACE/$JOB_NAMESPACE/g" $CURRENT_DIR/demos.yaml
-sed -i "s/DEFAULT_BLOCK_STORAGE/$DEFAULT_BLOCK_STORAGE/g" $CURRENT_DIR/demos.yaml
-sed -i "s/DEFAULT_FILE_STORAGE/$DEFAULT_FILE_STORAGE/g" $CURRENT_DIR/demos.yaml
-sed -i "s/DEMO_DEPLOYMENT_BRANCH/$demoDeploymentBranch/g" $CURRENT_DIR/demos.yaml
-sed -i "s/PORG_ADMIN_EMAIL/$PORG_ADMIN_EMAIL/g" $CURRENT_DIR/demos.yaml
-sed -i "s/MAIL_SERVER_HOST/$MAIL_SERVER_HOST/g" $CURRENT_DIR/demos.yaml
-sed -i "s/MAIL_SERVER_PORT/$MAIL_SERVER_PORT/g" $CURRENT_DIR/demos.yaml
-sed -i "s/MAIL_SERVER_USERNAME/$MAIL_SERVER_USERNAME/g" $CURRENT_DIR/demos.yaml
-sed -i "s/MAIL_SERVER_PASSWORD/$MAIL_SERVER_PASSWORD/g" $CURRENT_DIR/demos.yaml
-sed -i "s/DEMO_PREPARATION/$demoPreparation/g" $CURRENT_DIR/demos.yaml
-sed -i "s/COGNITIVE_CAR_REPAIR_DEMO/$cognitiveCarRepairDemo/g" $CURRENT_DIR/demos.yaml
-sed -i "s/DRIVEWAY_DENT_DELETION_DEMO/$drivewayDentDeletionDemo/g" $CURRENT_DIR/demos.yaml
-sed -i "s/EVENT_ENABLED_INSURANCE_DEMO/$eventEnabledInsuranceDemo/g" $CURRENT_DIR/demos.yaml
-sed -i "s/MAPPING_ASSIST_DEMO/$mappingAssistDemo/g" $CURRENT_DIR/demos.yaml
-sed -i "s/WEATHER_CHATBOT_DEMO/$weatherChatbotDemo/g" $CURRENT_DIR/demos.yaml
-
-cat $CURRENT_DIR/demos.yaml
-
-if $CURRENT_DIR/setup-demos.sh -i $CURRENT_DIR/demos.yaml -o $CURRENT_DIR/demos-output.yaml; then
+echo -e "$INFO [INFO] Setting up all the selected demos..."
+if $CURRENT_DIR/setup-demos.sh -i $CURRENT_DIR/demos.json -o $CURRENT_DIR/demos-output.yaml; then
   echo -e "\n$TICK [SUCCESS] Successfully setup all required addons, products and demos in the '$JOB_NAMESPACE' namespace"
 else
   echo -e "\n$CROSS [ERROR] Failed to setup all required addons, products and demos in the '$JOB_NAMESPACE' namespace"
@@ -455,13 +454,14 @@ fi
 
 divider
 
-# divider
+if [[ ("${demoPreparation}" == "true" || "${drivewayDentDeletionDemo}" == "true") && ("${testDrivewayDentDeletionDemoE2E}" == "true") ]]; then
+  if ! $CURRENT_DIR/../../DrivewayDentDeletion/Operators/test-ddd.sh -n ${JOB_NAMESPACE} -b $demoDeploymentBranch; then
+    echo -e "$CROSS [ERROR] Failed to run automated test for driveway dent deletion demo"
+    divider
+    exit 1
+  else
+    echo -e "$TICK [SUCCESS] Successfully ran the automated test for driveway dent deletion demo"
+  fi
+fi
 
-# if [[ ("${demoPreparation}" == "true" || "${drivewayDentDeletionDemo}" == "true") && ("${testDrivewayDentDeletionDemoE2E}" == "true") ]]; then
-#   if ! $CURRENT_DIR/../../DrivewayDentDeletion/Operators/test-ddd.sh -n ${JOB_NAMESPACE} -b $demoDeploymentBranch; then
-#     echo "ERROR: Failed to run automated test for driveway dent deletion demo" 1>&2
-#     divider
-#     exit 1
-#   fi
-# fi
-divider
+divider && echo -e "$TICK $ALL_DONE [SUCCESS] 1-click installation completed successfully. $ALL_DONE $TICK" && divider

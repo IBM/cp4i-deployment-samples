@@ -295,7 +295,9 @@ if [ $? -ne 0 ]; then
   echo -e "$CROSS [ERROR] 'jq' needs to be installed before running this script" 1>&2
   MISSING_PREREQS="true"
 fi
-oc version --client
+oc version
+oc version --help
+oc version --client=true
 if [ $? -ne 0 ]; then
   echo -e "$CROSS [ERROR] 'oc' needs to be installed before running this script" 1>&2
   MISSING_PREREQS="true"
