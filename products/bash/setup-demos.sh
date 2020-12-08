@@ -478,7 +478,7 @@ fi
 check_phase_and_exit_on_failed
 
 # -------------------------------------------------------------------------------------------------------------------
-# Setup and configure the required demos
+# Setup and configure the required addons
 # -------------------------------------------------------------------------------------------------------------------
 
 if [ "$(echo $REQUIRED_ADDONS_JSON | jq length)" -ne 0 ]; then
