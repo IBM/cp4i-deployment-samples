@@ -446,7 +446,7 @@ cat $CURRENT_DIR/demos.json
 divider
 
 echo -e "$INFO [INFO] Setting up all the selected demos..."
-if $CURRENT_DIR/setup-demos.sh -i $CURRENT_DIR/demos.json -o $CURRENT_DIR/demos-output.yaml; then
+if $CURRENT_DIR/setup-demos.sh -i $CURRENT_DIR/demos.json -o $CURRENT_DIR/demos-output.json; then
   echo -e "\n$TICK [SUCCESS] Successfully setup all required addons, products and demos in the '$JOB_NAMESPACE' namespace"
 else
   echo -e "\n$CROSS [ERROR] Failed to setup all required addons, products and demos in the '$JOB_NAMESPACE' namespace"
