@@ -234,12 +234,12 @@ echo -e "$INFO [INFO] If testing the driveway dent deletion demo E2E: '$testDriv
 
 divider
 
-echo -e "$INFO [INFO] Doing a validation check before installation..."
-if ! $CURRENT_DIR/1-click-pre-validation.sh -n "$JOB_NAMESPACE" -p "$csDefaultAdminPassword" -r "$navReplicaCount" -u "$csDefaultAdminUser" -d "$demoPreparation"; then
-  echo -e "$CROSS [ERROR] 1-click pre validation failed"
-  divider
-  exit 1
-fi
+# echo -e "$INFO [INFO] Doing a validation check before installation..."
+# if ! $CURRENT_DIR/1-click-pre-validation.sh -n "$JOB_NAMESPACE" -p "$csDefaultAdminPassword" -r "$navReplicaCount" -u "$csDefaultAdminUser" -d "$demoPreparation"; then
+#   echo -e "$CROSS [ERROR] 1-click pre validation failed"
+#   divider
+#   exit 1
+# fi
 
 divider
 
@@ -418,29 +418,28 @@ divider
 divider
 
 echo -e "$INFO [INFO] Replacing all variables with their values in the demo json file to use as input for the demo script..."
+CURRENT_DIR_WITHOUT_DOT_SLASH=${CURRENT_DIR//.\//}
+echo "test apic username: $demoAPICMailServerUsername"
+sed -i -e "s/JOB_NAMESPACE/$JOB_NAMESPACE/g" $CURRENT_DIR_WITHOUT_DOT_SLASH/demos.json
+sed -i -e "s/DEFAULT_BLOCK_STORAGE/$DEFAULT_BLOCK_STORAGE/g" $CURRENT_DIR_WITHOUT_DOT_SLASH/demos.json
+sed -i -e "s/DEFAULT_FILE_STORAGE/$DEFAULT_FILE_STORAGE/g" $CURRENT_DIR_WITHOUT_DOT_SLASH/demos.json
+sed -i -e "s/DEMO_DEPLOYMENT_BRANCH/$demoDeploymentBranch/g" $CURRENT_DIR_WITHOUT_DOT_SLASH/demos.json
+sed -i -e "s/PORG_ADMIN_EMAIL/$demoAPICEmailAddress/g" $CURRENT_DIR_WITHOUT_DOT_SLASH/demos.json
+sed -i -e "s/MAIL_SERVER_HOST/$demoAPICMailServerHost/g" $CURRENT_DIR_WITHOUT_DOT_SLASH/demos.json
+sed -i -e "s/MAIL_SERVER_PORT/$demoAPICMailServerPort/g" $CURRENT_DIR_WITHOUT_DOT_SLASH/demos.json
+sed -i -e "s/MAIL_SERVER_USERNAME/$demoAPICMailServerUsername/g" $CURRENT_DIR_WITHOUT_DOT_SLASH/demos.json
+sed -i -e "s/MAIL_SERVER_PASSWORD/$demoAPICMailServerPassword/g" $CURRENT_DIR_WITHOUT_DOT_SLASH/demos.json
+sed -i -e "s/DEMO_PREPARATION/$demoPreparation/g" $CURRENT_DIR_WITHOUT_DOT_SLASH/demos.json
+sed -i -e "s/COGNITIVE_CAR_REPAIR_DEMO/$cognitiveCarRepairDemo/g" $CURRENT_DIR_WITHOUT_DOT_SLASH/demos.json
+sed -i -e "s/DRIVEWAY_DENT_DELETION_DEMO/$drivewayDentDeletionDemo/g" $CURRENT_DIR_WITHOUT_DOT_SLASH/demos.json
+sed -i -e "s/EVENT_ENABLED_INSURANCE_DEMO/$eventEnabledInsuranceDemo/g" $CURRENT_DIR_WITHOUT_DOT_SLASH/demos.json
+sed -i -e "s/MAPPING_ASSIST_DEMO/$mappingAssistDemo/g" $CURRENT_DIR_WITHOUT_DOT_SLASH/demos.json
+sed -i -e "s/WEATHER_CHATBOT_DEMO/$weatherChatbotDemo/g" $CURRENT_DIR_WITHOUT_DOT_SLASH/demos.json
 
-sed -i "s/JOB_NAMESPACE/$JOB_NAMESPACE/g" $CURRENT_DIR/demos.json
-sed -i "s/DEFAULT_BLOCK_STORAGE/$DEFAULT_BLOCK_STORAGE/g" $CURRENT_DIR/demos.json
-sed -i "s/DEFAULT_FILE_STORAGE/$DEFAULT_FILE_STORAGE/g" $CURRENT_DIR/demos.json
-sed -i "s/DEMO_DEPLOYMENT_BRANCH/$demoDeploymentBranch/g" $CURRENT_DIR/demos.json
-sed -i "s/PORG_ADMIN_EMAIL/$demoAPICEmailAddress/g" $CURRENT_DIR/demos.json
-sed -i "s/MAIL_SERVER_HOST/$demoAPICMailServerHost/g" $CURRENT_DIR/demos.json
-sed -i "s/MAIL_SERVER_PORT/$demoAPICMailServerPort/g" $CURRENT_DIR/demos.json
-sed -i "s/MAIL_SERVER_USERNAME/$demoAPICMailServerUsername/g" $CURRENT_DIR/demos.json
-sed -i "s/MAIL_SERVER_PASSWORD/$demoAPICMailServerPassword/g" $CURRENT_DIR/demos.json
-sed -i "s/DEMO_PREPARATION/$demoPreparation/g" $CURRENT_DIR/demos.json
-sed -i "s/COGNITIVE_CAR_REPAIR_DEMO/$cognitiveCarRepairDemo/g" $CURRENT_DIR/demos.json
-sed -i "s/DRIVEWAY_DENT_DELETION_DEMO/$drivewayDentDeletionDemo/g" $CURRENT_DIR/demos.json
-sed -i "s/EVENT_ENABLED_INSURANCE_DEMO/$eventEnabledInsuranceDemo/g" $CURRENT_DIR/demos.json
-sed -i "s/MAPPING_ASSIST_DEMO/$mappingAssistDemo/g" $CURRENT_DIR/demos.json
-sed -i "s/WEATHER_CHATBOT_DEMO/$weatherChatbotDemo/g" $CURRENT_DIR/demos.json
-
-echo -e "$INFO [INFO] The input demo json file is:\n"
-cat $CURRENT_DIR/demos.json
 divider
 
 echo -e "$INFO [INFO] Setting up all the selected demos..."
-if $CURRENT_DIR/setup-demos.sh -i $CURRENT_DIR/demos.json -o $CURRENT_DIR/demos-output.json; then
+if $CURRENT_DIR/setup-demos.sh -i $CURRENT_DIR_WITHOUT_DOT_SLASH/demos.json -o $CURRENT_DIR_WITHOUT_DOT_SLASH/demos-output.json; then
   echo -e "\n$TICK [SUCCESS] Successfully setup all required addons, products and demos in the '$JOB_NAMESPACE' namespace"
 else
   echo -e "\n$CROSS [ERROR] Failed to setup all required addons, products and demos in the '$JOB_NAMESPACE' namespace"
