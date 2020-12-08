@@ -194,12 +194,6 @@ if [[ "$MISSING_PARAMS" == "true" ]]; then
   exit 1
 fi
 
-export PORG_ADMIN_EMAIL=${demoAPICEmailAddress}
-export MAIL_SERVER_HOST=${demoAPICMailServerHost}
-export MAIL_SERVER_PORT=${demoAPICMailServerPort}
-export MAIL_SERVER_USERNAME=${demoAPICMailServerUsername}
-export MAIL_SERVER_PASSWORD=${demoAPICMailServerPassword}
-
 if [[ "$demoPreparation" == "true" ]]; then
   cognitiveCarRepairDemo=true
   drivewayDentDeletionDemo=true
