@@ -28,9 +28,7 @@
       "all": "DEMO_PREPARATION",
       "cognitiveCarRepair": "COGNITIVE_CAR_REPAIR_DEMO",
       "drivewayDentDeletion": "DRIVEWAY_DENT_DELETION_DEMO",
-      "eventEnabledInsurance": "EVENT_ENABLED_INSURANCE_DEMO",
-      "mappingAssist": "MAPPING_ASSIST_DEMO",
-      "weatherChatbot": "WEATHER_CHATBOT_DEMO"
+      "eventEnabledInsurance": "EVENT_ENABLED_INSURANCE_DEMO"
     }
   }
 }
