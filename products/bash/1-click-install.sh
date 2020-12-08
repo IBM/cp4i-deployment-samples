@@ -444,6 +444,8 @@ if $CURRENT_DIR/setup-demos.sh -i $CURRENT_DIR/demos.json -o $CURRENT_DIR/demos-
   echo -e "\n$TICK [SUCCESS] Successfully setup all required addons, products and demos in the '$JOB_NAMESPACE' namespace"
 else
   echo -e "\n$CROSS [ERROR] Failed to setup all required addons, products and demos in the '$JOB_NAMESPACE' namespace"
+  divider
+  exit 1
 fi
 
 divider
