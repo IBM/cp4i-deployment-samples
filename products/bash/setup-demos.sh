@@ -93,7 +93,7 @@ declare -a FAILED_INSTALL_ADDONS_LIST
 declare -a FAILED_INSTALL_DEMOS_LIST
 
 # set to true to print development logs
-export DEBUG=false
+export DEBUG=true
 
 #-------------------------------------------------------------------------------------------------------------------
 # Functions
