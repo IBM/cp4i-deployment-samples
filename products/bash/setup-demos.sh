@@ -295,7 +295,7 @@ if [ $? -ne 0 ]; then
   echo -e "$CROSS [ERROR] 'jq' needs to be installed before running this script" 1>&2
   MISSING_PREREQS="true"
 fi
-oc version --client
+oc version
 if [ $? -ne 0 ]; then
   echo -e "$CROSS [ERROR] 'oc' needs to be installed before running this script" 1>&2
   MISSING_PREREQS="true"
@@ -312,17 +312,17 @@ fi
 if [[ "$INPUT_FILE" == *.json ]]; then
   JSON=$(<$INPUT_FILE)
 else
-  $DEBUG && echo "[DEBUG] Converting $INPUT_FILE into json"
+  $DEBUG && echo -e "\n[DEBUG] Converting $INPUT_FILE into json\n"
   JSON=$(yq r -j $INPUT_FILE)
 fi
-$DEBUG && echo "[DEBUG] Got the following JSON for $INPUT_FILE:"
+$DEBUG && echo -e "[DEBUG] Got the following JSON for $INPUT_FILE:\n"
 $DEBUG && echo $JSON | jq .
 
 #-------------------------------------------------------------------------------------------------------------------
 # Extract information from the yaml
 #-------------------------------------------------------------------------------------------------------------------
 
-$DEBUG && echo "[DEBUG] Get storage classes and branch from $INPUT_FILE"
+$DEBUG && echo -e "\n[DEBUG] Get storage classes and branch from $INPUT_FILE"
 GENERAL=$(echo $JSON | jq -r .spec.general)
 BLOCK_STORAGE_CLASS=$(echo $GENERAL | jq -r '.storage.block | if has("class") then .class else "cp4i-block-performance" end')
 FILE_STORAGE_CLASS=$(echo $GENERAL | jq -r '.storage.file | if has("class") then .class else "ibmc-file-gold-gid" end')
@@ -478,7 +478,7 @@ fi
 check_phase_and_exit_on_failed
 
 # -------------------------------------------------------------------------------------------------------------------
-# Setup and configure the required demos
+# Setup and configure the required addons
 # -------------------------------------------------------------------------------------------------------------------
 
 if [ "$(echo $REQUIRED_ADDONS_JSON | jq length)" -ne 0 ]; then

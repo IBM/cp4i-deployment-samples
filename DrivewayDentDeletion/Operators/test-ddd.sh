@@ -174,7 +174,7 @@ divider
 # -------------------------------------- INSTALL JQ ---------------------------------------------------------------------
 
 JQ=jq
-echo -e "\n[INFO] Checking if jq is pre-installed..."
+echo -e "$INFO [INFO] Checking if jq is pre-installed..."
 $JQ --version
 
 if [ $? -eq 0 ]; then
