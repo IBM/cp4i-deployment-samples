@@ -268,7 +268,7 @@ else
     divider
     exit 1
   else
-    echo -e "$TICK [SUCCESS] Succesfully created the '$JOB_NAMESPACE' namespace"
+    echo -e "$TICK [SUCCESS] Successfully created the '$JOB_NAMESPACE' namespace"
   fi
 fi
 
