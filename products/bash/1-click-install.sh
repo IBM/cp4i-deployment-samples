@@ -261,7 +261,6 @@ export IMAGE_REPO=${tempRepo:-$IMAGE_REPO}
 
 if oc get namespace $JOB_NAMESPACE >/dev/null 2>&1; then
   echo -e "$INFO [INFO] namespace $JOB_NAMESPACE already exists"
-  divider
 else
   echo -e "$INFO [INFO] Creating the '$JOB_NAMESPACE' namespace"
   if ! oc create namespace $JOB_NAMESPACE; then
@@ -276,7 +275,7 @@ fi
 divider
 
 # This storage class improves the pvc performance for small PVCs
-echo -e "$INFO [INFO] Creating new cp4i-block-performance storage class"
+echo -e "$INFO [INFO] Creating new cp4i-block-performance storage class\n"
 cat <<EOF | oc apply -n $JOB_NAMESPACE -f -
 apiVersion: storage.k8s.io/v1
 kind: StorageClass
@@ -307,12 +306,12 @@ defaultStorageClass=$(oc get sc -o json | jq -r '.items[].metadata | select(.ann
 DEFAULT_BLOCK_STORAGE=$defaultStorageClass
 
 if [[ "${useFastStorageClass}" == "true" ]]; then
-  echo -e "$INFO [INFO] Current default storage class is: $defaultStorageClass"
+  echo -e "\n$INFO [INFO] Current default storage class is: $defaultStorageClass"
 
-  echo -e "$INFO [INFO] Making $defaultStorageClass non-default"
+  echo -e "\n$INFO [INFO] Making $defaultStorageClass non-default\n"
   oc patch storageclass $defaultStorageClass -p '{"metadata": {"annotations":{"storageclass.kubernetes.io/is-default-class":"false"}}}'
 
-  echo -e "$INFO [INFO] Making cp4i-block-performance default"
+  echo -e "\n$INFO [INFO] Making cp4i-block-performance default\n"
   oc patch storageclass cp4i-block-performance -p '{"metadata": {"annotations":{"storageclass.kubernetes.io/is-default-class":"true"}}}'
 
   DEFAULT_BLOCK_STORAGE="cp4i-block-performance"
@@ -320,13 +319,13 @@ fi
 
 divider
 
-echo -e "$INFO [INFO] Current storage classes:"
+echo -e "$INFO [INFO] Current storage classes:\n"
 oc get sc
 
 divider
 
 # Create secret to pull images from the ER
-echo -e "$INFO [INFO] Creating secret to pull images from the ER"
+echo -e "$INFO [INFO] Creating secret to pull images from the ER\n"
 oc -n ${JOB_NAMESPACE} create secret docker-registry ibm-entitlement-key \
   --docker-server=${IMAGE_REPO} \
   --docker-username=${DOCKER_REGISTRY_USER} \
@@ -335,17 +334,17 @@ oc -n ${JOB_NAMESPACE} create secret docker-registry ibm-entitlement-key \
 
 divider
 
-echo -e "$INFO [INFO] Checking for the platform-auth-idp-credentials secret"
+echo -e "$INFO [INFO] Checking for the platform-auth-idp-credentials secret\n"
 if oc get secrets platform-auth-idp-credentials -n ibm-common-services; then
   PASSWORD_CHANGE=false
-  echo -e "$INFO [INFO] Secret platform-auth-idp-credentials already exist so not updating password and username in the installation with provided values"
+  echo -e "\n$INFO [INFO] Secret platform-auth-idp-credentials already exist so not updating password and username in the installation with provided values"
 else
-  echo -e "$INFO [INFO] Secret platform-auth-idp-credentials does exist so will update password and username in the installation with provided values"
+  echo -e "\n$INFO [INFO] Secret platform-auth-idp-credentials does exist so will update password and username in the installation with provided values"
 fi
 
 divider
 
-echo -e "$INFO [INFO] Applying catalogsources"
+echo -e "$INFO [INFO] Applying catalogsources\n"
 cat <<EOF | oc apply -f -
 ---
 apiVersion: operators.coreos.com/v1alpha1
@@ -386,7 +385,7 @@ if ! $CURRENT_DIR/deploy-og-sub.sh -n ${JOB_NAMESPACE}; then
   divider
   exit 1
 else
-  echo -e "$TICK [SUCCESS] Deployed the operator groups and subscriptions"
+  echo -e "\n$TICK [SUCCESS] Deployed the operator groups and subscriptions"
 fi
 
 divider
@@ -396,7 +395,7 @@ if ! $CURRENT_DIR/release-navigator.sh -n ${JOB_NAMESPACE} -r ${navReplicaCount}
   divider
   exit 1
 else
-  echo -e "$TICK [SUCCESS] Successfully released the platform navigator"
+  echo -e "\n$TICK [SUCCESS] Successfully released the platform navigator"
 fi
 
 divider
@@ -415,52 +414,56 @@ else
   echo -e "$INFO [INFO] Retrieve the common service password using the command 'oc get secrets -n ibm-common-services platform-auth-idp-credentials -o jsonpath='{.data.admin_password}' | base64 --decode' "
 fi
 
-divider
+if [[ "$demoPreparation" == "true" || "$drivewayDentDeletionDemo" == "true" || "$eventEnabledInsuranceDemo" == "true" ]]; then
+  divider && echo -e "$INFO [INFO] Setting up all required addons, products and demos in the '$JOB_NAMESPACE' namespace..."
+  CURRENT_DIR_WITHOUT_DOT_SLASH=${CURRENT_DIR//.\//}
 
-echo -e "$INFO [INFO] Replacing all variables with their values in the demo json file to use as input for the demo script..."
-CURRENT_DIR_WITHOUT_DOT_SLASH=${CURRENT_DIR//.\//}
+  # create a new backup json file to revert demos.json after setup script
+  cp $CURRENT_DIR_WITHOUT_DOT_SLASH/demos.json $CURRENT_DIR_WITHOUT_DOT_SLASH/demos-backup.json
 
-# copy contents of the demos.json into a backup json file
-cp $CURRENT_DIR_WITHOUT_DOT_SLASH/demos.json $CURRENT_DIR_WITHOUT_DOT_SLASH/demos-backup.json
+  echo -e "\n$INFO [INFO] Replacing all variables with their values in the demo json file to use as input for the demo script..."
+  # replace demo.json with variable values
+  sed -i -e "s/JOB_NAMESPACE/$JOB_NAMESPACE/g" $CURRENT_DIR_WITHOUT_DOT_SLASH/demos.json
+  sed -i -e "s/DEFAULT_BLOCK_STORAGE/$DEFAULT_BLOCK_STORAGE/g" $CURRENT_DIR_WITHOUT_DOT_SLASH/demos.json
+  sed -i -e "s/DEFAULT_FILE_STORAGE/$DEFAULT_FILE_STORAGE/g" $CURRENT_DIR_WITHOUT_DOT_SLASH/demos.json
+  sed -i -e "s/DEMO_DEPLOYMENT_BRANCH/$demoDeploymentBranch/g" $CURRENT_DIR_WITHOUT_DOT_SLASH/demos.json
+  sed -i -e "s/PORG_ADMIN_EMAIL/$demoAPICEmailAddress/g" $CURRENT_DIR_WITHOUT_DOT_SLASH/demos.json
+  sed -i -e "s/MAIL_SERVER_HOST/$demoAPICMailServerHost/g" $CURRENT_DIR_WITHOUT_DOT_SLASH/demos.json
+  sed -i -e "s/MAIL_SERVER_PORT/$demoAPICMailServerPort/g" $CURRENT_DIR_WITHOUT_DOT_SLASH/demos.json
+  sed -i -e "s/MAIL_SERVER_USERNAME/$demoAPICMailServerUsername/g" $CURRENT_DIR_WITHOUT_DOT_SLASH/demos.json
+  sed -i -e "s/MAIL_SERVER_PASSWORD/$demoAPICMailServerPassword/g" $CURRENT_DIR_WITHOUT_DOT_SLASH/demos.json
+  sed -i -e "s/DEMO_PREPARATION/$demoPreparation/g" $CURRENT_DIR_WITHOUT_DOT_SLASH/demos.json
+  sed -i -e "s/COGNITIVE_CAR_REPAIR_DEMO/$cognitiveCarRepairDemo/g" $CURRENT_DIR_WITHOUT_DOT_SLASH/demos.json
+  sed -i -e "s/DRIVEWAY_DENT_DELETION_DEMO/$drivewayDentDeletionDemo/g" $CURRENT_DIR_WITHOUT_DOT_SLASH/demos.json
+  sed -i -e "s/EVENT_ENABLED_INSURANCE_DEMO/$eventEnabledInsuranceDemo/g" $CURRENT_DIR_WITHOUT_DOT_SLASH/demos.json
+  sed -i -e "s/MAPPING_ASSIST_DEMO/$mappingAssistDemo/g" $CURRENT_DIR_WITHOUT_DOT_SLASH/demos.json
+  sed -i -e "s/WEATHER_CHATBOT_DEMO/$weatherChatbotDemo/g" $CURRENT_DIR_WITHOUT_DOT_SLASH/demos.json
 
-sed -i -e "s/JOB_NAMESPACE/$JOB_NAMESPACE/g" $CURRENT_DIR_WITHOUT_DOT_SLASH/demos.json
-sed -i -e "s/DEFAULT_BLOCK_STORAGE/$DEFAULT_BLOCK_STORAGE/g" $CURRENT_DIR_WITHOUT_DOT_SLASH/demos.json
-sed -i -e "s/DEFAULT_FILE_STORAGE/$DEFAULT_FILE_STORAGE/g" $CURRENT_DIR_WITHOUT_DOT_SLASH/demos.json
-sed -i -e "s/DEMO_DEPLOYMENT_BRANCH/$demoDeploymentBranch/g" $CURRENT_DIR_WITHOUT_DOT_SLASH/demos.json
-sed -i -e "s/PORG_ADMIN_EMAIL/$demoAPICEmailAddress/g" $CURRENT_DIR_WITHOUT_DOT_SLASH/demos.json
-sed -i -e "s/MAIL_SERVER_HOST/$demoAPICMailServerHost/g" $CURRENT_DIR_WITHOUT_DOT_SLASH/demos.json
-sed -i -e "s/MAIL_SERVER_PORT/$demoAPICMailServerPort/g" $CURRENT_DIR_WITHOUT_DOT_SLASH/demos.json
-sed -i -e "s/MAIL_SERVER_USERNAME/$demoAPICMailServerUsername/g" $CURRENT_DIR_WITHOUT_DOT_SLASH/demos.json
-sed -i -e "s/MAIL_SERVER_PASSWORD/$demoAPICMailServerPassword/g" $CURRENT_DIR_WITHOUT_DOT_SLASH/demos.json
-sed -i -e "s/DEMO_PREPARATION/$demoPreparation/g" $CURRENT_DIR_WITHOUT_DOT_SLASH/demos.json
-sed -i -e "s/COGNITIVE_CAR_REPAIR_DEMO/$cognitiveCarRepairDemo/g" $CURRENT_DIR_WITHOUT_DOT_SLASH/demos.json
-sed -i -e "s/DRIVEWAY_DENT_DELETION_DEMO/$drivewayDentDeletionDemo/g" $CURRENT_DIR_WITHOUT_DOT_SLASH/demos.json
-sed -i -e "s/EVENT_ENABLED_INSURANCE_DEMO/$eventEnabledInsuranceDemo/g" $CURRENT_DIR_WITHOUT_DOT_SLASH/demos.json
-sed -i -e "s/MAPPING_ASSIST_DEMO/$mappingAssistDemo/g" $CURRENT_DIR_WITHOUT_DOT_SLASH/demos.json
-sed -i -e "s/WEATHER_CHATBOT_DEMO/$weatherChatbotDemo/g" $CURRENT_DIR_WITHOUT_DOT_SLASH/demos.json
-
-divider && echo -e "$INFO [INFO] Setting up all the selected demos..."
-if $CURRENT_DIR/setup-demos.sh -i $CURRENT_DIR_WITHOUT_DOT_SLASH/demos.json -o $CURRENT_DIR_WITHOUT_DOT_SLASH/demos-output.json; then
-  echo -e "\n$TICK [SUCCESS] Successfully setup all required addons, products and demos in the '$JOB_NAMESPACE' namespace"
-else
-  echo -e "\n$CROSS [ERROR] Failed to setup all required addons, products and demos in the '$JOB_NAMESPACE' namespace"
-  divider
-  exit 1
-fi
-
-# restore content of demo json file and delete temporary files
-cp $CURRENT_DIR_WITHOUT_DOT_SLASH/demos-backup.json $CURRENT_DIR_WITHOUT_DOT_SLASH/demos.json
-rm -rf $CURRENT_DIR_WITHOUT_DOT_SLASH/demos.json-e $CURRENT_DIR_WITHOUT_DOT_SLASH/demos-backup.json
-
-divider
-
-if [[ ("${demoPreparation}" == "true" || "${drivewayDentDeletionDemo}" == "true") && ("${testDrivewayDentDeletionDemoE2E}" == "true") ]]; then
-  if ! $CURRENT_DIR/../../DrivewayDentDeletion/Operators/test-ddd.sh -n ${JOB_NAMESPACE} -b $demoDeploymentBranch; then
-    echo -e "$CROSS [ERROR] Failed to run automated test for driveway dent deletion demo"
+  if $CURRENT_DIR/setup-demos.sh -i $CURRENT_DIR_WITHOUT_DOT_SLASH/demos.json -o $CURRENT_DIR_WITHOUT_DOT_SLASH/demos-output.json; then
+    echo -e "$TICK [SUCCESS] Successfully setup all required addons, products and demos in the '$JOB_NAMESPACE' namespace"
+  else
+    echo -e "\n$CROSS [ERROR] Failed to setup all required addons, products and demos in the '$JOB_NAMESPACE' namespace"
     divider
     exit 1
-  else
-    echo -e "$TICK [SUCCESS] Successfully ran the automated test for driveway dent deletion demo"
+  fi
+
+  # restore content of demo json file and delete temporary and backup files
+  cp $CURRENT_DIR_WITHOUT_DOT_SLASH/demos-backup.json $CURRENT_DIR_WITHOUT_DOT_SLASH/demos.json
+  rm -rf $CURRENT_DIR_WITHOUT_DOT_SLASH/demos.json-e $CURRENT_DIR_WITHOUT_DOT_SLASH/demos-backup.json
+
+  divider
+
+  if [[ ("$demoPreparation" == "true" || "$drivewayDentDeletionDemo" == "true") && ("$testDrivewayDentDeletionDemoE2E" == "true") ]]; then
+    echo -e "$INFO [INFO] Running an automated test for the driveway dent deletion demo in the '$JOB_NAMESPACE' namespace..."
+    if ! $CURRENT_DIR/../../DrivewayDentDeletion/Operators/test-ddd.sh -n ${JOB_NAMESPACE} -b $demoDeploymentBranch; then
+      echo -e "$CROSS [ERROR] Failed to run automated test for driveway dent deletion demo in the '$JOB_NAMESPACE' namespace"
+      divider
+      exit 1
+    else
+      echo -e "$TICK [SUCCESS] Successfully ran the automated test for driveway dent deletion demo in the '$JOB_NAMESPACE' namespace"
+    fi
+  elif [[ "$demoPreparation" == "false" && "$drivewayDentDeletionDemo" == "false" && "$testDrivewayDentDeletionDemoE2E" == "true" ]]; then
+    echo -e "$INFO [INFO] 'testDrivewayDentDeletionDemoE2E' option was set to 'true'.\n\n$INFO [INFO] To run an automated test for driveway dent deletion demo, set the 'demoPreparation' or 'drivewayDentDeletionDemo' option to 'true' along with the 'testDrivewayDentDeletionDemoE2E' option as 'true'."
   fi
 fi
 
