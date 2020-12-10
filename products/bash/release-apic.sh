@@ -15,6 +15,8 @@
 # PARAMETERS:
 #   -n : <namespace> (string), Defaults to "cp4i"
 #   -r : <release-name> (string), Defaults to "ademo"
+#   -m : <metadata_name> (string)
+#   -u : <metadata_uid> (string)
 #   -t : optional flag to enable tracing
 #
 # USAGE:
@@ -22,10 +24,13 @@
 #     ./release-apic.sh
 #
 #   Overriding the namespace and release-name
-#     ./release-apic -n cp4i-prod -r prod
+#     ./release-apic.sh -n cp4i-prod -r prod
+#
+#   To add ownerReferences for the demos operator
+#     ./release-apic.sh -m metadata_name -u metadata_uid
 
 function usage() {
-  echo "Usage: $0 -n <namespace> -r <release-name> [-t]"
+  echo "Usage: $0 -n <namespace> -r <release-name> -m <metadata_name> -u <metadata_uid> [-t]"
 }
 
 namespace="cp4i"
@@ -33,13 +38,19 @@ release_name="ademo"
 tracing="false"
 production="false"
 
-while getopts "n:r:tp" opt; do
+while getopts "n:r:m:u:tp" opt; do
   case ${opt} in
   n)
     namespace="$OPTARG"
     ;;
   r)
     release_name="$OPTARG"
+    ;;
+  m)
+    metadata_name="$OPTARG"
+    ;;
+  u)
+    metadata_uid="$OPTARG"
     ;;
   t)
     tracing=true
@@ -70,6 +81,15 @@ metadata:
     app.kubernetes.io/instance: apiconnect
     app.kubernetes.io/managed-by: ibm-apiconnect
     app.kubernetes.io/name: apiconnect-production
+  $(if [[ ! -z ${metadata_uid} && ! -z ${metadata_name} ]]; then
+  echo "ownerReferences:
+    - apiVersion: integration.ibm.com/v1beta1
+      kind: Demo
+      name: ${metadata_name}
+      uid: ${metadata_uid}
+      controller: true
+      blockOwnerDeletion: true"
+  fi)
 spec:
   version: 10.0.1.0
   license:
