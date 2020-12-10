@@ -127,7 +127,7 @@ metadata:
     app.kubernetes.io/instance: ibm-integration-operations-dashboard
     app.kubernetes.io/managed-by: ibm-integration-operations-dashboard
     app.kubernetes.io/name: ibm-integration-operations-dashboard
-    $(if [[ ! -z ${metadata_uid} && ! -z ${metadata_name} ]]; then
+  $(if [[ ! -z ${metadata_uid} && ! -z ${metadata_name} ]]; then
   echo "ownerReferences:
     - apiVersion: integration.ibm.com/v1beta1
       kind: Demo
