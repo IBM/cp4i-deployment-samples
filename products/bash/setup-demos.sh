@@ -527,6 +527,9 @@ fi
 
 check_phase_and_exit_on_failed
 
+METADATA_NAME=$(oc get demo -n cp4i -o jsonpath='{.items[0].metadata.name}') 
+METADATA_UID=$(oc get demo -n $NAMESPACE $METADATA_NAME -o json | jq -r '.metadata.uid')
+
 # -------------------------------------------------------------------------------------------------------------------
 # Setup and configure the required addons
 # -------------------------------------------------------------------------------------------------------------------
@@ -611,9 +614,9 @@ for EACH_PRODUCT in $(echo "${REQUIRED_PRODUCTS_JSON}" | jq -r '. | keys[]'); do
   mq)
     # if to enable or disable tracing while releasing MQ
     if [[ "$TRACING_ENABLED" == "true" ]]; then
-      RELEASE_MQ_PARAMS="-n '$NAMESPACE' -z '$NAMESPACE' -r '$MQ_RELEASE_NAME' -t"
+      RELEASE_MQ_PARAMS="-n '$NAMESPACE' -z '$NAMESPACE' -r '$MQ_RELEASE_NAME' -m '$METADATA_NAME' -u '$METADATA_UID' -t"
     else
-      RELEASE_MQ_PARAMS="-n '$NAMESPACE' -r '$MQ_RELEASE_NAME'"
+      RELEASE_MQ_PARAMS="-n '$NAMESPACE' -r '$MQ_RELEASE_NAME' -m '$METADATA_NAME' -u '$METADATA_UID'"
     fi
 
     echo -e "$INFO [INFO] Releasing MQ $ECHO_LINE '$MQ_RELEASE_NAME' with release parameters as '$RELEASE_APIC_PARAMS'...\n"

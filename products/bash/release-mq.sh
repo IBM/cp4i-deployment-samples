@@ -18,6 +18,8 @@
 #   -i : <image_name> (string)
 #   -q : <qm_name> (string), Defaults to "QUICKSTART"
 #   -z : <tracing_namespace> (string), Defaults to "namespace"
+#   -m : <metadata_name> (string)
+#   -u : <metadata_uid> (string)
 #   -t : <tracing_enabled> (boolean), optional flag to enable tracing, Defaults to false
 #
 # USAGE:
@@ -32,7 +34,7 @@ function divider() {
 }
 
 function usage() {
-  echo "Usage: $0 -n <namespace> -r <release_name> -i <image_name> -q <qm_name> -z <tracing_namespace> [-t]"
+  echo "Usage: $0 -n <namespace> -r <release_name> -i <image_name> -q <qm_name> -z <tracing_namespace> -m <metadata_name> -u <metadata_uid> [-t]"
   divider
   exit 1
 }
@@ -48,7 +50,7 @@ CURRENT_DIR=$(dirname $0)
 echo "Current directory: $CURRENT_DIR"
 echo "Namespace: $namespace"
 
-while getopts "n:r:i:q:z:t" opt; do
+while getopts "n:r:i:q:z:m:u:t" opt; do
   case ${opt} in
   n)
     namespace="$OPTARG"
@@ -64,6 +66,12 @@ while getopts "n:r:i:q:z:t" opt; do
     ;;
   z)
     tracing_namespace="$OPTARG"
+    ;;
+  m)
+    metadata_name="$OPTARG"
+    ;;
+  u)
+    metadata_uid="$OPTARG"
     ;;
   t)
     tracing_enabled=true
@@ -91,13 +99,21 @@ elif [[ "$release_name" =~ "eei" ]]; then
 fi
 
 if [ -z $image_name ]; then
-
   cat <<EOF | oc apply -f -
 apiVersion: mq.ibm.com/v1beta1
 kind: QueueManager
 metadata:
   name: ${release_name}
   namespace: ${namespace}
+  $(if [[ ! -z ${metadata_uid} && ! -z ${metadata_name} ]]; then
+  echo "ownerReferences:
+    - apiVersion: integration.ibm.com/v1beta1
+      kind: Demo
+      name: ${metadata_name}
+      uid: ${metadata_uid}
+      controller: true
+      blockOwnerDeletion: true"
+  fi)
 spec:
   license:
     accept: true
@@ -189,6 +205,15 @@ kind: QueueManager
 metadata:
   name: ${release_name}
   namespace: ${namespace}
+  $(if [[ ! -z ${metadata_uid} && ! -z ${metadata_name} ]]; then
+  echo "ownerReferences:
+    - apiVersion: integration.ibm.com/v1beta1
+      kind: Demo
+      name: ${metadata_name}
+      uid: ${metadata_uid}
+      controller: true
+      blockOwnerDeletion: true"
+  fi)
 spec:
   license:
     accept: true
