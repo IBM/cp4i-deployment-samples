@@ -15,6 +15,8 @@
 # PARAMETERS:
 #   -n : <namespace> (string), Defaults to "cp4i"
 #   -e : <designer-release-name> (string), Defaults to "ace-designer-demo"
+#   -m : <metadata_name> (string)
+#   -u : <metadata_uid> (string)
 #
 # USAGE:
 #   With defaults values
@@ -22,15 +24,19 @@
 #
 #   Overriding the namespace and release-name
 #     ./release-ace-designer.sh -n cp4i-prod -r prod
+#
+#   To add ownerReferences for the demos operator
+#     ./release-ace-designer.sh -m metadata_name -u metadata_uid
+
 
 function usage() {
-  echo "Usage: $0 -n <namespace> -r <designer_release_name>"
+  echo "Usage: $0 -n <namespace> -r <designer_release_name> -m <metadata_name> -u <metadata_uid>"
 }
 
 namespace="cp4i"
 designer_release_name="ace-designer-demo"
 storage="ibmc-block-gold"
-while getopts "n:r:s:" opt; do
+while getopts "n:r:s:m:u:" opt; do
   case ${opt} in
   n)
     namespace="$OPTARG"
@@ -40,6 +46,12 @@ while getopts "n:r:s:" opt; do
     ;;
   s)
     storage="$OPTARG"
+    ;;
+  m)
+    metadata_name="$OPTARG"
+    ;;
+  u)
+    metadata_uid="$OPTARG"
     ;;
   \?)
     usage
@@ -57,6 +69,15 @@ kind: DesignerAuthoring
 metadata:
   name: ${designer_release_name}
   namespace: ${namespace}
+  $(if [[ ! -z ${metadata_uid} && ! -z ${metadata_name} ]]; then
+  echo "ownerReferences:
+    - apiVersion: integration.ibm.com/v1beta1
+      kind: Demo
+      name: ${metadata_name}
+      uid: ${metadata_uid}
+      controller: true
+      blockOwnerDeletion: true"
+  fi)
 spec:
   couchdb:
     storage:

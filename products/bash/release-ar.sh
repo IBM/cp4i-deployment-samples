@@ -15,16 +15,22 @@
 # PARAMETERS:
 #   -n : <namespace> (string), Defaults to "cp4i"
 #   -r : <release-name> (string), Defaults to "demo"
+#   -m : <metadata_name> (string)
+#   -u : <metadata_uid> (string)
 #
 # USAGE:
 #   With defaults values
 #     ./release-ar.sh
 #
 #   Overriding the namespace and release-name
-#     ./release-ar -n cp4i-prod -r prod
+#     ./release-ar.sh -n cp4i-prod -r prod
+#
+#   To add ownerReferences for the demos operator
+#     ./release-ar.sh -m metadata_name -u metadata_uid
+
 
 function usage() {
-  echo "Usage: $0 -n <namespace> -r <release-name>"
+  echo "Usage: $0 -n <namespace> -r <release-name> -m <metadata_name> -u <metadata_uid>"
 }
 
 namespace="cp4i"
@@ -32,7 +38,7 @@ release_name="demo"
 assetDataVolume="ibmc-file-gold-gid"
 couchVolume="ibmc-block-gold"
 
-while getopts "n:r:a:c:" opt; do
+while getopts "n:r:a:c:m:u:" opt; do
   case ${opt} in
   n)
     namespace="$OPTARG"
@@ -45,6 +51,12 @@ while getopts "n:r:a:c:" opt; do
     ;;
   c)
     couchVolume="$OPTARG"
+    ;;
+  m)
+    metadata_name="$OPTARG"
+    ;;
+  u)
+    metadata_uid="$OPTARG"
     ;;
   \?)
     usage
@@ -59,6 +71,15 @@ kind: AssetRepository
 metadata:
   name: ${release_name}
   namespace: ${namespace}
+  $(if [[ ! -z ${metadata_uid} && ! -z ${metadata_name} ]]; then
+  echo "ownerReferences:
+    - apiVersion: integration.ibm.com/v1beta1
+      kind: Demo
+      name: ${metadata_name}
+      uid: ${metadata_uid}
+      controller: true
+      blockOwnerDeletion: true"
+  fi)
 spec:
   license:
     accept: true

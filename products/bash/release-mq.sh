@@ -27,7 +27,11 @@
 #     ./release-mq.sh
 #
 #   Overriding the namespace and release-name
-#     ./release-mq -n cp4i -r mq-demo -i image-registry.openshift-image-registry.svc:5000/cp4i/mq-ddd -q mq-qm
+#     ./release-mq.sh -n cp4i -r mq-demo -i image-registry.openshift-image-registry.svc:5000/cp4i/mq-ddd -q mq-qm
+#
+#   To add ownerReferences for the demos operator
+#     /release-mq.sh -m metadata_name -u metadata_uid
+
 
 function divider() {
   echo -e "\n-------------------------------------------------------------------------------------------------------------------\n"
