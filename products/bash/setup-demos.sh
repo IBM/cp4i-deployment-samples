@@ -192,14 +192,13 @@ function update_product_status() {
 function check_current_status() {
   DEMO_NAME=${1} # Save demo name
   LIST_TYPE=${2} # Save the list type
-  shift          # Shift all arguments to the left ($1 gets lost)
-  shift          # Shift all arguments to the left ($2 gets lost)
+  shift 2        # Shift first 2 arguments to the left
   LIST=("$@")    # Rebuild the array with rest of passed arguments
   DEMO_CONFIGURED=false
   NOT_CONFIGURED_COUNT=0
 
   if [[ ${#LIST[@]} -ne 0 ]]; then
-    $DEBUG && echo -e "$INFO [DEBUG] Received '$LIST_TYPE' list for '$DEMO_NAME': '${LIST[@]}'\n"
+    $DEBUG && echo -e "\n$INFO [DEBUG] Received '$LIST_TYPE' list for '$DEMO_NAME': '${LIST[@]}'"
     #  Iterate the loop to read and print each array element
     for EACH_ITEM in "${LIST[@]}"; do
       if [[ "$(echo $STATUS | jq -c '."'$LIST_TYPE'"[] | select(.type == "'$EACH_ITEM'" and .installed == "true" and .readyToUse == "true") ')" == "" ]]; then
@@ -221,11 +220,11 @@ function check_current_status() {
 
   if [[ $NOT_CONFIGURED_COUNT -eq 0 ]]; then
     DEMO_CONFIGURED=true
-    echo -e "$TICK [SUCCESS] All $LIST_TYPE have been installed and configured for '$DEMO_NAME' demo"
+    echo -e "\n$TICK [SUCCESS] All $LIST_TYPE have been installed and configured for '$DEMO_NAME' demo"
   else
     FAILED_INSTALL_DEMOS_LIST+=($DEMO_NAME)
     update_phase "Failed"
-    echo -e "$CROSS [ERROR] All $LIST_TYPE have not been installed/configured for '$DEMO_NAME' demo"
+    echo -e "\n$CROSS [ERROR] All $LIST_TYPE have not been installed/configured for '$DEMO_NAME' demo"
   fi
 }
 
@@ -254,20 +253,22 @@ function update_demo_status() {
 #----------------------------------------------------
 
 function set_up_demos() {
-  DEMO_JSON_NAME=${1} # demo name from input json
-  DEMO_ECHO_NAME=${1} # demo name for echo
-  ADDONS_LIST=${2}    # Addons list for the demo
-  PRODUCTS_LIST=${3}  # Products list for the demo
+  DEMO_JSON_NAME=${1}         # demo name from input json
+  DEMO_ECHO_NAME=${2}         # demo name for echo
+  shift 2                     # shift first 2 parameters
+  PRODUCTS_LIST=("${@:2:$1}") # Product list for demos
+  shift "$(($1 + 1))"         # shift size of Product list and Product list
+  ADDONS_LIST=("${@:2:$1}")   # Addon list for demos
 
   echo -e "$INFO [INFO] Setting up the '$DEMO_ECHO_NAME demo'\n"
   echo -e "$INFO [INFO] Checking if all addons are installed and setup for the '$DEMO_ECHO_NAME demo'"
-  check_current_status "$DEMO_JSON_NAME" "addons" "${MAPPING_ASSIST_ADDONS_LIST[@]}"
+  check_current_status "$DEMO_JSON_NAME" "addons" "${ADDONS_LIST[@]}"
   ADDONS_CONFIGURED=$DEMO_CONFIGURED
   echo -e "\n$INFO [INFO] Checking if all products are installed and setup for the '$DEMO_ECHO_NAME demo'"
-  check_current_status "$DEMO_JSON_NAME" "products" "${MAPPING_ASSIST_PRODUCTS_LIST[@]}"
+  check_current_status "$DEMO_JSON_NAME" "products" "${PRODUCTS_LIST[@]}"
   PRODUCTS_CONFIGURED=$DEMO_CONFIGURED
   if [[ "$ADDONS_CONFIGURED" == "true" && "$PRODUCTS_CONFIGURED" == "true" ]]; then
-    divider && echo -e "\n$TICK $ALL_DONE [SUCCESS] '$DEMO_ECHO_NAME demo' setup completed successfully. $ALL_DONE $TICK"
+    divider && echo -e "$TICK $ALL_DONE [SUCCESS] '$DEMO_ECHO_NAME demo' setup completed successfully. $ALL_DONE $TICK"
     # No pre-requisites are to be run, so setting installed and readyToUse to true
     update_demo_status "$DEMO_JSON_NAME" "true" "true"
   else
@@ -791,23 +792,7 @@ echo -e "$INFO [INFO] Starting demos setup..." && divider
 for EACH_DEMO in $(echo $REQUIRED_DEMOS_JSON | jq -r '. | keys[]'); do
   case $EACH_DEMO in
   cognitiveCarRepair)
-    set_up_demos "$EACH_DEMO" "Cognitive Car Repair" "${COGNITIVE_CAR_REPAIR_ADDONS_LIST[@]}" "${COGNITIVE_CAR_REPAIR_PRODUCTS_LIST[@]}"
-    # echo -e "$INFO [INFO] Setting up the cognitive car repair demo\n"
-    # echo -e "$INFO [INFO] Checking if all addons are installed and setup for the cognitive car repair demo"
-    # check_current_status "$EACH_DEMO" "addons" "${COGNITIVE_CAR_REPAIR_ADDONS_LIST[@]}"
-    # ADDONS_CONFIGURED=$DEMO_CONFIGURED
-    # echo -e "\n$INFO [INFO] Checking if all products are installed and setup for the cognitive car repair demo"
-    # check_current_status "$EACH_DEMO" "products" "${COGNITIVE_CAR_REPAIR_PRODUCTS_LIST[@]}"
-    # PRODUCTS_CONFIGURED=$DEMO_CONFIGURED
-    # if [[ "$ADDONS_CONFIGURED" == "true" && "$PRODUCTS_CONFIGURED" == "true" ]]; then
-    #   divider && echo -e "\n$TICK $ALL_DONE [SUCCESS] Cognitive Car Repair Demo setup completed successfully. $ALL_DONE $TICK"
-    #   # No pre-requisites are to be run for cognitive car repair demo, so setting installed and readyToUse to true
-    #   update_demo_status "$EACH_DEMO" "true" "true"
-    # else
-    #   divider && echo -e "$CROSS [ERROR] Cognitive Car Repair Demo did not setup correctly. $CROSS"
-    #   # If one or more products failed to setup/configure, demo is not ready to use
-    #   update_demo_status "$EACH_DEMO" "false" "false"
-    # fi
+    set_up_demos "$EACH_DEMO" "Cognitive Car Repair" "${#COGNITIVE_CAR_REPAIR_PRODUCTS_LIST[@]}" "${COGNITIVE_CAR_REPAIR_PRODUCTS_LIST[@]}" "${#COGNITIVE_CAR_REPAIR_ADDONS_LIST[@]}" "${COGNITIVE_CAR_REPAIR_ADDONS_LIST[@]}"
     divider
     ;;
 
@@ -875,44 +860,12 @@ for EACH_DEMO in $(echo $REQUIRED_DEMOS_JSON | jq -r '. | keys[]'); do
     ;;
 
   mappingAssist)
-    set_up_demos "Mapping Assist" "${MAPPING_ASSIST_ADDONS_LIST[@]}" "${MAPPING_ASSIST_PRODUCTS_LIST[@]}"
-    # echo -e "$INFO [INFO] Setting up the mapping assist demo\n"
-    # echo -e "$INFO [INFO] Checking if all addons are installed and setup for the mapping assist demo"
-    # check_current_status "$EACH_DEMO" "addons" "${MAPPING_ASSIST_ADDONS_LIST[@]}"
-    # ADDONS_CONFIGURED=$DEMO_CONFIGURED
-    # echo -e "\n$INFO [INFO] Checking if all products are installed and setup for the mapping assist demo"
-    # check_current_status "$EACH_DEMO" "products" "${MAPPING_ASSIST_PRODUCTS_LIST[@]}"
-    # PRODUCTS_CONFIGURED=$DEMO_CONFIGURED
-    # if [[ "$ADDONS_CONFIGURED" == "true" && "$PRODUCTS_CONFIGURED" == "true" ]]; then
-    #   divider && echo -e "\n$TICK $ALL_DONE [SUCCESS] Mapping assist Demo setup completed successfully. $ALL_DONE $TICK"
-    #   # No pre-requisites are to be run for mapping assist demo, so setting installed and readyToUse to true
-    #   update_demo_status "$EACH_DEMO" "true" "true"
-    # else
-    #   divider && echo -e "$CROSS [ERROR] Mapping assist Demo did not setup correctly. $CROSS"
-    #   # If one or more products failed to setup/configure, demo is not ready to use
-    #   update_demo_status "$EACH_DEMO" "false" "false"
-    # fi
+    set_up_demos "$EACH_DEMO" "Mapping Assist" "${#MAPPING_ASSIST_PRODUCTS_LIST[@]}" "${MAPPING_ASSIST_PRODUCTS_LIST[@]}" "${#MAPPING_ASSIST_ADDONS_LIST[@]}" "${MAPPING_ASSIST_ADDONS_LIST[@]}"
     divider
     ;;
 
   weatherChatbot)
-    set_up_demos "Weather Chatbot" "${ACE_WEATHER_CHATBOT_ADDONS_LIST[@]}" "${ACE_WEATHER_CHATBOT_PRODUCTS_LIST[@]}"
-    # echo -e "$INFO [INFO] Setting up the weather chatbot demo\n"
-    # echo -e "$INFO [INFO] Checking if all addons are installed and setup for the weather chatbot demo"
-    # check_current_status "$EACH_DEMO" "addons" "${ACE_WEATHER_CHATBOT_ADDONS_LIST[@]}"
-    # ADDONS_CONFIGURED=$DEMO_CONFIGURED
-    # echo -e "\n$INFO [INFO] Checking if all products are installed and setup for the weather chatbot demo"
-    # check_current_status "$EACH_DEMO" "products" "${ACE_WEATHER_CHATBOT_PRODUCTS_LIST[@]}"
-    # PRODUCTS_CONFIGURED=$DEMO_CONFIGURED
-    # if [[ "$ADDONS_CONFIGURED" == "true" && "$PRODUCTS_CONFIGURED" == "true" ]]; then
-    #   divider && echo -e "\n$TICK $ALL_DONE [SUCCESS] Weather chatbot Demo setup completed successfully. $ALL_DONE $TICK"
-    #   # No pre-requisites are to be run for weather chatbot demo, so setting installed and readyToUse to true
-    #   update_demo_status "$EACH_DEMO" "true" "true"
-    # else
-    #   divider && echo -e "$CROSS [ERROR] Weather chatbot Demo did not setup correctly. $CROSS"
-    #   # If one or more products failed to setup/configure, demo is not ready to use
-    #   update_demo_status "$EACH_DEMO" "false" "false"
-    # fi
+    set_up_demos "$EACH_DEMO" "Weather Chatbot" "${#ACE_WEATHER_CHATBOT_PRODUCTS_LIST[@]}" "${ACE_WEATHER_CHATBOT_PRODUCTS_LIST[@]}" "${#ACE_WEATHER_CHATBOT_ADDONS_LIST[@]}" "${ACE_WEATHER_CHATBOT_ADDONS_LIST[@]}"
     divider
     ;;
 
