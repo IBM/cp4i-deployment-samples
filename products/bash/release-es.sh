@@ -78,8 +78,6 @@ metadata:
       kind: Demo
       name: ${metadata_name}
       uid: ${metadata_uid}
-      controller: true
-      blockOwnerDeletion: true"
   fi)
 spec:
   version: 10.1.0
@@ -139,8 +137,6 @@ metadata:
       kind: Demo
       name: ${metadata_name}
       uid: ${metadata_uid}
-      controller: true
-      blockOwnerDeletion: true"
   fi)
 spec:
   version: 10.1.0

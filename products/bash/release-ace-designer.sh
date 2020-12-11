@@ -75,8 +75,6 @@ metadata:
       kind: Demo
       name: ${metadata_name}
       uid: ${metadata_uid}
-      controller: true
-      blockOwnerDeletion: true"
   fi)
 spec:
   couchdb:
