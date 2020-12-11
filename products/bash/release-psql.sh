@@ -37,20 +37,17 @@ while getopts "n:" opt; do
   esac
 done
 
+CURRENT_DIR=$(dirname $0)
+CURRENT_DIR_WITHOUT_DOT_SLASH=${CURRENT_DIR//.\//}
+
 echo -e "Postgres namespace for release-psql: '$POSTGRES_NAMESPACE'\n"
 
 echo "Installing PostgreSQL..."
-cat <<EOF >postgres.env
-  MEMORY_LIMIT=2Gi
-  NAMESPACE=openshift
-  DATABASE_SERVICE_NAME=postgresql
-  POSTGRESQL_USER=admin
-  POSTGRESQL_DATABASE=sampledb
-  VOLUME_CAPACITY=1Gi
-  POSTGRESQL_VERSION=10
-EOF
+
 oc create namespace ${POSTGRES_NAMESPACE}
-oc process -n openshift postgresql-persistent --param-file=postgres.env | oc apply -n ${POSTGRES_NAMESPACE} -f -
+
+echo "INFO: oc process -n openshift postgresql-persistent --param-file=${CURRENT_DIR_WITHOUT_DOT_SLASH}/postgres.env | oc apply -n ${POSTGRES_NAMESPACE} -f -"
+oc process -n openshift postgresql-persistent --param-file=${CURRENT_DIR_WITHOUT_DOT_SLASH}/postgres.env | oc apply -n ${POSTGRES_NAMESPACE} -f -
 
 echo "INFO: Waiting for postgres to be ready in the ${POSTGRES_NAMESPACE} namespace"
 oc wait -n ${POSTGRES_NAMESPACE} --for=condition=available --timeout=20m deploymentconfig/postgresql
@@ -60,7 +57,7 @@ echo "INFO: Found DB pod as: ${DB_POD}"
 
 echo "INFO: Changing DB parameters for Debezium support"
 oc exec -n ${POSTGRES_NAMESPACE} -i $DB_POD \
-  -- psql <<EOF
+-- psql <<EOF
 ALTER SYSTEM SET wal_level = logical;
 ALTER SYSTEM SET max_wal_senders=10;
 ALTER SYSTEM SET max_replication_slots=10;
