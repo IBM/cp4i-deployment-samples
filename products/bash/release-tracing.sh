@@ -90,7 +90,6 @@ metadata:
       name: ${metadata_name}
       uid: ${metadata_uid}
       controller: true
-      blockOwnerDeletion: true"
   fi)
 spec:
   env:
@@ -134,7 +133,6 @@ metadata:
       name: ${metadata_name}
       uid: ${metadata_uid}
       controller: true
-      blockOwnerDeletion: true"
   fi)
 spec:
   license:
