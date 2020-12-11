@@ -1,0 +1,15 @@
+apiVersion: integration.ibm.com/v1beta1
+kind: Demo
+metadata:
+  name: demos
+  namespace: cp4i
+spec:
+  general:
+    storage:
+      block:
+        class: cp4i-block-performance
+      file:
+        class: ibmc-file-gold-gid
+    samplesRepoBranch: main
+  demos:
+    mappingAssist: true

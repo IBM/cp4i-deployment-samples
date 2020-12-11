@@ -70,6 +70,12 @@ DRIVEWAY_DENT_DELETION_ADDONS_LIST=("postgres" "ocpPipelines")
 # event insurance demo list
 EVENT_ENABLED_INSURANCE_PRODUCTS_LIST=("mq" "aceDashboard" "apic" "eventStreams" "tracing")
 EVENT_ENABLED_INSURANCE_ADDONS_LIST=("postgres" "elasticSearch" "ocpPipelines")
+# mapping assist demo list
+MAPPING_ASSIST_PRODUCTS_LIST=("aceDesigner")
+MAPPING_ASSIST_ADDONS_LIST=()
+# ace weather chatbot demo list
+ACE_WEATHER_CHATBOT_PRODUCTS_LIST=("aceDashboard" "aceDesigner" "apic" "assetRepo" "tracing")
+ACE_WEATHER_CHATBOT_ADDONS_LIST=()
 
 # Default release name variables
 MQ_RELEASE_NAME="mq-demo"
@@ -186,14 +192,13 @@ function update_product_status() {
 function check_current_status() {
   DEMO_NAME=${1} # Save demo name
   LIST_TYPE=${2} # Save the list type
-  shift          # Shift all arguments to the left ($1 gets lost)
-  shift          # Shift all arguments to the left ($2 gets lost)
+  shift 2        # Shift first 2 arguments to the left
   LIST=("$@")    # Rebuild the array with rest of passed arguments
   DEMO_CONFIGURED=false
   NOT_CONFIGURED_COUNT=0
 
   if [[ ${#LIST[@]} -ne 0 ]]; then
-    $DEBUG && echo -e "$INFO [DEBUG] Received '$LIST_TYPE' list for '$DEMO_NAME': '${LIST[@]}'\n"
+    $DEBUG && echo -e "\n$INFO [DEBUG] Received '$LIST_TYPE' list for '$DEMO_NAME': '${LIST[@]}'"
     #  Iterate the loop to read and print each array element
     for EACH_ITEM in "${LIST[@]}"; do
       if [[ "$(echo $STATUS | jq -c '."'$LIST_TYPE'"[] | select(.type == "'$EACH_ITEM'" and .installed == "true" and .readyToUse == "true") ')" == "" ]]; then
@@ -215,11 +220,11 @@ function check_current_status() {
 
   if [[ $NOT_CONFIGURED_COUNT -eq 0 ]]; then
     DEMO_CONFIGURED=true
-    echo -e "$TICK [SUCCESS] All $LIST_TYPE have been installed and configured for '$DEMO_NAME' demo"
+    echo -e "\n$TICK [SUCCESS] All $LIST_TYPE have been installed and configured for '$DEMO_NAME' demo"
   else
     FAILED_INSTALL_DEMOS_LIST+=($DEMO_NAME)
     update_phase "Failed"
-    echo -e "$CROSS [ERROR] All $LIST_TYPE have not been installed/configured for '$DEMO_NAME' demo"
+    echo -e "\n$CROSS [ERROR] All $LIST_TYPE have not been installed/configured for '$DEMO_NAME' demo"
   fi
 }
 
@@ -243,6 +248,34 @@ function update_demo_status() {
   DEMO_TO_ADD_TO_STATUS=$(echo $DEMO_OBJECT_FOR_STATUS | jq -r '.name="'$DEMO_NAME'" | .installed="'$DEMO_INSTALLED'" | .readyToUse="'$DEMO_READY_TO_USE'" ')
   # update status with new demo status
   STATUS=$(echo $STATUS | jq -c '.demos += ['"${DEMO_TO_ADD_TO_STATUS}"']')
+}
+
+#----------------------------------------------------
+
+function set_up_demos() {
+  DEMO_JSON_NAME=${1}         # demo name from input json
+  DEMO_ECHO_NAME=${2}         # demo name for echo
+  shift 2                     # shift first 2 parameters
+  PRODUCTS_LIST=("${@:2:$1}") # Product list for demos
+  shift "$(($1 + 1))"         # shift size of Product list and Product list
+  ADDONS_LIST=("${@:2:$1}")   # Addon list for demos
+
+  echo -e "$INFO [INFO] Setting up the '$DEMO_ECHO_NAME demo'\n"
+  echo -e "$INFO [INFO] Checking if all addons are installed and setup for the '$DEMO_ECHO_NAME demo'"
+  check_current_status "$DEMO_JSON_NAME" "addons" "${ADDONS_LIST[@]}"
+  ADDONS_CONFIGURED=$DEMO_CONFIGURED
+  echo -e "\n$INFO [INFO] Checking if all products are installed and setup for the '$DEMO_ECHO_NAME demo'"
+  check_current_status "$DEMO_JSON_NAME" "products" "${PRODUCTS_LIST[@]}"
+  PRODUCTS_CONFIGURED=$DEMO_CONFIGURED
+  if [[ "$ADDONS_CONFIGURED" == "true" && "$PRODUCTS_CONFIGURED" == "true" ]]; then
+    divider && echo -e "$TICK $ALL_DONE [SUCCESS] '$DEMO_ECHO_NAME demo' setup completed successfully. $ALL_DONE $TICK"
+    # No pre-requisites are to be run, so setting installed and readyToUse to true
+    update_demo_status "$DEMO_JSON_NAME" "true" "true"
+  else
+    divider && echo -e "$CROSS [ERROR] '$DEMO_ECHO_NAME demo' did not setup correctly. $CROSS"
+    # If one or more products failed to setup/configure, demo is not ready to use
+    update_demo_status "$DEMO_JSON_NAME" "false" "false"
+  fi
 }
 
 #-------------------------------------------------------------------------------------------------------------------
@@ -275,8 +308,8 @@ fi
 #-------------------------------------------------------------------------------------------------------------------
 
 divider && echo -e "$INFO Script directory: '$SCRIPT_DIR'"
-echo -e "$INFO Input yaml file: '$INPUT_FILE'"
-echo -e "$INFO Output yaml file : '$OUTPUT_FILE'\n"
+echo -e "$INFO Input file: '$INPUT_FILE'"
+echo -e "$INFO Output file : '$OUTPUT_FILE'" && divider
 
 #-------------------------------------------------------------------------------------------------------------------
 # Validate the prereqs
@@ -284,22 +317,28 @@ echo -e "$INFO Output yaml file : '$OUTPUT_FILE'\n"
 
 # Only require yq to be installed if either file is not json (I.e. yaml)
 if [[ "$INPUT_FILE" != *.json ]] || [[ "$OUTPUT_FILE" != *.json ]]; then
+  echo -e "$INFO [INFO] Checking if 'yq' is already installed...\n"
   yq --version
   if [ $? -ne 0 ]; then
     echo -e "$CROSS [ERROR] 'yq' needs to be installed before running this script" 1>&2
     MISSING_PREREQS="true"
   fi
 fi
+
+divider && echo -e "$INFO [INFO] Checking if 'jq' is already installed...\n"
 jq --version
 if [ $? -ne 0 ]; then
   echo -e "$CROSS [ERROR] 'jq' needs to be installed before running this script" 1>&2
   MISSING_PREREQS="true"
 fi
+
+divider && echo -e "$INFO [INFO] Checking if 'oc' is already installed...\n"
 oc version
 if [ $? -ne 0 ]; then
   echo -e "$CROSS [ERROR] 'oc' needs to be installed before running this script" 1>&2
   MISSING_PREREQS="true"
 fi
+
 if [[ "$MISSING_PREREQS" == "true" ]]; then
   divider
   exit 1
@@ -312,17 +351,17 @@ fi
 if [[ "$INPUT_FILE" == *.json ]]; then
   JSON=$(<$INPUT_FILE)
 else
-  $DEBUG && echo -e "\n[DEBUG] Converting $INPUT_FILE into json\n"
+  $DEBUG && divider && echo -e "[DEBUG] Converting $INPUT_FILE into json" && divider
   JSON=$(yq r -j $INPUT_FILE)
 fi
 $DEBUG && echo -e "[DEBUG] Got the following JSON for $INPUT_FILE:\n"
-$DEBUG && echo $JSON | jq .
+$DEBUG && echo $JSON | jq . && divider
 
 #-------------------------------------------------------------------------------------------------------------------
 # Extract information from the yaml
 #-------------------------------------------------------------------------------------------------------------------
 
-$DEBUG && echo -e "\n[DEBUG] Get storage classes and branch from $INPUT_FILE"
+$DEBUG && echo -e "[DEBUG] Extracting the required information from the input file: $INPUT_FILE"
 GENERAL=$(echo $JSON | jq -r .spec.general)
 BLOCK_STORAGE_CLASS=$(echo $GENERAL | jq -r '.storage.block | if has("class") then .class else "cp4i-block-performance" end')
 FILE_STORAGE_CLASS=$(echo $GENERAL | jq -r '.storage.file | if has("class") then .class else "ibmc-file-gold-gid" end')
@@ -335,8 +374,8 @@ DEMO_VERSION=$(echo $JSON | jq -r '.spec | if has("version") then .version else 
 # To use for un-installation
 ORIGINAL_STATUS=$(echo $JSON | jq -c .status)
 APIC_CONFIGURATION=$(echo $JSON | jq -c '.spec | if has("apic") then .apic else {} end')
-
-echo -e "\n$INFO Block storage class: '$BLOCK_STORAGE_CLASS'"
+divider
+echo -e "$INFO Block storage class: '$BLOCK_STORAGE_CLASS'"
 echo -e "$INFO File storage class: '$FILE_STORAGE_CLASS'"
 echo -e "$INFO Samples repo branch: '$SAMPLES_REPO_BRANCH'"
 echo -e "$INFO Demo version: '$DEMO_VERSION'"
@@ -349,7 +388,7 @@ echo -e "$INFO Namespace: '$NAMESPACE'" && divider
 ALL_DEMOS_ENABLED=$(echo $REQUIRED_DEMOS_JSON | jq -r '. | if has("all") then .all else false end')
 $DEBUG && echo -e "$INFO [DEBUG] All demos enabled: '$ALL_DEMOS_ENABLED'"
 if [[ "${ALL_DEMOS_ENABLED}" == "true" ]]; then
-  REQUIRED_DEMOS_JSON='{"cognitiveCarRepair": {"enabled": true},"drivewayDentDeletion": {"enabled": true},"eventEnabledInsurance": {"enabled": true}}'
+  REQUIRED_DEMOS_JSON='{"cognitiveCarRepair": {"enabled": true},"drivewayDentDeletion": {"enabled": true},"eventEnabledInsurance": {"enabled": true},"mappingAssist": {"enabled": true},"weatherChatbot": {"enabled": true}}'
 else
   REQUIRED_DEMOS_JSON=$(echo $REQUIRED_DEMOS_JSON | jq -c 'del(.all) | del(.[] | select(. == false))')
 fi
@@ -377,7 +416,6 @@ for DEMO in $(echo $REQUIRED_DEMOS_JSON | jq -r 'keys[]'); do
       assetRepo
       tracing
       '
-
     ADDONS_FOR_DEMO=''
     ;;
   drivewayDentDeletion)
@@ -397,7 +435,6 @@ for DEMO in $(echo $REQUIRED_DEMOS_JSON | jq -r 'keys[]'); do
       postgres
       ocpPipelines
       '
-
     ;;
   eventEnabledInsurance)
     PRODUCTS_FOR_DEMO='
@@ -407,15 +444,28 @@ for DEMO in $(echo $REQUIRED_DEMOS_JSON | jq -r 'keys[]'); do
       eventStreams
       tracing
       '
-
     ADDONS_FOR_DEMO='
       postgres
       elasticSearch
       ocpPipelines
       '
-
     ;;
-
+  mappingAssist)
+    PRODUCTS_FOR_DEMO='
+      aceDesigner
+      '
+    ADDONS_FOR_DEMO=''
+    ;;
+  weatherChatbot)
+    PRODUCTS_FOR_DEMO='
+      aceDashboard
+      aceDesigner
+      apic
+      assetRepo
+      tracing
+      '
+    ADDONS_FOR_DEMO=''
+    ;;
   *)
     echo -e "$CROSS ERROR: Unknown demo: ${DEMO}" 1>&2
     exit 1
@@ -546,7 +596,7 @@ done
 # Check if tracing is enabled in the selected/required products
 #-------------------------------------------------------------------------------------------------------------------
 
-TRACING_ENABLED=$(echo $REQUIRED_PRODUCTS_JSON | jq -r '.tracing?| if true then "true" else "false" end')
+[[ "$(echo $REQUIRED_PRODUCTS_JSON | jq '.tracing?')" == "true" ]] && TRACING_ENABLED=true || TRACING_ENABLED=false
 divider && echo -e "$INFO [INFO] Tracing enabled: '$TRACING_ENABLED'"
 
 #-------------------------------------------------------------------------------------------------------------------
@@ -669,6 +719,7 @@ for EACH_PRODUCT in $(echo "${REQUIRED_PRODUCTS_JSON}" | jq -r '. | keys[]'); do
       echo -e "\n$TICK [SUCCESS] Successfully released Tracing $ECHO_LINE '$TRACING_RELEASE_NAME'"
       update_product_status "$TRACING_RELEASE_NAME" "$EACH_PRODUCT" "true" "false"
     fi # release-tracing.sh
+    divider
     ;;
 
   *)
@@ -684,7 +735,7 @@ done
 #-------------------------------------------------------------------------------------------------------------------
 
 if [[ "$TRACING_ENABLED" == "true" ]]; then
-  divider && echo -e "$INFO [INFO] Registering tracing in the '$NAMESPACE' namespace...\n"
+  echo -e "$INFO [INFO] Registering tracing in the '$NAMESPACE' namespace...\n"
   if ! $SCRIPT_DIR/register-tracing.sh -n "$NAMESPACE"; then
     update_conditions "Failed to register tracing in the '$NAMESPACE' namespace" "Releasing"
     update_phase "Failed"
@@ -694,6 +745,7 @@ if [[ "$TRACING_ENABLED" == "true" ]]; then
     echo -e "\n$TICK [SUCCESS] Successfully registered tracing in the '$NAMESPACE' namespace"
     update_product_status "$TRACING_RELEASE_NAME" "tracing" "true" "true"
   fi # release-tracing.sh
+  divider
 fi
 
 #-------------------------------------------------------------------------------------------------------------------
@@ -701,7 +753,7 @@ fi
 #-------------------------------------------------------------------------------------------------------------------
 
 if [[ "$(echo $REQUIRED_PRODUCTS_JSON | jq '.apic?')" == "true" ]]; then
-  divider && echo -e "$INFO [INFO] Configuring APIC in the '$NAMESPACE' namespace...\n"
+  echo -e "$INFO [INFO] Configuring APIC in the '$NAMESPACE' namespace...\n"
   if ! $SCRIPT_DIR/configure-apic-v10.sh -n "$NAMESPACE" -r "$APIC_RELEASE_NAME"; then
     update_conditions "Failed to configure APIC in the '$NAMESPACE' namespace" "Releasing"
     update_phase "Failed"
@@ -711,6 +763,7 @@ if [[ "$(echo $REQUIRED_PRODUCTS_JSON | jq '.apic?')" == "true" ]]; then
     echo -e "$TICK [SUCCESS] Successfully configured APIC in the '$NAMESPACE' namespace"
     update_product_status "$APIC_RELEASE_NAME" "apic" "true" "true"
   fi # configure-apic-v10.sh
+  divider
 fi
 
 #-------------------------------------------------------------------------------------------------------------------
@@ -718,7 +771,7 @@ fi
 #-------------------------------------------------------------------------------------------------------------------
 
 if [[ "$(echo $REQUIRED_PRODUCTS_JSON | jq '.assetRepo?')" == "true" ]]; then
-  divider && echo -e "$INFO [INFO] Creating Asset Repository remote in the '$NAMESPACE' namespace with the name '$ASSET_REPOSITORY_RELEASE_NAME'...\n"
+  echo -e "$INFO [INFO] Creating Asset Repository remote in the '$NAMESPACE' namespace with the name '$ASSET_REPOSITORY_RELEASE_NAME'...\n"
   if ! $SCRIPT_DIR/ar_remote_create.sh -r "$ASSET_REPOSITORY_RELEASE_NAME" -n "$NAMESPACE" -o; then
     update_conditions "Failed to create Asset Repository remote in the '$NAMESPACE' namespace with the name '$ASSET_REPOSITORY_RELEASE_NAME'" "Releasing"
     update_phase "Failed"
@@ -728,32 +781,18 @@ if [[ "$(echo $REQUIRED_PRODUCTS_JSON | jq '.assetRepo?')" == "true" ]]; then
     echo -e "\n$TICK [SUCCESS] Successfully created Asset Repository remote in the '$NAMESPACE' namespace with the name '$ASSET_REPOSITORY_RELEASE_NAME'"
     update_product_status "$ASSET_REPOSITORY_RELEASE_NAME" "assetRepo" "true" "true"
   fi # ar_remote_create.sh
+  divider
 fi
 
 #-------------------------------------------------------------------------------------------------------------------
 # Setup the required demos
 #-------------------------------------------------------------------------------------------------------------------
 
-divider && echo -e "$INFO [INFO] Starting demos setup..." && divider
+echo -e "$INFO [INFO] Starting demos setup..." && divider
 for EACH_DEMO in $(echo $REQUIRED_DEMOS_JSON | jq -r '. | keys[]'); do
   case $EACH_DEMO in
   cognitiveCarRepair)
-    echo -e "$INFO [INFO] Setting up the cognitive car repair demo\n"
-    echo -e "$INFO [INFO] Checking if all addons are installed and setup for the cognitive car repair demo"
-    check_current_status "$EACH_DEMO" "addons" "${COGNITIVE_CAR_REPAIR_ADDONS_LIST[@]}"
-    ADDONS_CONFIGURED=$DEMO_CONFIGURED
-    echo -e "\n$INFO [INFO] Checking if all products are installed and setup for the cognitive car repair demo"
-    check_current_status "$EACH_DEMO" "products" "${COGNITIVE_CAR_REPAIR_PRODUCTS_LIST[@]}"
-    PRODUCTS_CONFIGURED=$DEMO_CONFIGURED
-    if [[ "$ADDONS_CONFIGURED" == "true" && "$PRODUCTS_CONFIGURED" == "true" ]]; then
-      divider && echo -e "\n$TICK $ALL_DONE [SUCCESS] Cognitive Car Repair Demo setup completed successfully. $ALL_DONE $TICK"
-      # No pre-requisites are to be run for cognitive car repair demo, so setting installed and readyToUse to true
-      update_demo_status "$EACH_DEMO" "true" "true"
-    else
-      divider && echo -e "$CROSS [ERROR] Cognitive Car Repair Demo did not setup correctly. $CROSS"
-      # If one or more products failed to setup/configure, demo is not ready to use
-      update_demo_status "$EACH_DEMO" "false" "false"
-    fi
+    set_up_demos "$EACH_DEMO" "Cognitive Car Repair" "${#COGNITIVE_CAR_REPAIR_PRODUCTS_LIST[@]}" "${COGNITIVE_CAR_REPAIR_PRODUCTS_LIST[@]}" "${#COGNITIVE_CAR_REPAIR_ADDONS_LIST[@]}" "${COGNITIVE_CAR_REPAIR_ADDONS_LIST[@]}"
     divider
     ;;
 
@@ -821,12 +860,12 @@ for EACH_DEMO in $(echo $REQUIRED_DEMOS_JSON | jq -r '. | keys[]'); do
     ;;
 
   mappingAssist)
-    $DEBUG && echo -e "$INFO [DEBUG] Support for mapping assist demo via Operators coming soon.\n"
+    set_up_demos "$EACH_DEMO" "Mapping Assist" "${#MAPPING_ASSIST_PRODUCTS_LIST[@]}" "${MAPPING_ASSIST_PRODUCTS_LIST[@]}" "${#MAPPING_ASSIST_ADDONS_LIST[@]}" "${MAPPING_ASSIST_ADDONS_LIST[@]}"
     divider
     ;;
 
   weatherChatbot)
-    $DEBUG && echo -e "$INFO [DEBUG] Support for the weather chatbot demo via Operators coming soon.\n"
+    set_up_demos "$EACH_DEMO" "Weather Chatbot" "${#ACE_WEATHER_CHATBOT_PRODUCTS_LIST[@]}" "${ACE_WEATHER_CHATBOT_PRODUCTS_LIST[@]}" "${#ACE_WEATHER_CHATBOT_ADDONS_LIST[@]}" "${ACE_WEATHER_CHATBOT_ADDONS_LIST[@]}"
     divider
     ;;
 
