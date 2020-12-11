@@ -88,6 +88,7 @@ metadata:
       name: ${metadata_name}
       uid: ${metadata_uid}
       controller: true
+      blockOwnerDeletion: true"
   fi)
 spec:
   version: 10.0.1.0
