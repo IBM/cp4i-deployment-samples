@@ -16,7 +16,7 @@
 # PARAMETERS:
 #   -a : <eventEnabledInsuranceDemo> (string), If event enabled insurance demo is to be setup. Defaults to "false"
 #   -b : <demoDeploymentBranch> (string), The demo deployment branch to be used, Defaults to 'main'
-#   -d : <demoPreparation> (string), If all demos are to be setup. Defaults to "false"
+#   -d : <demoPreparation> (string), If all demos are to be setup. Defaults to "false" for ROKS, "true" for AWS
 #   -e : <demoAPICEmailAddress> (string), The email address APIC uses to notify of portal configuration. Defaults to "your@email.address"
 #   -f : <drivewayDentDeletionDemo> (string),  If driveway dent deletion demo is to be setup. Defaults to "false"
 #   -h : <demoAPICMailServerHost> (string), Host name of the mail server. Defaults to "smtp.mailtrap.io"
@@ -32,12 +32,12 @@
 #   -s : <DOCKER_REGISTRY_PASS> (string), Docker registry password
 #   -t : <ENVIRONMENT> (string), Environment for installation, 'staging' when you want to use the staging entitled registry
 #   -u : <csDefaultAdminUser> (string), Default common service username. Defaults to "admin"
-#   -v : <useFastStorageClass> (string), If using fast storage class for installation. Defaults to 'false'
+#   -v : <useFastStorageClass> (string), If using fast storage class for installation. Defaults to 'true'
 #   -w : <testDrivewayDentDeletionDemoE2E> (string), If testing the Driveway dent deletion demo E2E. Defaults to 'false'
 #
 # USAGE:
 #   With defaults values
-#     ./1-click-install.sh
+#     ./1-click-install.sh -p <csDefaultAdminPassword> -s <DOCKER_REGISTRY_PASS>
 #
 #   Overriding the params
 #     ./1-click-install.sh -a <eventEnabledInsuranceDemo> -b <demoDeploymentBranch> -d <demoPreparation> -e <demoAPICEmailAddress> -f <drivewayDentDeletionDemo> -h <demoAPICMailServerHost> -j <tempERKey> -k <tempRepo> -l <DOCKER_REGISTRY_USER> -m <demoAPICMailServerUsername> -n <JOB_NAMESPACE> -o <demoAPICMailServerPort> -p <csDefaultAdminPassword> -q <demoAPICMailServerPassword> -r <navReplicaCount> -s <DOCKER_REGISTRY_PASS> -t <ENVIRONMENT> -u <csDefaultAdminUser> -v <useFastStorageClass>
@@ -65,6 +65,36 @@ DEFAULT_FILE_STORAGE="ibmc-file-gold-gid"
 cognitiveCarRepairDemo=false
 mappingAssistDemo=false
 weatherChatbotDemo=false
+
+oc cluster-info | grep ibm.com
+if [[ $? -eq 0 ]]; then
+  export CLUSTER_TYPE="roks"
+fi
+
+oc cluster-info | grep icp4i.com
+if [[ $? -eq 0 ]]; then
+  export CLUSTER_TYPE="aws"
+  JOB_NAMESPACE="cp4i"
+  navReplicaCount="3"
+  csDefaultAdminUser="admin"
+  demoPreparation="true"
+  ENVIRONMENT="Production"
+  demoDeploymentBranch="main"
+  eventEnabledInsuranceDemo="false"
+  drivewayDentDeletionDemo="false"
+  testDrivewayDentDeletionDemoE2E="true"
+  useFastStorageClass="true"
+  demoAPICEmailAddress="your@email.address"
+  demoAPICMailServerHost="smtp.mailtrap.io"
+  DOCKER_REGISTRY_USER="ekey"
+  demoAPICMailServerUsername="<your-username>"
+  DOCKER_REGISTRY_PASS=""
+  demoAPICMailServerPort="2525"
+  csDefaultAdminPassword=""
+  demoAPICMailServerPassword=""
+  DEFAULT_BLOCK_STORAGE="ocs-storagecluster-ceph-rbd"
+  DEFAULT_FILE_STORAGE="ocs-storagecluster-cephfs"
+fi
 
 while getopts "a:b:d:e:f:h:j:k:l:m:n:o:p:q:r:s:t:u:v:w:" opt; do
   case ${opt} in
@@ -189,6 +219,10 @@ if [[ -z "${testDrivewayDentDeletionDemoE2E// /}" ]]; then
   testDrivewayDentDeletionDemoE2E="false"
 fi
 
+if [[ -z "${DOCKER_REGISTRY_PASS// /}" ]]; then
+  echo -e "$INFO [INFO] 1-click docker registry password parameter is empty. Please provide a value for '-s' parameter."
+fi
+
 if [[ "$MISSING_PARAMS" == "true" ]]; then
   divider
   exit 1
@@ -210,6 +244,7 @@ if [[ "$eventEnabledInsuranceDemo" == "true" ]]; then
   eventEnabledInsuranceDemo=true
 fi
 
+echo -e "$INFO [INFO] Current cluster type: '$CLUSTER_TYPE'"
 echo -e "$INFO [INFO] Current directory for 1-click install: '$CURRENT_DIR'"
 echo -e "$INFO [INFO] 1-click namespace: '$JOB_NAMESPACE'"
 echo -e "$INFO [INFO] Navigator replica count: '$navReplicaCount'"
@@ -274,9 +309,10 @@ fi
 
 divider
 
-# This storage class improves the pvc performance for small PVCs
-echo -e "$INFO [INFO] Creating new cp4i-block-performance storage class\n"
-cat <<EOF | oc apply -n $JOB_NAMESPACE -f -
+if echo $CLUSTER_TYPE | grep -iqF roks; then
+  # This storage class improves the pvc performance for small PVCs
+  echo -e "$INFO [INFO] Creating new cp4i-block-performance storage class\n"
+  cat <<EOF | oc apply -n $JOB_NAMESPACE -f -
 apiVersion: storage.k8s.io/v1
 kind: StorageClass
 metadata:
@@ -301,23 +337,24 @@ reclaimPolicy: Delete
 volumeBindingMode: Immediate
 EOF
 
-defaultStorageClass=$(oc get sc -o json | jq -r '.items[].metadata | select(.annotations["storageclass.kubernetes.io/is-default-class"] == "true") | .name')
+  defaultStorageClass=$(oc get sc -o json | jq -r '.items[].metadata | select(.annotations["storageclass.kubernetes.io/is-default-class"] == "true") | .name')
 
-DEFAULT_BLOCK_STORAGE=$defaultStorageClass
+  DEFAULT_BLOCK_STORAGE=$defaultStorageClass
 
-if [[ "${useFastStorageClass}" == "true" ]]; then
-  echo -e "\n$INFO [INFO] Current default storage class is: $defaultStorageClass"
+  if [[ "${useFastStorageClass}" == "true" ]]; then
+    echo -e "\n$INFO [INFO] Current default storage class is: $defaultStorageClass"
 
-  echo -e "\n$INFO [INFO] Making $defaultStorageClass non-default\n"
-  oc patch storageclass $defaultStorageClass -p '{"metadata": {"annotations":{"storageclass.kubernetes.io/is-default-class":"false"}}}'
+    echo -e "\n$INFO [INFO] Making $defaultStorageClass non-default\n"
+    oc patch storageclass $defaultStorageClass -p '{"metadata": {"annotations":{"storageclass.kubernetes.io/is-default-class":"false"}}}'
 
-  echo -e "\n$INFO [INFO] Making cp4i-block-performance default\n"
-  oc patch storageclass cp4i-block-performance -p '{"metadata": {"annotations":{"storageclass.kubernetes.io/is-default-class":"true"}}}'
+    echo -e "\n$INFO [INFO] Making cp4i-block-performance default\n"
+    oc patch storageclass cp4i-block-performance -p '{"metadata": {"annotations":{"storageclass.kubernetes.io/is-default-class":"true"}}}'
 
-  DEFAULT_BLOCK_STORAGE="cp4i-block-performance"
+    DEFAULT_BLOCK_STORAGE="cp4i-block-performance"
+  fi
+
+  divider
 fi
-
-divider
 
 echo -e "$INFO [INFO] Current storage classes:\n"
 oc get sc
