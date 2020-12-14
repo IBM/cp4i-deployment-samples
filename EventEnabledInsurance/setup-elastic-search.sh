@@ -244,8 +244,6 @@ ls -al /code-repo/products/bash/../../EventEnabledInsurance
 
 ls -al /code-repo/products/bash
 
-ls -al /tmp
-
 echo -e "INFO: Got the password for elastic search..."
 
 echo -e "\nINFO: Creating secret for elastic search connector"
@@ -256,14 +254,15 @@ TRUSTSTORE_PASSWORD=$(
   LC_ALL=C tr -dc 'A-Za-z0-9' </dev/urandom | head -c 32
   echo
 )
-keytool -import -file /tmp/ca.crt -alias elasticCA -keystore elastic-ts.jks -storepass "$TRUSTSTORE_PASSWORD" -noprompt
-
+keytool -import -file /tmp/ca.crt -alias elasticCA -keystore /tmp/elastic-ts.jks -storepass "$TRUSTSTORE_PASSWORD" -noprompt
+echo "Checking the tmp dir"
+ls -al /tmp
 if [[ "$OSTYPE" == "linux-gnu"* ]]; then
   echo "INFO: Elastic base64 command for linux"
-  BASE64_TS="$(base64 -w0 elastic-ts.jks)"
+  BASE64_TS="$(base64 -w0 /tmp/elastic-ts.jks)"
 elif [[ "$OSTYPE" == "darwin"* ]]; then
   echo "INFO: Elastic base64 command for MAC"
-  BASE64_TS="$(base64 elastic-ts.jks)"
+  BASE64_TS="$(base64 /tmp/elastic-ts.jks)"
 fi
 
 cat <<EOF | oc apply -f -

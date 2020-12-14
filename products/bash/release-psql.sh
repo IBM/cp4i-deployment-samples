@@ -43,11 +43,24 @@ CURRENT_DIR_WITHOUT_DOT_SLASH=${CURRENT_DIR//.\//}
 echo -e "Postgres namespace for release-psql: '$POSTGRES_NAMESPACE'\n"
 
 echo "Installing PostgreSQL..."
+cat <<EOF >/tmp/postgres.env
+  MEMORY_LIMIT=2Gi
+  NAMESPACE=openshift
+  DATABASE_SERVICE_NAME=postgresql
+  POSTGRESQL_USER=admin
+  POSTGRESQL_DATABASE=sampledb
+  VOLUME_CAPACITY=1Gi
+  POSTGRESQL_VERSION=10
+EOF
 
 oc create namespace ${POSTGRES_NAMESPACE}
 
-echo "INFO: oc process -n openshift postgresql-persistent --param-file=${CURRENT_DIR_WITHOUT_DOT_SLASH}/postgres.env | oc apply -n ${POSTGRES_NAMESPACE} -f -"
-oc process -n openshift postgresql-persistent --param-file=${CURRENT_DIR_WITHOUT_DOT_SLASH}/postgres.env | oc apply -n ${POSTGRES_NAMESPACE} -f -
+echo "checking tmp dir"
+
+ls -al /tmp
+
+echo "INFO: oc process -n openshift postgresql-persistent --param-file=/tmp/postgres.env | oc apply -n ${POSTGRES_NAMESPACE} -f -"
+oc process -n openshift postgresql-persistent --param-file=/tmp/postgres.env | oc apply -n ${POSTGRES_NAMESPACE} -f -
 
 echo "INFO: Waiting for postgres to be ready in the ${POSTGRES_NAMESPACE} namespace"
 oc wait -n ${POSTGRES_NAMESPACE} --for=condition=available --timeout=20m deploymentconfig/postgresql
