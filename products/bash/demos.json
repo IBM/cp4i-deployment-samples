@@ -1,0 +1,36 @@
+{
+  "apiVersion": "integration.ibm.com/v1beta1",
+  "kind": "Demo",
+  "metadata": {
+    "namespace": "JOB_NAMESPACE",
+    "name": "demos"
+  },
+  "spec": {
+    "general": {
+      "storage": {
+        "block": {
+          "class": "DEFAULT_BLOCK_STORAGE"
+        },
+        "file": {
+          "class": "DEFAULT_FILE_STORAGE"
+        }
+      },
+      "samplesRepoBranch": "DEMO_DEPLOYMENT_BRANCH"
+    },
+    "apic": {
+      "emailAddress": "PORG_ADMIN_EMAIL",
+      "mailServerHost": "MAIL_SERVER_HOST",
+      "mailServerPort": "MAIL_SERVER_PORT",
+      "mailServerUsername": "MAIL_SERVER_USERNAME",
+      "mailServerPassword": "MAIL_SERVER_PASSWORD"
+    },
+    "demos": {
+      "all": "DEMO_PREPARATION",
+      "cognitiveCarRepair": "COGNITIVE_CAR_REPAIR_DEMO",
+      "drivewayDentDeletion": "DRIVEWAY_DENT_DELETION_DEMO",
+      "eventEnabledInsurance": "EVENT_ENABLED_INSURANCE_DEMO",
+      "mappingAssist": "MAPPING_ASSIST_DEMO",
+      "weatherChatbot": "WEATHER_CHATBOT_DEMO"
+    }
+  }
+}

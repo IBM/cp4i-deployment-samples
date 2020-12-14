@@ -27,8 +27,13 @@
 #   Overriding the namespace and release-name
 #     ./release-mq -n cp4i -r mq-demo -i image-registry.openshift-image-registry.svc:5000/cp4i/mq-ddd -q mq-qm
 
+function divider() {
+  echo -e "\n-------------------------------------------------------------------------------------------------------------------\n"
+}
+
 function usage() {
   echo "Usage: $0 -n <namespace> -r <release_name> -i <image_name> -q <qm_name> -z <tracing_namespace> [-t]"
+  divider
   exit 1
 }
 
@@ -79,6 +84,12 @@ fi
 
 echo "[INFO] tracing is set to $tracing_enabled"
 
+if [[ "$release_name" =~ "ddd" ]]; then
+  numberOfContainers=3
+elif [[ "$release_name" =~ "eei" ]]; then
+  numberOfContainers=1
+fi
+
 if [ -z $image_name ]; then
 
   cat <<EOF | oc apply -f -
@@ -120,7 +131,7 @@ else
 
   # --------------------------------------------------- FIND IMAGE TAG ---------------------------------------------------
 
-  echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
+  divider
 
   imageTag=${image_name##*:}
 
@@ -170,7 +181,7 @@ EOF
 
   echo -e "INFO: Going ahead to apply the CR for '$release_name'"
 
-  echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
+  divider
 
   cat <<EOF | oc apply -f -
 apiVersion: mq.ibm.com/v1beta1
@@ -248,7 +259,7 @@ EOF
   fi
   # -------------------------------------- INSTALL JQ ---------------------------------------------------------------------
 
-  echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
+  divider
 
   echo -e "\nINFO: Checking if jq is pre-installed..."
   jqInstalled=false
@@ -275,7 +286,7 @@ EOF
 
   echo -e "\nINFO: Installed JQ version is $(./jq --version)"
 
-  echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
+  divider
 
   # -------------------------------------- CHECK FOR NEW IMAGE DEPLOYMENT STATUS ------------------------------------------
 
@@ -285,13 +296,13 @@ EOF
 
   echo "INFO: Total number of pod for $release_name should be $numberOfReplicas"
 
-  echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
+  divider
 
   # wait for 10 minutes for all replica pods to be deployed with new image
   while [ $numberOfMatchesForImageTag -ne $numberOfReplicas ]; do
     if [ $time -gt 60 ]; then
       echo "ERROR: Timed-out trying to wait for all $release_name demo pod(s) to be deployed with a new image containing the image tag '$imageTag'"
-      echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
+      divider
       exit 1
     fi
 
@@ -319,9 +330,9 @@ EOF
 
     echo -e "\nINFO: Total $release_name demo pods deployed with new image: $numberOfMatchesForImageTag"
     echo -e "\nINFO: All current $release_name demo pods are:\n"
-    oc get pods -n $namespace | grep $release_name | grep 1/1 | grep Running
+    oc get pods -n $namespace | grep $release_name | grep Running
     if [[ $? -eq 1 ]]; then
-      echo -e "No Ready and Running pods found for '$release_name' yet"
+      echo -e "No pods found for '$release_name' yet"
     fi
     if [[ $numberOfMatchesForImageTag != "$numberOfReplicas" ]]; then
       echo -e "\nINFO: Not all $release_name pods have been deployed with the new image having the image tag '$imageTag', retrying for upto 10 minutes for new $release_name demo pods to be deployed with new image. Waited ${time} minute(s)."
@@ -330,6 +341,6 @@ EOF
       echo -e "\nINFO: All $release_name demo pods have been deployed with the new image"
     fi
     time=$((time + 1))
-    echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------"
+    divider
   done
 fi

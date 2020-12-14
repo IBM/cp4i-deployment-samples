@@ -12,4 +12,4 @@ spec:
         class: ibmc-file-gold-gid
     samplesRepoBranch: main
   demos:
-    eventEnabledInsurance: true
+    weatherChatbot: true

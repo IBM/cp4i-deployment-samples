@@ -7,21 +7,18 @@
   },
   "spec": {
     "demos": {
-      "all": {
-        "enabled": true
+      "all": "true"
+    }
+  },
+  "general": {
+    "samplesRepoBranch": "main",
+    "storage": {
+      "block": {
+        "class": "cp4i-block-performance"
+      },
+      "file": {
+        "class": "ibmc-file-gold-gid"
       }
-    },
-    "general": {
-      "samplesRepoBranch": "main",
-      "storage": {
-        "block": {
-          "class": "cp4i-block-performance"
-        },
-        "file": {
-          "class": "ibmc-file-gold-gid"
-        }
-      }
-    },
-    "version": "2020.3.1"
+    }
   }
 }
