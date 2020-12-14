@@ -12,7 +12,6 @@ EventEnabledInsurance/ProjectionClaims/build
 gradle
 gradlew
 gradlew.bat
-postgres.env
 postgres.yaml
 pgpass_gen.sh
 product.yaml
