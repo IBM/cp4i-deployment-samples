@@ -810,7 +810,7 @@ for EACH_DEMO in $(echo $REQUIRED_DEMOS_JSON | jq -r '. | keys[]'); do
 
       divider && echo -e "$INFO [INFO] Setting up prereqs for Event Enabled Insurance demo in the '$NAMESPACE' namespace" && divider
       # setup the prereqs for event enabled insurance demo
-      if ! $SCRIPT_DIR/../../EventEnabledInsurance/prereqs.sh -n "$NAMESPACE" -b "$SAMPLES_REPO_BRANCH" -e "$NAMESPACE" -p "$NAMESPACE" -o; then
+      if ! $SCRIPT_DIR/../../EventEnabledInsurance/prereqs.sh -n "$NAMESPACE" -b "$SAMPLES_REPO_BRANCH" -e "$NAMESPACE" -p "$NAMESPACE" -f "$FILE_STORAGE_CLASS" -g "$BLOCK_STORAGE_CLASS" -o; then
         echo -e "$CROSS [ERROR] Failed to run event enabled insurance prereqs script\n"
         divider && echo -e "$CROSS [ERROR] Event Enabled Insurance demo did not setup correctly. $CROSS"
         update_conditions "Failed to run event enabled insurance prereqs script in the '$NAMESPACE' namespace" "Prereqs"

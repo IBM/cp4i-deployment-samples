@@ -16,19 +16,21 @@
 #   -r : <REPO> (string), Defaults to 'https://github.com/IBM/cp4i-deployment-samples.git'
 #   -b : <BRANCH> (string), Defaults to 'main'
 #   -t : <TKN-path> (string), Default to 'tkn'
+#   -f : <DEFAULT_FILE_STORAGE> (string), Default to 'ibmc-file-gold-gid'
+#   -g : <DEFAULT_BLOCK_STORAGE> (string), Default to 'cp4i-block-performance'
 #
 #   With defaults values
 #     ./build.sh
 #
 #   With overridden values
-#     ./build.sh -n <namespace> -r <REPO> -b <BRANCH>
+#     ./build.sh -n <namespace> -r <REPO> -b <BRANCH> -f <DEFAULT_FILE_STORAGE> -g <DEFAULT_BLOCK_STORAGE>
 
 function divider() {
   echo -e "\n-------------------------------------------------------------------------------------------------------------------\n"
 }
 
 function usage() {
-  echo "Usage: $0 -n <namespace> -r <REPO> -b <BRANCH> -t <TKN-path>"
+  echo "Usage: $0 -n <namespace> -r <REPO> -b <BRANCH> -t <TKN-path> -f <DEFAULT_FILE_STORAGE> -g <DEFAULT_BLOCK_STORAGE>"
   divider
   exit 1
 }
@@ -42,8 +44,10 @@ POSTGRES_NAMESPACE=$namespace
 REPO="https://github.com/IBM/cp4i-deployment-samples.git"
 BRANCH="main"
 TKN=tkn
+DEFAULT_FILE_STORAGE="ibmc-file-gold-gid"
+DEFAULT_BLOCK_STORAGE="cp4i-block-performance"
 
-while getopts "n:r:b:t:" opt; do
+while getopts "n:r:b:t:f:g:" opt; do
   case ${opt} in
   n)
     namespace="$OPTARG"
@@ -57,13 +61,19 @@ while getopts "n:r:b:t:" opt; do
   t)
     TKN="$OPTARG"
     ;;
+  f)
+    DEFAULT_FILE_STORAGE="$OPTARG"
+    ;;
+  g)
+    DEFAULT_BLOCK_STORAGE="$OPTARG"
+    ;;
   \?)
     usage
     ;;
   esac
 done
 
-if [[ -z "${namespace// /}" || -z "${REPO// /}" || -z "${BRANCH// /}" || -z "${TKN// /}" ]]; then
+if [[ -z "${namespace// /}" || -z "${REPO// /}" || -z "${BRANCH// /}" || -z "${TKN// /}" || -z "${DEFAULT_FILE_STORAGE// /}" || -z "${DEFAULT_FILE_STORAGE// /}" ]]; then
   echo -e "$cross ERROR: Mandatory parameters are empty"
   usage
 fi
@@ -75,11 +85,16 @@ echo "INFO: Suffix for the postgres is: '$SUFFIX'"
 echo "INFO: Repo: '$REPO'"
 echo "INFO: Branch: '$BRANCH'"
 echo "INFO: TKN: '$TKN'"
+echo "INFO: Default block storage class: '$DEFAULT_BLOCK_STORAGE'"
+echo "INFO: Default file storage class: '$DEFAULT_FILE_STORAGE'"
 
 divider
 
 echo "INFO: Creating pvc for EEI in the '$namespace' namespace"
-if oc apply -n $namespace -f $CURRENT_DIR/pvc.yaml; then
+if cat $CURRENT_DIR/pvc.yaml |
+  sed "s#{{DEFAULT_FILE_STORAGE}}#$DEFAULT_FILE_STORAGE#g;" |
+  sed "s#{{DEFAULT_BLOCK_STORAGE}}#$DEFAULT_BLOCK_STORAGE#g;" |
+  oc apply -n $namespace -f -; then
   echo -e "\n$tick INFO: Successfully created the pvc in the '$namespace' namespace"
 else
   echo -e "\n$cross ERROR: Failed to create the pvc in the '$namespace' namespace"
@@ -143,7 +158,7 @@ fi
 
 divider
 
-echo -e "\nINFO: The pipeline run in the '$namespace' namespace:\n"
+echo -e "INFO: The pipeline run in the '$namespace' namespace:\n"
 oc get pipelinerun -n $namespace $PIPELINE_RUN_NAME
 
 echo -e "\nINFO: The task runs in the '$namespace' namespace:\n"
@@ -158,7 +173,7 @@ echo -e "\nINFO: Going ahead to delete the pipelinerun instance to delete the re
 divider
 
 if oc delete pipelinerun -n $namespace $PIPELINE_RUN_NAME; then
-  echo -e "$tick INFO: Deleted the pipelinerun with the uid '$PIPELINERUN_UID'"
+  echo -e "\n$tick INFO: Deleted the pipelinerun with the uid '$PIPELINERUN_UID'"
 else
   echo -e "$cross ERROR: Failed to delete the pipelinerun with the uid '$PIPELINERUN_UID'"
 fi
@@ -166,7 +181,7 @@ fi
 divider
 
 if oc delete pvc git-workspace-eei -n $namespace; then
-  echo -e "$tick INFO: Deleted the pvc 'git-workspace-eei'"
+  echo -e "\n$tick INFO: Deleted the pvc 'git-workspace-eei'"
 else
   echo -e "$cross ERROR: Failed to delete the pvc 'git-workspace-eei'"
 fi
@@ -174,7 +189,7 @@ fi
 divider
 
 if oc delete pvc buildah-ace-rest-eei -n $namespace; then
-  echo -e "$tick INFO: Deleted the pvc 'buildah-ace-rest-eei'"
+  echo -e "\n$tick INFO: Deleted the pvc 'buildah-ace-rest-eei'"
 else
   echo -e "$cross ERROR: Failed to delete the pvc 'buildah-ace-rest-eei'"
 fi
@@ -182,7 +197,7 @@ fi
 divider
 
 if oc delete pvc buildah-ace-db-writer-eei -n $namespace; then
-  echo -e "$tick INFO: Deleted the pvc 'buildah-ace-db-writer-eei'"
+  echo -e "\n$tick INFO: Deleted the pvc 'buildah-ace-db-writer-eei'"
 else
   echo -e "$cross ERROR: Failed to delete the pvc 'buildah-ace-db-writer-eei'"
 fi
@@ -195,9 +210,9 @@ if [[ "$pipelinerunSuccess" == "false" ]]; then
 else
   echo -e "\n$tick INFO: The eei demo related applications have been deployed, but with zero replicas.\n"
   oc get deployment -n $namespace -l demo=eei
-  echo -e "\nINFO: To start the quote simulator app run the command 'oc scale deployment/quote-simulator-eei --replicas=1'"
-  echo "INFO: To start the projection claims app run the command 'oc scale deployment/projection-claims-eei --replicas=1'"
+  echo -e "\n$tick INFO: To start the quote simulator app run the command 'oc scale deployment/quote-simulator-eei --replicas=1'"
+  echo -e "$tick INFO: To start the projection claims app run the command 'oc scale deployment/projection-claims-eei --replicas=1'"
   PC_ROUTE=$(oc get route -n $namespace projection-claims-eei --template='https://{{.spec.host}}/getalldata')
-  echo -e "INFO: To view the projection claims (once the app is running), navigate to:\n${PC_ROUTE}\n"
+  echo -e "$tick INFO: To view the projection claims (once the app is running), navigate to:\n${PC_ROUTE}"
 fi
 divider
