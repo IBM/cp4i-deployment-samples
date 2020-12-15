@@ -65,10 +65,6 @@ while getopts "n:r:a:c:m:u:" opt; do
   esac
 done
 
-echo "metagata-uid: $metadata_uid"
-echo "metagata-name: $metadata_name"
-
-
 cat <<EOF | oc apply -f -
 apiVersion: integration.ibm.com/v1beta1
 kind: AssetRepository

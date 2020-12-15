@@ -77,9 +77,7 @@ metadata:
     - apiVersion: integration.ibm.com/v1beta1
       kind: Demo
       name: ${metadata_name}
-      uid: ${metadata_uid}
-      controller: true
-      blockOwnerDeletion: true"
+      uid: ${metadata_uid}"
   fi)
 spec:
   version: 10.1.0
@@ -138,9 +136,7 @@ metadata:
     - apiVersion: integration.ibm.com/v1beta1
       kind: Demo
       name: ${metadata_name}
-      uid: ${metadata_uid}
-      controller: true
-      blockOwnerDeletion: true"
+      uid: ${metadata_uid}"
   fi)
 spec:
   version: 10.1.0
