@@ -99,7 +99,7 @@ declare -a FAILED_INSTALL_ADDONS_LIST
 declare -a FAILED_INSTALL_DEMOS_LIST
 
 # set to true to print development logs
-export DEBUG=false
+export DEBUG=true
 
 #-------------------------------------------------------------------------------------------------------------------
 # Functions
@@ -309,7 +309,7 @@ fi
 
 divider && echo -e "$INFO Script directory: '$SCRIPT_DIR'"
 echo -e "$INFO Input file: '$INPUT_FILE'"
-echo -e "$INFO Output file : '$OUTPUT_FILE'" && divider
+echo -e "$INFO Output file : '$OUTPUT_FILE'"
 
 #-------------------------------------------------------------------------------------------------------------------
 # Validate the prereqs
@@ -317,7 +317,7 @@ echo -e "$INFO Output file : '$OUTPUT_FILE'" && divider
 
 # Only require yq to be installed if either file is not json (I.e. yaml)
 if [[ "$INPUT_FILE" != *.json ]] || [[ "$OUTPUT_FILE" != *.json ]]; then
-  echo -e "$INFO [INFO] Checking if 'yq' is already installed...\n"
+  divider && echo -e "$INFO [INFO] Checking if 'yq' is already installed...\n"
   yq --version
   if [ $? -ne 0 ]; then
     echo -e "$CROSS [ERROR] 'yq' needs to be installed before running this script" 1>&2
@@ -644,7 +644,7 @@ for EACH_PRODUCT in $(echo "${REQUIRED_PRODUCTS_JSON}" | jq -r '. | keys[]'); do
 
   assetRepo)
     echo -e "$INFO [INFO] Releasing Asset Repository $ECHO_LINE '$ASSET_REPOSITORY_RELEASE_NAME'...\n"
-    if ! $SCRIPT_DIR/release-ar.sh -n "$NAMESPACE" -r "$ASSET_REPOSITORY_RELEASE_NAME"; then
+    if ! $SCRIPT_DIR/release-ar.sh -n "$NAMESPACE" -r "$ASSET_REPOSITORY_RELEASE_NAME" -a "$FILE_STORAGE_CLASS" -c "$BLOCK_STORAGE_CLASS"; then
       update_conditions "Failed to release Asset Repository $ECHO_LINE '$ASSET_REPOSITORY_RELEASE_NAME'" "Releasing"
       update_phase "Failed"
       FAILED_INSTALL_PRODUCTS_LIST+=($EACH_PRODUCT)

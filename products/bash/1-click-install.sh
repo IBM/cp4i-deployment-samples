@@ -92,8 +92,8 @@ if [[ $? -eq 0 ]]; then
   demoAPICMailServerPort="2525"
   csDefaultAdminPassword=""
   demoAPICMailServerPassword=""
-  DEFAULT_BLOCK_STORAGE="ocs-storagecluster-ceph-rbd"
-  DEFAULT_FILE_STORAGE="ocs-storagecluster-cephfs"
+  DEFAULT_BLOCK_STORAGE="gp2"
+  DEFAULT_FILE_STORAGE="aws-efs"
 fi
 
 while getopts "a:b:d:e:f:h:j:k:l:m:n:o:p:q:r:s:t:u:v:w:" opt; do
@@ -245,6 +245,8 @@ if [[ "$eventEnabledInsuranceDemo" == "true" ]]; then
 fi
 
 echo -e "$INFO [INFO] Current cluster type: '$CLUSTER_TYPE'"
+echo -e "$INFO [INFO] Default block storage class: '$DEFAULT_BLOCK_STORAGE'"
+echo -e "$INFO [INFO] Default file storage class: '$DEFAULT_FILE_STORAGE'"
 echo -e "$INFO [INFO] Current directory for 1-click install: '$CURRENT_DIR'"
 echo -e "$INFO [INFO] 1-click namespace: '$JOB_NAMESPACE'"
 echo -e "$INFO [INFO] Navigator replica count: '$navReplicaCount'"
@@ -352,7 +354,6 @@ EOF
 
     DEFAULT_BLOCK_STORAGE="cp4i-block-performance"
   fi
-
   divider
 fi
 
