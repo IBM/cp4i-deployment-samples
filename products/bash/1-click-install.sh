@@ -66,12 +66,12 @@ cognitiveCarRepairDemo=false
 mappingAssistDemo=false
 weatherChatbotDemo=false
 
-oc cluster-info | grep cloud.ibm.com
+oc get routes console -n openshift-console -o json | jq -r '.spec.host' | grep icp4i.com
 if [[ $? -eq 0 ]]; then
   export CLUSTER_TYPE="roks"
 fi
 
-oc cluster-info | grep icp4i.com
+oc get routes console -n openshift-console -o json | jq -r '.spec.host' | grep appdomain.cloud
 if [[ $? -eq 0 ]]; then
   export CLUSTER_TYPE="aws"
   JOB_NAMESPACE="cp4i"
