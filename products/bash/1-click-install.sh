@@ -96,12 +96,6 @@ if [[ $? -eq 0 ]]; then
   DEFAULT_FILE_STORAGE="aws-efs"
 fi
 
-echo "print oc version"
-oc version
-
-echo "print oc --help info"
-oc --help
-
 while getopts "a:b:d:e:f:h:j:k:l:m:n:o:p:q:r:s:t:u:v:w:" opt; do
   case ${opt} in
   a)
@@ -169,6 +163,33 @@ while getopts "a:b:d:e:f:h:j:k:l:m:n:o:p:q:r:s:t:u:v:w:" opt; do
     ;;
   esac
 done
+
+echo -e "$INFO [INFO] Current cluster type: '$CLUSTER_TYPE'"
+echo -e "$INFO [INFO] csDefaultAdminPassword: '$csDefaultAdminPassword'"
+echo -e "$INFO [INFO] DOCKER_REGISTRY_PASS: '$DOCKER_REGISTRY_PASS'"
+echo -e "$INFO [INFO] Default block storage class: '$DEFAULT_BLOCK_STORAGE'"
+echo -e "$INFO [INFO] Default file storage class: '$DEFAULT_FILE_STORAGE'"
+echo -e "$INFO [INFO] Current directory for 1-click install: '$CURRENT_DIR'"
+echo -e "$INFO [INFO] 1-click namespace: '$JOB_NAMESPACE'"
+echo -e "$INFO [INFO] Navigator replica count: '$navReplicaCount'"
+echo -e "$INFO [INFO] Demo deployment branch: '$demoDeploymentBranch'"
+echo -e "$INFO [INFO] Default common service username: '$csDefaultAdminUser'"
+echo -e "$INFO [INFO] Setup all demos: '$demoPreparation'"
+echo -e "$INFO [INFO] Setup event enabled insurance demo: '$eventEnabledInsuranceDemo'"
+echo -e "$INFO [INFO] Setup driveway dent deletion demo: '$drivewayDentDeletionDemo'"
+echo -e "$INFO [INFO] Setup cognitive car repair demo: '$cognitiveCarRepairDemo'"
+echo -e "$INFO [INFO] Setup mapping assist demo: '$mappingAssistDemo'"
+echo -e "$INFO [INFO] Setup weather chatbot demo: '$weatherChatbotDemo'"
+echo -e "$INFO [INFO] APIC email address: '$demoAPICEmailAddress'"
+echo -e "$INFO [INFO] APIC mail server hostname: '$demoAPICMailServerHost'"
+echo -e "$INFO [INFO] APIC mail server port: '$demoAPICMailServerPort'"
+echo -e "$INFO [INFO] APIC mail server username: '$demoAPICMailServerUsername'"
+echo -e "$INFO [INFO] Image repository for downloading images: '$IMAGE_REPO'"
+echo -e "$INFO [INFO] Temporary ER repository: '$tempRepo'"
+echo -e "$INFO [INFO] Docker registry username: '$DOCKER_REGISTRY_USER'"
+echo -e "$INFO [INFO] Environment for installation: '$ENVIRONMENT'"
+echo -e "$INFO [INFO] If using fast storage for the installation: '$useFastStorageClass'"
+echo -e "$INFO [INFO] If testing the driveway dent deletion demo E2E: '$testDrivewayDentDeletionDemoE2E'"
 
 if [[ -z "${JOB_NAMESPACE// /}" ]]; then
   echo -e "$CROSS [ERROR] 1-click install namespace is empty. Please provide a value for '-n' parameter."
@@ -250,8 +271,7 @@ if [[ "$eventEnabledInsuranceDemo" == "true" ]]; then
   eventEnabledInsuranceDemo=true
 fi
 
-echo -e "$INFO [INFO] Current cluster type: '$CLUSTER_TYPE'"
-echo -e "$INFO [INFO] Default block storage class: '$DEFAULT_BLOCK_STORAGE'"
+divider && echo -e "$INFO [INFO] Current cluster type: '$CLUSTER_TYPE'"
 echo -e "$INFO [INFO] Default file storage class: '$DEFAULT_FILE_STORAGE'"
 echo -e "$INFO [INFO] Current directory for 1-click install: '$CURRENT_DIR'"
 echo -e "$INFO [INFO] 1-click namespace: '$JOB_NAMESPACE'"
@@ -274,8 +294,6 @@ echo -e "$INFO [INFO] Docker registry username: '$DOCKER_REGISTRY_USER'"
 echo -e "$INFO [INFO] Environment for installation: '$ENVIRONMENT'"
 echo -e "$INFO [INFO] If using fast storage for the installation: '$useFastStorageClass'"
 echo -e "$INFO [INFO] If testing the driveway dent deletion demo E2E: '$testDrivewayDentDeletionDemoE2E'"
-
-exit 0
 
 divider
 
@@ -365,9 +383,11 @@ EOF
   divider
 fi
 
+echo -e "$INFO [INFO] Default block storage class: '$DEFAULT_BLOCK_STORAGE'" && divider
+
 echo -e "$INFO [INFO] Current storage classes:\n"
 oc get sc
-
+exit 0
 divider
 
 # Create secret to pull images from the ER
