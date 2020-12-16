@@ -184,7 +184,8 @@ spec:
 EOF
 }
 
-cat <<EOF | oc apply -f -
+if [[ "$CLUSTER_SCOPED" == "false" ]]; then
+  cat <<EOF | oc apply -f -
 apiVersion: operators.coreos.com/v1
 kind: OperatorGroup
 metadata:
@@ -194,6 +195,7 @@ spec:
   targetNamespaces:
     - ${namespace}
 EOF
+fi
 
 # Create the subscription for navigator. This needs to be before APIC (ibm-apiconnect)
 # so APIC knows it's running in CP4I and before tracing (ibm-integration-operations-dashboard)
@@ -224,7 +226,7 @@ create_subscription ${namespace} "ibm-operator-catalog" "ibm-integration-operati
 echo "INFO: Wait for all subscriptions to succeed"
 wait_for_all_subscriptions ${namespace}
 
-if echo $CLUSTER_TYPE | grep -iqF roks; then
+if [[ $(echo "$CLUSTER_TYPE" | tr '[:upper:]' '[:lower:]') == "roks" ]]; then
   # Wait for upto 10 minutes for the OperandConfig to appear in the common services namespace for a ROKS cluster
   time=0
   while [ "$(oc get OperandConfig -n ibm-common-services | sed -n 2p | awk '{print $1}')" != "common-service" ]; do

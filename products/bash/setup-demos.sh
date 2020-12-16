@@ -279,7 +279,7 @@ function set_up_demos() {
 }
 
 #-------------------------------------------------------------------------------------------------------------------
-# Set seconds to zero to calculate time taken for overall demo setup
+# Set seconds to zero to calculate time taken for overall setup
 #-------------------------------------------------------------------------------------------------------------------
 
 SECONDS=0
@@ -936,7 +936,7 @@ check_phase_and_exit_on_failed
 # Calculate total time taken for all installation
 #-------------------------------------------------------------------------------------------------------------------
 
-$DEBUG && divider && echo -e "$INFO [DEBUG] The overall installation took $(($SECONDS / 60 / 60 % 24)) hours $(($SECONDS / 60)) minutes and $(($SECONDS % 60)) seconds." && divider
+$DEBUG && divider && echo -e "$INFO [DEBUG] The installation and setup for the selected addons, products and demos took $(($SECONDS / 60 / 60 % 24)) hours $(($SECONDS / 60)) minutes and $(($SECONDS % 60)) seconds." && divider
 
 #-------------------------------------------------------------------------------------------------------------------
 # Change final status to Running at end of installation
