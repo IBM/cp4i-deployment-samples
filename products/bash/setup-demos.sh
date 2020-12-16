@@ -17,14 +17,14 @@
 #   -o : <output.yaml/output.json> (string), full path to output yaml/json
 #
 # USAGE:
-#   ./setup-demos.sh -i input.yaml -o output.yaml
+#   ./setup-demos.sh -i input.yaml/json -o output.yaml/json
 
 function divider() {
   echo -e "\n-------------------------------------------------------------------------------------------------------------------\n"
 }
 
 function usage() {
-  echo "Usage: $0 -i input.yaml -o output.yaml"
+  echo "Usage: $0 -i input.yaml/json -o output.yaml/json"
   divider
   exit 1
 }

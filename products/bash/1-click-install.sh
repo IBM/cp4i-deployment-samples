@@ -96,6 +96,12 @@ if [[ $? -eq 0 ]]; then
   DEFAULT_FILE_STORAGE="aws-efs"
 fi
 
+echo "print oc version"
+oc version
+
+echo "print oc --help info"
+oc --help
+
 while getopts "a:b:d:e:f:h:j:k:l:m:n:o:p:q:r:s:t:u:v:w:" opt; do
   case ${opt} in
   a)
@@ -268,6 +274,8 @@ echo -e "$INFO [INFO] Docker registry username: '$DOCKER_REGISTRY_USER'"
 echo -e "$INFO [INFO] Environment for installation: '$ENVIRONMENT'"
 echo -e "$INFO [INFO] If using fast storage for the installation: '$useFastStorageClass'"
 echo -e "$INFO [INFO] If testing the driveway dent deletion demo E2E: '$testDrivewayDentDeletionDemoE2E'"
+
+exit 0
 
 divider
 
