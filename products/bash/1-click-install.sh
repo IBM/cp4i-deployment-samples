@@ -66,7 +66,7 @@ cognitiveCarRepairDemo=false
 mappingAssistDemo=false
 weatherChatbotDemo=false
 
-oc cluster-info | grep ibm.com
+oc cluster-info | grep cloud.ibm.com
 if [[ $? -eq 0 ]]; then
   export CLUSTER_TYPE="roks"
 fi
@@ -493,7 +493,7 @@ if [[ "$demoPreparation" == "true" || "$drivewayDentDeletionDemo" == "true" || "
 
   if [[ ("$demoPreparation" == "true" || "$drivewayDentDeletionDemo" == "true") && ("$testDrivewayDentDeletionDemoE2E" == "true") ]]; then
     echo -e "$INFO [INFO] Running an automated test for the driveway dent deletion demo in the '$JOB_NAMESPACE' namespace..."
-    if ! $CURRENT_DIR/../../DrivewayDentDeletion/Operators/test-ddd.sh -n ${JOB_NAMESPACE} -b $demoDeploymentBranch; then
+    if ! $CURRENT_DIR/../../DrivewayDentDeletion/Operators/test-ddd.sh -n "$JOB_NAMESPACE" -b "$demoDeploymentBranch" -f "$DEFAULT_FILE_STORAGE" -g "$DEFAULT_BLOCK_STORAGE"; then
       echo -e "$CROSS [ERROR] Failed to run automated test for driveway dent deletion demo in the '$JOB_NAMESPACE' namespace"
       divider
       exit 1
