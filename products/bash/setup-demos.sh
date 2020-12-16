@@ -555,7 +555,7 @@ for EACH_ADDON in $(echo $REQUIRED_ADDONS_JSON | jq -r '. | keys[]'); do
 
   elasticSearch)
     echo -e "$INFO [INFO] Setting up elastic search operator and elastic search instance in the '$NAMESPACE' namespace..."
-    if ! $SCRIPT_DIR/../../EventEnabledInsurance/setup-elastic-search.sh -n "$NAMESPACE" -e "$NAMESPACE"; then
+    if ! $SCRIPT_DIR/../../EventEnabledInsurance/setup-elastic-search.sh -n "$NAMESPACE" -e "$NAMESPACE -m "$METADATA_NAME" -u "$METADATA_UID""; then
       update_conditions "Failed to install and configure elastic search in the '$NAMESPACE' namespace" "Releasing"
       update_phase "Failed"
       FAILED_INSTALL_ADDONS_LIST+=($EACH_ADDON)

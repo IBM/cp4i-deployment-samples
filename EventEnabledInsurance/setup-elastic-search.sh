@@ -14,15 +14,21 @@
 # PARAMETERS:
 #   -e : <ELASTIC_NAMESPACE> (string), Defaults to 'elasticsearch', the namespace where elastic search is installed to
 #   -n : <NAMESPACE> (string), Defaults to 'cp4i'
+#   -m : <metadata_name> (string)
+#   -u : <metadata_uid> (string)
 #
 #   With defaults values
 #     ./setup-elastic-search.sh
 #
 #   With overridden values
 #     ./setup-elastic-search.sh -n <NAMESPACE> -e <ELASTIC_NAMESPACE>
+#
+#   To add ownerReferences for the demos operator
+#     ./release-ace-dashboard.sh -m metadata_name -u metadata_uid
+
 
 function usage() {
-  echo "Usage: $0 -n <NAMESPACE> -e <ELASTIC_NAMESPACE>"
+  echo "Usage: $0 -n <NAMESPACE> -e <ELASTIC_NAMESPACE> -m <metadata_name> -u <metadata_uid>"
   exit 1
 }
 
@@ -35,13 +41,19 @@ NAMESPACE="cp4i"
 ELASTIC_NAMESPACE="elasticsearch"
 ELASTIC_SUBSCRIPTION_NAME="elastic-cloud-eck"
 
-while getopts "n:e:" opt; do
+while getopts "n:e:m:u:" opt; do
   case ${opt} in
   n)
     NAMESPACE="$OPTARG"
     ;;
   e)
     ELASTIC_NAMESPACE="$OPTARG"
+    ;;
+  m)
+    metadata_name="$OPTARG"
+    ;;
+  u)
+    metadata_uid="$OPTARG"
     ;;
   \?)
     usage
@@ -150,6 +162,13 @@ kind: Elasticsearch
 metadata:
   name: $ELASTIC_CR_NAME
   namespace: $ELASTIC_NAMESPACE
+  $(if [[ ! -z ${metadata_uid} && ! -z ${metadata_name} ]]; then
+  echo "ownerReferences:
+    - apiVersion: integration.ibm.com/v1beta1
+      kind: Demo
+      name: ${metadata_name}
+      uid: ${metadata_uid}"
+  fi)
 spec:
   version: 7.9.1
   http:
