@@ -114,6 +114,7 @@ The demo script does the following actions sequentially:
 - Change final status to Running at end of installation if nothing fails
 
 Note: If the `DEBUG` is set to true in the script, it will print debug logs, final status at the end of the installation along with the total time taken for the run.
+<br /><br />
 
 # Stopping the test script
 - To stop the script at any point after starting, press `ctrl` + `c` before it finishes execution.
