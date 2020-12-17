@@ -1,15 +1,5 @@
 # Overview
-[This script](setup-demos.sh) is used to install and setup the required addons, products and demos on a cluster with CP4I already setup on it. The script takes an input `yaml` or `json` file specifying the following:
-- Addons
-- Products
-- Demos
-- [Samples Repository](https://github.com/IBM/cp4i-deployment-samples) branch
-- File storage class
-- Block storage class
-- Namespace for installing everything
-- APIC configuration parameters
-
-Addons and products for a demo will automatically be installed and setup via this script. Additional addons and products can also be setup apart from the ones required by the demos.
+[This script](setup-demos.sh) is used to install and setup the required addons, products and demos on a cluster with CP4I already setup on it. Addons and products for a demo will automatically be installed and setup via this script. Additional addons and products can also be setup apart from the ones required by the demos.
 
 The demo script enables to install and setup the following demos:
 - Cognitive Car Repair Demo
@@ -20,22 +10,41 @@ The demo script enables to install and setup the following demos:
 <br /><br />
 
 # Prerequisites
-- An AWS or ROKS cluster with CP4I already setup on it
-  - Small AWS Cluster with 3 workers of size m5.8xlarge and 3 masters of size m5.xlarge
-  - ROKS cluster with 3 worker nodes of configuration 32 vCPU and Memory of 128 GB
-  - Different instance sizes for AWS instances can be found [here](https://aws.amazon.com/ec2/instance-types/)
+- A cluster with CP4I and Platform navigator already setup on it
+  - If it is an AWS cluster, a small size with 3 workers of size m5.8xlarge and 3 masters of size m5.xlarge is needed
+  - If it is an AWS cluster, 3 worker nodes of configuration 32 vCPU and Memory of 128 GB is needed
+
+  Note: Different instance sizes for AWS instances can be found [here](https://aws.amazon.com/ec2/instance-types/)
+
 - If the cluster is an AWS cluster, then EFS storage class should be setup on it as it is used as the file storage class for the demos
 - Logged into the cluster via `oc`
 - Following cli tools setup:
   - `jq`
   - `yq` (if the input file is a `yaml` file)
   - `oc`
-- The CP4I can be setup as either namespace or cluster scoped
-- The namespace where the demos is to be setup should exist on the cluster
-- The namespace where the demos is to be setup should have a secret that will be used to pull images from the Entitled Registry
+- The CP4I can be setup as either namespace or cluster scoped.
+
+  If the CP4I is installed as cluster scoped, then:
+  - The namespace where the demos is to be setup should exist on the cluster
+  - The namespace where the demos is to be setup should have a secret that will be used to pull images from the Entitled Registry
+
+  If the CP4I is installed as namespace scoped, then:
+  - The namespace where the demos is to be setup must be the same as CP4I/Platform Navigator.
+- Keytool is needed if the Event Enabled Insurance demo is to be setup. This can be setup by installing Open Java JDK.
 <br /><br />
 
 # Example INPUT FILE for the script:
+The script takes an input `yaml` or `json` file specifying the following:
+  - Addons
+  - Products
+  - Demos
+  - [Samples Repository](https://github.com/IBM/cp4i-deployment-samples) branch
+  - File storage class
+  - Block storage class
+  - Namespace for installing everything
+  - APIC configuration parameters
+
+An example `yaml` input file for the script:
 ```yaml
 apiVersion: integration.ibm.com/v1beta1
 kind: Demo
