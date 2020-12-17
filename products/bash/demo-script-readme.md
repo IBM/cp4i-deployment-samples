@@ -23,6 +23,7 @@ The demo script enables to install and setup the following demos:
 - An AWS or ROKS cluster with CP4I already setup on it
   - Small AWS Cluster with 3 workers of size m5.8xlarge and 3 masters of size m5.xlarge
   - ROKS cluster with 3 worker nodes of configuration 32 vCPU and Memory of 128 GB
+  - Different instance sizes for AWS instances can be found [here](https://aws.amazon.com/ec2/instance-types/)
 - If the cluster is an AWS cluster, then EFS storage class should be setup on it as it is used as the file storage class for the demos
 - Logged into the cluster via `oc`
 - Following cli tools setup:
