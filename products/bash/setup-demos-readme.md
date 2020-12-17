@@ -30,7 +30,7 @@ The demo script enables to install and setup the following demos:
 
   If the CP4I is installed as namespace scoped, then:
   - The namespace where the demos is to be setup must be the same as CP4I/Platform Navigator.
-- Keytool is needed if the Event Enabled Insurance demo is to be setup. This can be setup by installing Open Java JDK.
+- Keytool is needed on the client side where the script is run, if the Event Enabled Insurance demo is to be setup. This can be setup by installing Open Java JDK.
 <br /><br />
 
 # Example INPUT FILE for the script:
