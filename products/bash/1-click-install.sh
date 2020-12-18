@@ -17,7 +17,7 @@
 #   -a : <eventEnabledInsuranceDemo> (string), If event enabled insurance demo is to be setup. Defaults to "false"
 #   -b : <demoDeploymentBranch> (string), The demo deployment branch to be used, Defaults to 'main'
 #   -c : <DEFAULT_FILE_STORAGE> (string), Defines the default file storage for the cluster. Defaults to "ibmc-file-gold-gid"
-#   -d : <demoPreparation> (string), If all demos are to be setup. Defaults to "false" for ROKS, "true" for AWS
+#   -d : <demoPreparation> (string), If all demos are to be setup. Defaults to "false"
 #   -e : <demoAPICEmailAddress> (string), The email address APIC uses to notify of portal configuration. Defaults to "your@email.address"
 #   -f : <drivewayDentDeletionDemo> (string),  If driveway dent deletion demo is to be setup. Defaults to "false"
 #   -g : <DEFAULT_BLOCK_STORAGE> (string), Defines the default block storage for the cluster. Defaults to "cp4i-block-performance"
@@ -171,8 +171,8 @@ if [[ -z "${csDefaultAdminUser// /}" ]]; then
 fi
 
 if [[ -z "${demoPreparation// /}" ]]; then
-  echo -e "$CROSS [ERROR] 1-click install demo preparation parameter is empty. Please provide a value for '-d' parameter."
-  MISSING_PARAMS="true"
+  echo -e "$CROSS [ERROR] 1-click install demo preparation parameter is empty (-d). Setting the default value of 'false' for it."
+  demoPreparation="false"
 fi
 
 if [[ -z "${csDefaultAdminPassword// /}" ]]; then
@@ -191,39 +191,43 @@ if [[ -z "${demoDeploymentBranch// /}" ]]; then
 fi
 
 if [[ -z "${eventEnabledInsuranceDemo// /}" ]]; then
-  echo -e "$INFO [INFO] 1-click install event enabled insurance parameter is empty. Setting the default value of 'false' for it."
+  echo -e "$INFO [INFO] 1-click install event enabled insurance parameter is empty (-a). Setting the default value of 'false' for it."
   eventEnabledInsuranceDemo="false"
 fi
 
 if [[ -z "${drivewayDentDeletionDemo// /}" ]]; then
-  echo -e "$INFO [INFO] 1-click install driveway dent deletion parameter is empty. Setting the default value of 'false' for it."
+  echo -e "$INFO [INFO] 1-click install driveway dent deletion parameter is empty (-f). Setting the default value of 'false' for it."
   drivewayDentDeletionDemo="false"
 fi
 
 if [[ -z "${useFastStorageClass// /}" ]]; then
-  echo -e "$INFO [INFO] 1-click install fast storage class flag is empty. Setting the default value of 'false' for it."
+  echo -e "$INFO [INFO] 1-click install fast storage class flag is empty (-v). Setting the default value of 'false' for it."
   useFastStorageClass="false"
 fi
 
 if [[ -z "${testDrivewayDentDeletionDemoE2E// /}" ]]; then
-  echo -e "$INFO [INFO] 1-click install test driveway dent deletion demo parameter is empty. Setting the default value of 'false' for it."
+  echo -e "$INFO [INFO] 1-click install test driveway dent deletion demo parameter is empty (-w). Setting the default value of 'false' for it."
   testDrivewayDentDeletionDemoE2E="false"
 fi
 
 if [[ -z "${DOCKER_REGISTRY_PASS// /}" ]]; then
   echo -e "$INFO [INFO] 1-click docker registry password parameter is empty. Please provide a value for '-s' parameter."
+  MISSING_PARAMS="true"
 fi
 
 if [[ -z "${DEFAULT_BLOCK_STORAGE// /}" && "$(echo "$CLUSTER_TYPE" | tr '[:upper:]' '[:lower:]')" != "roks" ]]; then
   echo -e "$INFO [INFO] 1-click default block storage parameter is empty. Please provide a value for '-g' parameter."
+  MISSING_PARAMS="true"
 fi
 
 if [[ -z "${DEFAULT_FILE_STORAGE// /}" ]]; then
   echo -e "$INFO [INFO] 1-click default file storage parameter is empty. Please provide a value for '-c' parameter."
+  MISSING_PARAMS="true"
 fi
 
 if [[ -z "${CLUSTER_TYPE// /}" ]]; then
   echo -e "$INFO [INFO] 1-click cluster type parameter is empty. Please provide a value for '-x' parameter."
+  MISSING_PARAMS="true"
 fi
 
 if [[ "$MISSING_PARAMS" == "true" ]]; then
