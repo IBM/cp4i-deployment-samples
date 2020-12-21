@@ -49,7 +49,8 @@ INFO="\xE2\x84\xB9"
 MISSING_PARAMS="false"
 ELASTIC_NAMESPACE=$NAMESPACE
 OMIT_INITIAL_SETUP=false
-DEFAULT_FILE_STORAGE="ibmc-file-gold-gid"
+# DEFAULT_FILE_STORAGE="ibmc-file-gold-gid"
+DEFAULT_FILE_STORAGE="ibmc-file-gold"
 DEFAULT_BLOCK_STORAGE="cp4i-block-performance"
 
 while getopts "n:r:b:e:p:of:g:" opt; do

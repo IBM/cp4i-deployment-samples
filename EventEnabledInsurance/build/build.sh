@@ -44,7 +44,8 @@ POSTGRES_NAMESPACE=$namespace
 REPO="https://github.com/IBM/cp4i-deployment-samples.git"
 BRANCH="main"
 TKN=tkn
-DEFAULT_FILE_STORAGE="ibmc-file-gold-gid"
+# DEFAULT_FILE_STORAGE="ibmc-file-gold-gid"
+DEFAULT_FILE_STORAGE="ibmc-file-gold"
 DEFAULT_BLOCK_STORAGE="cp4i-block-performance"
 
 while getopts "n:r:b:t:f:g:" opt; do
