@@ -33,7 +33,7 @@ namespace="cp4i"
 release_name="tracing-demo"
 block_storage="ibmc-block-gold"
 # file_storage="ibmc-file-gold-gid"
-file_storage="ibmc-file-gold"
+file_storage="ibmc-file-retain-custom"
 production="false"
 
 while getopts "n:r:b:d:f:p" opt; do
