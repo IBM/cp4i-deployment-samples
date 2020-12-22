@@ -364,8 +364,7 @@ $DEBUG && echo $JSON | jq . && divider
 $DEBUG && echo -e "[DEBUG] Extracting the required information from the input file: $INPUT_FILE"
 GENERAL=$(echo $JSON | jq -r .spec.general)
 BLOCK_STORAGE_CLASS=$(echo $GENERAL | jq -r '.storage.block | if has("class") then .class else "cp4i-block-performance" end')
-# FILE_STORAGE_CLASS=$(echo $GENERAL | jq -r '.storage.file | if has("class") then .class else "ibmc-file-gold-gid" end')
-FILE_STORAGE_CLASS=$(echo $GENERAL | jq -r '.storage.file | if has("class") then .class else "ibmc-file-retain-custom" end')
+FILE_STORAGE_CLASS=$(echo $GENERAL | jq -r '.storage.file | if has("class") then .class else "ibmc-file-gold-gid" end')
 SAMPLES_REPO_BRANCH=$(echo $GENERAL | jq -r 'if has("samplesRepoBranch") then .samplesRepoBranch else "'$SAMPLES_REPO_BRANCH'" end')
 NAMESPACE=$(echo $JSON | jq -r .metadata.namespace)
 REQUIRED_DEMOS_JSON=$(echo $JSON | jq -c '.spec | if has("demos") then .demos else {} end')

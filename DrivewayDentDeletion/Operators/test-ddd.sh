@@ -48,8 +48,7 @@ BRANCH="main"
 FORKED_REPO="https://github.com/IBM/cp4i-deployment-samples.git"
 TKN_INSTALLED=false
 JQ_INSTALLED=false
-# DEFAULT_FILE_STORAGE="ibmc-file-gold-gid"
-DEFAULT_FILE_STORAGE="ibmc-file-retain-custom"
+DEFAULT_FILE_STORAGE="ibmc-file-gold-gid"
 DEFAULT_BLOCK_STORAGE="cp4i-block-performance"
 
 while getopts "n:r:b:f:g:" opt; do

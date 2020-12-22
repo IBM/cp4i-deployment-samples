@@ -29,8 +29,7 @@ function usage() {
 
 namespace="cp4i"
 dashboard_release_name="ace-dashboard-demo"
-# storage="ibmc-file-gold-gid"
-storage="ibmc-file-retain-custom"
+storage="ibmc-file-gold-gid"
 production="false"
 while getopts "n:r:s:p" opt; do
   case ${opt} in

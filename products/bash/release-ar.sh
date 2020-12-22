@@ -29,8 +29,7 @@ function usage() {
 
 namespace="cp4i"
 release_name="demo"
-# assetDataVolume="ibmc-file-gold-gid"
-assetDataVolume="ibmc-file-retain-custom"
+assetDataVolume="ibmc-file-gold-gid"
 couchVolume="ibmc-block-gold"
 
 while getopts "n:r:a:c:" opt; do
