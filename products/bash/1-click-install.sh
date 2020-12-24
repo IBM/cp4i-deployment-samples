@@ -499,6 +499,9 @@ if [[ "$demoPreparation" == "true" || "$drivewayDentDeletionDemo" == "true" || "
   else
     echo -e "\n$CROSS [ERROR] Failed to setup all required addons, products and demos in the '$JOB_NAMESPACE' namespace"
     divider
+    # restore content of demo json file and delete temporary and backup files
+    cp $CURRENT_DIR_WITHOUT_DOT_SLASH/demos-backup.json $CURRENT_DIR_WITHOUT_DOT_SLASH/demos.json
+    rm -rf $CURRENT_DIR_WITHOUT_DOT_SLASH/demos.json-e $CURRENT_DIR_WITHOUT_DOT_SLASH/demos-backup.json
     exit 1
   fi
 
