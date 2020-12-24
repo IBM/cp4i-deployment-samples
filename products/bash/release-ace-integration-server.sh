@@ -31,7 +31,7 @@ function divider() {
 }
 
 function usage() {
-  echo "Usage: $0 -c <ace_policy_names> -d <POLICY_PROJECT_TYPE> -i <is_image_name> -n <namespace> -p <ace_replicas> -r <is_release_name> -m <metadata_name> -u <metadata_uid> -t -z <tracing_namespace>"
+  echo "Usage: $0 -c <ace_policy_names> -d <POLICY_PROJECT_TYPE> -i <is_image_name> -n <namespace> -p <ace_replicas> -r <is_release_name> -t -z <tracing_namespace>"
   divider
   exit 1
 }
