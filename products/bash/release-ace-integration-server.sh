@@ -16,8 +16,6 @@
 #   -n : <namespace> (string), Defaults to "cp4i"
 #   -p : <ace_replicas> (int), allow changing the number of pods (replicas), Defaults to 2
 #   -r : <is_release_name> (string), Defaults to "ace-is"
-#   -m : <metadata_name> (string)
-#   -u : <metadata_uid> (string)
 #   -t : <tracing_enabled> (boolean), optional flag to enable tracing, Defaults to false
 #   -z : <tracing_namespace> (string), Defaults to "-n namespace"
 #
@@ -50,7 +48,7 @@ POLICY_PROJECT_TYPE="policyproject-ddd-dev"
 ace_replicas="2"
 echo "Current directory: $CURRENT_DIR"
 
-while getopts "c:d:i:n:p:r:m:u:tz:" opt; do
+while getopts "c:d:i:n:p:r:tz:" opt; do
   case ${opt} in
   c)
     ace_policy_names="$OPTARG"
@@ -69,12 +67,6 @@ while getopts "c:d:i:n:p:r:m:u:tz:" opt; do
     ;;
   r)
     is_release_name="$OPTARG"
-    ;;
-  m)
-    metadata_name="$OPTARG"
-    ;;
-  u)
-    metadata_uid="$OPTARG"
     ;;
   t)
     tracing_enabled=true
@@ -126,13 +118,6 @@ kind: IntegrationServer
 metadata:
   name: ${is_release_name}
   namespace: ${namespace}
-  $(if [[ ! -z ${metadata_uid} && ! -z ${metadata_name} ]]; then
-  echo "ownerReferences:
-    - apiVersion: integration.ibm.com/v1beta1
-      kind: Demo
-      name: ${metadata_name}
-      uid: ${metadata_uid}"
-  fi)
 spec:
   pod:
    containers:

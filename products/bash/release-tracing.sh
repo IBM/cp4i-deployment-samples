@@ -17,8 +17,6 @@
 #   -r : <release-name> (string), Defaults to "tracing-demo"
 #   -b : <block-storage-class> (string), Default to "ibmc-block-gold"
 #   -f : <file-storage-class> (string), Default to "ibmc-file-gold-gid"
-#   -m : <metadata_name> (string)
-#   -u : <metadata_uid> (string)
 #
 # USAGE:
 #   With defaults values
@@ -26,13 +24,9 @@
 #
 #   Overriding the namespace and release-name
 #     ./release-tracing -n cp4i-prod -r prod
-#
-#   To add ownerReferences for the demos operator
-#     ./release-tracing.sh -m metadata_name -u metadata_uid
-
 
 function usage() {
-  echo "Usage: $0 -n <namespace> -r <release-name> -m <metadata_name> -u <metadata_uid>"
+  echo "Usage: $0 -n <namespace> -r <release-name>"
 }
 
 namespace="cp4i"
@@ -41,7 +35,7 @@ block_storage="ibmc-block-gold"
 file_storage="ibmc-file-gold-gid"
 production="false"
 
-while getopts "n:r:b:d:f:m:u:p" opt; do
+while getopts "n:r:b:d:f:p" opt; do
   case ${opt} in
   n)
     namespace="$OPTARG"
@@ -55,12 +49,6 @@ while getopts "n:r:b:d:f:m:u:p" opt; do
   f)
     file_storage="$OPTARG"
     ;;
-  m)
-    metadata_name="$OPTARG"
-    ;;
-  u)
-    metadata_uid="$OPTARG"
-    ;;
   p)
     production="true"
     ;;
@@ -70,6 +58,9 @@ while getopts "n:r:b:d:f:m:u:p" opt; do
     ;;
   esac
 done
+
+METADATA_NAME = $(oc get configmap -n $namespace operator-info -o json | jq -r '.data.METADATA_NAME')
+METADATA_UID = $(oc get configmap -n $namespace operator-info -o json | jq -r '.data.METADATA_UID')
 
 if [[ "$production" == "true" ]]; then
   echo "Production Mode Enabled"
@@ -83,12 +74,12 @@ metadata:
     app.kubernetes.io/instance: ibm-integration-operations-dashboard
     app.kubernetes.io/managed-by: ibm-integration-operations-dashboard
     app.kubernetes.io/name: ibm-integration-operations-dashboard
-  $(if [[ ! -z ${metadata_uid} && ! -z ${metadata_name} ]]; then
+  $(if [[ ! -z ${METADATA_UID} && ! -z ${METADATA_NAME} ]]; then
   echo "ownerReferences:
     - apiVersion: integration.ibm.com/v1beta1
       kind: Demo
-      name: ${metadata_name}
-      uid: ${metadata_uid}"
+      name: ${METADATA_NAME}
+      uid: ${METADATA_UID}"
   fi)
 spec:
   env:
@@ -125,12 +116,12 @@ metadata:
     app.kubernetes.io/instance: ibm-integration-operations-dashboard
     app.kubernetes.io/managed-by: ibm-integration-operations-dashboard
     app.kubernetes.io/name: ibm-integration-operations-dashboard
-  $(if [[ ! -z ${metadata_uid} && ! -z ${metadata_name} ]]; then
+  $(if [[ ! -z ${METADATA_UID} && ! -z ${METADATA_NAME} ]]; then
   echo "ownerReferences:
     - apiVersion: integration.ibm.com/v1beta1
       kind: Demo
-      name: ${metadata_name}
-      uid: ${metadata_uid}"
+      name: ${METADATA_NAME}
+      uid: ${METADATA_UID}"
   fi)
 spec:
   license:

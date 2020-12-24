@@ -15,8 +15,6 @@
 # PARAMETERS:
 #   -n : <namespace> (string), Defaults to "cp4i"
 #   -r : <release-name> (string), Defaults to "es-demo"
-#   -m : <metadata_name> (string)
-#   -u : <metadata_uid> (string)
 #
 # USAGE:
 #   With defaults values
@@ -24,12 +22,9 @@
 #
 #   Overriding the namespace and release-name
 #     ./release-es.sh -n cp4i-prod -r prod
-#
-#   To add ownerReferences for the demos operator
-#     ./release-es.sh -m metadata_name -u metadata_uid
 
 function usage() {
-  echo "Usage: $0 -n <namespace> -r <release-name> -m <metadata_name> -u <metadata_uid>"
+  echo "Usage: $0 -n <namespace> -r <release-name>"
 }
 
 namespace="cp4i"
@@ -37,7 +32,7 @@ release_name="es-demo"
 production="false"
 storageClass=""
 
-while getopts "n:r:pc:m:u:" opt; do
+while getopts "n:r:pc:" opt; do
   case ${opt} in
   n)
     namespace="$OPTARG"
@@ -51,18 +46,15 @@ while getopts "n:r:pc:m:u:" opt; do
   c)
     storageClass="$OPTARG"
     ;;
-  m)
-    metadata_name="$OPTARG"
-    ;;
-  u)
-    metadata_uid="$OPTARG"
-    ;;
   \?)
     usage
     exit
     ;;
   esac
 done
+
+METADATA_NAME = $(oc get configmap -n $namespace operator-info -o json | jq -r '.data.METADATA_NAME')
+METADATA_UID = $(oc get configmap -n $namespace operator-info -o json | jq -r '.data.METADATA_UID')
 
 if [ "$production" == "true" ]; then
   echo "Production Mode Enabled"
@@ -72,12 +64,12 @@ kind: EventStreams
 metadata:
   name: ${release_name}
   namespace: ${namespace}
-  $(if [[ ! -z ${metadata_uid} && ! -z ${metadata_name} ]]; then
+  $(if [[ ! -z ${METADATA_UID} && ! -z ${METADATA_NAME} ]]; then
   echo "ownerReferences:
     - apiVersion: integration.ibm.com/v1beta1
       kind: Demo
-      name: ${metadata_name}
-      uid: ${metadata_uid}"
+      name: ${METADATA_NAME}
+      uid: ${METADATA_UID}"
   fi)
 spec:
   version: 10.1.0
@@ -131,12 +123,12 @@ kind: EventStreams
 metadata:
   name: ${release_name}
   namespace: ${namespace}
-  $(if [[ ! -z ${metadata_uid} && ! -z ${metadata_name} ]]; then
+  $(if [[ ! -z ${METADATA_UID} && ! -z ${METADATA_NAME} ]]; then
   echo "ownerReferences:
     - apiVersion: integration.ibm.com/v1beta1
       kind: Demo
-      name: ${metadata_name}
-      uid: ${metadata_uid}"
+      name: ${METADATA_NAME}
+      uid: ${METADATA_UID}"
   fi)
 spec:
   version: 10.1.0

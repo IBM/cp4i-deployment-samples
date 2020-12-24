@@ -527,8 +527,18 @@ fi
 
 check_phase_and_exit_on_failed
 
-METADATA_NAME=$(oc get demo -n cp4i -o jsonpath='{.items[0].metadata.name}')
+METADATA_NAME=$(oc get demo -n $NAMESPACE -o jsonpath='{.items[0].metadata.name}')
 METADATA_UID=$(oc get demo -n $NAMESPACE $METADATA_NAME -o json | jq -r '.metadata.uid')
+
+cat <<EOF | oc apply --namespace ${NAMESPACE} -f -
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: operator-info
+data:
+  METADATA_NAME: ${METADATA_NAME}
+  METADATA_UID: ${METADATA_UID}
+EOF
 
 # -------------------------------------------------------------------------------------------------------------------
 # Setup and configure the required addons

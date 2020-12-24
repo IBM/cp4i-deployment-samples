@@ -15,8 +15,6 @@
 # PARAMETERS:
 #   -n : <namespace> (string), Defaults to "cp4i"
 #   -r : <release-name> (string), Defaults to "demo"
-#   -m : <metadata_name> (string)
-#   -u : <metadata_uid> (string)
 #
 # USAGE:
 #   With defaults values
@@ -24,13 +22,9 @@
 #
 #   Overriding the namespace and release-name
 #     ./release-ar.sh -n cp4i-prod -r prod
-#
-#   To add ownerReferences for the demos operator
-#     ./release-ar.sh -m metadata_name -u metadata_uid
-
 
 function usage() {
-  echo "Usage: $0 -n <namespace> -r <release-name> -m <metadata_name> -u <metadata_uid>"
+  echo "Usage: $0 -n <namespace> -r <release-name>"
 }
 
 namespace="cp4i"
@@ -52,12 +46,6 @@ while getopts "n:r:a:c:m:u:" opt; do
   c)
     couchVolume="$OPTARG"
     ;;
-  m)
-    metadata_name="$OPTARG"
-    ;;
-  u)
-    metadata_uid="$OPTARG"
-    ;;
   \?)
     usage
     exit
@@ -65,18 +53,21 @@ while getopts "n:r:a:c:m:u:" opt; do
   esac
 done
 
+METADATA_NAME = $(oc get configmap -n $namespace operator-info -o json | jq -r '.data.METADATA_NAME')
+METADATA_UID = $(oc get configmap -n $namespace operator-info -o json | jq -r '.data.METADATA_UID')
+
 cat <<EOF | oc apply -f -
 apiVersion: integration.ibm.com/v1beta1
 kind: AssetRepository
 metadata:
   name: ${release_name}
   namespace: ${namespace}
-  $(if [[ ! -z ${metadata_uid} && ! -z ${metadata_name} ]]; then
+  $(if [[ ! -z ${METADATA_UID} && ! -z ${METADATA_NAME} ]]; then
   echo "ownerReferences:
     - apiVersion: integration.ibm.com/v1beta1
       kind: Demo
-      name: ${metadata_name}
-      uid: ${metadata_uid}"
+      name: ${METADATA_NAME}
+      uid: ${METADATA_UID}"
   fi)
 spec:
   license:

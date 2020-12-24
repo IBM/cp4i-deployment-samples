@@ -18,8 +18,6 @@
 #   -i : <image_name> (string)
 #   -q : <qm_name> (string), Defaults to "QUICKSTART"
 #   -z : <tracing_namespace> (string), Defaults to "namespace"
-#   -m : <metadata_name> (string)
-#   -u : <metadata_uid> (string)
 #   -t : <tracing_enabled> (boolean), optional flag to enable tracing, Defaults to false
 #
 # USAGE:
@@ -28,17 +26,13 @@
 #
 #   Overriding the namespace and release-name
 #     ./release-mq.sh -n cp4i -r mq-demo -i image-registry.openshift-image-registry.svc:5000/cp4i/mq-ddd -q mq-qm
-#
-#   To add ownerReferences for the demos operator
-#     /release-mq.sh -m metadata_name -u metadata_uid
-
 
 function divider() {
   echo -e "\n-------------------------------------------------------------------------------------------------------------------\n"
 }
 
 function usage() {
-  echo "Usage: $0 -n <namespace> -r <release_name> -i <image_name> -q <qm_name> -z <tracing_namespace> -m <metadata_name> -u <metadata_uid> [-t]"
+  echo "Usage: $0 -n <namespace> -r <release_name> -i <image_name> -q <qm_name> -z <tracing_namespace> [-t]"
   divider
   exit 1
 }
@@ -54,7 +48,7 @@ CURRENT_DIR=$(dirname $0)
 echo "Current directory: $CURRENT_DIR"
 echo "Namespace: $namespace"
 
-while getopts "n:r:i:q:z:m:u:t" opt; do
+while getopts "n:r:i:q:z:t" opt; do
   case ${opt} in
   n)
     namespace="$OPTARG"
@@ -70,12 +64,6 @@ while getopts "n:r:i:q:z:m:u:t" opt; do
     ;;
   z)
     tracing_namespace="$OPTARG"
-    ;;
-  m)
-    metadata_name="$OPTARG"
-    ;;
-  u)
-    metadata_uid="$OPTARG"
     ;;
   t)
     tracing_enabled=true
@@ -102,6 +90,9 @@ elif [[ "$release_name" =~ "eei" ]]; then
   numberOfContainers=1
 fi
 
+METADATA_NAME = $(oc get configmap -n $namespace operator-info -o json | jq -r '.data.METADATA_NAME')
+METADATA_UID = $(oc get configmap -n $namespace operator-info -o json | jq -r '.data.METADATA_UID')
+
 if [ -z $image_name ]; then
   cat <<EOF | oc apply -f -
 apiVersion: mq.ibm.com/v1beta1
@@ -109,12 +100,12 @@ kind: QueueManager
 metadata:
   name: ${release_name}
   namespace: ${namespace}
-  $(if [[ ! -z ${metadata_uid} && ! -z ${metadata_name} ]]; then
+  $(if [[ ! -z ${METADATA_UID} && ! -z ${METADATA_NAME} ]]; then
   echo "ownerReferences:
     - apiVersion: integration.ibm.com/v1beta1
       kind: Demo
-      name: ${metadata_name}
-      uid: ${metadata_uid}"
+      name: ${METADATA_NAME}
+      uid: ${METADATA_UID}"
   fi)
 spec:
   license:
@@ -207,12 +198,12 @@ kind: QueueManager
 metadata:
   name: ${release_name}
   namespace: ${namespace}
-  $(if [[ ! -z ${metadata_uid} && ! -z ${metadata_name} ]]; then
+  $(if [[ ! -z ${METADATA_UID} && ! -z ${METADATA_NAME} ]]; then
   echo "ownerReferences:
     - apiVersion: integration.ibm.com/v1beta1
       kind: Demo
-      name: ${metadata_name}
-      uid: ${metadata_uid}"
+      name: ${METADATA_NAME}
+      uid: ${METADATA_UID}"
   fi)
 spec:
   license:
