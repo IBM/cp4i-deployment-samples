@@ -13,14 +13,13 @@
 #   - Logged into cluster on the OC CLI (https://docs.openshift.com/container-platform/4.4/cli_reference/openshift_cli/getting-started-cli.html)
 #
 # PARAMETERS:
-#   -e : <environment> (string), can be either "dev" or "test", defaults to "dev". "test" currently only suitable for DDD.
-#   -n : <namespace> (string), defaults to "cp4i"
-#   -a : <apic_namespace> (string), defaults to same value as $NAMESPACE
-#   -r : <apic_release> (string), defaults to "ademo"
-#   -d : <demo name> (string), default to "ddd".
-#   -t : <target url> (string), default to "". If "" then constructs the URL to point to the ace-api-int-srv-is service
-#   -p : <product yaml> (string), Path relative to root of the repo, defaults to "DrivewayDentDeletion/Operators/apic-resources/apic-product-ddd.yaml"
-#   -s : <swagger yaml> (string), Path relative to root of the repo, defaults to "DrivewayDentDeletion/Operators/apic-resources/apic-api-ddd.yaml"
+#   -e : <ENVIRONMENT> (string), can be either "dev" or "test", defaults to "dev". "test" currently only suitable for DDD.
+#   -n : <NAMESPACE> (string), defaults to "cp4i"
+#   -r : <RELEASE> (string), defaults to "ademo"
+#   -d : <DEMO_NAME> (string), default to "ddd".
+#   -t : <TARGET_URL> (string), default to "". If "" then constructs the URL to point to the ace-api-int-srv-is service
+#   -p : <PRODUCT_YAML_TEMPLATE> (string), Path relative to root of the repo, defaults to "DrivewayDentDeletion/Operators/apic-resources/apic-product-ddd.yaml"
+#   -s : <SWAGGER_YAML_TEMPLATE> (string), Path relative to root of the repo, defaults to "DrivewayDentDeletion/Operators/apic-resources/apic-api-ddd.yaml"
 #
 # USAGE:
 #   With default values
@@ -57,7 +56,7 @@ SWAGGER_YAML_TEMPLATE="DrivewayDentDeletion/Operators/apic-resources/apic-api-dd
 DEBUG=true
 
 function usage() {
-  echo "Usage: $0 -e <environment> -n <namespace> -s <namespace_suffix> -r <release> -d <demo name> -t <target url> -p <product yaml> -s <swagger yaml>"
+  echo "Usage: $0 -e <ENVIRONMENT> -n <MAIN_NAMESPACE> -r <RELEASE> -d <DEMO_NAME> -t <TARGET_URL> -p <PRODUCT_YAML_TEMPLATE> -s <SWAGGER_YAML_TEMPLATE>"
 }
 
 while getopts "e:n:r:d:t:p:s:" opt; do
@@ -115,7 +114,7 @@ function handle_res() {
   fi
 }
 
-NAMESPACE=$([[ $ENVIRONMENT == "dev" ]] && echo "${MAIN_NAMESPACE}" || echo "${MAIN_NAMESPACE}-ddd-test")
+NAMESPACE=$MAIN_NAMESPACE
 ORG=$([[ $ENVIRONMENT == "dev" ]] && echo "main-demo" || echo "ddd-demo-test")
 CATALOG=${ORG}-catalog
 PRODUCT=${NAMESPACE}-product-${DEMO_NAME}
@@ -161,7 +160,7 @@ fi
 echo "[INFO]  jq version: $($JQ --version)"
 
 if [[ -z $TARGET_URL ]]; then
-  ACE_API="ace-api-int-srv-is"
+  ACE_API="ddd-${ENVIRONMENT}-ace-api-is"
   ACE_API_INT_SRV_PORT=$(oc get svc -n $NAMESPACE ${ACE_API} -ojson | $JQ -r '.spec.ports[] | select(.name == "https").port')
   TARGET_URL="https://${ACE_API}.${NAMESPACE}.svc.cluster.local:$ACE_API_INT_SRV_PORT"
 fi
@@ -420,7 +419,14 @@ $DEBUG && echo "[DEBUG] Client id: ${CLIENT_ID}"
 [[ $CLIENT_ID == "null" ]] && echo -e "[ERROR] ${CROSS} Couldn't get client id" && exit 1
 echo -e "[INFO]  ${TICK} Got client id"
 
-echo "[INFO]  Creating secret ${DEMO_NAME}-api-endpoint-client-id"
+
+if [[ "$DEMO_NAME" == "ddd" ]]; then
+  ENDPOINT_SECRET_NAME="${DEMO_NAME}-${ENVIRONMENT}-api-endpoint-client-id"
+else
+  ENDPOINT_SECRET_NAME="${DEMO_NAME}-api-endpoint-client-id"
+fi
+
+echo "[INFO]  Creating secret ${ENDPOINT_SECRET_NAME}"
 BASE_PATH=$(grep 'basePath:' ${CURRENT_DIR}/api.yaml | head -1 | awk '{print $2}')
 $DEBUG && echo "[DEBUG] BASE_PATH: ${BASE_PATH}"
 HOST="https://$(oc get route -n $MAIN_NAMESPACE ${RELEASE}-gw-gateway -o jsonpath='{.spec.host}')/$ORG/$CATALOG$BASE_PATH"
@@ -431,7 +437,7 @@ cat <<EOF | oc apply -n ${NAMESPACE} -f -
 apiVersion: v1
 kind: Secret
 metadata:
-  name: ${DEMO_NAME}-api-endpoint-client-id
+  name: ${ENDPOINT_SECRET_NAME}
 type: Opaque
 stringData:
   api: ${HOST}

@@ -5,7 +5,7 @@ This dir is for a demo named "Event Enabled Insurance".
 A [script](prereqs.sh) is provided to setup the prerequisites for this demo
 and this script is automatically run as part of the 1-click demo preparation.
 The script carries out the following:
-- Installs Openshift pipelines from the ocp-4.4 channel.
+- Installs Openshift pipelines from the ocp-4.5 channel.
 - Creates a secret to allow the pipeline to pull from the entitled registry.
 - Creates secrets to allow the pipeline to push images to the default project (`cp4i`).
 - Creates a username and password for the dev (this is the namespace where the 1-click install ran in).
@@ -17,10 +17,8 @@ The script carries out the following:
   - Creates a PUBLICATION named `DB_EEI_QUOTES` for the `QUOTES` table. (The Debezium connector can do this, but would then require super user privileges)
   - Creates a replication user that has the replication role and access to the `QUOTES` table
   - Creates a secret with the replication username/password that can be used by the `KafkaConnector`
-- Installs Elasticsearch in the `elasticsearch` project. The Elasticsearch CR is also setup to add a `subjectAltNames`
-  so the self signed certificate can be used to access the service cross namespace.
-- Creates a secret to allow the Elasticsearch connector to connect to Elasticsearch. This secret includes credentials and
-  also a truststore in jks format. The truststore includes the self-signed certificate created by Elasticsearch.
+- Installs Elasticsearch in the default `cp4i` project. The Elasticsearch CR is also setup to add a `subjectAltNames` so the self signed certificate can be used to access the service cross namespace.
+- Creates a secret to allow the Elasticsearch connector to connect to Elasticsearch. This secret includes credentials and also a truststore in jks format. The truststore includes the self-signed certificate created by Elasticsearch.
 
 # Set up a Kafka Connect environment
 Download the [example kafka-connect-s2i.yaml](kafkaconnect/kafka-connect-s2i.yaml). This is based on the one in
@@ -199,7 +197,7 @@ spec:
   tasksMax: 1
   config:
     # These are connection details to the Postgres database setup by the prereqs.
-    database.hostname: "postgresql.postgres.svc.cluster.local"
+    database.hostname: "postgresql.cp4i.svc.cluster.local"
     database.port: "5432"
     # The following credentials refer to the mounted secret and use the FileConfigProvider
     # from the KafkaConnectS2I to extract properties from the properties file.
@@ -369,13 +367,13 @@ And now the connector is monitoring the `sor.public.quotes` topic and writing to
 # Verify contents of Elasticsearch
 Port forward the Elasticsearch service to your localhost:
 ```
-ELASTIC_NAMESPACE=elasticsearch
+ELASTIC_NAMESPACE=cp4i
 oc port-forward -n ${ELASTIC_NAMESPACE} service/elasticsearch-eei-es-http 9200
 ```
 
 In a separate terminal setup some env vars to allow curl to call Elasticsearch:
 ```
-ELASTIC_NAMESPACE=elasticsearch
+ELASTIC_NAMESPACE=cp4i
 ELASTIC_PASSWORD=$(oc get secret elasticsearch-eei-es-elastic-user -n $ELASTIC_NAMESPACE -o go-template='{{.data.elastic | base64decode}}')
 ELASTIC_USER="elastic"
 ```
@@ -443,7 +441,7 @@ curl -X DELETE -u "${ELASTIC_USER}:${ELASTIC_PASSWORD}" -k https://localhost:920
 # Working directly with the System Of Record database
 Setup some env vars
 ```
-POSTGRES_NAMESPACE=postgres
+POSTGRES_NAMESPACE=cp4i
 DB_POD=$(oc get pod -n ${POSTGRES_NAMESPACE} -l name=postgresql -o jsonpath='{.items[].metadata.name}')
 DB_NAME=$(oc get secret eei-postgres-replication-credential -o json | \
   jq -r '.data["connector.properties"]' | base64 --decode | grep dbName | awk '{print $2}')
@@ -601,7 +599,7 @@ Prereqs:
 
 1. Setup some env vars:
     ```sh
-    POSTGRES_NAMESPACE=postgres
+    POSTGRES_NAMESPACE=cp4i
     DB_POD=$(oc get pod -n ${POSTGRES_NAMESPACE} -l name=postgresql -o jsonpath='{.items[].metadata.name}')
     DB_NAME=$(oc get secret eei-postgres-replication-credential -o json | \
     jq -r '.data["connector.properties"]' | base64 --decode | grep dbName | awk '{print $2}')

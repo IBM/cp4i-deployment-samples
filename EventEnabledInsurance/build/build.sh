@@ -23,8 +23,13 @@
 #   With overridden values
 #     ./build.sh -n <namespace> -r <REPO> -b <BRANCH>
 
+function divider() {
+  echo -e "\n-------------------------------------------------------------------------------------------------------------------\n"
+}
+
 function usage() {
   echo "Usage: $0 -n <namespace> -r <REPO> -b <BRANCH> -t <TKN-path>"
+  divider
   exit 1
 }
 
@@ -33,8 +38,7 @@ tick="\xE2\x9C\x85"
 cross="\xE2\x9D\x8C"
 all_done="\xF0\x9F\x92\xAF"
 SUFFIX="eei"
-POSTGRES_NAMESPACE="postgres"
-ACE_CONFIGURATION_NAME="ace-policyproject-$SUFFIX"
+POSTGRES_NAMESPACE=$namespace
 REPO="https://github.com/IBM/cp4i-deployment-samples.git"
 BRANCH="main"
 TKN=tkn
@@ -72,7 +76,7 @@ echo "INFO: Repo: '$REPO'"
 echo "INFO: Branch: '$BRANCH'"
 echo "INFO: TKN: '$TKN'"
 
-echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
+divider
 
 echo "INFO: Creating pvc for EEI in the '$namespace' namespace"
 if oc apply -n $namespace -f $CURRENT_DIR/pvc.yaml; then
@@ -82,7 +86,7 @@ else
   exit 1
 fi
 
-echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
+divider
 
 echo "INFO: Create build and deploy tekton tasks"
 if cat $CURRENT_DIR/../../CommonPipelineResources/cicd-tasks-new.yaml |
@@ -94,7 +98,7 @@ else
   exit 1
 fi
 
-echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
+divider
 
 CONFIGURATIONS="[serverconf-$SUFFIX, keystore-$SUFFIX, application.kdb, application.sth, application.jks, policyproject-$SUFFIX, setdbparms-$SUFFIX]"
 
@@ -111,7 +115,7 @@ else
   exit 1
 fi #pipeline.yaml
 
-echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
+divider
 
 PIPELINERUN_UID=$(
   LC_ALL=C tr -dc 'a-z0-9' </dev/urandom | head -c 5
@@ -129,7 +133,7 @@ else
   exit 1
 fi #pipelinerun.yaml
 
-echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
+divider
 
 pipelinerunSuccess="false"
 echo -e "INFO: Displaying the pipelinerun logs in the '$namespace' namespace: \n"
@@ -137,7 +141,7 @@ if ! $TKN pipelinerun logs -n $namespace -f $PIPELINE_RUN_NAME; then
   echo -e "\n$cross ERROR: Failed to get the pipelinerun logs successfully"
 fi
 
-echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
+divider
 
 echo -e "\nINFO: The pipeline run in the '$namespace' namespace:\n"
 oc get pipelinerun -n $namespace $PIPELINE_RUN_NAME
@@ -151,7 +155,7 @@ fi
 
 echo -e "\nINFO: Going ahead to delete the pipelinerun instance to delete the related pods and the pvc"
 
-echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
+divider
 
 if oc delete pipelinerun -n $namespace $PIPELINE_RUN_NAME; then
   echo -e "$tick INFO: Deleted the pipelinerun with the uid '$PIPELINERUN_UID'"
@@ -159,7 +163,7 @@ else
   echo -e "$cross ERROR: Failed to delete the pipelinerun with the uid '$PIPELINERUN_UID'"
 fi
 
-echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
+divider
 
 if oc delete pvc git-workspace-eei -n $namespace; then
   echo -e "$tick INFO: Deleted the pvc 'git-workspace-eei'"
@@ -167,7 +171,7 @@ else
   echo -e "$cross ERROR: Failed to delete the pvc 'git-workspace-eei'"
 fi
 
-echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
+divider
 
 if oc delete pvc buildah-ace-rest-eei -n $namespace; then
   echo -e "$tick INFO: Deleted the pvc 'buildah-ace-rest-eei'"
@@ -175,7 +179,7 @@ else
   echo -e "$cross ERROR: Failed to delete the pvc 'buildah-ace-rest-eei'"
 fi
 
-echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
+divider
 
 if oc delete pvc buildah-ace-db-writer-eei -n $namespace; then
   echo -e "$tick INFO: Deleted the pvc 'buildah-ace-db-writer-eei'"
@@ -183,7 +187,7 @@ else
   echo -e "$cross ERROR: Failed to delete the pvc 'buildah-ace-db-writer-eei'"
 fi
 
-echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
+divider
 
 if [[ "$pipelinerunSuccess" == "false" ]]; then
   echo -e "\n$cross ERROR: The pipelinerun did not succeed\n"
@@ -196,5 +200,4 @@ else
   PC_ROUTE=$(oc get route -n $namespace projection-claims-eei --template='https://{{.spec.host}}/getalldata')
   echo -e "INFO: To view the projection claims (once the app is running), navigate to:\n${PC_ROUTE}\n"
 fi
-
-echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------"
+divider

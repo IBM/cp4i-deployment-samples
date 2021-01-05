@@ -4,7 +4,6 @@ metadata:
   name: demos
   namespace: cp4i
 spec:
-  version: 2020.3.1
   general:
     storage:
       block:
@@ -13,5 +12,4 @@ spec:
         class: ibmc-file-gold-gid
     samplesRepoBranch: main
   demos:
-    cognitiveCarRepair:
-      enabled: true
+    cognitiveCarRepair: true

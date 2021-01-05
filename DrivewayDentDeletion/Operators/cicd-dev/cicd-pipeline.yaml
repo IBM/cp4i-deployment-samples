@@ -60,7 +60,7 @@ spec:
         - name: imageName
           value: "mq-ddd"
         - name: releaseName
-          value: "mq-ddd-qm"
+          value: "mq-ddd-qm-dev"
         - name: releaseScript
           value: release-mq.sh
         - name: namespace
@@ -79,7 +79,7 @@ spec:
         - name: imageTag
           value: "$(params.imageTag)"
         - name: imageName
-          value: "ace-api"
+          value: "ddd-ace-api"
         - name: dockerfile
           value: "ACE-API.Dockerfile"
         - name: contextPath
@@ -89,6 +89,7 @@ spec:
       workspaces:
         - name: git-source
           workspace: git-source
+
     - name: build-ace-int-server-ace-acme
       runAfter:
         - clone-git-source
@@ -98,7 +99,7 @@ spec:
         - name: imageTag
           value: "$(params.imageTag)"
         - name: imageName
-          value: "ace-acme"
+          value: "ddd-ace-acme"
         - name: dockerfile
           value: "ACE-Acme.Dockerfile"
         - name: contextPath
@@ -108,6 +109,7 @@ spec:
       workspaces:
         - name: git-source
           workspace: git-source
+
     - name: build-ace-int-server-ace-bernie
       runAfter:
         - clone-git-source
@@ -117,7 +119,7 @@ spec:
         - name: imageTag
           value: "$(params.imageTag)"
         - name: imageName
-          value: "ace-bernie"
+          value: "ddd-ace-bernie"
         - name: dockerfile
           value: "ACE-Bernie.Dockerfile"
         - name: contextPath
@@ -127,6 +129,7 @@ spec:
       workspaces:
         - name: git-source
           workspace: git-source
+
     - name: build-ace-int-server-ace-chris
       runAfter:
         - clone-git-source
@@ -136,7 +139,7 @@ spec:
         - name: imageTag
           value: "$(params.imageTag)"
         - name: imageName
-          value: "ace-chris"
+          value: "ddd-ace-chris"
         - name: dockerfile
           value: "ACE-Chris.Dockerfile"
         - name: contextPath
@@ -157,16 +160,19 @@ spec:
         - name: imageTag
           value: "$(params.imageTag)"
         - name: imageName
-          value: "ace-api"
+          value: "ddd-ace-api"
         - name: releaseName
-          value: "ace-api-int-srv"
+          value: "ddd-dev-ace-api"
         - name: releaseScript
           value: release-ace-integration-server.sh
         - name: namespace
           value: "{{NAMESPACE}}"
+        - name: acePolicyProjectParam
+          value: "-d policyproject-ddd-dev"
       workspaces:
         - name: git-source
           workspace: git-source
+
     - name: deploy-wait-ace-bernie
       runAfter:
         - build-ace-int-server-ace-bernie
@@ -176,16 +182,19 @@ spec:
         - name: imageTag
           value: "$(params.imageTag)"
         - name: imageName
-          value: "ace-bernie"
+          value: "ddd-ace-bernie"
         - name: releaseName
-          value: "ace-bernie-int-srv"
+          value: "ddd-dev-ace-bernie"
         - name: releaseScript
           value: release-ace-integration-server.sh
         - name: namespace
           value: "{{NAMESPACE}}"
+        - name: acePolicyProjectParam
+          value: "-d policyproject-ddd-dev"
       workspaces:
         - name: git-source
           workspace: git-source
+
     - name: deploy-wait-ace-acme
       runAfter:
         - build-ace-int-server-ace-acme
@@ -195,16 +204,19 @@ spec:
         - name: imageTag
           value: "$(params.imageTag)"
         - name: imageName
-          value: "ace-acme"
+          value: "ddd-ace-acme"
         - name: releaseName
-          value: "ace-acme-int-srv"
+          value: "ddd-dev-ace-acme"
         - name: releaseScript
           value: release-ace-integration-server.sh
         - name: namespace
           value: "{{NAMESPACE}}"
+        - name: acePolicyProjectParam
+          value: "-d policyproject-ddd-dev"
       workspaces:
         - name: git-source
           workspace: git-source
+
     - name: deploy-wait-ace-chris
       runAfter:
         - build-ace-int-server-ace-chris
@@ -214,13 +226,15 @@ spec:
         - name: imageTag
           value: "$(params.imageTag)"
         - name: imageName
-          value: "ace-chris"
+          value: "ddd-ace-chris"
         - name: releaseName
-          value: "ace-chris-int-srv"
+          value: "ddd-dev-ace-chris"
         - name: releaseScript
           value: release-ace-integration-server.sh
         - name: namespace
           value: "{{NAMESPACE}}"
+        - name: acePolicyProjectParam
+          value: "-d policyproject-ddd-dev"
       workspaces:
         - name: git-source
           workspace: git-source
