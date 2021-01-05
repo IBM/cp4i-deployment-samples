@@ -153,4 +153,4 @@ done
 # test namespace
 echo "Creating secret in ${apps_namespace} namespace"
 chmod +x /tmp/commands.sh
-. /tmp/commands.sh
+cd /tmp && ./commands.sh
