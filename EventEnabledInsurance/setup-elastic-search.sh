@@ -14,8 +14,6 @@
 # PARAMETERS:
 #   -e : <ELASTIC_NAMESPACE> (string), Defaults to 'elasticsearch', the namespace where elastic search is installed to
 #   -n : <NAMESPACE> (string), Defaults to 'cp4i'
-#   -m : <metadata_name> (string)
-#   -u : <metadata_uid> (string)
 #
 #   With defaults values
 #     ./setup-elastic-search.sh
@@ -23,12 +21,9 @@
 #   With overridden values
 #     ./setup-elastic-search.sh -n <NAMESPACE> -e <ELASTIC_NAMESPACE>
 #
-#   To add ownerReferences for the demos operator
-#     ./release-ace-dashboard.sh -m metadata_name -u metadata_uid
-
 
 function usage() {
-  echo "Usage: $0 -n <NAMESPACE> -e <ELASTIC_NAMESPACE> -m <metadata_name> -u <metadata_uid>"
+  echo "Usage: $0 -n <NAMESPACE> -e <ELASTIC_NAMESPACE>"
   exit 1
 }
 
@@ -48,12 +43,6 @@ while getopts "n:e:m:u:" opt; do
     ;;
   e)
     ELASTIC_NAMESPACE="$OPTARG"
-    ;;
-  m)
-    metadata_name="$OPTARG"
-    ;;
-  u)
-    metadata_uid="$OPTARG"
     ;;
   \?)
     usage
@@ -155,6 +144,12 @@ echo -e "\n---------------------------------------------------------------------
 wait_for_subscription $ELASTIC_NAMESPACE $ELASTIC_SUBSCRIPTION_NAME
 
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
+
+json=$(oc get configmap -n $namespace operator-info -o json)
+if [[ $? == 0 ]]; then
+  METADATA_NAME = $(oc get configmap -n $namespace operator-info -o json | jq -r '.data.METADATA_NAME')
+  METADATA_UID = $(oc get configmap -n $namespace operator-info -o json | jq -r '.data.METADATA_UID')
+fi
 
 cat <<EOF | oc apply -f -
 apiVersion: elasticsearch.k8s.elastic.co/v1
