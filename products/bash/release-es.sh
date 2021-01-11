@@ -55,8 +55,8 @@ done
 
 json=$(oc get configmap -n $namespace operator-info -o json)
 if [[ $? == 0 ]]; then
-  METADATA_NAME = $(oc get configmap -n $namespace operator-info -o json | jq -r '.data.METADATA_NAME')
-  METADATA_UID = $(oc get configmap -n $namespace operator-info -o json | jq -r '.data.METADATA_UID')
+  METADATA_NAME=$(oc get configmap -n $namespace operator-info -o json | jq -r '.data.METADATA_NAME')
+  METADATA_UID=$(oc get configmap -n $namespace operator-info -o json | jq -r '.data.METADATA_UID')
 fi
 
 if [ "$production" == "true" ]; then
