@@ -565,7 +565,7 @@ for EACH_ADDON in $(echo $REQUIRED_ADDONS_JSON | jq -r '. | keys[]'); do
 
   elasticSearch)
     echo -e "$INFO [INFO] Setting up elastic search operator and elastic search instance in the '$NAMESPACE' namespace..."
-    if ! $SCRIPT_DIR/../../EventEnabledInsurance/setup-elastic-search.sh -n "$NAMESPACE" -e "$NAMESPACE" -m "$METADATA_NAME" -u "$METADATA_UID"; then
+    if ! $SCRIPT_DIR/../../EventEnabledInsurance/setup-elastic-search.sh -n "$NAMESPACE" -e "$NAMESPACE"; then
       update_conditions "Failed to install and configure elastic search in the '$NAMESPACE' namespace" "Releasing"
       update_phase "Failed"
       FAILED_INSTALL_ADDONS_LIST+=($EACH_ADDON)
@@ -624,9 +624,9 @@ for EACH_PRODUCT in $(echo "${REQUIRED_PRODUCTS_JSON}" | jq -r '. | keys[]'); do
   mq)
     # if to enable or disable tracing while releasing MQ
     if [[ "$TRACING_ENABLED" == "true" ]]; then
-      RELEASE_MQ_PARAMS="-n '$NAMESPACE' -z '$NAMESPACE' -r '$MQ_RELEASE_NAME' -m '$METADATA_NAME' -u '$METADATA_UID' -t"
+      RELEASE_MQ_PARAMS="-n '$NAMESPACE' -z '$NAMESPACE' -r '$MQ_RELEASE_NAME' -t"
     else
-      RELEASE_MQ_PARAMS="-n '$NAMESPACE' -r '$MQ_RELEASE_NAME' -m '$METADATA_NAME' -u '$METADATA_UID'"
+      RELEASE_MQ_PARAMS="-n '$NAMESPACE' -r '$MQ_RELEASE_NAME'"
     fi
 
     echo -e "$INFO [INFO] Releasing MQ $ECHO_LINE '$MQ_RELEASE_NAME' with release parameters as '$RELEASE_APIC_PARAMS'...\n"
@@ -644,7 +644,7 @@ for EACH_PRODUCT in $(echo "${REQUIRED_PRODUCTS_JSON}" | jq -r '. | keys[]'); do
 
   aceDesigner)
     echo -e "$INFO [INFO] Releasing ACE Designer $ECHO_LINE '$ACE_DESIGNER_RELEASE_NAME'...\n"
-    if ! $SCRIPT_DIR/release-ace-designer.sh -n "$NAMESPACE" -r "$ACE_DESIGNER_RELEASE_NAME" -s "$BLOCK_STORAGE_CLASS" -m "$METADATA_NAME" -u "$METADATA_UID"; then
+    if ! $SCRIPT_DIR/release-ace-designer.sh -n "$NAMESPACE" -r "$ACE_DESIGNER_RELEASE_NAME" -s "$BLOCK_STORAGE_CLASS"; then
       update_conditions "Failed to release ACE Designer $ECHO_LINE '$ACE_DESIGNER_RELEASE_NAME'" "Releasing"
       update_phase "Failed"
       FAILED_INSTALL_PRODUCTS_LIST+=($EACH_PRODUCT)
@@ -670,7 +670,7 @@ for EACH_PRODUCT in $(echo "${REQUIRED_PRODUCTS_JSON}" | jq -r '. | keys[]'); do
 
   aceDashboard)
     echo -e "$INFO [INFO] Releasing ACE dashboard $ECHO_LINE '$ACE_DASHBOARD_RELEASE_NAME'...\n"
-    if ! $SCRIPT_DIR/release-ace-dashboard.sh -n "$NAMESPACE" -r "$ACE_DASHBOARD_RELEASE_NAME" -s "$FILE_STORAGE_CLASS" -m "$METADATA_NAME" -u "$METADATA_UID"; then
+    if ! $SCRIPT_DIR/release-ace-dashboard.sh -n "$NAMESPACE" -r "$ACE_DASHBOARD_RELEASE_NAME" -s "$FILE_STORAGE_CLASS"; then
       update_conditions "Failed to release ACE dashboard $ECHO_LINE '$ACE_DASHBOARD_RELEASE_NAME'" "Releasing"
       update_phase "Failed"
       FAILED_INSTALL_PRODUCTS_LIST+=($EACH_PRODUCT)
@@ -691,9 +691,9 @@ for EACH_PRODUCT in $(echo "${REQUIRED_PRODUCTS_JSON}" | jq -r '. | keys[]'); do
 
     # check if to enable or disable tracing while releasing APIC
     if [[ "$TRACING_ENABLED" == "true" ]]; then
-      RELEASE_APIC_PARAMS="-n '$NAMESPACE' -r '$APIC_RELEASE_NAME' -m '$METADATA_NAME' -u '$METADATA_UID' -t"
+      RELEASE_APIC_PARAMS="-n '$NAMESPACE' -r '$APIC_RELEASE_NAME' -t"
     else
-      RELEASE_APIC_PARAMS="-n '$NAMESPACE' -r '$APIC_RELEASE_NAME' -m '$METADATA_NAME' -u '$METADATA_UID'"
+      RELEASE_APIC_PARAMS="-n '$NAMESPACE' -r '$APIC_RELEASE_NAME'"
     fi
 
     echo -e "$INFO [INFO] Releasing APIC $ECHO_LINE '$APIC_RELEASE_NAME' with release parameters as '$RELEASE_APIC_PARAMS'...\n"
@@ -711,7 +711,7 @@ for EACH_PRODUCT in $(echo "${REQUIRED_PRODUCTS_JSON}" | jq -r '. | keys[]'); do
 
   eventStreams)
     echo -e "$INFO [INFO] Releasing Event Streams $ECHO_LINE '$EVENT_STREAM_RELEASE_NAME'...\n"
-    if ! $SCRIPT_DIR/release-es.sh -n "$NAMESPACE" -r "$EVENT_STREAM_RELEASE_NAME" -m "$METADATA_NAME" -u "$METADATA_UID"; then
+    if ! $SCRIPT_DIR/release-es.sh -n "$NAMESPACE" -r "$EVENT_STREAM_RELEASE_NAME"; then
       update_conditions "Failed to release $ECHO_LINE '$EVENT_STREAM_RELEASE_NAME'" "Releasing"
       update_phase "Failed"
       FAILED_INSTALL_PRODUCTS_LIST+=($EACH_PRODUCT)
@@ -724,7 +724,7 @@ for EACH_PRODUCT in $(echo "${REQUIRED_PRODUCTS_JSON}" | jq -r '. | keys[]'); do
 
   tracing)
     echo -e "$INFO [INFO] Releasing tracing $ECHO_LINE '$TRACING_RELEASE_NAME'...\n"
-    if ! $SCRIPT_DIR/release-tracing.sh -n "$NAMESPACE" -r "$TRACING_RELEASE_NAME" -b "$BLOCK_STORAGE_CLASS" -f "$FILE_STORAGE_CLASS" -m "$METADATA_NAME" -u "$METADATA_UID"; then
+    if ! $SCRIPT_DIR/release-tracing.sh -n "$NAMESPACE" -r "$TRACING_RELEASE_NAME" -b "$BLOCK_STORAGE_CLASS" -f "$FILE_STORAGE_CLASS"; then
       update_conditions "Failed to release Tracing $ECHO_LINE '$TRACING_RELEASE_NAME'" "Releasing"
       update_phase "Failed"
       FAILED_INSTALL_PRODUCTS_LIST+=($EACH_PRODUCT)
