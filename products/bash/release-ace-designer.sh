@@ -30,7 +30,7 @@ function usage() {
 namespace="cp4i"
 designer_release_name="ace-designer-demo"
 storage="ibmc-block-gold"
-while getopts "n:r:s:m:u:" opt; do
+while getopts "n:r:s:" opt; do
   case ${opt} in
   n)
     namespace="$OPTARG"

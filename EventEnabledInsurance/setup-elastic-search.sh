@@ -36,7 +36,7 @@ NAMESPACE="cp4i"
 ELASTIC_NAMESPACE="elasticsearch"
 ELASTIC_SUBSCRIPTION_NAME="elastic-cloud-eck"
 
-while getopts "n:e:m:u:" opt; do
+while getopts "n:e:" opt; do
   case ${opt} in
   n)
     NAMESPACE="$OPTARG"

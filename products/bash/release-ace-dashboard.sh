@@ -31,7 +31,7 @@ namespace="cp4i"
 dashboard_release_name="ace-dashboard-demo"
 storage="ibmc-file-gold-gid"
 production="false"
-while getopts "n:r:s:m:u:p" opt; do
+while getopts "n:r:s:p" opt; do
   case ${opt} in
   n)
     namespace="$OPTARG"

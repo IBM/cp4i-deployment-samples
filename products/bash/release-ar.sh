@@ -32,7 +32,7 @@ release_name="demo"
 assetDataVolume="ibmc-file-gold-gid"
 couchVolume="ibmc-block-gold"
 
-while getopts "n:r:a:c:m:u:" opt; do
+while getopts "n:r:a:c:" opt; do
   case ${opt} in
   n)
     namespace="$OPTARG"
