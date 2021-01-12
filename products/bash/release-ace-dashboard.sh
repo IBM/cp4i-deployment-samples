@@ -64,12 +64,25 @@ if [[ "$production" == "true" ]]; then
 
 fi
 
+json=$(oc get configmap -n $namespace operator-info -o json)
+if [[ $? == 0 ]]; then
+  METADATA_NAME=$(echo $json | tr '\r\n' ' ' | jq -r '.data.METADATA_NAME')
+  METADATA_UID=$(echo $json | tr '\r\n' ' ' | jq -r '.data.METADATA_UID')
+fi
+
 cat <<EOF | oc apply -f -
 apiVersion: appconnect.ibm.com/v1beta1
 kind: Dashboard
 metadata:
   name: ${dashboard_release_name}
   namespace: ${namespace}
+  $(if [[ ! -z ${METADATA_UID} && ! -z ${METADATA_NAME} ]]; then
+  echo "ownerReferences:
+    - apiVersion: integration.ibm.com/v1beta1
+      kind: Demo
+      name: ${METADATA_NAME}
+      uid: ${METADATA_UID}"
+  fi)
 spec:
   license:
     accept: true

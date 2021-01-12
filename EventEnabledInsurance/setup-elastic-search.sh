@@ -20,6 +20,7 @@
 #
 #   With overridden values
 #     ./setup-elastic-search.sh -n <NAMESPACE> -e <ELASTIC_NAMESPACE>
+#
 
 function usage() {
   echo "Usage: $0 -n <NAMESPACE> -e <ELASTIC_NAMESPACE>"
@@ -144,12 +145,25 @@ wait_for_subscription $ELASTIC_NAMESPACE $ELASTIC_SUBSCRIPTION_NAME
 
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
+json=$(oc get configmap -n $NAMESPACE operator-info -o json)
+if [[ $? == 0 ]]; then
+  METADATA_NAME=$(echo $json | tr '\r\n' ' ' | jq -r '.data.METADATA_NAME')
+  METADATA_UID=$(echo $json | tr '\r\n' ' ' | jq -r '.data.METADATA_UID')
+fi
+
 cat <<EOF | oc apply -f -
 apiVersion: elasticsearch.k8s.elastic.co/v1
 kind: Elasticsearch
 metadata:
   name: $ELASTIC_CR_NAME
   namespace: $ELASTIC_NAMESPACE
+  $(if [[ ! -z ${metadata_uid} && ! -z ${metadata_name} ]]; then
+  echo "ownerReferences:
+    - apiVersion: integration.ibm.com/v1beta1
+      kind: Demo
+      name: ${metadata_name}
+      uid: ${metadata_uid}"
+  fi)
 spec:
   version: 7.9.1
   http:
@@ -218,24 +232,22 @@ echo -e "\n---------------------------------------------------------------------
 
 ELASTIC_PASSWORD=$(oc get secret $ELASTIC_CR_NAME-es-elastic-user -n $ELASTIC_NAMESPACE -o go-template='{{.data.elastic | base64decode}}')
 ELASTIC_USER="elastic"
-echo -e "INFO: Got the password for elastic search..."
 
 echo -e "\nINFO: Creating secret for elastic search connector"
-oc get secret -n ${ELASTIC_NAMESPACE} $ELASTIC_CR_NAME-es-http-certs-public -o json | jq -r '.data["ca.crt"]' | base64 --decode >ca.crt
-rm elastic-ts.jks
+oc get secret -n ${ELASTIC_NAMESPACE} $ELASTIC_CR_NAME-es-http-certs-public -o json | jq -r '.data["ca.crt"]' | base64 --decode >/tmp/ca.crt
+rm /tmp/elastic-ts.jks
 
 TRUSTSTORE_PASSWORD=$(
   LC_ALL=C tr -dc 'A-Za-z0-9' </dev/urandom | head -c 32
   echo
 )
-keytool -import -file ca.crt -alias elasticCA -keystore elastic-ts.jks -storepass "$TRUSTSTORE_PASSWORD" -noprompt
-
+keytool -import -file /tmp/ca.crt -alias elasticCA -keystore /tmp/elastic-ts.jks -storepass "$TRUSTSTORE_PASSWORD" -noprompt
 if [[ "$OSTYPE" == "linux-gnu"* ]]; then
   echo "INFO: Elastic base64 command for linux"
-  BASE64_TS="$(base64 -w0 elastic-ts.jks)"
+  BASE64_TS="$(base64 -w0 /tmp/elastic-ts.jks)"
 elif [[ "$OSTYPE" == "darwin"* ]]; then
   echo "INFO: Elastic base64 command for MAC"
-  BASE64_TS="$(base64 elastic-ts.jks)"
+  BASE64_TS="$(base64 /tmp/elastic-ts.jks)"
 fi
 
 cat <<EOF | oc apply -f -

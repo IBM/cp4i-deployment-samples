@@ -527,6 +527,21 @@ fi
 
 check_phase_and_exit_on_failed
 
+METADATA_NAME=$(oc get demo -n $NAMESPACE -o jsonpath='{.items[0].metadata.name}')
+METADATA_UID=$(oc get demo -n $NAMESPACE $METADATA_NAME -o json | jq -r '.metadata.uid')
+
+if [[ $METADATA_NAME && $METADATA_UID != '' ]]; then
+  cat <<EOF | oc apply --namespace ${NAMESPACE} -f -
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: operator-info
+data:
+  METADATA_NAME: ${METADATA_NAME}
+  METADATA_UID: ${METADATA_UID}
+EOF
+fi
+
 # -------------------------------------------------------------------------------------------------------------------
 # Setup and configure the required addons
 # -------------------------------------------------------------------------------------------------------------------
@@ -611,9 +626,9 @@ for EACH_PRODUCT in $(echo "${REQUIRED_PRODUCTS_JSON}" | jq -r '. | keys[]'); do
   mq)
     # if to enable or disable tracing while releasing MQ
     if [[ "$TRACING_ENABLED" == "true" ]]; then
-      RELEASE_MQ_PARAMS="-n '$NAMESPACE' -z '$NAMESPACE' -r '$MQ_RELEASE_NAME' -t"
+      RELEASE_MQ_PARAMS="-n $NAMESPACE -z $NAMESPACE -r $MQ_RELEASE_NAME -t"
     else
-      RELEASE_MQ_PARAMS="-n '$NAMESPACE' -r '$MQ_RELEASE_NAME'"
+      RELEASE_MQ_PARAMS="-n $NAMESPACE -r $MQ_RELEASE_NAME"
     fi
 
     echo -e "$INFO [INFO] Releasing MQ $ECHO_LINE '$MQ_RELEASE_NAME' with release parameters as '$RELEASE_APIC_PARAMS'...\n"
@@ -678,9 +693,9 @@ for EACH_PRODUCT in $(echo "${REQUIRED_PRODUCTS_JSON}" | jq -r '. | keys[]'); do
 
     # check if to enable or disable tracing while releasing APIC
     if [[ "$TRACING_ENABLED" == "true" ]]; then
-      RELEASE_APIC_PARAMS="-n '$NAMESPACE' -r '$APIC_RELEASE_NAME' -t"
+      RELEASE_APIC_PARAMS="-n $NAMESPACE -r $APIC_RELEASE_NAME -t"
     else
-      RELEASE_APIC_PARAMS="-n '$NAMESPACE' -r '$APIC_RELEASE_NAME'"
+      RELEASE_APIC_PARAMS="-n $NAMESPACE -r $APIC_RELEASE_NAME"
     fi
 
     echo -e "$INFO [INFO] Releasing APIC $ECHO_LINE '$APIC_RELEASE_NAME' with release parameters as '$RELEASE_APIC_PARAMS'...\n"

@@ -22,7 +22,7 @@
 #     ./release-apic.sh
 #
 #   Overriding the namespace and release-name
-#     ./release-apic -n cp4i-prod -r prod
+#     ./release-apic.sh -n cp4i-prod -r prod
 
 function usage() {
   echo "Usage: $0 -n <namespace> -r <release-name> [-t]"
@@ -60,12 +60,25 @@ if [[ "$production" == "true" ]]; then
   profile="n12xc4.m12"
 fi
 
+json=$(oc get configmap -n $namespace operator-info -o json)
+if [[ $? == 0 ]]; then
+  METADATA_NAME=$(echo $json | tr '\r\n' ' ' | jq -r '.data.METADATA_NAME')
+  METADATA_UID=$(echo $json | tr '\r\n' ' ' | jq -r '.data.METADATA_UID')
+fi
+
 cat <<EOF | oc apply -f -
 apiVersion: apiconnect.ibm.com/v1beta1
 kind: APIConnectCluster
 metadata:
   name: ${release_name}
   namespace: ${namespace}
+  $(if [[ ! -z ${METADATA_UID} && ! -z ${METADATA_NAME} ]]; then
+  echo "ownerReferences:
+    - apiVersion: integration.ibm.com/v1beta1
+      kind: Demo
+      name: ${METADATA_NAME}
+      uid: ${METADATA_UID}"
+  fi)
   labels:
     app.kubernetes.io/instance: apiconnect
     app.kubernetes.io/managed-by: ibm-apiconnect
