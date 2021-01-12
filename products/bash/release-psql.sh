@@ -55,10 +55,6 @@ EOF
 
 oc create namespace ${POSTGRES_NAMESPACE}
 
-echo "checking tmp dir"
-
-ls -al /tmp
-
 echo "INFO: oc process -n openshift postgresql-persistent --param-file=/tmp/postgres.env | oc apply -n ${POSTGRES_NAMESPACE} -f -"
 oc process -n openshift postgresql-persistent --param-file=/tmp/postgres.env | oc apply -n ${POSTGRES_NAMESPACE} -f -
 
