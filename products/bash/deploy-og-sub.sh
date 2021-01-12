@@ -227,7 +227,7 @@ echo "INFO: Wait for all subscriptions to succeed"
 wait_for_all_subscriptions ${namespace}
 
 if [[ $(echo "$CLUSTER_TYPE" | tr '[:upper:]' '[:lower:]') == "roks" ]]; then
-  # Wait for upto 10 minutes for the OperandConfig to appear in the common services namespace for a ROKS cluster
+  # Wait for up to 10 minutes for the OperandConfig to appear in the common services namespace for a ROKS cluster
   time=0
   while [ "$(oc get OperandConfig -n ibm-common-services | sed -n 2p | awk '{print $1}')" != "common-service" ]; do
     if [ $time -gt 10 ]; then
