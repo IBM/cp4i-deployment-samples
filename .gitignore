@@ -40,3 +40,7 @@ server.conf.yaml
 # products/bash temp files
 commands.sh
 icp4i-od-cacert.pem
+
+# setup demo temp files
+demos-backup.json
+demos.json-e

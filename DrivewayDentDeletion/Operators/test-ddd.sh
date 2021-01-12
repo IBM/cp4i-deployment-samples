@@ -16,13 +16,15 @@
 #   -n : <NAMESPACE> (string), namespace for the e2e test for DDD. Defaults to "cp4i"
 #   -r : <REPO> (string), Defaults to 'https://github.com/IBM/cp4i-deployment-samples.git'
 #   -b : <BRANCH> (string), Defaults to 'main'
+#   -f : <DEFAULT_FILE_STORAGE> (string), Default to 'ibmc-file-gold-gid'
+#   -g : <DEFAULT_BLOCK_STORAGE> (string), Default to 'cp4i-block-performance'
 #
 # USAGE:
 #   With defaults values
 #     ./test-ddd.sh
 #
 #   Overriding the default parameters
-#     ./test-ddd.sh -n <NAMESPACE> -r <FORKED_REPO> -b <BRANCH>
+#     ./test-ddd.sh -n <NAMESPACE> -r <REPO> -b <BRANCH> -f <DEFAULT_FILE_STORAGE> -g <DEFAULT_BLOCK_STORAGE>
 #
 
 function divider() {
@@ -30,7 +32,7 @@ function divider() {
 }
 
 function usage() {
-  echo -e "\nUsage: $0 -n <NAMESPACE> -r <FORKED_REPO> -b <BRANCH>"
+  echo -e "\nUsage: $0 -n <NAMESPACE> -r <REPO> -b <BRANCH> -f <DEFAULT_FILE_STORAGE> -g <DEFAULT_BLOCK_STORAGE>"
   divider
   exit 1
 }
@@ -46,8 +48,10 @@ BRANCH="main"
 FORKED_REPO="https://github.com/IBM/cp4i-deployment-samples.git"
 TKN_INSTALLED=false
 JQ_INSTALLED=false
+DEFAULT_FILE_STORAGE="ibmc-file-gold-gid"
+DEFAULT_BLOCK_STORAGE="cp4i-block-performance"
 
-while getopts "n:r:b:" opt; do
+while getopts "n:r:b:f:g:" opt; do
   case ${opt} in
   n)
     NAMESPACE="$OPTARG"
@@ -57,6 +61,12 @@ while getopts "n:r:b:" opt; do
     ;;
   b)
     BRANCH="$OPTARG"
+    ;;
+  f)
+    DEFAULT_FILE_STORAGE="$OPTARG"
+    ;;
+  g)
+    DEFAULT_BLOCK_STORAGE="$OPTARG"
     ;;
   \?)
     usage
@@ -77,6 +87,16 @@ fi
 if [[ -z "${BRANCH// /}" ]]; then
   echo -e "$CROSS [ERROR] Driveway Dent deletion testing branch is empty. Please provide a value for '-b' parameter."
   missingParams="true"
+fi
+
+if [[ -z "${DEFAULT_FILE_STORAGE// /}" ]]; then
+  echo -e "$CROSS [ERROR] Driveway Dent deletion file storage type is empty. Please provide a value for '-f' parameter."
+  MISSING_PARAMS="true"
+fi
+
+if [[ -z "${DEFAULT_BLOCK_STORAGE// /}" ]]; then
+  echo -e "$CROSS [ERROR] Driveway Dent deletion block storage type is empty. Please provide a value for '-g' parameter."
+  MISSING_PARAMS="true"
 fi
 
 if [[ "$missingParams" == "true" ]]; then
@@ -165,6 +185,8 @@ echo -e "$INFO Current directory: $CURRENT_DIR"
 echo -e "$INFO Driveway Dent deletion testing namespace: $NAMESPACE"
 echo -e "$INFO Driveway Dent deletion testing repository: $FORKED_REPO"
 echo -e "$INFO Driveway Dent deletion testing branch: $BRANCH"
+echo -e "$INFO Driveway Dent deletion testing block storage class: '$DEFAULT_BLOCK_STORAGE'"
+echo -e "$INFO Driveway Dent deletion testing file storage class: '$DEFAULT_FILE_STORAGE'"
 divider
 
 oc project $NAMESPACE
@@ -244,7 +266,7 @@ divider
 # -------------------------------------------- DEV PIPELINE RUN -----------------------------------------------------------
 
 echo -e "$INFO [INFO] Applying the dev pipeline resources...\n"
-if ! $CURRENT_DIR/cicd-apply-dev-pipeline.sh -n $NAMESPACE -r $FORKED_REPO -b $BRANCH; then
+if ! $CURRENT_DIR/cicd-apply-dev-pipeline.sh -n "$NAMESPACE" -r "$FORKED_REPO" -b "$BRANCH" -f "$DEFAULT_FILE_STORAGE" -g "$DEFAULT_BLOCK_STORAGE"; then
   echo -e "$CROSS [ERROR] Could not apply the dev pipeline resources."
   exit 1
 fi
@@ -256,7 +278,7 @@ run_continuous_load_script "$NAMESPACE" "false" "dev" "dev"
 # -------------------------------------------- TEST PIPELINE RUN ----------------------------------------------------------
 
 echo -e "$INFO [INFO] Applying the test pipeline resources...\n"
-if ! $CURRENT_DIR/cicd-apply-test-pipeline.sh -n $NAMESPACE -r $FORKED_REPO -b $BRANCH; then
+if ! $CURRENT_DIR/cicd-apply-test-pipeline.sh -n "$NAMESPACE" -r "$FORKED_REPO" -b "$BRANCH" -f "$DEFAULT_FILE_STORAGE" -g "$DEFAULT_BLOCK_STORAGE"; then
   echo -e "$CROSS [ERROR] Could not apply the test pipeline resources."
   exit 1
 fi
@@ -270,7 +292,7 @@ run_continuous_load_script "$NAMESPACE" "false" "test" "test"
 # -------------------------------------------- TEST APIC PIPELINE RUN -----------------------------------------------------
 
 echo -e "$INFO [INFO] Applying the test apic pipeline resources...\n"
-if ! $CURRENT_DIR/cicd-apply-test-apic-pipeline.sh -n $NAMESPACE -r $FORKED_REPO -b $BRANCH; then
+if ! $CURRENT_DIR/cicd-apply-test-apic-pipeline.sh -n "$NAMESPACE" -r "$FORKED_REPO" -b "$BRANCH" -f "$DEFAULT_FILE_STORAGE" -g "$DEFAULT_BLOCK_STORAGE"; then
   echo -e "$CROSS [ERROR] Could not apply the test apic pipeline resources."
   exit 1
 fi

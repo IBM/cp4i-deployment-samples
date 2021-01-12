@@ -137,7 +137,7 @@ done
 echo "Running registration jar"
 # Loop/retry here, job to request registration may not have run yet
 for i in $(seq 1 60); do
-  if oc exec -n ${namespace} ${TRACING_POD} -c ui-manager -- java -cp /usr/local/tomee/derby/derbyclient.jar:/tmp/${JAR} org.montier.tracing.demo.NameSpaceAutoRegistration ${apps_namespace} >commands.sh; then
+  if oc exec -n ${namespace} ${TRACING_POD} -c ui-manager -- java -cp /usr/local/tomee/derby/derbyclient.jar:/tmp/${JAR} org.montier.tracing.demo.NameSpaceAutoRegistration ${apps_namespace} > /tmp/commands.sh; then
     echo "Registration successful"
     break
   else
@@ -152,5 +152,5 @@ done
 
 # test namespace
 echo "Creating secret in ${apps_namespace} namespace"
-chmod +x ./commands.sh
-. ./commands.sh
+chmod +x /tmp/commands.sh
+cd /tmp && ./commands.sh

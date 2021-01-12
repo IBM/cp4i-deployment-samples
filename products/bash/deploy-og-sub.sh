@@ -184,7 +184,8 @@ spec:
 EOF
 }
 
-cat <<EOF | oc apply -f -
+if [[ "$CLUSTER_SCOPED" == "false" ]]; then
+  cat <<EOF | oc apply -f -
 apiVersion: operators.coreos.com/v1
 kind: OperatorGroup
 metadata:
@@ -194,6 +195,7 @@ spec:
   targetNamespaces:
     - ${namespace}
 EOF
+fi
 
 # Create the subscription for navigator. This needs to be before APIC (ibm-apiconnect)
 # so APIC knows it's running in CP4I and before tracing (ibm-integration-operations-dashboard)
@@ -224,17 +226,19 @@ create_subscription ${namespace} "ibm-operator-catalog" "ibm-integration-operati
 echo "INFO: Wait for all subscriptions to succeed"
 wait_for_all_subscriptions ${namespace}
 
-# Wait for upto 10 minutes for the OperandConfig to appear in the common services namespace
-time=0
-while [ "$(oc get OperandConfig -n ibm-common-services | sed -n 2p | awk '{print $1}')" != "common-service" ]; do
-  if [ $time -gt 10 ]; then
-    echo "ERROR: Exiting installation as OperandConfig 'common-services is not found'"
-    exit 1
-  fi
-  echo "INFO: Waiting up to 10 minutes for OperandConfig 'common-services' to be available. Waited ${time} minute(s)."
-  time=$((time + 1))
-  sleep 60
-done
-echo "INFO: Operand config common-services found: $(oc get OperandConfig -n ibm-common-services | sed -n 2p | awk '{print $1}')"
-echo "INFO: Proceeding with updating the OperandConfig to enable Openshift Authentication..."
-IAM_Update_OperandConfig
+if [[ $(echo "$CLUSTER_TYPE" | tr '[:upper:]' '[:lower:]') == "roks" ]]; then
+  # Wait for up to 10 minutes for the OperandConfig to appear in the common services namespace for a ROKS cluster
+  time=0
+  while [ "$(oc get OperandConfig -n ibm-common-services | sed -n 2p | awk '{print $1}')" != "common-service" ]; do
+    if [ $time -gt 10 ]; then
+      echo "ERROR: Exiting installation as OperandConfig 'common-services is not found'"
+      exit 1
+    fi
+    echo "INFO: Waiting up to 10 minutes for OperandConfig 'common-services' to be available. Waited ${time} minute(s)."
+    time=$((time + 1))
+    sleep 60
+  done
+  echo "INFO: Operand config common-services found: $(oc get OperandConfig -n ibm-common-services | sed -n 2p | awk '{print $1}')"
+  echo "INFO: Proceeding with updating the OperandConfig to enable Openshift Authentication..."
+  IAM_Update_OperandConfig
+fi

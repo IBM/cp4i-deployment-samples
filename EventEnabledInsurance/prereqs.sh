@@ -18,19 +18,21 @@
 #   -e : <ELASTIC_NAMESPACE> (string), Namespace for elastic search , Defaults to 'elasticsearch'
 #   -p : <POSTGRES_NAMESPACE> (string), Namespace where postgres is setup, Defaults to the value of <NAMESPACE>
 #   -o : <OMIT_INITIAL_SETUP> (optional), Parameter to decide if initial setup is to be done or not, Defaults to false
+#   -f : <DEFAULT_FILE_STORAGE> (string), Default to 'ibmc-file-gold-gid'
+#   -g : <DEFAULT_BLOCK_STORAGE> (string), Default to 'cp4i-block-performance'
 #
 #   With defaults values
 #     ./prereqs.sh
 #
 #   With overridden values
-#     ./prereqs.sh -n <NAMESPACE> -r <REPO> -b <BRANCH> -e <ELASTIC_NAMESPACE> -p <POSTGRES_NAMESPACE> -o
+#     ./prereqs.sh -n <NAMESPACE> -r <REPO> -b <BRANCH> -e <ELASTIC_NAMESPACE> -p <POSTGRES_NAMESPACE>  -f <DEFAULT_FILE_STORAGE> -g <DEFAULT_BLOCK_STORAGE> -o
 
 function divider() {
   echo -e "\n-------------------------------------------------------------------------------------------------------------------\n"
 }
 
 function usage() {
-  echo "Usage: $0 -n <NAMESPACE> -r <REPO> -b <BRANCH> -e <ELASTIC_NAMESPACE> -p <POSTGRES_NAMESPACE> [-o]"
+  echo "Usage: $0 -n <NAMESPACE> -r <REPO> -b <BRANCH> -e <ELASTIC_NAMESPACE> -p <POSTGRES_NAMESPACE>  -f <DEFAULT_FILE_STORAGE> -g <DEFAULT_BLOCK_STORAGE> [-o]"
   divider
   exit 1
 }
@@ -45,10 +47,12 @@ REPO="https://github.com/IBM/cp4i-deployment-samples.git"
 BRANCH="main"
 INFO="\xE2\x84\xB9"
 MISSING_PARAMS="false"
-ELASTIC_NAMESPACE="elasticsearch"
+ELASTIC_NAMESPACE=$NAMESPACE
 OMIT_INITIAL_SETUP=false
+DEFAULT_FILE_STORAGE="ibmc-file-gold-gid"
+DEFAULT_BLOCK_STORAGE="cp4i-block-performance"
 
-while getopts "n:r:b:e:p:o" opt; do
+while getopts "n:r:b:e:p:of:g:" opt; do
   case ${opt} in
   n)
     NAMESPACE="$OPTARG"
@@ -67,6 +71,12 @@ while getopts "n:r:b:e:p:o" opt; do
     ;;
   o)
     OMIT_INITIAL_SETUP=true
+    ;;
+  f)
+    DEFAULT_FILE_STORAGE="$OPTARG"
+    ;;
+  g)
+    DEFAULT_BLOCK_STORAGE="$OPTARG"
     ;;
   \?)
     usage
@@ -99,6 +109,16 @@ if [[ -z "${POSTGRES_NAMESPACE// /}" ]]; then
   MISSING_PARAMS="true"
 fi
 
+if [[ -z "${DEFAULT_FILE_STORAGE// /}" ]]; then
+  echo -e "$CROSS [ERROR] File storage type for event enabled insurance demo is empty. Please provide a value for '-f' parameter."
+  MISSING_PARAMS="true"
+fi
+
+if [[ -z "${DEFAULT_BLOCK_STORAGE// /}" ]]; then
+  echo -e "$CROSS [ERROR] Block storage type for for event enabled insurance demo is empty. Please provide a value for '-g' parameter."
+  MISSING_PARAMS="true"
+fi
+
 if [[ "$MISSING_PARAMS" == "true" ]]; then
   divider
   usage
@@ -112,6 +132,8 @@ echo -e "$INFO [INFO] Namespace for elastic search for the event enabled insuran
 echo -e "$INFO [INFO] Suffix for the postgres for the event enabled insurance demo: '$SUFFIX'"
 echo -e "$INFO [INFO] Samples repository for the event enabled insurance demo: '$REPO'"
 echo -e "$INFO [INFO] Samples repo branch for the event enabled insurance demo: '$BRANCH'"
+echo -e "$INFO [INFO] File storage type for the event enabled insurance demo: '$DEFAULT_FILE_STORAGE'"
+echo -e "$INFO [INFO] Block storage type for the event enabled insurance demo: '$DEFAULT_BLOCK_STORAGE'"
 echo -e "$INFO [INFO] Omit initial setup for the event enabled insurance demo: '$OMIT_INITIAL_SETUP'"
 
 divider
@@ -120,7 +142,7 @@ oc project $NAMESPACE
 
 divider
 
-echo -e "[INFO] Checking if tekton-cli is pre-installed..."
+echo -e "[INFO] Checking if tekton-cli is pre-installed...\n"
 tknInstalled=false
 TKN=tkn
 $TKN version
@@ -215,7 +237,7 @@ if ! $CURRENT_DIR/../products/bash/configure-postgres-db.sh -n $POSTGRES_NAMESPA
   echo -e "$CROSS [ERROR] Failed to configure postgres in the '$NAMESPACE' namespace with the user '$DB_USER' and database name '$DB_NAME' and suffix '$SUFFIX'"
   exit 1
 else
-  echo -e "$TICK [SUCCESS] Successfully configured postgres in the '$NAMESPACE' namespace with the user '$DB_USER' and database name '$DB_NAME' and suffix '$SUFFIX'"
+  echo -e "\n$TICK [SUCCESS] Successfully configured postgres in the '$NAMESPACE' namespace with the user '$DB_USER' and database name '$DB_NAME' and suffix '$SUFFIX'"
 fi #configure-postgres-db.sh
 
 divider
@@ -297,11 +319,11 @@ fi #setup-elastic-search.sh
 divider
 
 echo -e "$INFO [INFO] Building and deploying the EEI apps ..."
-if ! $CURRENT_DIR/build/build.sh -n $NAMESPACE -r $REPO -b $BRANCH -t $TKN; then
+if ! $CURRENT_DIR/build/build.sh -n $NAMESPACE -r $REPO -b $BRANCH -t $TKN -f "$DEFAULT_FILE_STORAGE" -g "$DEFAULT_BLOCK_STORAGE"; then
   echo -e "\n$CROSS [ERROR] Failed to build/deploy the EEI apps in the '$NAMESPACE' namespace"
   exit 1
 else
-  echo -e "\n$TICK [SUCCESS] Successfully built and deployed the EEI apps in the '$NAMESPACE' namespace"
+  echo -e "$TICK [SUCCESS] Successfully built and deployed the EEI apps in the '$NAMESPACE' namespace"
 fi #build/build.sh
 
 divider

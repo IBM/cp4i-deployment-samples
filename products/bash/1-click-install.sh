@@ -16,9 +16,11 @@
 # PARAMETERS:
 #   -a : <eventEnabledInsuranceDemo> (string), If event enabled insurance demo is to be setup. Defaults to "false"
 #   -b : <demoDeploymentBranch> (string), The demo deployment branch to be used, Defaults to 'main'
+#   -c : <DEFAULT_FILE_STORAGE> (string), Defines the default file storage for the cluster. Defaults to "ibmc-file-gold-gid"
 #   -d : <demoPreparation> (string), If all demos are to be setup. Defaults to "false"
 #   -e : <demoAPICEmailAddress> (string), The email address APIC uses to notify of portal configuration. Defaults to "your@email.address"
 #   -f : <drivewayDentDeletionDemo> (string),  If driveway dent deletion demo is to be setup. Defaults to "false"
+#   -g : <DEFAULT_BLOCK_STORAGE> (string), Defines the default block storage for the cluster. Defaults to "cp4i-block-performance"
 #   -h : <demoAPICMailServerHost> (string), Host name of the mail server. Defaults to "smtp.mailtrap.io"
 #   -j : <tempERKey> (string), IAM API key for accessing the entitled registry.
 #   -k : <tempRepo> (string), For accessing different Registry
@@ -32,22 +34,24 @@
 #   -s : <DOCKER_REGISTRY_PASS> (string), Docker registry password
 #   -t : <ENVIRONMENT> (string), Environment for installation, 'staging' when you want to use the staging entitled registry
 #   -u : <csDefaultAdminUser> (string), Default common service username. Defaults to "admin"
-#   -v : <useFastStorageClass> (string), If using fast storage class for installation. Defaults to 'false'
+#   -v : <useFastStorageClass> (string), If using fast storage class for installation. Defaults to 'true'
 #   -w : <testDrivewayDentDeletionDemoE2E> (string), If testing the Driveway dent deletion demo E2E. Defaults to 'false'
+#   -x : <CLUSTER_TYPE> (string), Defines the cluster type for 1-click installation. Defaults to 'roks'
+#   -y : <CLUSTER_SCOPED> (string) (optional), If the operator and platform navigator install should cluster scoped or not. Defaults to 'false'
 #
 # USAGE:
 #   With defaults values
-#     ./1-click-install.sh
+#     ./1-click-install.sh -p <csDefaultAdminPassword> -s <DOCKER_REGISTRY_PASS>
 #
 #   Overriding the params
-#     ./1-click-install.sh -a <eventEnabledInsuranceDemo> -b <demoDeploymentBranch> -d <demoPreparation> -e <demoAPICEmailAddress> -f <drivewayDentDeletionDemo> -h <demoAPICMailServerHost> -j <tempERKey> -k <tempRepo> -l <DOCKER_REGISTRY_USER> -m <demoAPICMailServerUsername> -n <JOB_NAMESPACE> -o <demoAPICMailServerPort> -p <csDefaultAdminPassword> -q <demoAPICMailServerPassword> -r <navReplicaCount> -s <DOCKER_REGISTRY_PASS> -t <ENVIRONMENT> -u <csDefaultAdminUser> -v <useFastStorageClass>
+#     ./1-click-install.sh -a <eventEnabledInsuranceDemo> -b <demoDeploymentBranch> -c <DEFAULT_FILE_STORAGE> -d <demoPreparation> -e <demoAPICEmailAddress> -f <drivewayDentDeletionDemo> -g <DEFAULT_BLOCK_STORAGE> -h <demoAPICMailServerHost> -j <tempERKey> -k <tempRepo> -l <DOCKER_REGISTRY_USER> -m <demoAPICMailServerUsername> -n <JOB_NAMESPACE> -o <demoAPICMailServerPort> -p <csDefaultAdminPassword> -q <demoAPICMailServerPassword> -r <navReplicaCount> -s <DOCKER_REGISTRY_PASS> -t <ENVIRONMENT> -u <csDefaultAdminUser> -v <useFastStorageClass> -w <testDrivewayDentDeletionDemoE2E> -x <CLUSTER_TYPE> -y
 
 function divider() {
   echo -e "\n-------------------------------------------------------------------------------------------------------------------\n"
 }
 
 function usage() {
-  echo "Usage: $0 -a <eventEnabledInsuranceDemo> -b <demoDeploymentBranch> -d <demoPreparation> -e <demoAPICEmailAddress> -f <drivewayDentDeletionDemo> -h <demoAPICMailServerHost> -j <tempERKey> -k <tempRepo> -l <DOCKER_REGISTRY_USER> -m <demoAPICMailServerUsername> -n <JOB_NAMESPACE> -o <demoAPICMailServerPort> -p <csDefaultAdminPassword> -q <demoAPICMailServerPassword> -r <navReplicaCount> -s <DOCKER_REGISTRY_PASS> -t <ENVIRONMENT> -u <csDefaultAdminUser> -v <useFastStorageClass>"
+  echo "Usage: $0 -a <eventEnabledInsuranceDemo> -b <demoDeploymentBranch> -c <DEFAULT_FILE_STORAGE> -d <demoPreparation> -e <demoAPICEmailAddress> -f <drivewayDentDeletionDemo> -g <DEFAULT_BLOCK_STORAGE> -h <demoAPICMailServerHost> -j <tempERKey> -k <tempRepo> -l <DOCKER_REGISTRY_USER> -m <demoAPICMailServerUsername> -n <JOB_NAMESPACE> -o <demoAPICMailServerPort> -p <csDefaultAdminPassword> -q <demoAPICMailServerPassword> -r <navReplicaCount> -s <DOCKER_REGISTRY_PASS> -t <ENVIRONMENT> -u <csDefaultAdminUser> -v <useFastStorageClass> -w <testDrivewayDentDeletionDemoE2E> -x <CLUSTER_TYPE> [-y]"
   divider
   exit 1
 }
@@ -60,19 +64,24 @@ CURRENT_DIR=$(dirname $0)
 MISSING_PARAMS="false"
 IMAGE_REPO="cp.icr.io"
 PASSWORD_CHANGE="true"
-DEFAULT_BLOCK_STORAGE=""
+DEFAULT_BLOCK_STORAGE="cp4i-block-performance"
 DEFAULT_FILE_STORAGE="ibmc-file-gold-gid"
 cognitiveCarRepairDemo=false
 mappingAssistDemo=false
 weatherChatbotDemo=false
+CLUSTER_TYPE="roks"
+CLUSTER_SCOPED="false"
 
-while getopts "a:b:d:e:f:h:j:k:l:m:n:o:p:q:r:s:t:u:v:w:" opt; do
+while getopts "a:b:c:d:e:f:g:h:j:k:l:m:n:o:p:q:r:s:t:u:v:w:x:y" opt; do
   case ${opt} in
   a)
     eventEnabledInsuranceDemo="$OPTARG"
     ;;
   b)
     demoDeploymentBranch="$OPTARG"
+    ;;
+  c)
+    DEFAULT_FILE_STORAGE="$OPTARG"
     ;;
   d)
     demoPreparation="$OPTARG"
@@ -82,6 +91,9 @@ while getopts "a:b:d:e:f:h:j:k:l:m:n:o:p:q:r:s:t:u:v:w:" opt; do
     ;;
   f)
     drivewayDentDeletionDemo="$OPTARG"
+    ;;
+  g)
+    DEFAULT_BLOCK_STORAGE="$OPTARG"
     ;;
   h)
     demoAPICMailServerHost="$OPTARG"
@@ -128,11 +140,20 @@ while getopts "a:b:d:e:f:h:j:k:l:m:n:o:p:q:r:s:t:u:v:w:" opt; do
   w)
     testDrivewayDentDeletionDemoE2E="$OPTARG"
     ;;
+  x)
+    CLUSTER_TYPE="$OPTARG"
+    ;;
+  y)
+    CLUSTER_SCOPED=true
+    ;;
   \?)
     usage
     ;;
   esac
 done
+
+# Set seconds to zero to calculate time taken for overall the 1-click experience
+SECONDS=0
 
 if [[ -z "${JOB_NAMESPACE// /}" ]]; then
   echo -e "$CROSS [ERROR] 1-click install namespace is empty. Please provide a value for '-n' parameter."
@@ -150,8 +171,8 @@ if [[ -z "${csDefaultAdminUser// /}" ]]; then
 fi
 
 if [[ -z "${demoPreparation// /}" ]]; then
-  echo -e "$CROSS [ERROR] 1-click install demo preparation parameter is empty. Please provide a value for '-d' parameter."
-  MISSING_PARAMS="true"
+  echo -e "$CROSS [ERROR] 1-click install demo preparation parameter is empty (-d). Setting the default value of 'false' for it."
+  demoPreparation="false"
 fi
 
 if [[ -z "${csDefaultAdminPassword// /}" ]]; then
@@ -170,29 +191,52 @@ if [[ -z "${demoDeploymentBranch// /}" ]]; then
 fi
 
 if [[ -z "${eventEnabledInsuranceDemo// /}" ]]; then
-  echo -e "$INFO [INFO] 1-click install event enabled insurance parameter is empty. Setting the default value of 'false' for it."
+  echo -e "$INFO [INFO] 1-click install event enabled insurance parameter is empty (-a). Setting the default value of 'false' for it."
   eventEnabledInsuranceDemo="false"
 fi
 
 if [[ -z "${drivewayDentDeletionDemo// /}" ]]; then
-  echo -e "$INFO [INFO] 1-click install driveway dent deletion parameter is empty. Setting the default value of 'false' for it."
+  echo -e "$INFO [INFO] 1-click install driveway dent deletion parameter is empty (-f). Setting the default value of 'false' for it."
   drivewayDentDeletionDemo="false"
 fi
 
 if [[ -z "${useFastStorageClass// /}" ]]; then
-  echo -e "$INFO [INFO] 1-click install fast storage class flag is empty. Setting the default value of 'false' for it."
+  echo -e "$INFO [INFO] 1-click install fast storage class flag is empty (-v). Setting the default value of 'false' for it."
   useFastStorageClass="false"
 fi
 
 if [[ -z "${testDrivewayDentDeletionDemoE2E// /}" ]]; then
-  echo -e "$INFO [INFO] 1-click install test driveway dent deletion demo parameter is empty. Setting the default value of 'false' for it."
+  echo -e "$INFO [INFO] 1-click install test driveway dent deletion demo parameter is empty (-w). Setting the default value of 'false' for it."
   testDrivewayDentDeletionDemoE2E="false"
+fi
+
+if [[ -z "${DOCKER_REGISTRY_PASS// /}" ]]; then
+  echo -e "$INFO [INFO] 1-click docker registry password parameter is empty. Please provide a value for '-s' parameter."
+  MISSING_PARAMS="true"
+fi
+
+if [[ -z "${DEFAULT_BLOCK_STORAGE// /}" && "$(echo "$CLUSTER_TYPE" | tr '[:upper:]' '[:lower:]')" != "roks" ]]; then
+  echo -e "$INFO [INFO] 1-click default block storage parameter is empty. Please provide a value for '-g' parameter."
+  MISSING_PARAMS="true"
+fi
+
+if [[ -z "${DEFAULT_FILE_STORAGE// /}" ]]; then
+  echo -e "$INFO [INFO] 1-click default file storage parameter is empty. Please provide a value for '-c' parameter."
+  MISSING_PARAMS="true"
+fi
+
+if [[ -z "${CLUSTER_TYPE// /}" ]]; then
+  echo -e "$INFO [INFO] 1-click cluster type parameter is empty. Please provide a value for '-x' parameter."
+  MISSING_PARAMS="true"
 fi
 
 if [[ "$MISSING_PARAMS" == "true" ]]; then
   divider
   exit 1
 fi
+
+export CLUSTER_TYPE=$CLUSTER_TYPE
+export CLUSTER_SCOPED=$CLUSTER_SCOPED
 
 if [[ "$demoPreparation" == "true" ]]; then
   cognitiveCarRepairDemo=true
@@ -210,8 +254,18 @@ if [[ "$eventEnabledInsuranceDemo" == "true" ]]; then
   eventEnabledInsuranceDemo=true
 fi
 
+if [[ "$CLUSTER_SCOPED" == "true" ]]; then
+  DEPLOY_OPERATOR_NAMESPACE="openshift-operators"
+else
+  DEPLOY_OPERATOR_NAMESPACE=$JOB_NAMESPACE
+fi
+
+divider && echo -e "$INFO [INFO] Current cluster type: '$CLUSTER_TYPE'"
+echo -e "$INFO [INFO] Default file storage class: '$DEFAULT_FILE_STORAGE'"
 echo -e "$INFO [INFO] Current directory for 1-click install: '$CURRENT_DIR'"
 echo -e "$INFO [INFO] 1-click namespace: '$JOB_NAMESPACE'"
+echo -e "$INFO [INFO] Cluster scoped operator install: '$CLUSTER_SCOPED'"
+echo -e "$INFO [INFO] Namespace for setting up the operators: '$DEPLOY_OPERATOR_NAMESPACE'"
 echo -e "$INFO [INFO] Navigator replica count: '$navReplicaCount'"
 echo -e "$INFO [INFO] Demo deployment branch: '$demoDeploymentBranch'"
 echo -e "$INFO [INFO] Default common service username: '$csDefaultAdminUser'"
@@ -243,14 +297,14 @@ fi
 
 divider
 
-if [[ -z "${tempERKey}" ]]; then
+if [[ -z "$tempERKey" ]]; then
   # Use the entitlement key
   export DOCKER_REGISTRY_USER=${DOCKER_REGISTRY_USER:-ekey}
   export DOCKER_REGISTRY_PASS=${DOCKER_REGISTRY_PASS:-none}
 else
   # Use the tempERKey override as an api key
   export DOCKER_REGISTRY_USER="iamapikey"
-  export DOCKER_REGISTRY_PASS=${tempERKey}
+  export DOCKER_REGISTRY_PASS=$tempERKey
 fi
 
 if [[ "$ENVIRONMENT" == "STAGING" ]]; then
@@ -262,21 +316,22 @@ export IMAGE_REPO=${tempRepo:-$IMAGE_REPO}
 if oc get namespace $JOB_NAMESPACE >/dev/null 2>&1; then
   echo -e "$INFO [INFO] namespace $JOB_NAMESPACE already exists"
 else
-  echo -e "$INFO [INFO] Creating the '$JOB_NAMESPACE' namespace"
+  echo -e "$INFO [INFO] Creating the '$JOB_NAMESPACE' namespace\n"
   if ! oc create namespace $JOB_NAMESPACE; then
     echo -e "$CROSS [ERROR] Failed to create the '$JOB_NAMESPACE' namespace"
     divider
     exit 1
   else
-    echo -e "$TICK [SUCCESS] Successfully created the '$JOB_NAMESPACE' namespace"
+    echo -e "\n$TICK [SUCCESS] Successfully created the '$JOB_NAMESPACE' namespace"
   fi
 fi
 
 divider
 
-# This storage class improves the pvc performance for small PVCs
-echo -e "$INFO [INFO] Creating new cp4i-block-performance storage class\n"
-cat <<EOF | oc apply -n $JOB_NAMESPACE -f -
+if echo $CLUSTER_TYPE | grep -iqF roks; then
+  # This storage class improves the pvc performance for small PVCs
+  echo -e "$INFO [INFO] Creating new cp4i-block-performance storage class\n"
+  cat <<EOF | oc apply -n $JOB_NAMESPACE -f -
 apiVersion: storage.k8s.io/v1
 kind: StorageClass
 metadata:
@@ -301,35 +356,35 @@ reclaimPolicy: Delete
 volumeBindingMode: Immediate
 EOF
 
-defaultStorageClass=$(oc get sc -o json | jq -r '.items[].metadata | select(.annotations["storageclass.kubernetes.io/is-default-class"] == "true") | .name')
+  defaultStorageClass=$(oc get sc -o json | jq -r '.items[].metadata | select(.annotations["storageclass.kubernetes.io/is-default-class"] == "true") | .name')
 
-DEFAULT_BLOCK_STORAGE=$defaultStorageClass
+  DEFAULT_BLOCK_STORAGE=$defaultStorageClass
 
-if [[ "${useFastStorageClass}" == "true" ]]; then
-  echo -e "\n$INFO [INFO] Current default storage class is: $defaultStorageClass"
+  if [[ "$useFastStorageClass" == "true" ]]; then
+    echo -e "\n$INFO [INFO] Current default storage class is: $defaultStorageClass"
 
-  echo -e "\n$INFO [INFO] Making $defaultStorageClass non-default\n"
-  oc patch storageclass $defaultStorageClass -p '{"metadata": {"annotations":{"storageclass.kubernetes.io/is-default-class":"false"}}}'
+    echo -e "\n$INFO [INFO] Making $defaultStorageClass non-default\n"
+    oc patch storageclass $defaultStorageClass -p '{"metadata": {"annotations":{"storageclass.kubernetes.io/is-default-class":"false"}}}'
 
-  echo -e "\n$INFO [INFO] Making cp4i-block-performance default\n"
-  oc patch storageclass cp4i-block-performance -p '{"metadata": {"annotations":{"storageclass.kubernetes.io/is-default-class":"true"}}}'
+    echo -e "\n$INFO [INFO] Making cp4i-block-performance default\n"
+    oc patch storageclass cp4i-block-performance -p '{"metadata": {"annotations":{"storageclass.kubernetes.io/is-default-class":"true"}}}'
 
-  DEFAULT_BLOCK_STORAGE="cp4i-block-performance"
+    DEFAULT_BLOCK_STORAGE="cp4i-block-performance"
+  fi
+  divider
 fi
 
-divider
-
+echo -e "$INFO [INFO] Default block storage class: '$DEFAULT_BLOCK_STORAGE'" && divider
 echo -e "$INFO [INFO] Current storage classes:\n"
 oc get sc
-
 divider
 
 # Create secret to pull images from the ER
 echo -e "$INFO [INFO] Creating secret to pull images from the ER\n"
-oc -n ${JOB_NAMESPACE} create secret docker-registry ibm-entitlement-key \
-  --docker-server=${IMAGE_REPO} \
-  --docker-username=${DOCKER_REGISTRY_USER} \
-  --docker-password=${DOCKER_REGISTRY_PASS} \
+oc -n $JOB_NAMESPACE create secret docker-registry ibm-entitlement-key \
+  --docker-server=$IMAGE_REPO \
+  --docker-username=$DOCKER_REGISTRY_USER \
+  --docker-password=$DOCKER_REGISTRY_PASS \
   --dry-run -o yaml | oc apply -f -
 
 divider
@@ -380,7 +435,7 @@ EOF
 
 divider
 
-if ! $CURRENT_DIR/deploy-og-sub.sh -n ${JOB_NAMESPACE}; then
+if ! $CURRENT_DIR/deploy-og-sub.sh -n "$DEPLOY_OPERATOR_NAMESPACE"; then
   echo -e "$CROSS [ERROR] Failed to deploy the operator group and subscriptions"
   divider
   exit 1
@@ -390,7 +445,7 @@ fi
 
 divider
 
-if ! $CURRENT_DIR/release-navigator.sh -n ${JOB_NAMESPACE} -r ${navReplicaCount}; then
+if ! $CURRENT_DIR/release-navigator.sh -n "$JOB_NAMESPACE" -r "$navReplicaCount"; then
   echo -e "$CROSS [ERROR] Failed to release navigator"
   divider
   exit 1
@@ -401,8 +456,8 @@ fi
 divider
 
 # Only update common services username and password if common services is not already installed
-if [ "${PASSWORD_CHANGE}" == "true" ]; then
-  if ! $CURRENT_DIR/change-cs-credentials.sh -u ${csDefaultAdminUser} -p ${csDefaultAdminPassword}; then
+if [ "$PASSWORD_CHANGE" == "true" ]; then
+  if ! $CURRENT_DIR/change-cs-credentials.sh -u "$csDefaultAdminUser" -p "$csDefaultAdminPassword"; then
     echo -e "$CROSS [ERROR] Failed to update the common services admin username/password"
     divider
     exit 1
@@ -444,6 +499,9 @@ if [[ "$demoPreparation" == "true" || "$drivewayDentDeletionDemo" == "true" || "
   else
     echo -e "\n$CROSS [ERROR] Failed to setup all required addons, products and demos in the '$JOB_NAMESPACE' namespace"
     divider
+    # restore content of demo json file and delete temporary and backup files
+    cp $CURRENT_DIR_WITHOUT_DOT_SLASH/demos-backup.json $CURRENT_DIR_WITHOUT_DOT_SLASH/demos.json
+    rm -rf $CURRENT_DIR_WITHOUT_DOT_SLASH/demos.json-e $CURRENT_DIR_WITHOUT_DOT_SLASH/demos-backup.json
     exit 1
   fi
 
@@ -455,7 +513,7 @@ if [[ "$demoPreparation" == "true" || "$drivewayDentDeletionDemo" == "true" || "
 
   if [[ ("$demoPreparation" == "true" || "$drivewayDentDeletionDemo" == "true") && ("$testDrivewayDentDeletionDemoE2E" == "true") ]]; then
     echo -e "$INFO [INFO] Running an automated test for the driveway dent deletion demo in the '$JOB_NAMESPACE' namespace..."
-    if ! $CURRENT_DIR/../../DrivewayDentDeletion/Operators/test-ddd.sh -n ${JOB_NAMESPACE} -b $demoDeploymentBranch; then
+    if ! $CURRENT_DIR/../../DrivewayDentDeletion/Operators/test-ddd.sh -n "$JOB_NAMESPACE" -b "$demoDeploymentBranch" -f "$DEFAULT_FILE_STORAGE" -g "$DEFAULT_BLOCK_STORAGE"; then
       echo -e "$CROSS [ERROR] Failed to run automated test for driveway dent deletion demo in the '$JOB_NAMESPACE' namespace"
       divider
       exit 1
@@ -467,4 +525,4 @@ if [[ "$demoPreparation" == "true" || "$drivewayDentDeletionDemo" == "true" || "
   fi
 fi
 
-divider
+divider && echo -e "$INFO [INFO] The 1-click installation took $(($SECONDS / 60 / 60 % 24)) hour(s) $(($SECONDS / 60 % 60)) minutes and $(($SECONDS % 60)) seconds." && divider

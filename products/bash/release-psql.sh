@@ -26,7 +26,7 @@ function usage() {
 
 POSTGRES_NAMESPACE="cp4i"
 
-while getopts "n:u:d:p:" opt; do
+while getopts "n:" opt; do
   case ${opt} in
   n)
     POSTGRES_NAMESPACE="$OPTARG"
