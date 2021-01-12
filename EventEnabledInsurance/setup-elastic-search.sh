@@ -233,14 +233,6 @@ echo -e "\n---------------------------------------------------------------------
 ELASTIC_PASSWORD=$(oc get secret $ELASTIC_CR_NAME-es-elastic-user -n $ELASTIC_NAMESPACE -o go-template='{{.data.elastic | base64decode}}')
 ELASTIC_USER="elastic"
 
-echo "Checking permissions on dirs"
-
-ls -al /code-repo/products/bash/../../EventEnabledInsurance
-
-ls -al /code-repo/products/bash
-
-echo -e "INFO: Got the password for elastic search..."
-
 echo -e "\nINFO: Creating secret for elastic search connector"
 oc get secret -n ${ELASTIC_NAMESPACE} $ELASTIC_CR_NAME-es-http-certs-public -o json | jq -r '.data["ca.crt"]' | base64 --decode >/tmp/ca.crt
 rm /tmp/elastic-ts.jks
@@ -250,8 +242,6 @@ TRUSTSTORE_PASSWORD=$(
   echo
 )
 keytool -import -file /tmp/ca.crt -alias elasticCA -keystore /tmp/elastic-ts.jks -storepass "$TRUSTSTORE_PASSWORD" -noprompt
-echo "Checking the tmp dir"
-ls -al /tmp
 if [[ "$OSTYPE" == "linux-gnu"* ]]; then
   echo "INFO: Elastic base64 command for linux"
   BASE64_TS="$(base64 -w0 /tmp/elastic-ts.jks)"
