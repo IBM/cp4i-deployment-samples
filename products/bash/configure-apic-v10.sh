@@ -341,7 +341,7 @@ EOF
 
 # wait for the job to complete
 echo "Waiting for configurator job to complete"
-kubectl wait --for=condition=complete --timeout=300s -n $NAMESPACE job/${RELEASE_NAME}-apic-configurator-post-install
+kubectl wait --for=condition=complete --timeout=600s -n $NAMESPACE job/${RELEASE_NAME}-apic-configurator-post-install
 
 # pull together any necessary info from in-cluster resources
 PROVIDER_CREDENTIALS=$(kubectl get secret $PROVIDER_SECRET_NAME -n $NAMESPACE -o json | jq .data)
