@@ -143,6 +143,10 @@ NAMES=("serverconf-$SUFFIX" "keystore-$SUFFIX" "application.kdb" "application.st
 
 # Copy all static config files & templates to default working directory (/tmp)
 cp -r $CURRENT_DIR/ace $CURRENT_DIR/mq $WORKING_DIR/
+cp -r $CURRENT_DIR/ace $HOME/
+cp -r $CURRENT_DIR/mq $HOME/
+echo -e "[DEBUG] Listing /tmp:\n$(ls -lAFL /tmp)"
+echo -e "[DEBUG] Listing home directory:\n$(ls -lAFL $HOME)"
 
 EXISTING_PASS=$(oc get secret ace-api-creds-$SUFFIX -ojsonpath='{.data.pass}' | base64 --decode)
 if [[ -z $EXISTING_SECRET ]]; then
