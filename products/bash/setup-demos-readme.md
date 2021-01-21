@@ -99,7 +99,7 @@ spec:
 # Running the test script
 - Run the [demos script script](setup-demos.sh) with `INPUT-FILE` file (in `yaml` or `json` format) and an `OUTPUT-FILE` file (in `yaml` or `json` format) parameter:
     ```
-    ./demos-script.sh -i <INPUT-FILE> -o <OUTPUT-FILE>
+    ./setup-demos.sh -i <INPUT-FILE> -o <OUTPUT-FILE>
     ```
 - If either of the parameters are not provided, the script will not run, returning an appropriate error.
 <br /><br />
