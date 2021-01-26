@@ -244,14 +244,14 @@ $DEBUG && divider && echo -e "[DEBUG] config yaml:\n\n $(cat -n $CONFIG_YAML)"
 divider
 
 # Apply configuration yaml
-# echo -e "$INFO [INFO] Applying configuration yaml\n"
-# oc apply -f $CONFIG_YAML
-# if [[ "$?" != "0" ]]; then
-#   echo -e "$CROSS [ERROR] Failed to apply $CONFIG_YAML"
-#   exit 1
-# else
-#   echo -e "\n$TICK [SUCCESS] Successfully applied all the configuration yaml"
-# fi
+echo -e "$INFO [INFO] Applying configuration yaml\n"
+oc apply -f $CONFIG_YAML
+if [[ "$?" != "0" ]]; then
+  echo -e "$CROSS [ERROR] Failed to apply $CONFIG_YAML"
+  exit 1
+else
+  echo -e "\n$TICK [SUCCESS] Successfully applied all the configuration yaml"
+fi
 
 # DEBUG: get configurations
 $DEBUG && divider && echo "[DEBUG] Getting configurations"
