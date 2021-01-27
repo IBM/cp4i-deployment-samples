@@ -143,10 +143,7 @@ NAMES=("serverconf-$SUFFIX" "keystore-$SUFFIX" "application.kdb" "application.st
 
 # Copy all static config files & templates to default working directory (/tmp)
 cp -r $CURRENT_DIR/ace $CURRENT_DIR/mq $WORKING_DIR/
-cp -r $CURRENT_DIR/ace $HOME/ace
-cp -r $CURRENT_DIR/mq $HOME/mq
-echo -e "[DEBUG] Listing /tmp:\n$(ls -lAFL /tmp)"
-echo -e "[DEBUG] Listing home directory:\n$(ls -lAFL $HOME)"
+$DEBUG && divider && echo -e "[DEBUG] Listing /tmp:\n$(ls -lAFL /tmp)"
 
 EXISTING_PASS=$(oc get secret ace-api-creds-$SUFFIX -ojsonpath='{.data.pass}' | base64 --decode)
 if [[ -z $EXISTING_SECRET ]]; then
@@ -185,7 +182,7 @@ CERTS_KEY_BUNDLE=$CONFIG_DIR/certs-key.pem
 CERTS=$CONFIG_DIR/certs.pem
 KEY=$CONFIG_DIR/key.pem
 rm $CERTS $KEY $KEYSTORE
-oc get secret -n openshift-config-managed router-certs -o json | jq -r '.data | .[]' | base64 --decode >$CERTS_KEY_BUNDLE
+oc -n openshift-config-managed get secret router-certs -o json | jq -r '.data | .[]' | base64 --decode >$CERTS_KEY_BUNDLE
 openssl crl2pkcs7 -nocrl -certfile $CERTS_KEY_BUNDLE | openssl pkcs7 -print_certs -out $CERTS
 openssl pkey -in $CERTS_KEY_BUNDLE -out $KEY
 openssl pkcs12 -export -out $KEYSTORE -inkey $KEY -in $CERTS -password pass:$KEYSTORE_PASS
