@@ -45,15 +45,16 @@ DB_NAME="db_cp4i"
 DB_PASS=""
 SUFFIX="ddd"
 CURRENT_DIR=$(dirname $0)
-CONFIG_DIR=$CURRENT_DIR/ace
-CONFIG_YAML=$CONFIG_DIR/configurations.yaml
-MQ_CERT=$CURRENT_DIR/mq/createcerts
+WORKING_DIR=/tmp
+CONFIG_DIR=$WORKING_DIR/ace
+CONFIG_YAML=$WORKING_DIR/configurations.yaml
+MQ_CERT=$WORKING_DIR/mq/createcerts
 API_USER="bruce"
 KEYSTORE_PASS=$(
   LC_ALL=C tr -dc 'A-Za-z0-9' </dev/urandom | head -c 16
   echo
 )
-KEYSTORE=$CONFIG_DIR/keystore.p12
+KEYSTORE=$WORKING_DIR/keystore.p12
 
 function buildConfigurationCR() {
   local type=$1
@@ -112,41 +113,6 @@ while getopts "n:g:u:d:p:s:t" opt; do
   esac
 done
 
-if [[ -z "${NAMESPACE// /}" ]]; then
-  echo -e "$CROSS [ERROR] Namespace parameter is empty. Please provide a value for '-n' parameter."
-  MISSING_PARAMS="true"
-fi
-
-if [[ -z "${POSTGRES_NAMESPACE// /}" ]]; then
-  echo -e "$CROSS [ERROR] Namespace parameter is empty. Please provide a value for '-g' parameter."
-  MISSING_PARAMS="true"
-fi
-
-if [[ -z "${DB_NAME// /}" ]]; then
-  echo -e "$CROSS [ERROR] Database name of the postgres parameter is empty. Please provide a value for '-d' parameter."
-  MISSING_PARAMS="true"
-fi
-
-if [[ -z "${DB_USER// /}" ]]; then
-  echo -e "$CROSS [ERROR] Database username for postgres parameter is empty. Please provide a value for '-u' parameter."
-  MISSING_PARAMS="true"
-fi
-
-if [[ -z "${DB_PASS// /}" ]]; then
-  echo -e "$CROSS [ERROR] Database password for postgres parameter is empty. Please provide a value for '-p' parameter."
-  MISSING_PARAMS="true"
-fi
-
-if [[ -z "${SUFFIX// /}" ]]; then
-  echo -e "$CROSS [ERROR] Suffix parameter is empty. Please provide a value for '-s' parameter."
-  MISSING_PARAMS="true"
-fi
-
-if [[ "$MISSING_PARAMS" == "true" ]]; then
-  divider
-  usage
-fi
-
 if [[ -z "$DEBUG" ]]; then
   DEBUG="false"
 fi
@@ -157,6 +123,7 @@ DB_POD=$(oc get pod -n $POSTGRES_NAMESPACE -l name=postgresql -o jsonpath='{.ite
 DB_SVC="postgresql.$POSTGRES_NAMESPACE.svc.cluster.local"
 
 echo -e "$INFO [INFO] Current directory: $CURRENT_DIR"
+echo -e "$INFO [INFO] Working directory: $WORKING_DIR"
 echo -e "$INFO [INFO] Config directory: $CONFIG_DIR"
 echo -e "$INFO [INFO] Namespace passed: '$NAMESPACE'"
 echo -e "$INFO [INFO] Namespace passed for postgres: '$POSTGRES_NAMESPACE'"
@@ -173,6 +140,10 @@ divider
 TYPES=("serverconf" "keystore" "keystore" "keystore" "truststore" "policyproject" "setdbparms")
 FILES=("$CONFIG_DIR/$SUFFIX/server.conf.yaml" "$KEYSTORE" "$MQ_CERT/application.kdb" "$MQ_CERT/application.sth" "$MQ_CERT/application.jks" "$CONFIG_DIR/$SUFFIX/DefaultPolicies" "$CONFIG_DIR/$SUFFIX/setdbparms.txt")
 NAMES=("serverconf-$SUFFIX" "keystore-$SUFFIX" "application.kdb" "application.sth" "application.jks" "policyproject-${SUFFIX}${DDD_SUFFIX_FOR_ACE_POLICYPROJECT}" "setdbparms-$SUFFIX")
+
+# Copy all static config files & templates to default working directory (/tmp)
+cp -r $CURRENT_DIR/ace $CURRENT_DIR/mq $WORKING_DIR/
+$DEBUG && divider && echo -e "[DEBUG] Listing /tmp:\n$(ls -lAFL /tmp)"
 
 EXISTING_PASS=$(oc get secret ace-api-creds-$SUFFIX -ojsonpath='{.data.pass}' | base64 --decode)
 if [[ -z $EXISTING_SECRET ]]; then
@@ -211,7 +182,7 @@ CERTS_KEY_BUNDLE=$CONFIG_DIR/certs-key.pem
 CERTS=$CONFIG_DIR/certs.pem
 KEY=$CONFIG_DIR/key.pem
 rm $CERTS $KEY $KEYSTORE
-oc get secret -n openshift-config-managed router-certs -o json | jq -r '.data | .[]' | base64 --decode >$CERTS_KEY_BUNDLE
+oc -n openshift-config-managed get secret router-certs -o json | jq -r '.data | .[]' | base64 --decode >$CERTS_KEY_BUNDLE
 openssl crl2pkcs7 -nocrl -certfile $CERTS_KEY_BUNDLE | openssl pkcs7 -print_certs -out $CERTS
 openssl pkey -in $CERTS_KEY_BUNDLE -out $KEY
 openssl pkcs12 -export -out $KEYSTORE -inkey $KEY -in $CERTS -password pass:$KEYSTORE_PASS
