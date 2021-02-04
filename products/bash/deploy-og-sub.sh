@@ -201,23 +201,23 @@ fi
 # so APIC knows it's running in CP4I and before tracing (ibm-integration-operations-dashboard)
 # as tracing uses a CRD created by the navigator operator.
 echo "INFO: Applying subscription for platform navigator"
-create_subscription ${namespace} "ibm-operator-catalog" "ibm-integration-platform-navigator" "v4.0"
+create_subscription ${namespace} "ibm-operator-catalog" "ibm-integration-platform-navigator" "v4.1-eus"
 
 echo "INFO: Applying individual subscriptions for CP4I dependencies"
-create_subscription ${namespace} "certified-operators" "couchdb-operator-certified" "v1.3"
-create_subscription ${namespace} "ibm-operator-catalog" "aspera-hsts-operator" "v1.1"
-create_subscription ${namespace} "ibm-operator-catalog" "datapower-operator" "v1.1"
-create_subscription ${namespace} "ibm-operator-catalog" "ibm-appconnect" "v1.0"
-create_subscription ${namespace} "ibm-operator-catalog" "ibm-eventstreams" "v2.1"
-create_subscription ${namespace} "ibm-operator-catalog" "ibm-mq" "v1.1"
-create_subscription ${namespace} "ibm-operator-catalog" "ibm-integration-asset-repository" "v1.0"
+create_subscription ${namespace} "certified-operators" "couchdb-operator-certified" "v1.4"
+create_subscription ${namespace} "ibm-operator-catalog" "aspera-hsts-operator" "v1.2-eus"
+create_subscription ${namespace} "ibm-operator-catalog" "datapower-operator" "v1.2-eus"
+create_subscription ${namespace} "ibm-operator-catalog" "ibm-appconnect" "v1.2"
+create_subscription ${namespace} "ibm-operator-catalog" "ibm-eventstreams" "v2.2-eus"
+create_subscription ${namespace} "ibm-operator-catalog" "ibm-mq" "v1.4"
+create_subscription ${namespace} "ibm-operator-catalog" "ibm-integration-asset-repository" "v1.1-eus"
 
 echo "INFO: Wait for platform navigator before applying the APIC/Tracing subscriptions"
-wait_for_subscription ${namespace} "ibm-operator-catalog" "ibm-integration-platform-navigator" "v4.0"
+wait_for_subscription ${namespace} "ibm-operator-catalog" "ibm-integration-platform-navigator" "v4.1-eus"
 
 echo "INFO: Apply the APIC/Tracing subscriptions"
-create_subscription ${namespace} "ibm-operator-catalog" "ibm-apiconnect" "v2.0"
-create_subscription ${namespace} "ibm-operator-catalog" "ibm-integration-operations-dashboard" "v2.0"
+create_subscription ${namespace} "ibm-operator-catalog" "ibm-apiconnect" "v2.1-eus"
+create_subscription ${namespace} "ibm-operator-catalog" "ibm-integration-operations-dashboard" "v2.1-eus"
 
 # echo "INFO: Applying the subscription for the uber operator"
 # create_subscription ${namespace} "ibm-operator-catalog" "ibm-cp-integration" "v1.0"

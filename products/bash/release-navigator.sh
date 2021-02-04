@@ -62,7 +62,7 @@ spec:
     accept: true
   mqDashboard: true
   replicas: ${replicas}
-  version: 2020.3.1
+  version: 2020.4.1-eus
 EOF
 
   if [ $time -gt 10 ]; then

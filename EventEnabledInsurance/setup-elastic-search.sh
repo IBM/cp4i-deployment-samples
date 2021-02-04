@@ -136,7 +136,6 @@ spec:
   name: elastic-cloud-eck
   source: community-operators
   sourceNamespace: openshift-marketplace
-  startingCSV: elastic-cloud-eck.v1.2.1
 EOF
 
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
