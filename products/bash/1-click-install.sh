@@ -308,7 +308,7 @@ else
 fi
 
 if [[ "$ENVIRONMENT" == "STAGING" ]]; then
- export IMAGE_REPO="cp.stg.icr.io"
+  export IMAGE_REPO="cp.stg.icr.io"
 fi
 
 export IMAGE_REPO=${tempRepo:-$IMAGE_REPO}
