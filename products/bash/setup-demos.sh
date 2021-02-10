@@ -17,14 +17,14 @@
 #   -o : <output.yaml/output.json> (string), full path to output yaml/json
 #
 # USAGE:
-#   ./setup-demos.sh -i input.yaml -o output.yaml
+#   ./setup-demos.sh -i input.yaml/json -o output.yaml/json
 
 function divider() {
   echo -e "\n-------------------------------------------------------------------------------------------------------------------\n"
 }
 
 function usage() {
-  echo "Usage: $0 -i input.yaml -o output.yaml"
+  echo "Usage: $0 -i input.yaml/json -o output.yaml/json"
   divider
   exit 1
 }
@@ -99,7 +99,7 @@ declare -a FAILED_INSTALL_ADDONS_LIST
 declare -a FAILED_INSTALL_DEMOS_LIST
 
 # set to true to print development logs
-export DEBUG=false
+export DEBUG=true
 
 #-------------------------------------------------------------------------------------------------------------------
 # Functions
@@ -279,7 +279,7 @@ function set_up_demos() {
 }
 
 #-------------------------------------------------------------------------------------------------------------------
-# Set seconds to zero to calculate time taken for overall demo setup
+# Set seconds to zero to calculate time taken for overall setup
 #-------------------------------------------------------------------------------------------------------------------
 
 SECONDS=0
@@ -309,7 +309,7 @@ fi
 
 divider && echo -e "$INFO Script directory: '$SCRIPT_DIR'"
 echo -e "$INFO Input file: '$INPUT_FILE'"
-echo -e "$INFO Output file : '$OUTPUT_FILE'" && divider
+echo -e "$INFO Output file : '$OUTPUT_FILE'"
 
 #-------------------------------------------------------------------------------------------------------------------
 # Validate the prereqs
@@ -317,7 +317,7 @@ echo -e "$INFO Output file : '$OUTPUT_FILE'" && divider
 
 # Only require yq to be installed if either file is not json (I.e. yaml)
 if [[ "$INPUT_FILE" != *.json ]] || [[ "$OUTPUT_FILE" != *.json ]]; then
-  echo -e "$INFO [INFO] Checking if 'yq' is already installed...\n"
+  divider && echo -e "$INFO [INFO] Checking if 'yq' is already installed...\n"
   yq --version
   if [ $? -ne 0 ]; then
     echo -e "$CROSS [ERROR] 'yq' needs to be installed before running this script" 1>&2
@@ -527,6 +527,21 @@ fi
 
 check_phase_and_exit_on_failed
 
+METADATA_NAME=$(oc get demo -n $NAMESPACE -o jsonpath='{.items[0].metadata.name}')
+METADATA_UID=$(oc get demo -n $NAMESPACE $METADATA_NAME -o json | jq -r '.metadata.uid')
+
+if [[ $METADATA_NAME && $METADATA_UID != '' ]]; then
+  cat <<EOF | oc apply --namespace ${NAMESPACE} -f -
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: operator-info
+data:
+  METADATA_NAME: ${METADATA_NAME}
+  METADATA_UID: ${METADATA_UID}
+EOF
+fi
+
 # -------------------------------------------------------------------------------------------------------------------
 # Setup and configure the required addons
 # -------------------------------------------------------------------------------------------------------------------
@@ -611,9 +626,9 @@ for EACH_PRODUCT in $(echo "${REQUIRED_PRODUCTS_JSON}" | jq -r '. | keys[]'); do
   mq)
     # if to enable or disable tracing while releasing MQ
     if [[ "$TRACING_ENABLED" == "true" ]]; then
-      RELEASE_MQ_PARAMS="-n '$NAMESPACE' -z '$NAMESPACE' -r '$MQ_RELEASE_NAME' -t"
+      RELEASE_MQ_PARAMS="-n $NAMESPACE -z $NAMESPACE -r $MQ_RELEASE_NAME -t"
     else
-      RELEASE_MQ_PARAMS="-n '$NAMESPACE' -r '$MQ_RELEASE_NAME'"
+      RELEASE_MQ_PARAMS="-n $NAMESPACE -r $MQ_RELEASE_NAME"
     fi
 
     echo -e "$INFO [INFO] Releasing MQ $ECHO_LINE '$MQ_RELEASE_NAME' with release parameters as '$RELEASE_APIC_PARAMS'...\n"
@@ -644,7 +659,7 @@ for EACH_PRODUCT in $(echo "${REQUIRED_PRODUCTS_JSON}" | jq -r '. | keys[]'); do
 
   assetRepo)
     echo -e "$INFO [INFO] Releasing Asset Repository $ECHO_LINE '$ASSET_REPOSITORY_RELEASE_NAME'...\n"
-    if ! $SCRIPT_DIR/release-ar.sh -n "$NAMESPACE" -r "$ASSET_REPOSITORY_RELEASE_NAME"; then
+    if ! $SCRIPT_DIR/release-ar.sh -n "$NAMESPACE" -r "$ASSET_REPOSITORY_RELEASE_NAME" -a "$FILE_STORAGE_CLASS" -c "$BLOCK_STORAGE_CLASS"; then
       update_conditions "Failed to release Asset Repository $ECHO_LINE '$ASSET_REPOSITORY_RELEASE_NAME'" "Releasing"
       update_phase "Failed"
       FAILED_INSTALL_PRODUCTS_LIST+=($EACH_PRODUCT)
@@ -678,9 +693,9 @@ for EACH_PRODUCT in $(echo "${REQUIRED_PRODUCTS_JSON}" | jq -r '. | keys[]'); do
 
     # check if to enable or disable tracing while releasing APIC
     if [[ "$TRACING_ENABLED" == "true" ]]; then
-      RELEASE_APIC_PARAMS="-n '$NAMESPACE' -r '$APIC_RELEASE_NAME' -t"
+      RELEASE_APIC_PARAMS="-n $NAMESPACE -r $APIC_RELEASE_NAME -t"
     else
-      RELEASE_APIC_PARAMS="-n '$NAMESPACE' -r '$APIC_RELEASE_NAME'"
+      RELEASE_APIC_PARAMS="-n $NAMESPACE -r $APIC_RELEASE_NAME"
     fi
 
     echo -e "$INFO [INFO] Releasing APIC $ECHO_LINE '$APIC_RELEASE_NAME' with release parameters as '$RELEASE_APIC_PARAMS'...\n"
@@ -810,7 +825,7 @@ for EACH_DEMO in $(echo $REQUIRED_DEMOS_JSON | jq -r '. | keys[]'); do
 
       divider && echo -e "$INFO [INFO] Setting up prereqs for Event Enabled Insurance demo in the '$NAMESPACE' namespace" && divider
       # setup the prereqs for event enabled insurance demo
-      if ! $SCRIPT_DIR/../../EventEnabledInsurance/prereqs.sh -n "$NAMESPACE" -b "$SAMPLES_REPO_BRANCH" -e "$NAMESPACE" -p "$NAMESPACE" -o; then
+      if ! $SCRIPT_DIR/../../EventEnabledInsurance/prereqs.sh -n "$NAMESPACE" -b "$SAMPLES_REPO_BRANCH" -e "$NAMESPACE" -p "$NAMESPACE" -f "$FILE_STORAGE_CLASS" -g "$BLOCK_STORAGE_CLASS" -o; then
         echo -e "$CROSS [ERROR] Failed to run event enabled insurance prereqs script\n"
         divider && echo -e "$CROSS [ERROR] Event Enabled Insurance demo did not setup correctly. $CROSS"
         update_conditions "Failed to run event enabled insurance prereqs script in the '$NAMESPACE' namespace" "Prereqs"
@@ -936,7 +951,7 @@ check_phase_and_exit_on_failed
 # Calculate total time taken for all installation
 #-------------------------------------------------------------------------------------------------------------------
 
-$DEBUG && divider && echo -e "$INFO [DEBUG] The overall installation took $(($SECONDS / 60 / 60 % 24)) hours $(($SECONDS / 60)) minutes and $(($SECONDS % 60)) seconds." && divider
+$DEBUG && divider && echo -e "$INFO [DEBUG] The installation and setup for the selected addons, products and demos took $(($SECONDS / 60 / 60 % 24)) hours $(($SECONDS / 60 % 60)) minutes and $(($SECONDS % 60)) seconds." && divider
 
 #-------------------------------------------------------------------------------------------------------------------
 # Change final status to Running at end of installation

@@ -25,7 +25,7 @@
 #     ./release-mq.sh
 #
 #   Overriding the namespace and release-name
-#     ./release-mq -n cp4i -r mq-demo -i image-registry.openshift-image-registry.svc:5000/cp4i/mq-ddd -q mq-qm
+#     ./release-mq.sh -n cp4i -r mq-demo -i image-registry.openshift-image-registry.svc:5000/cp4i/mq-ddd -q mq-qm
 
 function divider() {
   echo -e "\n-------------------------------------------------------------------------------------------------------------------\n"
@@ -90,14 +90,26 @@ elif [[ "$release_name" =~ "eei" ]]; then
   numberOfContainers=1
 fi
 
-if [ -z $image_name ]; then
+json=$(oc get configmap -n $namespace operator-info -o json)
+if [[ $? == 0 ]]; then
+  METADATA_NAME=$(echo $json | tr '\r\n' ' ' | jq -r '.data.METADATA_NAME')
+  METADATA_UID=$(echo $json | tr '\r\n' ' ' | jq -r '.data.METADATA_UID')
+fi
 
+if [ -z $image_name ]; then
   cat <<EOF | oc apply -f -
 apiVersion: mq.ibm.com/v1beta1
 kind: QueueManager
 metadata:
   name: ${release_name}
   namespace: ${namespace}
+  $(if [[ ! -z ${METADATA_UID} && ! -z ${METADATA_NAME} ]]; then
+  echo "ownerReferences:
+    - apiVersion: integration.ibm.com/v1beta1
+      kind: Demo
+      name: ${METADATA_NAME}
+      uid: ${METADATA_UID}"
+  fi)
 spec:
   license:
     accept: true
@@ -189,6 +201,13 @@ kind: QueueManager
 metadata:
   name: ${release_name}
   namespace: ${namespace}
+  $(if [[ ! -z ${METADATA_UID} && ! -z ${METADATA_NAME} ]]; then
+  echo "ownerReferences:
+    - apiVersion: integration.ibm.com/v1beta1
+      kind: Demo
+      name: ${METADATA_NAME}
+      uid: ${METADATA_UID}"
+  fi)
 spec:
   license:
     accept: true
