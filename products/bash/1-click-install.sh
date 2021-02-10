@@ -253,9 +253,9 @@ else
   export DOCKER_REGISTRY_PASS=${tempERKey}
 fi
 
-#if [[ "$ENVIRONMENT" == "STAGING" ]]; then
-#  export IMAGE_REPO="cp.stg.icr.io"
-#sfi
+if [[ "$ENVIRONMENT" == "STAGING" ]]; then
+ export IMAGE_REPO="cp.stg.icr.io"
+fi
 
 export IMAGE_REPO=${tempRepo:-$IMAGE_REPO}
 
