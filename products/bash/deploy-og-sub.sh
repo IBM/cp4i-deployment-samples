@@ -204,7 +204,7 @@ create_subscription ${namespace} "ibm-operator-catalog" "ibm-integration-platfor
 echo "INFO: Applying individual subscriptions for CP4I dependencies"
 create_subscription ${namespace} "certified-operators" "couchdb-operator-certified" "v1.3"
 create_subscription ${namespace} "ibm-operator-catalog" "aspera-hsts-operator" "v1.1"
-create_subscription ${namespace} "ibm-operator-catalog" "datapower-operator" "v1.1"
+# create_subscription ${namespace} "ibm-operator-catalog" "datapower-operator" "v1.1"
 create_subscription ${namespace} "ibm-operator-catalog" "ibm-appconnect" "v1.0"
 create_subscription ${namespace} "ibm-operator-catalog" "ibm-eventstreams" "v2.1"
 create_subscription ${namespace} "ibm-operator-catalog" "ibm-mq" "v1.1"
