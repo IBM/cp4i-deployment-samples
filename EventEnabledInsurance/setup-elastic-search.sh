@@ -34,7 +34,7 @@ SUFFIX="eei"
 ELASTIC_CR_NAME="elasticsearch-$SUFFIX"
 NAMESPACE="cp4i"
 ELASTIC_NAMESPACE="elasticsearch"
-ELASTIC_SUBSCRIPTION_NAME="elastic-cloud-eck"
+ELASTIC_SUBSCRIPTION_NAME="elasticsearch-eck-operator-certified"
 
 while getopts "n:e:" opt; do
   case ${opt} in
@@ -133,10 +133,9 @@ metadata:
 spec:
   channel: stable
   installPlanApproval: Automatic
-  name: elastic-cloud-eck
-  source: community-operators
+  name: elasticsearch-eck-operator-certified
+  source: certified-operators
   sourceNamespace: openshift-marketplace
-  startingCSV: elastic-cloud-eck.v1.2.1
 EOF
 
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
@@ -165,7 +164,7 @@ metadata:
       uid: ${metadata_uid}"
   fi)
 spec:
-  version: 7.9.1
+  version: 7.11.0
   http:
     tls:
       selfSignedCertificate:
