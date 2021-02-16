@@ -71,6 +71,16 @@ metadata:
       uid: ${METADATA_UID}"
   fi)
 spec:
+  pod:
+    containers:
+      ui:
+        resources:
+          limits:
+            cpu: 400m
+            memory: 400M
+          requests:
+            cpu: 400m
+            memory: 400M
   couchdb:
     storage:
       size: 10Gi
