@@ -113,7 +113,7 @@ metadata:
 spec:
   license:
     accept: true
-    license: L-RJON-BN7PN3
+    license: L-RJON-BUVMQX
     use: NonProduction
   queueManager:
     name: ${qm_name}
@@ -127,7 +127,7 @@ spec:
             - name: MQSNOAUT
               value: 'yes'
           name: qmgr
-  version: 9.2.0.0-r1
+  version: 9.2.1.0-r1
   web:
     enabled: true
   tracing:
@@ -211,7 +211,7 @@ metadata:
 spec:
   license:
     accept: true
-    license: L-RJON-BN7PN3
+    license: L-RJON-BUVMQX
     use: NonProduction
   pki:
     keys:
@@ -246,7 +246,7 @@ spec:
             - name: MQS_PERMIT_UNKNOWN_ID
               value: 'true'
           name: qmgr
-  version: 9.2.0.0-r1
+  version: 9.2.1.0-r1
   web:
     enabled: true
   tracing:

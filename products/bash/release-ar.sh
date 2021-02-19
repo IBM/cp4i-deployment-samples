@@ -75,10 +75,11 @@ metadata:
 spec:
   license:
     accept: true
+    license: L-RJON-BUVMQX
   storage:
     assetDataVolume:
       class: ${assetDataVolume}
     couchVolume:
       class: ${couchVolume}
-  version: 2020.3.1-0
+  version: 2020.4.1-eus
 EOF

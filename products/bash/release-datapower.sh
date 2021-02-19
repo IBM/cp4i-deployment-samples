@@ -35,7 +35,7 @@ namespace="cp4i"
 release_name="datapower"
 production="false"
 admin_password="admin"
-flavour="developers-limited"
+flavour="nonproduction"
 memory_limit="4Gi"
 replicas=1
 
@@ -131,6 +131,6 @@ spec:
       - test-config
       local:
       - test-tar
-  version: 10.0-lts
+  version: 10.0-eus
 
 EOF

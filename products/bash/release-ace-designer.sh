@@ -79,10 +79,10 @@ spec:
   designerFlowsOperationMode: local
   license:
     accept: true
-    license: L-APEH-BPUCJK
+    license: L-APEH-BSVCHU
     use: CloudPakForIntegrationNonProduction
   replicas: 1
-  version: 11.0.0.10
+  version: 11.0.0.11-r1
   designerMappingAssist:
     enabled: true
 EOF

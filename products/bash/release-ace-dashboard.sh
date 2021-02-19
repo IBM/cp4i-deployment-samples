@@ -86,7 +86,7 @@ metadata:
 spec:
   license:
     accept: true
-    license: L-APEH-BPUCJK
+    license: L-APEH-BSVCHU
     use: ${use}
   replicas: 1
   storage:
@@ -94,5 +94,5 @@ spec:
     size: 5Gi
     type: persistent-claim
   useCommonServices: true
-  version: 11.0.0.10
+  version: 11.0.0.11-r1
 EOF

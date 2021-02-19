@@ -84,7 +84,7 @@ metadata:
     app.kubernetes.io/managed-by: ibm-apiconnect
     app.kubernetes.io/name: apiconnect-production
 spec:
-  version: 10.0.1.0
+  version: 10.0.1.1-eus
   license:
     accept: true
     use: production

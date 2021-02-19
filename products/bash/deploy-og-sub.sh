@@ -213,7 +213,7 @@ create_subscription ${namespace} "ibm-operator-catalog" "ibm-eventstreams" "v2.2
 create_subscription ${namespace} "ibm-operator-catalog" "ibm-mq" "v1.4"
 create_subscription ${namespace} "ibm-operator-catalog" "ibm-integration-asset-repository" "v1.1-eus"
 
-echo "INFO: Wait for platform navigator before applying the APIC/Tracing subscriptions"
+# echo "INFO: Wait for platform navigator before applying the APIC/Tracing subscriptions"
 wait_for_subscription ${namespace} "ibm-operator-catalog" "ibm-integration-platform-navigator" "v4.1-eus"
 
 echo "INFO: Apply the APIC/Tracing subscriptions"
@@ -221,8 +221,8 @@ create_subscription ${namespace} "ibm-operator-catalog" "ibm-apiconnect" "v2.1-e
 create_subscription ${namespace} "ibm-operator-catalog" "ibm-integration-operations-dashboard" "v2.1-eus"
 
 # echo "INFO: Applying the subscription for the uber operator"
-# create_subscription ${namespace} "ibm-operator-catalog" "ibm-cp-integration" "v1.0"
-# echo "INFO: ClusterServiceVersion for the Platform Navigator is now installed, proceeding with installation..."
+create_subscription ${namespace} "ibm-operator-catalog" "ibm-cp-integration" "v1.0"
+echo "INFO: ClusterServiceVersion for the Platform Navigator is now installed, proceeding with installation..."
 
 echo "INFO: Wait for all subscriptions to succeed"
 wait_for_all_subscriptions ${namespace}

@@ -90,6 +90,7 @@ spec:
       value: production
   license:
     accept: true
+    license: CP4I
   replicas:
     configDb: 3
     frontend: 3
@@ -106,7 +107,7 @@ spec:
     tracingVolume:
       class: "${block_storage}"
       size: 150Gi
-  version: 2020.3.1-1
+  version: 2020.4.1-0-eus
 EOF
 else
   cat <<EOF | oc apply -f -
@@ -129,6 +130,7 @@ metadata:
 spec:
   license:
     accept: true
+    license: CP4I
   storage:
     configDbVolume:
       class: "${file_storage}"
@@ -136,6 +138,6 @@ spec:
       class: "${file_storage}"
     tracingVolume:
       class: "${block_storage}"
-  version: 2020.3.1-1
+  version: 2020.4.1-0-eus
 EOF
 fi
