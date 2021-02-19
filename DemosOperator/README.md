@@ -82,7 +82,7 @@ Minimum resources required to run the demos
 # Installing
 
 * Installation is based on [k8s Operator](https://kubernetes.io/docs/concepts/extend-kubernetes/operator/) 
-* [Github Link](https://github.ibm.com/cp4i/integration-demos-operator/hack/README.md)
+* [Github Link](https://github.com/IBM/cp4i-deployment-samples/blob/main/DemosOperator/Hack/README.md)
 
 # Operator scope
 | Namespace scope installation              | Supported |
