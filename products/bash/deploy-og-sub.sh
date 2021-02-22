@@ -200,7 +200,7 @@ fi
 # Create a subscription for common services to ensure an earlier version to work around 
 # elastic-stack issue
 echo "INFO: Applying subscription for common services"
-create_subscription ${namespace} "opencloud-operators" "ibm-common-service-operator" "v3.4.3"
+create_subscription ${namespace} "opencloud-operators" "ibm-common-service-operator" "v3.4"
 
 # Create the subscription for navigator. This needs to be before APIC (ibm-apiconnect)
 # so APIC knows it's running in CP4I and before tracing (ibm-integration-operations-dashboard)
