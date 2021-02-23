@@ -128,6 +128,7 @@ function update_conditions() {
   # add condition to condition array
   STATUS=$(echo $STATUS | jq -c '.conditions += ['"${CONDITION_TO_ADD}"']')
   $DEBUG && echo -e "\n$INFO [DEBUG] Printing the status conditions array" && echo $STATUS | jq -r '.conditions'
+  echo $STATUS > $OUTPUT_FILE
 }
 
 #----------------------------------------------------
