@@ -331,7 +331,7 @@ divider
 if echo $CLUSTER_TYPE | grep -iqF roks; then
   # This storage class improves the pvc performance for small PVCs
   echo -e "$INFO [INFO] Creating new cp4i-block-performance storage class\n"
-  cat <<EOF | oc apply -n $JOB_NAMESPACE -f -
+  cat <<EOF | oc apply -f -
 apiVersion: storage.k8s.io/v1
 kind: StorageClass
 metadata:
