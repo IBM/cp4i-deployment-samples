@@ -142,6 +142,9 @@ spec:
 EOF
 fi
 
+# If the icp4i-od-store-cred then create a dummy one that the service binding will populate
+oc create secret generic -n ${namespace} icp4i-od-store-cred --from-literal=icp4i-od-cacert.pem="empty" --from-literal=username="empty" --from-literal=password="empty" --from-literal=tracingUrl="empty"
+
 cat <<EOF | oc apply -f -
 apiVersion: integration.ibm.com/v1beta2
 kind: OperationsDashboardServiceBinding
