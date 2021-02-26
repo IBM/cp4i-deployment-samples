@@ -64,7 +64,7 @@ if [[ "$production" == "true" ]]; then
 
 fi
 
-json=$(oc get configmap -n $namespace operator-info -o json)
+json=$(oc get configmap -n $namespace operator-info -o json 2> /dev/null)
 if [[ $? == 0 ]]; then
   METADATA_NAME=$(echo $json | tr '\r\n' ' ' | jq -r '.data.METADATA_NAME')
   METADATA_UID=$(echo $json | tr '\r\n' ' ' | jq -r '.data.METADATA_UID')
@@ -86,13 +86,24 @@ metadata:
 spec:
   license:
     accept: true
-    license: L-APEH-BSVCHU
+    license: L-APEH-BTHFYQ
     use: ${use}
+  pod:
+    containers:
+      content-server:
+        resources:
+          limits:
+            cpu: 250m
+      control-ui:
+        resources:
+          limits:
+            cpu: 250m
+            memory: 250Mi
   replicas: 1
   storage:
     class: ${storage}
     size: 5Gi
     type: persistent-claim
   useCommonServices: true
-  version: 11.0.0.11-r1
+  version: 11.0.0.10-r3-eus
 EOF

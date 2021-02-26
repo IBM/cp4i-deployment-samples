@@ -14,7 +14,7 @@
 #
 # PARAMETERS:
 #   -n : <namespace> (string), Defaults to "cp4i"
-#   -r : <replicas> (string), Defaults to "3"
+#   -r : <replicas> (string), Defaults to "2"
 #
 # USAGE:
 #   With default values
@@ -28,7 +28,7 @@ function usage() {
 }
 
 namespace="cp4i"
-replicas="3"
+replicas="2"
 
 SCRIPT_DIR="$(dirname $0)"
 echo "Current Dir: $SCRIPT_DIR"
@@ -97,4 +97,4 @@ done
 # Printing the platform navigator object status
 echo "INFO: The platform navigator object status:"
 echo "INFO: $(oc get PlatformNavigator -n ${namespace} ${namespace}-navigator)"
-echo "INFO: PLATFORM NAVIGATOR ROUTE IS: $(oc get route -n ${namespace} ${namespace}-navigator-pn -o json | jq -r .spec.host)"
+echo "INFO: PLATFORM NAVIGATOR ROUTE IS: $(oc get PlatformNavigator -n ${namespace} ${namespace}-navigator -o json | jq -r '.status.endpoints[] | select(.name == "navigator") | .uri')"
