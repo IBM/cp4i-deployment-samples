@@ -68,7 +68,9 @@ function wait_for_subscription() {
   NAME=${3}
   CHANNEL=${4}
   SOURCE_NAMESPACE="openshift-marketplace"
-  SUBSCRIPTION_NAME="${NAME}-${CHANNEL}-${SOURCE}-${SOURCE_NAMESPACE}"
+  # Use short name for subscription. Data Power seems to fail with a long name
+  SUBSCRIPTION_NAME="${NAME}"
+  #SUBSCRIPTION_NAME="${NAME}-${CHANNEL}-${SOURCE}-${SOURCE_NAMESPACE}"
 
   echo "Waiting for subscription \"${SUBSCRIPTION_NAME}\" in namespace \"${NAMESPACE}\""
 
