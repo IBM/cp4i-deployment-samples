@@ -119,27 +119,36 @@ metadata:
   name: ${is_release_name}
   namespace: ${namespace}
 spec:
-  pod:
-   containers:
-     runtime:
-       image: ${is_image_name}
+  adminServerSecure: true
   configurations: $ace_policy_names
   designerFlowsOperationMode: disabled
   license:
     accept: true
-    license: L-APEH-BPUCJK
-    use: CloudPakForIntegrationProduction
+    license: L-APEH-BTHFYQ
+    use: CloudPakForIntegrationNonProduction
+  pod:
+   containers:
+     runtime:
+       image: ${is_image_name}
+       resources:
+         limits:
+           cpu: 300m
+           memory: 300Mi
+         requests:
+           cpu: 300m
+           memory: 300Mi
   replicas: ${ace_replicas}
   router:
     timeout: 120s
   service:
     endpointType: https
   useCommonServices: true
-  version: 11.0.0.10-r1
+  version: 11.0.0.10-r3-eus
   tracing:
     enabled: ${tracing_enabled}
     namespace: ${tracing_namespace}
 EOF
+
 if [[ "$?" != "0" ]]; then
   echo -e "$cross [ERROR] Failed to apply IntegrationServer CR"
   exit 1
@@ -157,20 +166,6 @@ if [ "$tracing_enabled" == "true" ]; then
     fi
     sleep 10
   done
-
-  # -------------------------------------- Register Tracing ---------------------------------------------------------------------
-  if ! oc get secrets icp4i-od-store-cred -n ${namespace}; then
-    echo "[INFO] secret icp4i-od-store-cred does not exist in ${namespace}, running tracing registration"
-    echo "Tracing_Namespace= ${tracing_namespace}"
-    echo "Namespace= ${namespace}"
-    if ! ${CURRENT_DIR}/register-tracing.sh -n $tracing_namespace -a ${namespace}; then
-      echo "INFO: Running with test environment flag"
-      echo "ERROR: Failed to register tracing in project '$namespace'"
-      exit 1
-    fi
-  else
-    echo "[INFO] secret icp4i-od-store-cred exist, no need to run tracing registration"
-  fi
 fi
 # -------------------------------------- INSTALL JQ ---------------------------------------------------------------------
 

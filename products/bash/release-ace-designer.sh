@@ -51,7 +51,7 @@ echo "INFO: Release ACE Designer..."
 echo "INFO: Namespace: '$namespace'"
 echo "INFO: Designer Release Name: '$designer_release_name'"
 
-json=$(oc get configmap -n $namespace operator-info -o json)
+json=$(oc get configmap -n $namespace operator-info -o json 2> /dev/null)
 if [[ $? == 0 ]]; then
   METADATA_NAME=$(echo $json | tr '\r\n' ' ' | jq -r '.data.METADATA_NAME')
   METADATA_UID=$(echo $json | tr '\r\n' ' ' | jq -r '.data.METADATA_UID')
@@ -73,16 +73,17 @@ metadata:
 spec:
   couchdb:
     storage:
+      class: ${storage}
       size: 10Gi
       type: persistent-claim
-      class: ${storage}
   designerFlowsOperationMode: local
-  license:
-    accept: true
-    license: L-APEH-BSVCHU
-    use: CloudPakForIntegrationNonProduction
-  replicas: 1
-  version: 11.0.0.11-r1
   designerMappingAssist:
     enabled: true
+  license:
+    accept: true
+    license: L-APEH-BTHFYQ
+    use: CloudPakForIntegrationNonProduction
+  replicas: 1
+  useCommonServices: true
+  version: 11.0.0.10-r3-eus
 EOF
