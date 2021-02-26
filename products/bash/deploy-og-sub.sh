@@ -167,7 +167,9 @@ function create_subscription() {
   NAME=${3}
   CHANNEL=${4}
   SOURCE_NAMESPACE="openshift-marketplace"
-  SUBSCRIPTION_NAME="${NAME}-${CHANNEL}-${SOURCE}-${SOURCE_NAMESPACE}"
+  # Use short name for subscription. Data Power seems to fail with a long name
+  SUBSCRIPTION_NAME="${NAME}"
+  # SUBSCRIPTION_NAME="${NAME}-${CHANNEL}-${SOURCE}-${SOURCE_NAMESPACE}"
 
   cat <<EOF | oc apply -f -
 apiVersion: operators.coreos.com/v1alpha1
@@ -207,7 +209,7 @@ echo "INFO: Applying individual subscriptions for CP4I dependencies"
 create_subscription ${namespace} "certified-operators" "couchdb-operator-certified" "v1.4"
 create_subscription ${namespace} "ibm-operator-catalog" "aspera-hsts-operator" "v1.2-eus"
 # Datapower should get the correct version installed from the APIC operator
-# create_subscription ${namespace} "ibm-operator-catalog" "datapower-operator" "v1.2-eus"
+create_subscription ${namespace} "ibm-operator-catalog" "datapower-operator" "v1.2-eus"
 create_subscription ${namespace} "ibm-operator-catalog" "ibm-appconnect" "v1.1-eus"
 create_subscription ${namespace} "ibm-operator-catalog" "ibm-eventstreams" "v2.2-eus"
 create_subscription ${namespace} "ibm-operator-catalog" "ibm-mq" "v1.3-eus"
