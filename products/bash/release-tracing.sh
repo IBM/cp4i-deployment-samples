@@ -59,7 +59,7 @@ while getopts "n:r:b:d:f:p" opt; do
   esac
 done
 
-json=$(oc get configmap -n $namespace operator-info -o json)
+json=$(oc get configmap -n $namespace operator-info -o json 2> /dev/null)
 if [[ $? == 0 ]]; then
   METADATA_NAME=$(echo $json | tr '\r\n' ' ' | jq -r '.data.METADATA_NAME')
   METADATA_UID=$(echo $json | tr '\r\n' ' ' | jq -r '.data.METADATA_UID')
@@ -141,3 +141,24 @@ spec:
   version: 2020.4.1-0-eus
 EOF
 fi
+
+cat <<EOF | oc apply -f -
+apiVersion: integration.ibm.com/v1beta2
+kind: OperationsDashboardServiceBinding
+metadata:
+  name: ${release_name}
+  namespace: ${namespace}
+  $(if [[ ! -z ${METADATA_UID} && ! -z ${METADATA_NAME} ]]; then
+  echo "ownerReferences:
+    - apiVersion: integration.ibm.com/v1beta1
+      kind: Demo
+      name: ${METADATA_NAME}
+      uid: ${METADATA_UID}"
+  fi)
+spec:
+  odNamespace: "${namespace}"
+  odInstanceName: "${release_name}"
+  sourceInstanceName: "demo-tracing"
+  sourcePodName: "demo-tracing"
+  sourceSecretName: "icp4i-od-store-cred"
+EOF
