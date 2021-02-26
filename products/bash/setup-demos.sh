@@ -746,24 +746,6 @@ for EACH_PRODUCT in $(echo "${REQUIRED_PRODUCTS_JSON}" | jq -r '. | keys[]'); do
 done
 
 #-------------------------------------------------------------------------------------------------------------------
-#  If tracing is enabled, register tracing after all required product installations
-#-------------------------------------------------------------------------------------------------------------------
-
-if [[ "$TRACING_ENABLED" == "true" ]]; then
-  echo -e "$INFO [INFO] Registering tracing in the '$NAMESPACE' namespace...\n"
-  if ! $SCRIPT_DIR/register-tracing.sh -n "$NAMESPACE"; then
-    update_conditions "Failed to register tracing in the '$NAMESPACE' namespace" "Releasing"
-    update_phase "Failed"
-    update_product_status "$TRACING_RELEASE_NAME" "tracing" "true" "false"
-    FAILED_INSTALL_PRODUCTS_LIST+=(tracing)
-  else
-    echo -e "\n$TICK [SUCCESS] Successfully registered tracing in the '$NAMESPACE' namespace"
-    update_product_status "$TRACING_RELEASE_NAME" "tracing" "true" "true"
-  fi # release-tracing.sh
-  divider
-fi
-
-#-------------------------------------------------------------------------------------------------------------------
 # Configure APIC if APIC is amongst selected product. Tracing registration is a pre-req for this step.
 #-------------------------------------------------------------------------------------------------------------------
 
