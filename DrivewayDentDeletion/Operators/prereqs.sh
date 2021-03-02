@@ -40,7 +40,7 @@ CROSS="\xE2\x9D\x8C"
 ALL_DONE="\xF0\x9F\x92\xAF"
 INFO="\xE2\x84\xB9"
 SUFFIX="ddd"
-POSTGRES_NAMESPACE=$NAMESPACE
+POSTGRES_NAMESPACE=
 MISSING_PARAMS="false"
 OMIT_INITIAL_SETUP="false"
 WITH_TEST_TYPE=""
@@ -69,6 +69,8 @@ while getopts "n:op:r:" opt; do
     ;;
   esac
 done
+
+POSTGRES_NAMESPACE=${POSTGRES_NAMESPACE:-$NAMESPACE}
 
 if [[ -z "${NAMESPACE// /}" ]]; then
   echo -e "$CROSS [ERROR] Namespace for driveway dent deletion demo is empty. Please provide a value for '-n' parameter."

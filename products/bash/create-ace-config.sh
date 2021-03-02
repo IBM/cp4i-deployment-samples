@@ -39,7 +39,7 @@ CROSS="\xE2\x9D\x8C"
 INFO="\xE2\x84\xB9"
 TICK="\xE2\x9C\x85"
 NAMESPACE="cp4i"
-POSTGRES_NAMESPACE=$NAMESPACE
+POSTGRES_NAMESPACE=
 DB_USER="cp4i"
 DB_NAME="db_cp4i"
 DB_PASS=""
@@ -111,6 +111,8 @@ while getopts "n:g:u:d:p:s:t" opt; do
     ;;
   esac
 done
+
+POSTGRES_NAMESPACE=${POSTGRES_NAMESPACE:-$NAMESPACE}
 
 if [[ -z "${NAMESPACE// /}" ]]; then
   echo -e "$CROSS [ERROR] Namespace parameter is empty. Please provide a value for '-n' parameter."

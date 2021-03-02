@@ -55,7 +55,7 @@ TICK="\xE2\x9C\x85"
 CROSS="\xE2\x9D\x8C"
 ALL_DONE="\xF0\x9F\x92\xAF"
 INFO="\xE2\x84\xB9"
-POSTGRES_NAMESPACE=$NAMESPACE
+POSTGRES_NAMESPACE=
 DDD_TYPE="dev"
 DEFAULT_POSTGRES_CREDENTIAL_SECRET="postgres-credential-ddd"
 
@@ -99,6 +99,8 @@ while getopts "n:u:t:p:b:z:acdis" opt; do
     ;;
   esac
 done
+
+POSTGRES_NAMESPACE=${POSTGRES_NAMESPACE:-$NAMESPACE}
 
 echo "[INFO] Driveway dent deletion demo type: '$DDD_TYPE'"
 DB_USER=$(echo $NAMESPACE | sed 's/-/_/g')_${DDD_TYPE}_ddd
