@@ -113,6 +113,8 @@ function wait_for_subscription() {
   echo "$NAME has succeeded"
 }
 
+# TODO There should only be one operator group in a namespace
+# TODO Don't create an operator group if there is already one defined
 cat <<EOF | oc apply -f -
 apiVersion: operators.coreos.com/v1
 kind: OperatorGroup
@@ -133,8 +135,8 @@ metadata:
 spec:
   channel: stable
   installPlanApproval: Automatic
-  name: elastic-cloud-eck
-  source: community-operators
+  name: elasticsearch-eck-operator-certified
+  source: certified-operators
   sourceNamespace: openshift-marketplace
 EOF
 
@@ -144,7 +146,7 @@ wait_for_subscription $ELASTIC_NAMESPACE $ELASTIC_SUBSCRIPTION_NAME
 
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
-json=$(oc get configmap -n $NAMESPACE operator-info -o json)
+json=$(oc get configmap -n $NAMESPACE operator-info -o json  2> /dev/null)
 if [[ $? == 0 ]]; then
   METADATA_NAME=$(echo $json | tr '\r\n' ' ' | jq -r '.data.METADATA_NAME')
   METADATA_UID=$(echo $json | tr '\r\n' ' ' | jq -r '.data.METADATA_UID')
@@ -164,19 +166,20 @@ metadata:
       uid: ${metadata_uid}"
   fi)
 spec:
-  version: 7.9.1
+  version: 7.11.0
   http:
     tls:
       selfSignedCertificate:
+        disabled: false
         # https://www.elastic.co/guide/en/cloud-on-k8s/1.0/k8s-common-k8s-elastic-co-v1.html#common-k8s-elastic-co-v1-selfsignedcertificate
         subjectAltNames:
         - dns: "$ELASTIC_CR_NAME-es-http.$ELASTIC_NAMESPACE.svc.cluster.local"
   nodeSets:
     - name: default
       config:
-        node.master: true
-        node.data: true
-        node.ingest: true
+        node.roles:
+          - master
+          - data
         node.attr.attr_name: attr_value
         node.store.allow_mmap: false
       podTemplate:
