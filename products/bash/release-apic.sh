@@ -93,6 +93,8 @@ spec:
     openTracing:
       enabled: ${tracing}
       odTracingNamespace: ${namespace}
+      imageAgent: 'cp.icr.io/cp/icp4i/od/icp4i-od-agent@sha256:f1abc56564c2e49a3608a334b2238c47bff855736e443c0694efa1613dc173d8'
+      imageCollector: 'cp.icr.io/cp/icp4i/od/icp4i-od-collector@sha256:25ce2acd5b7fec8b4adf39aee8c281c97c9a4dad40ed96298263a50896e93b90'
   management:
     testAndMonitor:
       enabled: true
