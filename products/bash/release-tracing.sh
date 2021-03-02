@@ -145,6 +145,21 @@ fi
 # If the icp4i-od-store-cred then create a dummy one that the service binding will populate
 oc create secret generic -n ${namespace} icp4i-od-store-cred --from-literal=icp4i-od-cacert.pem="empty" --from-literal=username="empty" --from-literal=password="empty" --from-literal=tracingUrl="empty"
 
+echo "Waiting for Operations Dashboard installation to complete..."
+for i in $(seq 1 400); do
+  STATUS=$(oc get OperationsDashboard tracing-demo -o jsonpath='{.status.phase}')
+  if [ "$STATUS" == "Ready" ]; then
+    printf "$tick"
+    echo "Operations Dashboard is ready"
+    break
+  else
+    echo "Waiting for Operations Dashboard install to complete (Attempt $i of 400). Status: $STATUS"
+
+    echo "Checking again in 15 seconds..."
+    sleep 15
+  fi
+done
+
 cat <<EOF | oc apply -f -
 apiVersion: integration.ibm.com/v1beta2
 kind: OperationsDashboardServiceBinding
