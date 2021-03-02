@@ -69,12 +69,7 @@ function wait_for_subscription() {
   CHANNEL=${4}
   SOURCE_NAMESPACE="openshift-marketplace"
 
-  if [[ "$NAME" == "datapower-operator" ]]; then
-    # Use short name for subscription. Data Power seems to fail with a long name
-    SUBSCRIPTION_NAME="${NAME}"
-  else
-    SUBSCRIPTION_NAME="${NAME}-${CHANNEL}-${SOURCE}-${SOURCE_NAMESPACE}"
-  fi
+  SUBSCRIPTION_NAME="${NAME}-${CHANNEL}-${SOURCE}-${SOURCE_NAMESPACE}"
 
   echo "Waiting for subscription \"${SUBSCRIPTION_NAME}\" in namespace \"${NAMESPACE}\""
 
@@ -174,12 +169,7 @@ function create_subscription() {
   CHANNEL=${4}
   SOURCE_NAMESPACE="openshift-marketplace"
 
-  if [[ "$NAME" == "datapower-operator" ]]; then
-    # Use short name for subscription. Data Power seems to fail with a long name
-    SUBSCRIPTION_NAME="${NAME}"
-  else
-    SUBSCRIPTION_NAME="${NAME}-${CHANNEL}-${SOURCE}-${SOURCE_NAMESPACE}"
-  fi
+  SUBSCRIPTION_NAME="${NAME}-${CHANNEL}-${SOURCE}-${SOURCE_NAMESPACE}"
 
   cat <<EOF | oc apply -f -
 apiVersion: operators.coreos.com/v1alpha1
@@ -218,21 +208,27 @@ create_subscription ${namespace} "ibm-operator-catalog" "ibm-integration-platfor
 echo "INFO: Applying individual subscriptions for CP4I dependencies"
 create_subscription ${namespace} "certified-operators" "couchdb-operator-certified" "v1.4"
 create_subscription ${namespace} "ibm-operator-catalog" "aspera-hsts-operator" "v1.2-eus"
-# Datapower should get the correct version installed from the APIC operator
-create_subscription ${namespace} "ibm-operator-catalog" "datapower-operator" "v1.2-eus"
+
 create_subscription ${namespace} "ibm-operator-catalog" "ibm-appconnect" "v1.1-eus"
 create_subscription ${namespace} "ibm-operator-catalog" "ibm-eventstreams" "v2.2-eus"
 create_subscription ${namespace} "ibm-operator-catalog" "ibm-mq" "v1.3-eus"
 create_subscription ${namespace} "ibm-operator-catalog" "ibm-integration-asset-repository" "v1.1-eus"
 
-# echo "INFO: Wait for platform navigator before applying the APIC/Tracing subscriptions"
+echo "INFO: Wait for platform navigator before applying the APIC/Tracing subscriptions"
 wait_for_subscription ${namespace} "ibm-operator-catalog" "ibm-integration-platform-navigator" "v4.1-eus"
 
 echo "INFO: Apply the APIC/Tracing subscriptions"
 create_subscription ${namespace} "ibm-operator-catalog" "ibm-apiconnect" "v2.1-eus"
 create_subscription ${namespace} "ibm-operator-catalog" "ibm-integration-operations-dashboard" "v2.1-eus"
 
-# echo "INFO: Applying the subscription for the uber operator"
+echo "Wait for the APIC operator to succeed (TODO might need to retry)"
+wait_for_subscription ${namespace} "ibm-operator-catalog" "ibm-apiconnect" "v2.1-eus"
+
+echo "TODO Then delete the failed Data Power stuff"
+echo "TODO Then install the Data Power operator"
+create_subscription ${namespace} "ibm-operator-catalog" "datapower-operator" "v1.2-eus"
+
+echo "INFO: Applying the subscription for the uber operator"
 create_subscription ${namespace} "ibm-operator-catalog" "ibm-cp-integration" "v1.1-eus"
 echo "INFO: ClusterServiceVersion for the Platform Navigator is now installed, proceeding with installation..."
 
