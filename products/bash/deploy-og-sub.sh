@@ -62,11 +62,12 @@ function output_time() {
   fi
 }
 
-function wait_for_subscription() {
+function wait_for_subscription_with_timeout() {
   NAMESPACE=${1}
   SOURCE=${2}
   NAME=${3}
   CHANNEL=${4}
+  TIMEOUT_SECONDS=${5}
   SOURCE_NAMESPACE="openshift-marketplace"
 
   SUBSCRIPTION_NAME="${NAME}-${CHANNEL}-${SOURCE}-${SOURCE_NAMESPACE}"
@@ -91,9 +92,10 @@ function wait_for_subscription() {
     fi
 
     if [[ "$wait" == "1" ]]; then
-      if [ $time -ge 7200 ]; then
-        echo "ERROR: Failed after waiting for 120 minutes"
-        exit 1
+      if [ $time -ge ${TIMEOUT_SECONDS} ]; then
+        echo "ERROR: Failed after waiting for $(($TIMEOUT_SECONDS/60)) minutes"
+        export wait_for_subscription_with_timeout_result=1
+        return 1
       fi
 
       echo "Retrying in ${wait_time} seconds, waited for $(output_time $time) so far"
@@ -102,6 +104,15 @@ function wait_for_subscription() {
     fi
   done
   echo "$SUBSCRIPTION_NAME has succeeded"
+  export wait_for_subscription_with_timeout_result=0
+  return 0
+}
+
+function wait_for_subscription() {
+  wait_for_subscription_with_timeout ${1} ${2} ${3} ${4} 7200
+  if [[ "${wait_for_subscription_with_timeout_result}" != "0" ]]; then
+    exit ${wait_for_subscription_with_timeout_result}
+  fi
 }
 
 function wait_for_all_subscriptions() {
@@ -186,6 +197,29 @@ spec:
 EOF
 }
 
+function delete_datapower_subscription() {
+  NAMESPACE=${1}
+
+  INSTALL_PLANS=$(oc get installplans -n ${NAMESPACE} | grep "datapower-operator" | awk '{print $1}' | xargs)
+  if [[ "$INSTALL_PLANS" != "" ]]; then
+    echo "About to delete installplans: $INSTALL_PLANS"
+    oc delete installplans -n ${NAMESPACE} ${INSTALL_PLANS}
+  fi
+
+  CSVS=$(oc get csvs -n ${NAMESPACE} | grep "datapower-operator" | awk '{print $1}' | xargs)
+  if [[ "$CSVS" != "" ]]; then
+    echo "About to delete csvs: $CSVS"
+    oc delete csvs -n ${NAMESPACE} ${CSVS}
+  fi
+
+  SUBSCRIPTIONS=$(oc get subscriptions -n ${NAMESPACE} | grep "datapower-operator" | awk '{print $1}' | xargs)
+  if [[ "$SUBSCRIPTIONS" != "" ]]; then
+    echo "About to delete subscriptions: $SUBSCRIPTIONS"
+    oc delete subscriptions -n ${NAMESPACE} ${SUBSCRIPTIONS}
+  fi
+}
+
+
 if [[ "$CLUSTER_SCOPED" != "true" ]]; then
   cat <<EOF | oc apply -f -
 apiVersion: operators.coreos.com/v1
@@ -222,12 +256,16 @@ echo "INFO: Apply the APIC/Tracing subscriptions"
 create_subscription ${namespace} "ibm-operator-catalog" "ibm-apiconnect" "v2.1-eus"
 create_subscription ${namespace} "ibm-operator-catalog" "ibm-integration-operations-dashboard" "v2.1-eus"
 
-echo "Wait for the APIC operator to succeed (TODO might need to retry)"
+echo "Wait for the APIC operator to succeed"
 wait_for_subscription ${namespace} "ibm-operator-catalog" "ibm-apiconnect" "v2.1-eus"
 
-echo "TODO Then delete the failed Data Power stuff"
-echo "TODO Then install the Data Power operator"
-create_subscription ${namespace} "ibm-operator-catalog" "datapower-operator" "v1.2-eus"
+echo "Keep retrying the datapower operator"
+wait_for_subscription_with_timeout ${namespace} "ibm-operator-catalog" "datapower-operator" "v1.2-eus" 300
+while [[ "${wait_for_subscription_with_timeout_result}" != "0" ]]; do
+  delete_datapower_subscription ${namespace}
+  create_subscription ${namespace} "ibm-operator-catalog" "datapower-operator" "v1.2-eus"
+  wait_for_subscription_with_timeout ${namespace} "ibm-operator-catalog" "datapower-operator" "v1.2-eus" 300
+done
 
 # echo "INFO: Applying the subscription for the uber operator"
 # create_subscription ${namespace} "ibm-operator-catalog" "ibm-cp-integration" "v1.1-eus"
