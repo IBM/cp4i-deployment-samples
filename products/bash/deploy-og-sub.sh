@@ -184,7 +184,7 @@ spec:
 EOF
 }
 
-if [[ "$CLUSTER_SCOPED" == "false" ]]; then
+if [[ "$CLUSTER_SCOPED" != "true" ]]; then
   cat <<EOF | oc apply -f -
 apiVersion: operators.coreos.com/v1
 kind: OperatorGroup

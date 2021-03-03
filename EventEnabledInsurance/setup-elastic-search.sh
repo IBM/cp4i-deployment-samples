@@ -144,7 +144,7 @@ wait_for_subscription $ELASTIC_NAMESPACE $ELASTIC_SUBSCRIPTION_NAME
 
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
-json=$(oc get configmap -n $NAMESPACE operator-info -o json)
+json=$(oc get configmap -n $NAMESPACE operator-info -o json 2> /dev/null)
 if [[ $? == 0 ]]; then
   METADATA_NAME=$(echo $json | tr '\r\n' ' ' | jq -r '.data.METADATA_NAME')
   METADATA_UID=$(echo $json | tr '\r\n' ' ' | jq -r '.data.METADATA_UID')

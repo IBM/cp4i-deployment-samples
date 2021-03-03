@@ -60,7 +60,7 @@ if [[ "$production" == "true" ]]; then
   profile="n12xc4.m12"
 fi
 
-json=$(oc get configmap -n $namespace operator-info -o json)
+json=$(oc get configmap -n $namespace operator-info -o json 2> /dev/null)
 if [[ $? == 0 ]]; then
   METADATA_NAME=$(echo $json | tr '\r\n' ' ' | jq -r '.data.METADATA_NAME')
   METADATA_UID=$(echo $json | tr '\r\n' ' ' | jq -r '.data.METADATA_UID')

@@ -30,7 +30,7 @@ function usage() {
 namespace="cp4i"
 release_name="demo"
 assetDataVolume="ibmc-file-gold-gid"
-couchVolume="ibmc-block-gold"
+couchVolume="cp4i-block-performance"
 
 while getopts "n:r:a:c:" opt; do
   case ${opt} in
@@ -53,7 +53,7 @@ while getopts "n:r:a:c:" opt; do
   esac
 done
 
-json=$(oc get configmap -n $namespace operator-info -o json)
+json=$(oc get configmap -n $namespace operator-info -o json 2> /dev/null)
 if [[ $? == 0 ]]; then
   METADATA_NAME=$(echo $json | tr '\r\n' ' ' | jq -r '.data.METADATA_NAME')
   METADATA_UID=$(echo $json | tr '\r\n' ' ' | jq -r '.data.METADATA_UID')
