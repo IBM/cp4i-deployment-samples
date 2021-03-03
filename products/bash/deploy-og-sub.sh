@@ -216,6 +216,7 @@ create_subscription ${namespace} "ibm-operator-catalog" "ibm-integration-asset-r
 
 echo "INFO: Wait for platform navigator before applying the APIC/Tracing subscriptions"
 wait_for_subscription ${namespace} "ibm-operator-catalog" "ibm-integration-platform-navigator" "v4.1-eus"
+echo "INFO: ClusterServiceVersion for the Platform Navigator is now installed, proceeding with installation..."
 
 echo "INFO: Apply the APIC/Tracing subscriptions"
 create_subscription ${namespace} "ibm-operator-catalog" "ibm-apiconnect" "v2.1-eus"
@@ -228,9 +229,8 @@ echo "TODO Then delete the failed Data Power stuff"
 echo "TODO Then install the Data Power operator"
 create_subscription ${namespace} "ibm-operator-catalog" "datapower-operator" "v1.2-eus"
 
-echo "INFO: Applying the subscription for the uber operator"
-create_subscription ${namespace} "ibm-operator-catalog" "ibm-cp-integration" "v1.1-eus"
-echo "INFO: ClusterServiceVersion for the Platform Navigator is now installed, proceeding with installation..."
+# echo "INFO: Applying the subscription for the uber operator"
+# create_subscription ${namespace} "ibm-operator-catalog" "ibm-cp-integration" "v1.1-eus"
 
 echo "INFO: Wait for all subscriptions to succeed"
 wait_for_all_subscriptions ${namespace}
