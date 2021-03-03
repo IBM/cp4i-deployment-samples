@@ -144,7 +144,7 @@ while getopts "a:b:c:d:e:f:g:h:j:k:l:m:n:o:p:q:r:s:t:u:v:w:x:y" opt; do
     CLUSTER_TYPE="$OPTARG"
     ;;
   y)
-    CLUSTER_SCOPED=true
+    CLUSTER_SCOPED="true"
     ;;
   \?)
     usage
