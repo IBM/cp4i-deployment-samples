@@ -65,7 +65,8 @@ function cloudctl_login() {
   time=0
   wait_time=5
   while true; do
-    if ! cloudctl login -a https://${cp_console} -u ${cp_username} -p "${cp_password}" -n default --skip-ssl-validation --skip-helm-config --skip-kubectl-config >/dev/null 2>&1; then
+    # TODO if ! cloudctl login -a https://${cp_console} -u ${cp_username} -p "${cp_password}" -n default --skip-ssl-validation --skip-helm-config --skip-kubectl-config >/dev/null 2>&1; then
+    if ! cloudctl login -a https://${cp_console} -u ${cp_username} -p "${cp_password}" -n default --skip-ssl-validation --skip-helm-config --skip-kubectl-config ; then
       echo "WARNING: Unable to login to the console as user '${cp_username}' with the given password" 1>&2
     else
       echo "INFO: cloudctl login succeeded"
@@ -135,9 +136,20 @@ if [[ "$CP_PASSWORD" == "$NEW_PASSWORD" ]]; then
   echo "INFO: Password not changed"
 else
   echo "INFO: Updating the admin password"
-  if ! cloudctl pm update-secret ibm-common-services platform-auth-idp-credentials -f -d admin_password=${NEW_PASSWORD} >/dev/null 2>&1; then
+  # TODO if ! cloudctl pm update-secret ibm-common-services platform-auth-idp-credentials -f -d admin_password=${NEW_PASSWORD} >/dev/null 2>&1; then
+  if ! cloudctl pm update-secret ibm-common-services platform-auth-idp-credentials -f -d admin_password=${NEW_PASSWORD} ; then
     echo "ERROR: Failed to update the admin password" 1>&2
     exit 1
+  fi
+  export CP_NEW_PASSWORD=$(oc get secrets -n ibm-common-services platform-auth-idp-credentials -o jsonpath='{.data.admin_password}' | base64 --decode)
+  if [[ "$CP_NEW_PASSWORD" == "$NEW_PASSWORD" ]]; then
+    echo "INFO: Password changed"
+  elif [[ "$CP_NEW_PASSWORD" == "$CP_PASSWORD" ]]; then
+    echo "ERROR: Password still the old password"
+    export NEW_PASSWORD=${CP_NEW_PASSWORD}
+  else
+    echo "ERROR: Password something completely different!"
+    export NEW_PASSWORD=${CP_NEW_PASSWORD}
   fi
 fi
 
@@ -148,7 +160,8 @@ else
   time=0
   wait_time=5
   while true; do
-    if ! cloudctl pm update-secret ibm-common-services platform-auth-idp-credentials -f -d admin_username=${NEW_USERNAME} >/dev/null 2>&1; then
+    # TODO if ! cloudctl pm update-secret ibm-common-services platform-auth-idp-credentials -f -d admin_username=${NEW_USERNAME} >/dev/null 2>&1; then
+    if ! cloudctl pm update-secret ibm-common-services platform-auth-idp-credentials -f -d admin_username=${NEW_USERNAME} ; then
       echo "WARNING: Failed to update the admin username" 1>&2
     else
       break
