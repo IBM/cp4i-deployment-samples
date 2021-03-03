@@ -14,7 +14,7 @@
 #
 # PARAMETERS:
 #   -n : <namespace> (string), Defaults to "cp4i"
-#   -r : <replicas> (string), Defaults to "2"
+#   -r : <replicas> (string), Defaults to "3"
 #
 # USAGE:
 #   With default values
@@ -24,22 +24,26 @@
 #     ./release-navigator -n cp4i-prod -r 1
 
 function usage() {
-  echo "Usage: $0 -n <namespace> -r <replicas>"
+  echo "Usage: $0 -n <namespace> -r <replicas> -s <file storage>"
 }
 
 namespace="cp4i"
-replicas="2"
+replicas="1"
+storage="ibmc-file-gold-gid"
 
 SCRIPT_DIR="$(dirname $0)"
 echo "Current Dir: $SCRIPT_DIR"
 
-while getopts "n:r:" opt; do
+while getopts "n:r:s:" opt; do
   case ${opt} in
   n)
     namespace="$OPTARG"
     ;;
   r)
     replicas="$OPTARG"
+    ;;
+  s)
+    storage="$OPTARG"
     ;;
   \?)
     usage
@@ -60,10 +64,12 @@ metadata:
 spec:
   license:
     accept: true
-    license: L-RJON-BUVMQX
+    license: L-RJON-BXUPZ2
   mqDashboard: true
   replicas: ${replicas}
-  version: 2020.4.1-eus
+  version: 2021.1.1
+  storage:
+    class: ibmc-file-gold-gid
 EOF
 
   if [ $time -gt 10 ]; then
@@ -97,4 +103,4 @@ done
 # Printing the platform navigator object status
 echo "INFO: The platform navigator object status:"
 echo "INFO: $(oc get PlatformNavigator -n ${namespace} ${namespace}-navigator)"
-echo "INFO: PLATFORM NAVIGATOR ROUTE IS: $(oc get PlatformNavigator -n ${namespace} ${namespace}-navigator -o json | jq -r '.status.endpoints[] | select(.name == "navigator") | .uri')"
+echo "INFO: PLATFORM NAVIGATOR ROUTE IS: $(oc get route -n ${namespace} ${namespace}-navigator-pn -o json | jq -r .spec.host)"

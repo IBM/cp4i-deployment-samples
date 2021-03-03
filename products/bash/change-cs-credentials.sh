@@ -65,8 +65,7 @@ function cloudctl_login() {
   time=0
   wait_time=5
   while true; do
-    # TODO if ! cloudctl login -a https://${cp_console} -u ${cp_username} -p "${cp_password}" -n default --skip-ssl-validation --skip-helm-config --skip-kubectl-config >/dev/null 2>&1; then
-    if ! cloudctl login -a https://${cp_console} -u ${cp_username} -p "${cp_password}" -n default --skip-ssl-validation --skip-helm-config --skip-kubectl-config ; then
+    if ! cloudctl login -a https://${cp_console} -u ${cp_username} -p "${cp_password}" -n default --skip-ssl-validation --skip-helm-config --skip-kubectl-config >/dev/null 2>&1; then
       echo "WARNING: Unable to login to the console as user '${cp_username}' with the given password" 1>&2
     else
       echo "INFO: cloudctl login succeeded"
@@ -82,20 +81,20 @@ function cloudctl_login() {
   done
 }
 
-echo "INFO: Waiting for the platform-auth-idp-credentials secret to appear"
+echo "INFO: Waiting for the ibm-iam-bindinfo-platform-auth-idp-credentials secret to appear"
 time=0
 wait_time=5
-while ! oc get secrets platform-auth-idp-credentials -n ibm-common-services; do
+while ! oc get secrets ibm-iam-bindinfo-platform-auth-idp-credentials -n ibm-common-services; do
   if [ $time -gt 3600 ]; then
-    echo "ERROR: Exiting as the secret 'platform-auth-idp-credentials' does not exist in the namespace 'ibm-common-services'"
+    echo "ERROR: Exiting as the secret 'ibm-iam-bindinfo-platform-auth-idp-credentials' does not exist in the namespace 'ibm-common-services'"
     exit 1
   fi
 
-  echo "INFO: Waiting up to 60 minutes for Common Services platform-auth-idp-credentials to appear. Waited for $(output_time $time)."
+  echo "INFO: Waiting up to 60 minutes for Common Services ibm-iam-bindinfo-platform-auth-idp-credentials to appear. Waited for $(output_time $time)."
   ((time = time + $wait_time))
   sleep $wait_time
 done
-echo "INFO: Found the secret platform-auth-idp-credentials in the namespace 'ibm-common-services'"
+echo "INFO: Found the secret ibm-iam-bindinfo-platform-auth-idp-credentials in the namespace 'ibm-common-services'"
 
 echo "INFO: Waiting for Common Services console route"
 time=0
@@ -114,8 +113,8 @@ while [ -z $CP_CONSOLE ]; do
   export CP_CONSOLE=$(oc get routes -n ibm-common-services cp-console -o jsonpath='{.spec.host}')
 done
 
-export CP_USERNAME=$(oc get secrets -n ibm-common-services platform-auth-idp-credentials -o jsonpath='{.data.admin_username}' | base64 --decode)
-export CP_PASSWORD=$(oc get secrets -n ibm-common-services platform-auth-idp-credentials -o jsonpath='{.data.admin_password}' | base64 --decode)
+export CP_USERNAME=$(oc get secrets -n ibm-common-services ibm-iam-bindinfo-platform-auth-idp-credentials -o jsonpath='{.data.admin_username}' | base64 --decode)
+export CP_PASSWORD=$(oc get secrets -n ibm-common-services ibm-iam-bindinfo-platform-auth-idp-credentials -o jsonpath='{.data.admin_password}' | base64 --decode)
 echo "INFO: CP_USERNAME: ${CP_USERNAME}"
 echo "INFO: CP_CONSOLE: ${CP_CONSOLE}"
 
@@ -136,20 +135,9 @@ if [[ "$CP_PASSWORD" == "$NEW_PASSWORD" ]]; then
   echo "INFO: Password not changed"
 else
   echo "INFO: Updating the admin password"
-  # TODO if ! cloudctl pm update-secret ibm-common-services platform-auth-idp-credentials -f -d admin_password=${NEW_PASSWORD} >/dev/null 2>&1; then
-  if ! cloudctl pm update-secret ibm-common-services platform-auth-idp-credentials -f -d admin_password=${NEW_PASSWORD} ; then
+  if ! cloudctl pm update-secret ibm-common-services ibm-iam-bindinfo-platform-auth-idp-credentials -f -d admin_password=${NEW_PASSWORD} >/dev/null 2>&1; then
     echo "ERROR: Failed to update the admin password" 1>&2
     exit 1
-  fi
-  export CP_NEW_PASSWORD=$(oc get secrets -n ibm-common-services platform-auth-idp-credentials -o jsonpath='{.data.admin_password}' | base64 --decode)
-  if [[ "$CP_NEW_PASSWORD" == "$NEW_PASSWORD" ]]; then
-    echo "INFO: Password changed"
-  elif [[ "$CP_NEW_PASSWORD" == "$CP_PASSWORD" ]]; then
-    echo "ERROR: Password still the old password"
-    export NEW_PASSWORD=${CP_NEW_PASSWORD}
-  else
-    echo "ERROR: Password something completely different!"
-    export NEW_PASSWORD=${CP_NEW_PASSWORD}
   fi
 fi
 
@@ -160,8 +148,7 @@ else
   time=0
   wait_time=5
   while true; do
-    # TODO if ! cloudctl pm update-secret ibm-common-services platform-auth-idp-credentials -f -d admin_username=${NEW_USERNAME} >/dev/null 2>&1; then
-    if ! cloudctl pm update-secret ibm-common-services platform-auth-idp-credentials -f -d admin_username=${NEW_USERNAME} ; then
+    if ! cloudctl pm update-secret ibm-common-services ibm-iam-bindinfo-platform-auth-idp-credentials -f -d admin_username=${NEW_USERNAME} >/dev/null 2>&1; then
       echo "WARNING: Failed to update the admin username" 1>&2
     else
       break
