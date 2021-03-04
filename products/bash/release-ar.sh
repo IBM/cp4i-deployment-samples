@@ -24,13 +24,13 @@
 #     ./release-ar.sh -n cp4i-prod -r prod
 
 function usage() {
-  echo "Usage: $0 -n <namespace> -r <release-name>"
+  echo "Usage: $0 -n <namespace> -r <release-name> -a <assets storage class (file)> -c <couch storage class (block)>"
 }
 
 namespace="cp4i"
 release_name="demo"
 assetDataVolume="ibmc-file-gold-gid"
-couchVolume="cp4i-block-performance"
+couchVolume="ibmc-block-gold"
 
 while getopts "n:r:a:c:" opt; do
   case ${opt} in
