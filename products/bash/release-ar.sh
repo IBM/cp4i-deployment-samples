@@ -24,7 +24,7 @@
 #     ./release-ar.sh -n cp4i-prod -r prod
 
 function usage() {
-  echo "Usage: $0 -n <namespace> -r <release-name>"
+  echo "Usage: $0 -n <namespace> -r <release-name> -a <assets storage class (file)> -c <couch storage class (block)>"
 }
 
 namespace="cp4i"
