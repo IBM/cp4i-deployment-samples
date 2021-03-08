@@ -445,6 +445,18 @@ fi
 
 divider
 
+if [[ $(echo "$CLUSTER_TYPE" | tr '[:upper:]' '[:lower:]') == "roks" ]]; then
+  if ! $CURRENT_DIR/setup-roks-iam.sh; then
+    echo -e "$CROSS [ERROR] Failed to setup iam for roks cluster"
+    divider
+    exit 1
+  else
+    echo -e "\n$TICK [SUCCESS] IAM setup for roks cluster"
+  fi
+fi
+
+divider
+
 if ! $CURRENT_DIR/release-navigator.sh -n "$JOB_NAMESPACE" -r "$navReplicaCount"; then
   echo -e "$CROSS [ERROR] Failed to release navigator"
   divider
