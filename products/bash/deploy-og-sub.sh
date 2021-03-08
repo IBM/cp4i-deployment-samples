@@ -14,6 +14,7 @@
 #
 # PARAMETERS:
 #   -n : <namespace> (string), Defaults to "cp4i"
+#   -p : Use pre-release catalog sources
 #
 # USAGE:
 #   With defaults values
@@ -24,16 +25,20 @@
 #
 
 function usage() {
-  echo "Usage: $0 -n <namespace>"
+  echo "Usage: $0 -n <namespace> -p"
   exit 1
 }
 
 namespace="cp4i"
+USE_PRERELEASE_CATALOGS=false
 
-while getopts "n:" opt; do
+while getopts "n:p" opt; do
   case ${opt} in
   n)
     namespace="$OPTARG"
+    ;;
+  p)
+    USE_PRERELEASE_CATALOGS=true
     ;;
   \?)
     usage
@@ -41,7 +46,6 @@ while getopts "n:" opt; do
   esac
 done
 
-USE_PRERELEASE_CATALOGS=true
 if [[ "${USE_PRERELEASE_CATALOGS}" == "true" ]]; then
   NAVIGATOR_CATALOG="pn-operators"
   ACE_CATALOG="ace-operators"
@@ -253,12 +257,14 @@ fi
 echo "INFO: Applying subscription for platform navigator"
 create_subscription ${namespace} ${NAVIGATOR_CATALOG} "ibm-integration-platform-navigator" "v4.2"
 
-# echo "INFO: Applying individual subscriptions for CP4I dependencies"
+echo "INFO: Applying individual subscriptions for CP4I dependencies"
 create_subscription ${namespace} "certified-operators" "couchdb-operator-certified" "v1.4"
-# TODO create_subscription ${namespace} ${ASPERA_CATALOG} "aspera-hsts-operator" "v1.2-eus"
+
+create_subscription ${namespace} ${ASPERA_CATALOG} "aspera-hsts-operator" "v1.2-eus"
 create_subscription ${namespace} ${ACE_CATALOG} "ibm-appconnect" "v1.3"
-create_subscription ${namespace} ${ES_CATALOG} "ibm-eventstreams" "v2.3"
-# TODO create_subscription ${namespace} ${MQ_CATALOG} "ibm-mq" "v1.3-eus"
+echo 'TODO create_subscription ${namespace} ${ES_CATALOG} "ibm-eventstreams" "v2.3"'
+
+echo 'TODO create_subscription ${namespace} ${MQ_CATALOG} "ibm-mq" "v1.3-eus"'
 create_subscription ${namespace} ${AR_CATALOG} "ibm-integration-asset-repository" "v1.2"
 
 echo "INFO: Wait for platform navigator before applying the APIC/Tracing subscriptions"
@@ -266,15 +272,13 @@ wait_for_subscription ${namespace} ${NAVIGATOR_CATALOG} "ibm-integration-platfor
 echo "INFO: ClusterServiceVersion for the Platform Navigator is now installed, proceeding with installation..."
 
 echo "INFO: Apply the APIC/Tracing subscriptions"
-# TODO This should be a new channel?
-create_subscription ${namespace} ${APIC_CATALOG} "ibm-apiconnect" "v2.1-eus"
+create_subscription ${namespace} ${APIC_CATALOG} "ibm-apiconnect" "v2.2"
 
-# TODO This should be a new channel?
-create_subscription ${namespace} ${OD_CATALOG} "ibm-integration-operations-dashboard" "v2.1-eus"
-#
-# echo "Wait for the APIC operator to succeed"
-# wait_for_subscription ${namespace} "ibm-operator-catalog" "ibm-apiconnect" "v2.1-eus"
-#
+echo 'TODO create_subscription ${namespace} ${OD_CATALOG} "ibm-integration-operations-dashboard" "v2.1-eus"'
+
+echo "Wait for the APIC operator to succeed"
+wait_for_subscription ${namespace} ${APIC_CATALOG} "ibm-apiconnect" "v2.2"
+
 echo "Keep retrying the datapower operator"
 wait_for_subscription_with_timeout ${namespace} ${DP_CATALOG} "datapower-operator" "v1.3" 300
 while [[ "${wait_for_subscription_with_timeout_result}" != "0" ]]; do

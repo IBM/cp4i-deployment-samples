@@ -399,39 +399,13 @@ fi
 
 divider
 
-echo -e "$INFO [INFO] Applying catalogsources\n"
-cat <<EOF | oc apply -f -
----
-apiVersion: operators.coreos.com/v1alpha1
-kind: CatalogSource
-metadata:
-  name: opencloud-operators
-  namespace: openshift-marketplace
-spec:
-  displayName: IBMCS Operators
-  publisher: IBM
-  sourceType: grpc
-  image: docker.io/ibmcom/ibm-common-service-catalog:latest
-  updateStrategy:
-    registryPoll:
-      interval: 45m
-
----
-
-apiVersion: operators.coreos.com/v1alpha1
-kind: CatalogSource
-metadata:
-  name: ibm-operator-catalog
-  namespace: openshift-marketplace
-spec:
-  displayName: ibm-operator-catalog
-  publisher: IBM Content
-  sourceType: grpc
-  image: docker.io/ibmcom/ibm-operator-catalog
-  updateStrategy:
-    registryPoll:
-      interval: 45m
-EOF
+if ! $CURRENT_DIR/create-catalog-sources.sh ; then
+  echo -e "$CROSS [ERROR] Failed to create catalog sources"
+  divider
+  exit 1
+else
+  echo -e "\n$TICK [SUCCESS] Created the catalog sources"
+fi
 
 divider
 
