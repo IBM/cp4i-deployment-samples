@@ -37,7 +37,7 @@ CROSS="\xE2\x9D\x8C"
 NAMESPACE="cp4i"
 APIC=false
 os_sed_flag=""
-POSTGRES_NAMESPACE=$NAMESPACE
+POSTGRES_NAMESPACE=
 DDD_TYPE="dev"
 
 if [[ $(uname) == Darwin ]]; then
@@ -67,6 +67,8 @@ while getopts "n:p:s:ad:" opt; do
     ;;
   esac
 done
+
+POSTGRES_NAMESPACE=${POSTGRES_NAMESPACE:-$NAMESPACE}
 
 echo "Namespace passed: $NAMESPACE"
 echo "User name suffix: $USER_DB_SUFFIX"

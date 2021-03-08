@@ -40,7 +40,7 @@ tick="\xE2\x9C\x85"
 cross="\xE2\x9D\x8C"
 all_done="\xF0\x9F\x92\xAF"
 SUFFIX="eei"
-POSTGRES_NAMESPACE=$namespace
+POSTGRES_NAMESPACE=
 REPO="https://github.com/IBM/cp4i-deployment-samples.git"
 BRANCH="main"
 TKN=tkn
@@ -72,6 +72,8 @@ while getopts "n:r:b:t:f:g:" opt; do
     ;;
   esac
 done
+
+POSTGRES_NAMESPACE=${POSTGRES_NAMESPACE:-$namespace}
 
 if [[ -z "${namespace// /}" || -z "${REPO// /}" || -z "${BRANCH// /}" || -z "${TKN// /}" || -z "${DEFAULT_FILE_STORAGE// /}" || -z "${DEFAULT_FILE_STORAGE// /}" ]]; then
   echo -e "$cross ERROR: Mandatory parameters are empty"

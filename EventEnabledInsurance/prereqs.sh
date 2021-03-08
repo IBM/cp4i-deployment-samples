@@ -42,12 +42,12 @@ TICK="\xE2\x9C\x85"
 CROSS="\xE2\x9D\x8C"
 ALL_DONE="\xF0\x9F\x92\xAF"
 SUFFIX="eei"
-POSTGRES_NAMESPACE=$NAMESPACE
+POSTGRES_NAMESPACE=
 REPO="https://github.com/IBM/cp4i-deployment-samples.git"
 BRANCH="main"
 INFO="\xE2\x84\xB9"
 MISSING_PARAMS="false"
-ELASTIC_NAMESPACE=$NAMESPACE
+ELASTIC_NAMESPACE=
 OMIT_INITIAL_SETUP=false
 DEFAULT_FILE_STORAGE="ibmc-file-gold-gid"
 DEFAULT_BLOCK_STORAGE="cp4i-block-performance"
@@ -83,6 +83,9 @@ while getopts "n:r:b:e:p:of:g:" opt; do
     ;;
   esac
 done
+
+POSTGRES_NAMESPACE=${POSTGRES_NAMESPACE:-$NAMESPACE}
+ELASTIC_NAMESPACE=${ELASTIC_NAMESPACE:-$NAMESPACE}
 
 if [[ -z "${NAMESPACE// /}" ]]; then
   echo -e "$CROSS [ERROR] Namespace for event enabled insurance demo is empty. Please provide a value for '-n' parameter."

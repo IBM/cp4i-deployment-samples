@@ -51,7 +51,7 @@ echo "INFO: Release ACE Designer..."
 echo "INFO: Namespace: '$namespace'"
 echo "INFO: Designer Release Name: '$designer_release_name'"
 
-json=$(oc get configmap -n $namespace operator-info -o json)
+json=$(oc get configmap -n $namespace operator-info -o json 2> /dev/null)
 if [[ $? == 0 ]]; then
   METADATA_NAME=$(echo $json | tr '\r\n' ' ' | jq -r '.data.METADATA_NAME')
   METADATA_UID=$(echo $json | tr '\r\n' ' ' | jq -r '.data.METADATA_UID')
@@ -71,6 +71,16 @@ metadata:
       uid: ${METADATA_UID}"
   fi)
 spec:
+  pod:
+    containers:
+      ui:
+        resources:
+          limits:
+            cpu: 400m
+            memory: 400M
+          requests:
+            cpu: 400m
+            memory: 400M
   couchdb:
     storage:
       size: 10Gi

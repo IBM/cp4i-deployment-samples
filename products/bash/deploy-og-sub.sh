@@ -184,7 +184,7 @@ spec:
 EOF
 }
 
-if [[ "$CLUSTER_SCOPED" == "false" ]]; then
+if [[ "$CLUSTER_SCOPED" != "true" ]]; then
   cat <<EOF | oc apply -f -
 apiVersion: operators.coreos.com/v1
 kind: OperatorGroup
@@ -204,7 +204,7 @@ echo "INFO: Applying subscription for platform navigator"
 create_subscription ${namespace} "ibm-operator-catalog" "ibm-integration-platform-navigator" "v4.0"
 
 echo "INFO: Applying individual subscriptions for CP4I dependencies"
-create_subscription ${namespace} "certified-operators" "couchdb-operator-certified" "v1.3"
+create_subscription ${namespace} "certified-operators" "couchdb-operator-certified" "v1.4"
 create_subscription ${namespace} "ibm-operator-catalog" "aspera-hsts-operator" "v1.1"
 # Datapower should get the correct version installed from the APIC operator
 # create_subscription ${namespace} "ibm-operator-catalog" "datapower-operator" "v1.1"

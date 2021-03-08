@@ -24,7 +24,7 @@
 #     ./release-ar.sh -n cp4i-prod -r prod
 
 function usage() {
-  echo "Usage: $0 -n <namespace> -r <release-name>"
+  echo "Usage: $0 -n <namespace> -r <release-name> -a <assets storage class (file)> -c <couch storage class (block)>"
 }
 
 namespace="cp4i"
@@ -53,7 +53,7 @@ while getopts "n:r:a:c:" opt; do
   esac
 done
 
-json=$(oc get configmap -n $namespace operator-info -o json)
+json=$(oc get configmap -n $namespace operator-info -o json 2> /dev/null)
 if [[ $? == 0 ]]; then
   METADATA_NAME=$(echo $json | tr '\r\n' ' ' | jq -r '.data.METADATA_NAME')
   METADATA_UID=$(echo $json | tr '\r\n' ' ' | jq -r '.data.METADATA_UID')
