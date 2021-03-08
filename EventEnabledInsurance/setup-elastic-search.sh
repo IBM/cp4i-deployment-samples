@@ -34,7 +34,7 @@ SUFFIX="eei"
 ELASTIC_CR_NAME="elasticsearch-$SUFFIX"
 NAMESPACE="cp4i"
 ELASTIC_NAMESPACE="elasticsearch"
-ELASTIC_SUBSCRIPTION_NAME="elastic-cloud-eck"
+ELASTIC_SUBSCRIPTION_NAME="elasticsearch-eck-operator-certified"
 
 while getopts "n:e:" opt; do
   case ${opt} in
@@ -146,7 +146,7 @@ wait_for_subscription $ELASTIC_NAMESPACE $ELASTIC_SUBSCRIPTION_NAME
 
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
-json=$(oc get configmap -n $NAMESPACE operator-info -o json  2> /dev/null)
+json=$(oc get configmap -n $NAMESPACE operator-info -o json 2> /dev/null)
 if [[ $? == 0 ]]; then
   METADATA_NAME=$(echo $json | tr '\r\n' ' ' | jq -r '.data.METADATA_NAME')
   METADATA_UID=$(echo $json | tr '\r\n' ' ' | jq -r '.data.METADATA_UID')
