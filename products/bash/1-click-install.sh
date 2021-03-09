@@ -303,8 +303,8 @@ if [[ -z "$tempERKey" ]]; then
   export DOCKER_REGISTRY_PASS=${DOCKER_REGISTRY_PASS:-none}
 else
   # Use the tempERKey override as an api key
-  export DOCKER_REGISTRY_USER="iamapikey"
-  export DOCKER_REGISTRY_PASS=$tempERKey
+  export DOCKER_REGISTRY_USER="ekey"
+  export DOCKER_REGISTRY_PASS=${tempERKey}
 fi
 
 if [[ "$ENVIRONMENT" == "STAGING" ]]; then
@@ -411,7 +411,7 @@ spec:
   displayName: IBMCS Operators
   publisher: IBM
   sourceType: grpc
-  image: docker.io/ibmcom/ibm-common-service-catalog:latest
+  image: docker.io/ibmcom/ibm-common-service-catalog:3.5
   updateStrategy:
     registryPoll:
       interval: 45m
