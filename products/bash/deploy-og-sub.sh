@@ -21,7 +21,7 @@
 #     ./deploy-og-sub.sh
 #
 #   Overriding the namespace
-#     ./deploy-og-sub -n cp4i-prod
+#     ./deploy-og-sub.sh -n cp4i-prod
 #
 
 function usage() {
@@ -257,9 +257,6 @@ fi
 echo "INFO: Applying subscription for platform navigator"
 create_subscription ${namespace} ${NAVIGATOR_CATALOG} "ibm-integration-platform-navigator" "v4.2"
 
-echo "INFO: Applying individual subscriptions for CP4I dependencies"
-create_subscription ${namespace} "certified-operators" "couchdb-operator-certified" "v1.4"
-
 create_subscription ${namespace} ${ASPERA_CATALOG} "aspera-hsts-operator" "v1.2-eus"
 create_subscription ${namespace} ${ACE_CATALOG} "ibm-appconnect" "v1.3"
 echo 'TODO create_subscription ${namespace} ${ES_CATALOG} "ibm-eventstreams" "v2.3"'
@@ -275,20 +272,6 @@ echo "INFO: Apply the APIC/Tracing subscriptions"
 create_subscription ${namespace} ${APIC_CATALOG} "ibm-apiconnect" "v2.2"
 
 echo 'TODO create_subscription ${namespace} ${OD_CATALOG} "ibm-integration-operations-dashboard" "v2.1-eus"'
-
-echo "Wait for the APIC operator to succeed"
-wait_for_subscription ${namespace} ${APIC_CATALOG} "ibm-apiconnect" "v2.2"
-
-echo "Keep retrying the datapower operator"
-wait_for_subscription_with_timeout ${namespace} ${DP_CATALOG} "datapower-operator" "v1.3" 300
-while [[ "${wait_for_subscription_with_timeout_result}" != "0" ]]; do
-  delete_datapower_subscription ${namespace}
-  create_subscription ${namespace} ${DP_CATALOG} "datapower-operator" "v1.3"
-  wait_for_subscription_with_timeout ${namespace} ${DP_CATALOG} "datapower-operator" "v1.3" 300
-done
-
-# echo "INFO: Applying the subscription for the uber operator"
-# create_subscription ${namespace} "ibm-operator-catalog" "ibm-cp-integration" "v1.1-eus"
 
 echo "INFO: Wait for all subscriptions to succeed"
 wait_for_all_subscriptions ${namespace}

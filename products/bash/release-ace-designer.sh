@@ -71,17 +71,8 @@ metadata:
       uid: ${METADATA_UID}"
   fi)
 spec:
-  pod:
-    containers:
-      ui:
-        resources:
-          limits:
-            cpu: 400m
-            memory: 400M
-          requests:
-            cpu: 400m
-            memory: 400M
   couchdb:
+    replicas: 1
     storage:
       class: ${storage}
       size: 10Gi
@@ -91,9 +82,9 @@ spec:
     enabled: true
   license:
     accept: true
-    license: L-APEH-BTHFYQ
+    license: L-APEH-BY5DRY
     use: CloudPakForIntegrationNonProduction
   replicas: 1
   useCommonServices: true
-  version: 11.0.0.10-r3-eus
+  version: 11.0.0.11-r2
 EOF

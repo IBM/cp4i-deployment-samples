@@ -94,8 +94,6 @@ while [[ "$(oc get PlatformNavigator -n ${namespace} ${namespace}-navigator -o j
   fi
   echo "INFO: Waiting up to 60 minutes for platform navigator object to be ready. Waited ${time} minute(s)."
 
-  ${SCRIPT_DIR}/fix-cs-dependencies.sh
-
   time=$((time + 1))
   sleep 60
 done

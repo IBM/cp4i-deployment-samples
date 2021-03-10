@@ -69,7 +69,7 @@ metadata:
 spec:
   displayName: IBMABP Operators
 #  image: cp.stg.icr.io/cp/ibm-automation-foundation-core-catalog:latest
-  image: cp.stg.icr.io/cp/ibm-automation-foundation-core-catalog:1.0.0-RC3
+  image: cp.stg.icr.io/cp/ibm-automation-foundation-core-catalog:1.0.0-GM
   publisher: IBM
   sourceType: grpc
   updateStrategy:
@@ -142,7 +142,7 @@ metadata:
 spec:
   displayName: APIC Operators
 #  image: cp.stg.icr.io/cp/ibm-apiconnect-catalog:latest-nightly
-  image: ibmcom/ibm-apiconnect-catalog@sha256:c3368446ea46223461122a8ec7e46344f36312f03bb7a041468b9e731e053e87
+  image: ibmcom/ibm-apiconnect-catalog@sha256:c9ceccdc326f4f98073418fdde483acf86d9cf6fd2189afe8b073019592f5f52
   publisher: IBM
   sourceType: grpc
   updateStrategy:
@@ -214,7 +214,8 @@ metadata:
 spec:
   displayName: OD Operators
   # TODO Need latest
-  image: cp.stg.icr.io/cp/ibm-integration-operations-dashboard-catalog:latest
+  #image: cp.stg.icr.io/cp/ibm-integration-operations-dashboard-catalog:latest
+  image: cp.stg.icr.io/cp/ibm-integration-operations-dashboard-catalog:2.2.0-2021-03-08-2154-e90a9004-od-release-2021.1.1-0-rc2@sha256:b18873e258529f79bb0e419d16813a55b01d317e1d1b8689b72e41a22ea8d33f
   publisher: IBM
   sourceType: grpc
   updateStrategy:
@@ -258,4 +259,4 @@ spec:
     registryPoll:
       interval: 45m
 EOF
-`fi
+fi

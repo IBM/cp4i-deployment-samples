@@ -91,9 +91,6 @@ for i in $(seq 1 120); do
     break
   else
     echo "Waiting for APIC install to complete (Attempt $i of 120). Status: $APIC_STATUS"
-
-    ${CURRENT_DIR}/fix-cs-dependencies.sh
-
     kubectl get apic,pods,pvc -n $NAMESPACE
     echo "Checking again in one minute..."
     sleep 60
