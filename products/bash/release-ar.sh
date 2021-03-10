@@ -30,7 +30,7 @@ function usage() {
 namespace="cp4i"
 release_name="demo"
 assetDataVolume="ibmc-file-gold-gid"
-couchVolume="cp4i-block-performance"
+couchVolume="ibmc-block-gold"
 
 while getopts "n:r:a:c:" opt; do
   case ${opt} in
@@ -75,12 +75,12 @@ metadata:
 spec:
   license:
     accept: true
-    license: L-RJON-BUVMQX
+    license: L-NCAN-BXWG76
   replicas: 1
   storage:
     assetDataVolume:
       class: ${assetDataVolume}
     couchVolume:
       class: ${couchVolume}
-  version: 2020.4.1-eus
+  version: 2021.1.1-0
 EOF
