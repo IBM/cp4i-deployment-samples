@@ -271,7 +271,7 @@ echo "INFO: ClusterServiceVersion for the Platform Navigator is now installed, p
 echo "INFO: Apply the APIC/Tracing subscriptions"
 create_subscription ${namespace} ${APIC_CATALOG} "ibm-apiconnect" "v2.2"
 
-echo 'TODO create_subscription ${namespace} ${OD_CATALOG} "ibm-integration-operations-dashboard" "v2.1-eus"'
+create_subscription ${namespace} ${OD_CATALOG} "ibm-integration-operations-dashboard" "v2.2"
 
 echo "INFO: Wait for all subscriptions to succeed"
 wait_for_all_subscriptions ${namespace}
