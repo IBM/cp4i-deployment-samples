@@ -54,10 +54,12 @@ while getopts "n:r:tp" opt; do
   esac
 done
 
-profile="n3xc4.m16"
+profile="n1xc10.m48"
+license_use="nonproduction"
 if [[ "$production" == "true" ]]; then
   echo "Production Mode Enabled"
   profile="n12xc4.m12"
+  license_use="production"
 fi
 
 json=$(oc get configmap -n $namespace operator-info -o json 2> /dev/null)
@@ -84,17 +86,17 @@ metadata:
     app.kubernetes.io/managed-by: ibm-apiconnect
     app.kubernetes.io/name: apiconnect-production
 spec:
-  version: 10.0.1.1-eus
+  version: 10.0.2.0
   license:
     accept: true
-    use: production
+    use: ${license_use}
+    license: L-RJON-BRSHKF
   profile: ${profile}
   gateway:
     openTracing:
       enabled: ${tracing}
       odTracingNamespace: ${namespace}
-      imageAgent: 'cp.icr.io/cp/icp4i/od/icp4i-od-agent@sha256:f1abc56564c2e49a3608a334b2238c47bff855736e443c0694efa1613dc173d8'
-      imageCollector: 'cp.icr.io/cp/icp4i/od/icp4i-od-collector@sha256:25ce2acd5b7fec8b4adf39aee8c281c97c9a4dad40ed96298263a50896e93b90'
+    replicaCount: 1
   management:
     testAndMonitor:
       enabled: true
