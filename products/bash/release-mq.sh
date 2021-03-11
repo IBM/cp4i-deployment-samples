@@ -113,7 +113,7 @@ metadata:
 spec:
   license:
     accept: true
-    license: L-RJON-BUVMQX
+    license: L-RJON-BXUPZ2
     use: NonProduction
   queueManager:
     name: ${qm_name}
@@ -127,7 +127,7 @@ spec:
             - name: MQSNOAUT
               value: 'yes'
           name: qmgr
-  version: 9.2.0.1-r1-eus
+  version: 9.2.2.0-r1
   web:
     enabled: true
   tracing:
