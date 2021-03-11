@@ -23,14 +23,16 @@
 #   Overriding the namespace and release-name
 #     ./release-ace-dashboard.sh -n cp4i-prod -r prod
 
+
+dashboard_release_name="ace-dashboard-demo"
+namespace="cp4i"
+production="false"
+storage="ibmc-file-gold-gid"
+
 function usage() {
   echo "Usage: $0 -n <namespace> -r <dashboard-release-name>"
 }
 
-namespace="cp4i"
-dashboard_release_name="ace-dashboard-demo"
-storage="ibmc-file-gold-gid"
-production="false"
 while getopts "n:r:s:p" opt; do
   case ${opt} in
   n)
@@ -51,6 +53,9 @@ while getopts "n:r:s:p" opt; do
     ;;
   esac
 done
+
+source ./license-helper.sh -n $namespace
+echo "[DEBUG] ACE license: $(getACELicense)"
 
 echo "INFO: Release ACE Dashboard..."
 echo "INFO: Namespace: '$namespace'"
@@ -86,7 +91,7 @@ metadata:
 spec:
   license:
     accept: true
-    license: L-APEH-BPUCJK
+    license: $(getACELicense)
     use: ${use}
   replicas: 1
   storage:
