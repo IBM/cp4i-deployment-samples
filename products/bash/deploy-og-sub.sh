@@ -56,6 +56,7 @@ if [[ "${USE_PRERELEASE_CATALOGS}" == "true" ]]; then
   DP_CATALOG="dp-operators"
   ES_CATALOG="es-operators"
   MQ_CATALOG="mq-operators"
+  DEMOS_CATALOG="cp4i-demo-operator-catalog-source"
 else
   NAVIGATOR_CATALOG="ibm-operator-catalog"
   ACE_CATALOG="ibm-operator-catalog"
@@ -66,6 +67,7 @@ else
   DP_CATALOG="ibm-operator-catalog"
   ES_CATALOG="ibm-operator-catalog"
   MQ_CATALOG="ibm-operator-catalog"
+  DEMOS_CATALOG="ibm-operator-catalog"
 fi
 
 function output_time() {
@@ -259,10 +261,11 @@ create_subscription ${namespace} ${NAVIGATOR_CATALOG} "ibm-integration-platform-
 
 create_subscription ${namespace} ${ASPERA_CATALOG} "aspera-hsts-operator" "v1.2-eus"
 create_subscription ${namespace} ${ACE_CATALOG} "ibm-appconnect" "v1.3"
-echo 'TODO create_subscription ${namespace} ${ES_CATALOG} "ibm-eventstreams" "v2.3"'
+create_subscription ${namespace} ${ES_CATALOG} "ibm-eventstreams" "v2.3"
 
-echo 'TODO create_subscription ${namespace} ${MQ_CATALOG} "ibm-mq" "v1.3-eus"'
+create_subscription ${namespace} ${MQ_CATALOG} "ibm-mq" "v1.5"
 create_subscription ${namespace} ${AR_CATALOG} "ibm-integration-asset-repository" "v1.2"
+echo 'TODO create_subscription ${namespace} ${DEMOS_CATALOG} "ibm-integration-demos-operator" "v1.0"'
 
 echo "INFO: Wait for platform navigator before applying the APIC/Tracing subscriptions"
 wait_for_subscription ${namespace} ${NAVIGATOR_CATALOG} "ibm-integration-platform-navigator" "v4.2"

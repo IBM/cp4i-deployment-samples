@@ -91,7 +91,8 @@ i=1
 retries=30
 interval=10
 if [[ "$USING_OPERATORS" == "true" ]]; then
-  desiredResponseContent="$RELEASE_NAME-ibm-ar-$NAMESPACE"
+  # TODO desiredResponseContent="$RELEASE_NAME-ibm-ar-$NAMESPACE"
+  desiredResponseContent="/assets"
 else
   desiredResponseContent="$RELEASE_NAME-$NAMESPACE"
 fi

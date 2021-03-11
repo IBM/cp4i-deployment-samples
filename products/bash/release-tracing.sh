@@ -138,7 +138,7 @@ spec:
       class: "${file_storage}"
     tracingVolume:
       class: "${block_storage}"
-  version: 2020.4.1-0-eus
+  version: 2021.1.1-0
 EOF
 fi
 
@@ -147,7 +147,7 @@ oc create secret generic -n ${namespace} icp4i-od-store-cred --from-literal=icp4
 
 echo "Waiting for Operations Dashboard installation to complete..."
 for i in $(seq 1 400); do
-  STATUS=$(oc get OperationsDashboard -n ${namespace} tracing-demo -o jsonpath='{.status.phase}')
+  STATUS=$(oc get OperationsDashboard -n ${namespace} ${release_name} -o jsonpath='{.status.phase}')
   if [ "$STATUS" == "Ready" ]; then
     printf "$tick"
     echo "Operations Dashboard is ready"

@@ -54,7 +54,8 @@ metadata:
   namespace: openshift-marketplace
 spec:
   displayName: IBMCS Operators
-  image: hyc-cloud-private-daily-docker-local.artifactory.swg-devops.com/ibmcom/ibm-common-service-catalog:20210305-2330
+  # image: hyc-cloud-private-daily-docker-local.artifactory.swg-devops.com/ibmcom/ibm-common-service-catalog:20210305-2330
+  image: hyc-cloud-private-daily-docker-local.artifactory.swg-devops.com/ibmcom/ibm-common-service-catalog:20210309-1556
   publisher: IBM
   sourceType: grpc
   updateStrategy:
@@ -105,20 +106,20 @@ spec:
     registryPoll:
       interval: 45m
 ---
-#apiVersion: operators.coreos.com/v1alpha1
-#kind: CatalogSource
-#metadata:
-#  name: mq-operators
-#  namespace: openshift-marketplace
-#spec:
-#  displayName: MQ Operators
-  # TODO Need latest
-#  image: cp.stg.icr.io/cp/ibm-mq-operator-catalog:latest
-#  publisher: IBM
-#  sourceType: grpc
-#  updateStrategy:
-#    registryPoll:
-#      interval: 45m
+apiVersion: operators.coreos.com/v1alpha1
+kind: CatalogSource
+metadata:
+ name: mq-operators
+ namespace: openshift-marketplace
+spec:
+ displayName: MQ Operators
+  TODO Need latest
+ image: docker.io/ibmcom/ibm-mq-operator-catalog@sha256:8fc3184888049bc16aa02b0b8731f091e2287e8332c8ef673c4df644095ecf41
+ publisher: IBM
+ sourceType: grpc
+ updateStrategy:
+   registryPoll:
+     interval: 45m
 ---
 apiVersion: operators.coreos.com/v1alpha1
 kind: CatalogSource
@@ -127,7 +128,7 @@ metadata:
   namespace: openshift-marketplace
 spec:
   displayName: ES Operators
-  image: cp.stg.icr.io/cp/ibm-eventstreams-catalog:latest
+  image: cp.stg.icr.io/cp/ibm-eventstreams-catalog:2021-03-10-18.54.45-906f0d4
   publisher: IBM
   sourceType: grpc
   updateStrategy:
@@ -142,7 +143,7 @@ metadata:
 spec:
   displayName: APIC Operators
 #  image: cp.stg.icr.io/cp/ibm-apiconnect-catalog:latest-nightly
-  image: ibmcom/ibm-apiconnect-catalog@sha256:c9ceccdc326f4f98073418fdde483acf86d9cf6fd2189afe8b073019592f5f52
+  image: ibmcom/ibm-apiconnect-catalog@sha256:5343ace881d7ca17cac4a9f734f5000c1c7a26a5b0df23cbf5b2e98d00d24fc5
   publisher: IBM
   sourceType: grpc
   updateStrategy:
@@ -213,9 +214,23 @@ metadata:
   namespace: openshift-marketplace
 spec:
   displayName: OD Operators
-  # TODO Need latest
   #image: cp.stg.icr.io/cp/ibm-integration-operations-dashboard-catalog:latest
-  image: cp.stg.icr.io/cp/ibm-integration-operations-dashboard-catalog:2.2.0-2021-03-08-2154-e90a9004-od-release-2021.1.1-0-rc2@sha256:b18873e258529f79bb0e419d16813a55b01d317e1d1b8689b72e41a22ea8d33f
+  image: cp.stg.icr.io/cp/ibm-integration-operations-dashboard-catalog:2.2.0-2021-03-10-1256-a7d67283-od-release-2021.1.1-0-rc3@sha256:5f761cc6c32f40449e0282ba0be9dc10dac084e3fdfc778831c5b07b3d70e273
+  publisher: IBM
+  sourceType: grpc
+  updateStrategy:
+    registryPoll:
+      interval: 45m
+---
+apiVersion: operators.coreos.com/v1alpha1
+kind: CatalogSource
+metadata:
+  name: cp4i-demo-operator-catalog-source
+  namespace: openshift-marketplace
+spec:
+  displayName: Demo Operators
+  sourceType: grpc
+  image: cp.stg.icr.io/cp/ibm-integration-demos-catalog:1.0.0-2021-02-24-0956-3b8d3254@sha256:81995aa0e8581be80ffdaa9aaae4678d4971bcb9bf1385bcf6b539ac952f80f6
   publisher: IBM
   sourceType: grpc
   updateStrategy:
