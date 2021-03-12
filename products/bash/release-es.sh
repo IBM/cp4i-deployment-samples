@@ -134,7 +134,7 @@ metadata:
       uid: ${METADATA_UID}"
   fi)
 spec:
-  version: 10.2.0-eus
+  version: 10.3.0
   license:
     accept: true
     use: CloudPakForIntegrationNonProduction
