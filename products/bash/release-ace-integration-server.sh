@@ -79,7 +79,7 @@ while getopts "c:d:i:n:p:r:tz:" opt; do
   esac
 done
 
-source ./license-helper.sh -n $namespace
+source license-helper.sh -n $namespace
 echo "[DEBUG] ACE license: $(getACELicense)"
 
 echo "Current directory: $CURRENT_DIR"

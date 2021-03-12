@@ -49,7 +49,7 @@ while getopts "n:r:s:" opt; do
   esac
 done
 
-source ./license-helper.sh -n $namespace
+source license-helper.sh -n $namespace
 echo "[DEBUG] ACE license: $(getACELicense)"
 
 echo "INFO: Release ACE Designer..."

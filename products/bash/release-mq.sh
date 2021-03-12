@@ -72,7 +72,7 @@ while getopts "n:r:i:q:z:t" opt; do
   esac
 done
 
-source ./license-helper.sh -n $namespace
+source license-helper.sh -n $namespace
 echo "[DEBUG] MQ license: $(getMQLicense)"
 
 echo "Current directory: $CURRENT_DIR"
