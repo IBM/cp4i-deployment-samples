@@ -28,6 +28,7 @@ dashboard_release_name="ace-dashboard-demo"
 namespace="cp4i"
 production="false"
 storage="ibmc-file-gold-gid"
+CURRENT_DIR=$(dirname $0)
 
 function usage() {
   echo "Usage: $0 -n <namespace> -r <dashboard-release-name>"
@@ -54,7 +55,7 @@ while getopts "n:r:s:p" opt; do
   esac
 done
 
-source license-helper.sh -n $namespace
+source $CURRENT_DIR/license-helper.sh -n $namespace
 echo "[DEBUG] ACE license: $(getACELicense)"
 
 echo "INFO: Release ACE Dashboard..."

@@ -26,6 +26,7 @@
 designer_release_name="ace-designer-demo"
 namespace="cp4i"
 storage="ibmc-block-gold"
+CURRENT_DIR=$(dirname $0)
 
 function usage() {
   echo "Usage: $0 -n <namespace> -r <designer_release_name>"
@@ -49,7 +50,7 @@ while getopts "n:r:s:" opt; do
   esac
 done
 
-source license-helper.sh -n $namespace
+source $CURRENT_DIR/license-helper.sh -n $namespace
 echo "[DEBUG] ACE license: $(getACELicense)"
 
 echo "INFO: Release ACE Designer..."
