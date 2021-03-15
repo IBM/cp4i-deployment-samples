@@ -38,6 +38,8 @@ oc get secret -n ibm-common-services platform-auth-idp-credentials -o jsonpath='
 
 ./release-es.sh -n ${namespace}
 
+./configure-apic-v10.sh -n ${namespace}
+
 #### TODO HERE!!!!
 
 

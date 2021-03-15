@@ -143,7 +143,8 @@ metadata:
 spec:
   displayName: APIC Operators
 #  image: cp.stg.icr.io/cp/ibm-apiconnect-catalog:latest-nightly
-  image: ibmcom/ibm-apiconnect-catalog@sha256:5343ace881d7ca17cac4a9f734f5000c1c7a26a5b0df23cbf5b2e98d00d24fc5
+#  image: ibmcom/ibm-apiconnect-catalog@sha256:5343ace881d7ca17cac4a9f734f5000c1c7a26a5b0df23cbf5b2e98d00d24fc5
+  image: ibmcom/ibm-apiconnect-catalog@sha256:ad97f9db387509da77ce4516e20f524c4530d04982c1a81fa42a7f460111a4a2
   publisher: IBM
   sourceType: grpc
   updateStrategy:
