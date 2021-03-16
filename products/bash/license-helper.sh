@@ -45,18 +45,40 @@ LICENSES=$(oc -n $NAMESPACE get configmap $LICENSES_CM -ojson 2> /dev/null)
 echo "[DEBUG] Licenses configmap:"
 echo $LICENSES
 
+#------------------------------------------------ INSTALL JQ -----------------------------------------------------------
+
+divider
+
+echo -e "\nINFO: Checking if jq is pre-installed..."
+jqInstalled=false
+jqVersionCheck=$(jq --version)
+
+if [ $? -ne 0 ]; then
+  jqInstalled=false
+else
+  jqInstalled=true
+fi
+
+if [[ !$jqInstalled ]]; then
+  echo "INFO: JQ is not installed, installing jq..."
+  wget -O jq https://github.com/stedolan/jq/releases/download/jq-1.6/jq-linux64
+  chmod +x ./jq
+fi
+
+echo -e "\nINFO: Installed JQ version is $(./jq --version)"
+
 function getAllLicenses() {
   echo $LICENSES | jq -r '.data'
 }
 
 function getDemoLicense() {
-  echo $LICENSES | tr '\r\n' ' ' | jq -r '.data.demo'
+  echo $LICENSES | tr '\r\n' ' ' | ./jq -r '.data.demo'
 }
 
 function getACELicense() {
-  echo $LICENSES | tr '\r\n' ' ' | jq -r '.data.ace'
+  echo $LICENSES | tr '\r\n' ' ' | ./jq -r '.data.ace'
 }
 
 function getMQLicense() {
-  echo $LICENSES | tr '\r\n' ' ' | jq -r '.data.mq'
+  echo $LICENSES | tr '\r\n' ' ' | ./jq -r '.data.mq'
 }
