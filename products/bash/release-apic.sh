@@ -90,7 +90,7 @@ spec:
   license:
     accept: true
     use: ${license_use}
-    license: L-RJON-BRSHKF
+    license: L-RJON-BXWP45
   profile: ${profile}
   gateway:
     openTracing:
