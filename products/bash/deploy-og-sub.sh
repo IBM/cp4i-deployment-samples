@@ -265,7 +265,7 @@ create_subscription ${namespace} ${ES_CATALOG} "ibm-eventstreams" "v2.3"
 
 create_subscription ${namespace} ${MQ_CATALOG} "ibm-mq" "v1.5"
 create_subscription ${namespace} ${AR_CATALOG} "ibm-integration-asset-repository" "v1.2"
-echo 'TODO create_subscription ${namespace} ${DEMOS_CATALOG} "ibm-integration-demos-operator" "v1.0"'
+create_subscription ${namespace} ${DEMOS_CATALOG} "ibm-integration-demos-operator" "v1.0"
 
 echo "INFO: Wait for platform navigator before applying the APIC/Tracing subscriptions"
 wait_for_subscription ${namespace} ${NAVIGATOR_CATALOG} "ibm-integration-platform-navigator" "v4.2"
