@@ -1,2 +1,2 @@
-FROM cp.icr.io/cp/appc/ace-server-prod@sha256:dd3c1e8d204b37775b792fc25a0bad4daba4fa35cd5aad996b29b1db63959baf
+FROM cp.icr.io/cp/appc/ace-server-prod@sha256:d04fa579290896a8a9474382be3d2729580e16810beacfad8714e8df88794391
 COPY DB-WRITER.bar /home/aceuser/initial-config/bars/
