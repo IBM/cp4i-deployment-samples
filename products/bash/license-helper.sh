@@ -61,24 +61,24 @@ fi
 
 if [[ !$jqInstalled ]]; then
   echo "INFO: JQ is not installed, installing jq..."
-  curl -o jq https://github.com/stedolan/jq/releases/download/jq-1.6/jq-linux64
-  chmod +x ./jq
+  curl -o /tmp/jq https://github.com/stedolan/jq/releases/download/jq-1.6/jq-linux64
+  chmod +x /tmp/jq
 fi
 
-echo -e "\nINFO: Installed JQ version is $(./jq --version)"
+echo -e "\nINFO: Installed JQ version is $(/tmp/jq --version)"
 
 function getAllLicenses() {
-  echo $LICENSES | jq -r '.data'
+  echo $LICENSES | /tmp/jq -r '.data'
 }
 
 function getDemoLicense() {
-  echo $LICENSES | tr '\r\n' ' ' | ./jq -r '.data.demo'
+  echo $LICENSES | tr '\r\n' ' ' | /tmp/jq -r '.data.demo'
 }
 
 function getACELicense() {
-  echo $LICENSES | tr '\r\n' ' ' | ./jq -r '.data.ace'
+  echo $LICENSES | tr '\r\n' ' ' | /tmp/jq -r '.data.ace'
 }
 
 function getMQLicense() {
-  echo $LICENSES | tr '\r\n' ' ' | ./jq -r '.data.mq'
+  echo $LICENSES | tr '\r\n' ' ' | /tmp/jq -r '.data.mq'
 }
