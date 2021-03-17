@@ -61,7 +61,7 @@ fi
 
 if [[ !$jqInstalled ]]; then
   echo "INFO: JQ is not installed, installing jq..."
-  curl -o /tmp/jq https://github.com/stedolan/jq/releases/download/jq-1.6/jq-linux64
+  curl -L -o /tmp/jq https://github.com/stedolan/jq/releases/download/jq-1.6/jq-linux64
   chmod +x /tmp/jq
 fi
 
