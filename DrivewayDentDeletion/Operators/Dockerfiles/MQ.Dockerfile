@@ -1,4 +1,4 @@
-FROM cp.stg.icr.io/cp/ibm-mqadvanced-server-integration@sha256:d64782959306134778612d3e14cce1bef43cfd35910227a3a90d7dce95168f75
+From cp.stg.icr.io/cp/ibm-mqadvanced-server-integration@sha256:99c9bc6d3fb56a62b841ed51175fa2239d57124da7e84dca2c9a9472dcba0374
 RUN echo -e "\
 DEFINE QLOCAL('AccidentIn') DEFPSIST(YES) \n\
 DEFINE QLOCAL('AccidentOut') DEFPSIST(YES) \n\
