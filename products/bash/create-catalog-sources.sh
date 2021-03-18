@@ -82,7 +82,8 @@ metadata:
   namespace: openshift-marketplace
 spec:
   displayName: PN Operators
-  image: cp.stg.icr.io/cp/ibm-integration-platform-navigator-catalog:latest
+  image: cp.stg.icr.io/cp/ibm-integration-platform-navigator-catalog:4.2.0-2021-03-18-0933-a5ac80d1-nginx_fixes_2@sha256:5c8d90fc0b4ea9b4700f191c8e34c9d2550ae220f82196456d0df34c8e01c2cd
+  # image: cp.stg.icr.io/cp/ibm-integration-platform-navigator-catalog:latest
   publisher: IBM
   sourceType: grpc
   updateStrategy:
