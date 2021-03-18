@@ -1,2 +1,2 @@
-FROM cp.icr.io/cp/appc/ace-server-prod@sha256:d04fa579290896a8a9474382be3d2729580e16810beacfad8714e8df88794391
+FROM cp.stg.icr.io/cp/appc/ace-server-prod@sha256:d04fa579290896a8a9474382be3d2729580e16810beacfad8714e8df88794391
 COPY REST.bar /home/aceuser/initial-config/bars/

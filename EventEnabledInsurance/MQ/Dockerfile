@@ -1,4 +1,4 @@
-FROM cp.icr.io/cp/ibm-mqadvanced-server-integration@sha256:b03d83a14f5fc21b943ed23ca9c532bd564821b72d782864f7345d388334a197
+FROM cp.stg.icr.io/cp/ibm-mqadvanced-server-integration@sha256:d64782959306134778612d3e14cce1bef43cfd35910227a3a90d7dce95168f75
 RUN echo -e "\
   DEFINE QLOCAL('QuoteBO') DEFPSIST(YES) \n\
   DEFINE QLOCAL('Quote') DEFPSIST(YES) BOQNAME('QuoteBO') BOTHRESH(99) \n\
