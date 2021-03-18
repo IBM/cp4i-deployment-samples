@@ -47,9 +47,9 @@ if [ -z ${DOCKERCONFIGJSON_ER} ]; then
   exit 1
 fi
 
-export ER_REGISTRY=$(echo "$DOCKERCONFIGJSON_ER" | jq -r '.auths' | jq 'keys[]' | tr -d '"')
-export ER_USERNAME=$(echo "$DOCKERCONFIGJSON_ER" | jq -r '.auths."cp.icr.io".username')
-export ER_PASSWORD=$(echo "$DOCKERCONFIGJSON_ER" | jq -r '.auths."cp.icr.io".password')
+export ER_REGISTRY=${ER_REGISTRY:-$(echo "$DOCKERCONFIGJSON_ER" | jq -r '.auths' | jq 'keys[]' | tr -d '"')}
+export ER_USERNAME=${ER_USERNAME:-$(echo "$DOCKERCONFIGJSON_ER" | jq -r '.auths."cp.icr.io".username')}
+export ER_PASSWORD=${ER_PASSWORD:-$(echo "$DOCKERCONFIGJSON_ER" | jq -r '.auths."cp.icr.io".password')}
 
 # Creating a new secret as the type of entitlement key is 'kubernetes.io/DOCKERCONFIGJSON' but we need secret of type 'kubernetes.io/basic-auth'
 # to pull images from the ER
