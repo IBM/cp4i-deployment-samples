@@ -54,7 +54,7 @@ metadata:
   namespace: openshift-marketplace
 spec:
   displayName: IBMCS Operators
-  image: docker.io/ibmcom/ibm-common-service-catalog:latest
+  image: hyc-cloud-private-daily-docker-local.artifactory.swg-devops.com/ibmcom/ibm-common-service-catalog:20210316-1951
   publisher: IBM
   sourceType: grpc
   updateStrategy:
@@ -110,7 +110,7 @@ metadata:
  namespace: openshift-marketplace
 spec:
  displayName: MQ Operators
- image: docker.io/ibmcom/ibm-mq-operator-catalog@sha256:8fc3184888049bc16aa02b0b8731f091e2287e8332c8ef673c4df644095ecf41
+ image: docker.io/ibmcom/ibm-mq-operator-catalog@sha256:d940bbc0225c34ef0bb873ede10c80762159185023b2bf7022fe53cbd590c823
  publisher: IBM
  sourceType: grpc
  updateStrategy:
@@ -138,7 +138,7 @@ metadata:
   namespace: openshift-marketplace
 spec:
   displayName: APIC Operators
-  image: ibmcom/ibm-apiconnect-catalog@sha256:7cbe4e5f007b7b46e2d1f68e92b1bb4d0eb3f74f0f8bb6555104cbd288656fb0
+  image: ibmcom/ibm-apiconnect-catalog@sha256:44df7270c7df1597a4eeb223c7436ea9dabc59c21b0ace6879b3183a14b20c63
   publisher: IBM
   sourceType: grpc
   updateStrategy:
@@ -152,7 +152,7 @@ metadata:
   namespace: openshift-marketplace
 spec:
   displayName: DP Operators
-  image: cp.stg.icr.io/cp/datapower-operator-catalog@sha256:c55e31809e0d8ca5e0398bfb956bde845a5c8debc55e529f6b76fab025d69dbb
+  image: cp.stg.icr.io/cp/datapower-operator-catalog@sha256:119157f3d0839674b9bb58ac1462b0963964e8b16f4ed4d5e2e91d199b28723d
   publisher: IBM
   sourceType: grpc
   updateStrategy:
