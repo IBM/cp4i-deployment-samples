@@ -253,12 +253,27 @@ elif [[ "$OSTYPE" == "darwin"* ]]; then
   BASE64_TS="$(base64 /tmp/elastic-ts.jks)"
 fi
 
-cat <<EOF | oc apply -f -
+json=$(oc get configmap -n $NAMESPACE operator-info -o json 2> /dev/null)
+if [[ $? == 0 ]]; then
+  METADATA_NAME=$(echo $json | tr '\r\n' ' ' | jq -r '.data.METADATA_NAME')
+  METADATA_UID=$(echo $json | tr '\r\n' ' ' | jq -r '.data.METADATA_UID')
+fi
+
+SECRET_EXISTS=$(oc -n $NAMESPACE get secret eei-elastic-credential && echo "true" || echo "false")
+if $SECRET_EXISTS; then
+  cat <<EOF | oc apply -f -
 apiVersion: v1
 kind: Secret
 metadata:
-  namespace: $NAMESPACE
   name: eei-elastic-credential
+  namespace: $NAMESPACE
+  $(if [[ ! -z ${METADATA_UID} && ! -z ${METADATA_NAME} ]]; then
+  echo "ownerReferences:
+    - apiVersion: integration.ibm.com/v1beta1
+      kind: Demo
+      name: ${METADATA_NAME}
+      uid: ${METADATA_UID}"
+  fi)
 type: Opaque
 stringData:
   connector.properties: |-
@@ -269,3 +284,4 @@ stringData:
 data:
   elastic-ts.jks: $BASE64_TS
 EOF
+fi
