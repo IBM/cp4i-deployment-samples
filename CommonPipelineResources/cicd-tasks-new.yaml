@@ -43,9 +43,9 @@ spec:
         requests:
           memory: "4Gi"
           cpu: "1"
-          ephemeral-storage: "1Gi"
+          ephemeral-storage: "5Gi"
         limits:
-          ephemeral-storage: "1Gi"
+          ephemeral-storage: "5Gi"
   volumes:
     - name: varlibcontainers
       persistentVolumeClaim:
