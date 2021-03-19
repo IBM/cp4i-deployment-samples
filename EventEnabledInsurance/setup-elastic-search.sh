@@ -259,8 +259,8 @@ if [[ $? == 0 ]]; then
   METADATA_UID=$(echo $json | tr '\r\n' ' ' | jq -r '.data.METADATA_UID')
 fi
 
-SECRET_EXISTS=$(oc -n $NAMESPACE get secret eei-elastic-credential && echo "true" || echo "false")
-if $SECRET_EXISTS; then
+SECRET_EXISTS=$(oc -n $NAMESPACE get secret eei-elastic-credential)
+if [[ -z $SECRET_EXISTS ]]; then
   cat <<EOF | oc apply -f -
 apiVersion: v1
 kind: Secret

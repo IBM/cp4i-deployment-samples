@@ -215,7 +215,7 @@ DB_POD=$(oc get pod -n $POSTGRES_NAMESPACE -l name=postgresql -o jsonpath='{.ite
 DB_USER=$(echo ${NAMESPACE}_sor_${SUFFIX} | sed 's/-/_/g')
 DB_NAME="db_$DB_USER"
 EXISTING_PASSWORD=$(oc get secret postgres-credential-eei -o json | jq -r '.data.password')
-if $EXISTING_PASSWORD; then
+if [[ $? == 0 ]]; then
   DB_PASS=$(echo $EXISTING_PASSWORD | base64 -dw0)
 else
   DB_PASS=$(
@@ -223,6 +223,12 @@ else
     echo
   )
   PASSWORD_ENCODED=$(echo -n $DB_PASS | base64)
+
+    json=$(oc get configmap -n $NAMESPACE operator-info -o json 2> /dev/null)
+    if [[ $? == 0 ]]; then
+      METADATA_NAME=$(echo $json | tr '\r\n' ' ' | jq -r '.data.METADATA_NAME')
+      METADATA_UID=$(echo $json | tr '\r\n' ' ' | jq -r '.data.METADATA_UID')
+    fi
 
   echo -e "$INFO [INFO] Creating a secret for the lifecycle simulator app to connect to postgres"
   # everything inside 'data' must be in the base64 encoded form
@@ -232,6 +238,13 @@ kind: Secret
 metadata:
   namespace: $NAMESPACE
   name: postgres-credential-$SUFFIX
+  $(if [[ ! -z ${METADATA_UID} && ! -z ${METADATA_NAME} ]]; then
+  echo "ownerReferences:
+    - apiVersion: integration.ibm.com/v1beta1
+      kind: Demo
+      name: ${METADATA_NAME}
+      uid: ${METADATA_UID}"
+  fi)
 type: Opaque
 data:
   password: $PASSWORD_ENCODED
@@ -250,10 +263,17 @@ fi #configure-postgres-db.sh
 divider
 
 REPLICATION_USER=$(echo ${NAMESPACE}_sor_replication_${SUFFIX} | sed 's/-/_/g')
-$EXISTING_REP_PASS=$(oc -n $NAMESPACE get secret eei-postgres-replication-credential && echo "true" || echo "false")
+EXISTING_REP_PASS=$(oc -n $NAMESPACE get secret eei-postgres-replication-credential -ojsonpath='{.stringData.connector.properties.dbPassword}')
 
-if $EXISTING_REP_PASS; then
-  REPLICATION_PASSWORD=$(echo $EXISTING_REP_PASS | base64 -dw0)
+if [[ $? == 0 ]]; then
+  echo "INFO: Retrieving existing password"
+  if [[ "$OSTYPE" == "linux-gnu"* ]]; then
+    echo "INFO: DB_PASS base64 decode command for linux"
+    REPLICATION_PASSWORD=$(echo $EXISTING_REP_PASS | base64 -dw0)
+  elif [[ "$OSTYPE" == "darwin"* ]]; then
+    echo "INFO: DB_PASS base64 decode for MAC"
+    REPLICATION_PASSWORD=$(echo $EXISTING_REP_PASS | base64 -d)
+  fi
 else
   REPLICATION_PASSWORD=$(
     LC_ALL=C tr -dc 'A-Za-z0-9' </dev/urandom | head -c 32

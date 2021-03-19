@@ -136,10 +136,15 @@ for EACH_DEPLOY_TYPE in "${DEPLOY_NAMES[@]}"; do
   EXISTING_PASSWORD=$(oc -n $NAMESPACE get secret postgres-credential-$SUFFIX-$EACH_DEPLOY_TYPE -ojsonpath='{.data.password}')
   
   if [[ $? == 0 ]]; then
-    echo "already a password"
-    DB_PASS=$(echo $EXISTING_PASSWORD | base64 -dw0)
+    echo "INFO: Retrieving existing password"
+    if [[ "$OSTYPE" == "linux-gnu"* ]]; then
+      echo "INFO: DB_PASS base64 decode command for linux"
+      DB_PASS=$(echo $EXISTING_PASSWORD | base64 -dw0)
+    elif [[ "$OSTYPE" == "darwin"* ]]; then
+      echo "INFO: DB_PASS base64 decode for MAC"
+      DB_PASS=$(echo $EXISTING_PASSWORD | base64 -d)
+    fi
   else
-    echo "need a password"
     DB_PASS=$(
       LC_ALL=C tr -dc 'A-Za-z0-9' </dev/urandom | head -c 32
       echo
