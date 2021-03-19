@@ -128,29 +128,33 @@ echo -e "$INFO [INFO] Installing prerequisites for the driveway dent deletion de
 
 divider
 
+echo "1"
 for EACH_DEPLOY_TYPE in "${DEPLOY_NAMES[@]}"; do
   echo -e "$INFO [INFO] Generating user, database name and password for the postgres database in the '$NAMESPACE' namespace"
   DB_USER=$(echo ${NAMESPACE}_${EACH_DEPLOY_TYPE}_${SUFFIX} | sed 's/-/_/g')
   DB_NAME="db_$DB_USER"
   EXISTING_PASSWORD=$(oc -n $NAMESPACE get secret postgres-credential-$SUFFIX-$EACH_DEPLOY_TYPE -ojsonpath='{.data.password}')
-
+  
   if $EXISTING_PASSWORD; then
+    echo "already a password"
     DB_PASS=$(echo $EXISTING_PASSWORD | base64 -dw0)
   else
+    echo "need a password"
     DB_PASS=$(
       LC_ALL=C tr -dc 'A-Za-z0-9' </dev/urandom | head -c 32
       echo
     )
-    PASSWORD_ENCODED=$(echo -n $DB_PASS | base64)
-    json=$(oc get configmap -n $NAMESPACE operator-info -o json 2> /dev/null)
-    if [[ $? == 0 ]]; then
-      METADATA_NAME=$(echo $json | tr '\r\n' ' ' | jq -r '.data.METADATA_NAME')
-      METADATA_UID=$(echo $json | tr '\r\n' ' ' | jq -r '.data.METADATA_UID')
-    fi
+  fi
+  PASSWORD_ENCODED=$(echo -n $DB_PASS | base64)
+  json=$(oc get configmap -n $NAMESPACE operator-info -o json 2> /dev/null)
+  if [[ $? == 0 ]]; then
+    METADATA_NAME=$(echo $json | tr '\r\n' ' ' | jq -r '.data.METADATA_NAME')
+    METADATA_UID=$(echo $json | tr '\r\n' ' ' | jq -r '.data.METADATA_UID')
+  fi
 
-    echo -e "$INFO [INFO] Creating a secret for the database user '$DB_USER' in the database '$DB_NAME' with the password generated\n"
-    # everything inside 'data' must be in the base64 encoded form
-    cat <<EOF | oc apply -f -
+  echo -e "$INFO [INFO] Creating a secret for the database user '$DB_USER' in the database '$DB_NAME' with the password generated\n"
+  # everything inside 'data' must be in the base64 encoded form
+  cat <<EOF | oc apply -f -
 apiVersion: v1
 kind: Secret
 metadata:
@@ -169,7 +173,6 @@ stringData:
 data:
   password: $PASSWORD_ENCODED
 EOF
-  fi
 
   divider
 
