@@ -124,7 +124,7 @@ spec:
   designerFlowsOperationMode: disabled
   license:
     accept: true
-    license: L-APEH-BTHFYQ
+    license: L-APEH-BY5CY7
     use: CloudPakForIntegrationNonProduction
   pod:
    containers:

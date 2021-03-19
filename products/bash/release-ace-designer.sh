@@ -82,7 +82,7 @@ spec:
     enabled: true
   license:
     accept: true
-    license: L-APEH-BY5DRY
+    license: L-APEH-BY5CY7
     use: CloudPakForIntegrationNonProduction
   replicas: 1
   useCommonServices: true
