@@ -82,8 +82,7 @@ metadata:
   namespace: openshift-marketplace
 spec:
   displayName: PN Operators
-  image: cp.stg.icr.io/cp/ibm-integration-platform-navigator-catalog:4.2.0-2021-03-18-0933-a5ac80d1-nginx_fixes_2@sha256:5c8d90fc0b4ea9b4700f191c8e34c9d2550ae220f82196456d0df34c8e01c2cd
-  # image: cp.stg.icr.io/cp/ibm-integration-platform-navigator-catalog:latest
+  image: cp.stg.icr.io/cp/ibm-integration-platform-navigator-catalog:latest
   publisher: IBM
   sourceType: grpc
   updateStrategy:
@@ -97,7 +96,7 @@ metadata:
   namespace: openshift-marketplace
 spec:
   displayName: ACE Operators
-  image: docker.io/ibmcom/appconnect-operator-catalog:1.3.0-20210316-174955@sha256:55eac5a5dfa10c6ec1a1cb133566fd9f05c0ecd43ef9e9b634b4066a784a4cc0
+  image: docker.io/ibmcom/appconnect-operator-catalog:1.3.0-20210318-192850@sha256:585e572c9fb2497258803d9d8eb21c8dcf4302cd4862de038eae36e684f9a873
   publisher: IBM
   sourceType: grpc
   updateStrategy:
@@ -139,6 +138,7 @@ metadata:
   namespace: openshift-marketplace
 spec:
   displayName: APIC Operators
+  # image: ibmcom/ibm-apiconnect-catalog@sha256:e6a180dde7642fa6afa3289033e7618fcb4a6c1c2b789f5a602daefb980e1b91
   image: ibmcom/ibm-apiconnect-catalog@sha256:44df7270c7df1597a4eeb223c7436ea9dabc59c21b0ace6879b3183a14b20c63
   publisher: IBM
   sourceType: grpc
@@ -209,7 +209,7 @@ metadata:
   namespace: openshift-marketplace
 spec:
   displayName: OD Operators
-  image: cp.stg.icr.io/cp/ibm-integration-operations-dashboard-catalog:2.2.0-2021-03-12-1752-1b9b5f3a-od-release-2021.1.1-0-rc5@sha256:69115d79fd81cdea9163dbd902b260f86cc1e146dc95b3965fb0ec04c022b01c
+  image: cp.stg.icr.io/cp/ibm-integration-operations-dashboard-catalog:2.2.0-2021-03-17-1700-6602786a-od-release-2021.1.1-0-rc6@sha256:553ceed50b279e0fd526a1d5f6e22e70eed7114a09a09f3a4898e936f41f8263
   publisher: IBM
   sourceType: grpc
   updateStrategy:
