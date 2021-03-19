@@ -113,7 +113,7 @@ function wait_for_subscription() {
   echo "$NAME has succeeded"
 }
 
-OPERATOR_GROUP_COUNT=$(oc get operatorgroups -n ${namespace} -o json | jq '.items | length')
+OPERATOR_GROUP_COUNT=$(oc get operatorgroups -n ${ELASTIC_NAMESPACE} -o json | jq '.items | length')
 if [[ "${OPERATOR_GROUP_COUNT}" == "0" ]]; then
   cat <<EOF | oc apply -f -
 apiVersion: operators.coreos.com/v1
