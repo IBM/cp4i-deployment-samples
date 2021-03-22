@@ -246,7 +246,7 @@ spec:
             - name: MQS_PERMIT_UNKNOWN_ID
               value: 'true'
           name: qmgr
-  version: 9.2.0.1-r1-eus
+  version: 9.2.2.0-r1
   web:
     enabled: true
   tracing:
