@@ -76,7 +76,8 @@ CATALOG_NAME_DDD="${ORG_NAME_DDD}-catalog"
 PORG_ADMIN_EMAIL=${PORG_ADMIN_EMAIL:-"cp4i-admin@apiconnect.net"} # update to recipient of portal site creation email
 ACE_REGISTRATION_SECRET_NAME="ace-v11-service-creds"              # corresponds to registration obj currently hard-coded in configmap
 PROVIDER_SECRET_NAME="cp4i-admin-creds"                           # corresponds to credentials obj currently hard-coded in configmap
-CONFIGURATOR_IMAGE=${CONFIGURATOR_IMAGE:-"cp.stg.icr.io/cp/apic/ibm-apiconnect-apiconnect-configurator:10.0.2.0"}
+# CONFIGURATOR_IMAGE=${CONFIGURATOR_IMAGE:-"cp.stg.icr.io/cp/apic/ibm-apiconnect-apiconnect-configurator:10.0.2.0"}
+CONFIGURATOR_IMAGE=${CONFIGURATOR_IMAGE:-"cp.icr.io/cp/apic/ibm-apiconnect-apiconnect-master@sha256:61429cfbaee476fa4c8b0b2dd0e8563988cc2d19aec90f7c5a111e143f45a5ff"}
 # CONFIGURATOR_IMAGE=${CONFIGURATOR_IMAGE:-"cp.icr.io/cp/apic/ibm-apiconnect-apiconnect-configurator:10.0.2.0"}
 # CONFIGURATOR_IMAGE=${CONFIGURATOR_IMAGE:-"cp.icr.io/cp/apic/ibm-apiconnect-apiconnect-configurator:10.0.1.0"}
 MAIL_SERVER_HOST=${MAIL_SERVER_HOST:-"smtp.mailtrap.io"}
@@ -197,6 +198,9 @@ stringData:
           username: "${MAIL_SERVER_USERNAME}"
           password: "${MAIL_SERVER_PASSWORD}"
 ---
+EOF
+
+cat <<EOF | oc apply -f -
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -242,6 +246,7 @@ data:
         host: "${MAIL_SERVER_HOST}"
         port: ${MAIL_SERVER_PORT}
         # tls_client_profile_url: https://${API_EP}/api/orgs/admin/tls-client-profiles/tls-client-profile-default
+
     users:
       # cloud_manager:
       api-manager-lur:
@@ -254,56 +259,81 @@ data:
             email: ${PORG_ADMIN_EMAIL}
             # email: cp4i-admin@apiconnect.net
           secret_name: ${PROVIDER_SECRET_NAME}
+
     orgs:
-      - org:
-          name: ${ORG_NAME}
-          title: Org for Demo use (${ORG_NAME})
-          org_type: provider
-          owner_url: https://${API_EP}/api/user-registries/admin/api-manager-lur/users/cp4i-admin
-        members:
-          - name: cs-admin
-            user:
-              identity_provider: common-services
-              url: https://${API_EP}/api/user-registries/admin/common-services/users/admin
-            role_urls:
-              - https://${API_EP}/api/orgs/${ORG_NAME}/roles/administrator
-        catalogs:
-          - catalog:
-              name: ${CATALOG_NAME}
-              title: Catalog for Demo use (${CATALOG_NAME})
-            settings:
-              portal:
-                type: drupal
-                endpoint: https://${PTL_WEB_EP}/${ORG_NAME}/${CATALOG_NAME}
-                portal_service_url: https://${API_EP}/api/orgs/${ORG_NAME}/portal-services/portal-service
-      - org:
-          name: ${ORG_NAME_DDD}
-          title: Org for Demo use (${ORG_NAME_DDD})
-          org_type: provider
-          owner_url: https://${API_EP}/api/user-registries/admin/api-manager-lur/users/cp4i-admin
-        members:
-          - name: cs-admin
-            user:
-              identity_provider: common-services
-              url: https://${API_EP}/api/user-registries/admin/common-services/users/admin
-            role_urls:
-              - https://${API_EP}/api/orgs/${ORG_NAME_DDD}/roles/administrator
-        catalogs:
-          - catalog:
-              name: ${CATALOG_NAME_DDD}
-              title: Catalog for Demo use (${CATALOG_NAME_DDD})
-            settings:
-              portal:
-                type: drupal
-                endpoint: https://${PTL_WEB_EP}/${ORG_NAME_DDD}/${CATALOG_NAME_DDD}
-                portal_service_url: https://${API_EP}/api/orgs/${ORG_NAME_DDD}/portal-services/portal-service
+    - org:
+        name: admin
+      members:
+      - name: cs-admin
+        user:
+          identity_provider: common-services
+          url: https://cpd-dan.fermi-dan-q1-xi-ec111ed5d7db435e1c5eeeb4400d693f-0000.eu-gb.containers.appdomain.cloud/integration/apis/dan/ademo/api/user-registries/admin/common-services/users/admin
+        role_urls:
+        - https://cpd-dan.fermi-dan-q1-xi-ec111ed5d7db435e1c5eeeb4400d693f-0000.eu-gb.containers.appdomain.cloud/integration/apis/dan/ademo/api/orgs/admin/roles/administrator
+      - name: kubeadmin
+        user:
+          identity_provider: common-services
+          url: https://cpd-dan.fermi-dan-q1-xi-ec111ed5d7db435e1c5eeeb4400d693f-0000.eu-gb.containers.appdomain.cloud/integration/apis/dan/ademo/api/user-registries/admin/common-services/users/kubeadmin
+        role_urls:
+        - https://cpd-dan.fermi-dan-q1-xi-ec111ed5d7db435e1c5eeeb4400d693f-0000.eu-gb.containers.appdomain.cloud/integration/apis/dan/ademo/api/orgs/admin/roles/administrator
+
+    # orgs:
+    #   - org:
+    #       name: ${ORG_NAME}
+    #       # title: Org for Demo use (${ORG_NAME})
+    #       org_type: provider
+    #       owner_url: https://cpd-dan.fermi-dan-q1-xi-ec111ed5d7db435e1c5eeeb4400d693f-0000.eu-gb.containers.appdomain.cloud/integration/apis/dan/ademo/api/user-registries/admin/common-services/users/admin
+    #       # TODO owner_url: https://${API_EP}/api/user-registries/admin/api-manager-lur/users/cp4i-admin
+    #     members:
+    #       - name: cs-admin
+    #         user:
+    #           identity_provider: common-services
+    #           # TODO url: https://${API_EP}/api/user-registries/admin/common-services/users/admin
+    #           url: https://cpd-dan.fermi-dan-q1-xi-ec111ed5d7db435e1c5eeeb4400d693f-0000.eu-gb.containers.appdomain.cloud/integration/apis/dan/ademo/api/user-registries/admin/common-services/users/admin
+    #         role_urls:
+    #           # TODO - https://${API_EP}/api/orgs/${ORG_NAME}/roles/administrator
+    #           - https://cpd-dan.fermi-dan-q1-xi-ec111ed5d7db435e1c5eeeb4400d693f-0000.eu-gb.containers.appdomain.cloud/integration/apis/dan/ademo/api/orgs/${ORG_NAME}/roles/administrator
+        # catalogs:
+        #   - catalog:
+        #       name: ${CATALOG_NAME}
+        #       title: Catalog for Demo use (${CATALOG_NAME})
+        #     settings:
+        #       portal:
+        #         type: drupal
+        #         endpoint: https://${PTL_WEB_EP}/${ORG_NAME}/${CATALOG_NAME}
+        #         portal_service_url: https://${API_EP}/api/orgs/${ORG_NAME}/portal-services/portal-service
+
+    #   - org:
+    #       name: ${ORG_NAME_DDD}
+    #       title: Org for Demo use (${ORG_NAME_DDD})
+    #       org_type: provider
+    #       owner_url: https://${API_EP}/api/user-registries/admin/api-manager-lur/users/cp4i-admin
+    #     members:
+    #       - name: cs-admin
+    #         user:
+    #           identity_provider: common-services
+    #           url: https://${API_EP}/api/user-registries/admin/common-services/users/admin
+    #         role_urls:
+    #           - https://${API_EP}/api/orgs/${ORG_NAME_DDD}/roles/administrator
+    #     catalogs:
+    #       - catalog:
+    #           name: ${CATALOG_NAME_DDD}
+    #           title: Catalog for Demo use (${CATALOG_NAME_DDD})
+    #         settings:
+    #           portal:
+    #             type: drupal
+    #             endpoint: https://${PTL_WEB_EP}/${ORG_NAME_DDD}/${CATALOG_NAME_DDD}
+    #             portal_service_url: https://${API_EP}/api/orgs/${ORG_NAME_DDD}/portal-services/portal-service
     services: []
-    mail_settings:
-      mail_server_url: https://${API_EP}/api/orgs/admin/mail-servers/default-mail-server
-      email_sender:
-        name: "APIC Administrator"
-        address: admin@apiconnect.net
+    # mail_settings:
+    #   mail_server_url: https://${API_EP}/api/orgs/admin/mail-servers/default-mail-server
+    #   email_sender:
+    #     name: "APIC Administrator"
+    #     address: admin@apiconnect.net
     cloud_settings: {}
+EOF
+
+cat <<EOF | oc apply -f -
 ---
 apiVersion: batch/v1
 kind: Job
