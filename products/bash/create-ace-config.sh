@@ -253,7 +253,7 @@ divider
 
 echo -e "$INFO [INFO] Templating mq policy"
 QM_NAME=$([[ $SUFFIX == "ddd" ]] && echo "QUICKSTART" || echo "eei")
-QM_HOST=$([[ $SUFFIX == "ddd" ]] && echo "mq-ddd-qm-${DDD_DEMO_TYPE}" || echo "mq-eei-ibm-mq")
+QM_HOST=$([[ $SUFFIX == "ddd" ]] && echo "mq-ddd-qm-${DDD_DEMO_TYPE}-ibm-mq" || echo "mq-eei-ibm-mq")
 cat $CONFIG_DIR/MQEndpointPolicy.policyxml.template |
   sed "s#{{QM_NAME}}#$QM_NAME#g;" |
   sed "s#{{QM_HOST}}#$QM_HOST#g;" >$CONFIG_DIR/$SUFFIX/DefaultPolicies/MQEndpointPolicy.policyxml
