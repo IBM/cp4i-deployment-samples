@@ -96,7 +96,7 @@ metadata:
   namespace: openshift-marketplace
 spec:
   displayName: ACE Operators
-  image: docker.io/ibmcom/appconnect-operator-catalog:1.3.0-20210319-213810@sha256:dbec3a6cdd3031c92926cd7bce91adacb8bfcdec496b7f0631999f085ad76603
+  image: docker.io/ibmcom/appconnect-operator-catalog:1.3.0-20210322-152242@sha256:82b429c3bbe14cb8b1919f0dfa82557cbf2223c51f2e83327ce87336817f99cf
   publisher: IBM
   sourceType: grpc
   updateStrategy:
@@ -110,7 +110,7 @@ metadata:
  namespace: openshift-marketplace
 spec:
  displayName: MQ Operators
- image: docker.io/ibmcom/ibm-mq-operator-catalog@sha256:c55941bf8b49fc50771aff09e84ddf6cff00d62da323517d5d7e33239b8edf1c
+ image: docker.io/ibmcom/ibm-mq-operator-catalog@sha256:f0404c2a1c543274c940c55a2f86f22c29ee6431a7e9a81a3cc00249d60ba005
  publisher: IBM
  sourceType: grpc
  updateStrategy:
@@ -138,7 +138,7 @@ metadata:
   namespace: openshift-marketplace
 spec:
   displayName: APIC Operators
-  image: ibmcom/ibm-apiconnect-catalog@sha256:5f2fcbe9955d7e3040962891bfc3e96c0a1f1832eb1c9868a56588d2cada0077
+  image: ibmcom/ibm-apiconnect-catalog@sha256:481c96648f648b88c623ab3a69c2da2eb43c0ebe1dcf7bfce865cfd625a416c2
   publisher: IBM
   sourceType: grpc
   updateStrategy:
