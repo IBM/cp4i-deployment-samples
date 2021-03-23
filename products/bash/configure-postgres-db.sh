@@ -67,6 +67,8 @@ while getopts "n:u:d:p:e:" opt; do
   esac
 done
 
+echo "[EEI_PREREQS_DEBUG] \$DEMO: $DEMO"
+
 if [[ -z "${DB_PASS// /}" ]]; then
   echo -e "$CROSS [ERROR] Database password param for for postgres is empty. Please provide a value for '-p' parameter."
   MISSING_PARAMS="true"

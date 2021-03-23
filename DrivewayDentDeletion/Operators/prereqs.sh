@@ -134,7 +134,7 @@ for EACH_DEPLOY_TYPE in "${DEPLOY_NAMES[@]}"; do
   DB_USER=$(echo ${NAMESPACE}_${EACH_DEPLOY_TYPE}_${SUFFIX} | sed 's/-/_/g')
   DB_NAME="db_$DB_USER"
   EXISTING_PASSWORD=$(oc -n $NAMESPACE get secret postgres-credential-$SUFFIX-$EACH_DEPLOY_TYPE -ojsonpath='{.data.password}')
-  
+
   if [[ $? == 0 ]]; then
     echo "INFO: Retrieving existing password"
     if [[ "$OSTYPE" == "linux-gnu"* ]]; then
@@ -149,7 +149,7 @@ for EACH_DEPLOY_TYPE in "${DEPLOY_NAMES[@]}"; do
       LC_ALL=C tr -dc 'A-Za-z0-9' </dev/urandom | head -c 32
       echo
     )
-  
+
     PASSWORD_ENCODED=$(echo -n $DB_PASS | base64)
     json=$(oc get configmap -n $NAMESPACE operator-info -o json 2> /dev/null)
     if [[ $? == 0 ]]; then
@@ -183,6 +183,7 @@ EOF
   divider
 
   echo -e "$INFO [INFO] Creating '$DB_NAME' database and '$DB_USER' user in the postgres instance in the '$POSTGRES_NAMESPACE' namespace" && divider
+  echo -e "[EEI_PREREQS_DEBUG] $CURRENT_DIR/../../products/bash/configure-postgres-db.sh -n $POSTGRES_NAMESPACE -u $DB_USER -d $DB_NAME -p $DB_PASS -e $SUFFIX"
   if ! $CURRENT_DIR/../../products/bash/configure-postgres-db.sh -n "$POSTGRES_NAMESPACE" -u "$DB_USER" -d "$DB_NAME" -p "$DB_PASS" -e "$SUFFIX"; then
     echo -e "\n$CROSS [ERROR] Failed to configure postgres in the '$POSTGRES_NAMESPACE' namespace with the user '$DB_USER' and database name '$DB_NAME'\n"
     exit 1
