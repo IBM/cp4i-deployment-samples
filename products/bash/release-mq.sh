@@ -173,7 +173,7 @@ data:
     Service:
       Name=AuthorizationService
       EntryPoints=14
-      SecurityPolicy=User
+      SecurityPolicy=UserExternal
 ---
 kind: Secret
 apiVersion: v1
