@@ -229,6 +229,13 @@ data:
         password: "${CLOUD_MANAGER_PASS}"
       provider:
         secret_name: ${PROVIDER_SECRET_NAME}
+    registry_settings:
+      admin_user_registry_urls:
+      - https://${API_EP}/api/user-registries/admin/cloud-manager-lur
+      - https://${API_EP}/api/user-registries/admin/common-services
+      provider_user_registry_urls:
+      - https://${API_EP}/api/user-registries/admin/api-manager-lur
+      - https://${API_EP}/api/user-registries/admin/common-services
     registrations:
       - registration:
           name: 'ace-v11'
