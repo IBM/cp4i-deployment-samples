@@ -41,13 +41,16 @@ while getopts "n:" opt; do
   esac
 done
 
+set -x
+echo "[GET_LICENSE_DEBUG]"
+oc -n $NAMESPACE get configmaps
+oc -n $NAMESPACE get configmap $LICENSES_CM -ojson
+set +x
 LICENSES=$(oc -n $NAMESPACE get configmap $LICENSES_CM -ojson 2> /dev/null)
 echo "[DEBUG] Licenses configmap:"
 echo $LICENSES
 
 #------------------------------------------------ INSTALL JQ -----------------------------------------------------------
-
-divider
 
 echo -e "\nINFO: Checking if jq is pre-installed..."
 jqInstalled=false
