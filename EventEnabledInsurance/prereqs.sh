@@ -214,9 +214,17 @@ echo -e "$INFO [INFO] Generating user, database name and password for the postgr
 DB_POD=$(oc get pod -n $POSTGRES_NAMESPACE -l name=postgresql -o jsonpath='{.items[].metadata.name}')
 DB_USER=$(echo ${NAMESPACE}_sor_${SUFFIX} | sed 's/-/_/g')
 DB_NAME="db_$DB_USER"
-EXISTING_PASSWORD=$(oc get secret postgres-credential-eei -o json | jq -r '.data.password')
+EXISTING_PASSWORD=$(oc -n $NAMESPACE get secret postgres-credential-eei -ojsonpath='{.data.password}')
+
 if [[ $? == 0 ]]; then
-  DB_PASS=$(echo $EXISTING_PASSWORD | base64 -dw0)
+  echo "INFO: Retrieving existing password"
+  if [[ "$OSTYPE" == "linux-gnu"* ]]; then
+    echo "INFO: EXISTING_PASSWORD base64 decode command for linux"
+    DB_PASS=$(echo $EXISTING_PASSWORD | base64 -dw0)
+  elif [[ "$OSTYPE" == "darwin"* ]]; then
+    echo "INFO: EXISTING_PASSWORD base64 decode for MAC"
+    DB_PASS=$(echo $EXISTING_PASSWORD | base64 -d)
+  fi
 else
   DB_PASS=$(
     LC_ALL=C tr -dc 'A-Za-z0-9' </dev/urandom | head -c 32
