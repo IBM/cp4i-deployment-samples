@@ -253,12 +253,16 @@ EOF
 fi
 
 echo -e "$INFO [INFO] Configuring postgres in the '$NAMESPACE' namespace with the user '$DB_USER' and database name '$DB_NAME' and suffix '$SUFFIX'\n"
+set -x
+echo -e "[EEI_PREREQS_DEBUG] $CURRENT_DIR/../products/bash/configure-postgres-db.sh -n $POSTGRES_NAMESPACE -u $DB_USER -d $DB_NAME -p $DB_PASS -e $SUFFIX"
 if ! $CURRENT_DIR/../products/bash/configure-postgres-db.sh -n $POSTGRES_NAMESPACE -u $DB_USER -d $DB_NAME -p $DB_PASS -e $SUFFIX; then
   echo -e "$CROSS [ERROR] Failed to configure postgres in the '$NAMESPACE' namespace with the user '$DB_USER' and database name '$DB_NAME' and suffix '$SUFFIX'"
   exit 1
 else
   echo -e "\n$TICK [SUCCESS] Successfully configured postgres in the '$NAMESPACE' namespace with the user '$DB_USER' and database name '$DB_NAME' and suffix '$SUFFIX'"
 fi #configure-postgres-db.sh
+
+set +x
 
 divider
 
