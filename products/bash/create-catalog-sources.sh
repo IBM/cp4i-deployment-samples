@@ -138,7 +138,7 @@ metadata:
   namespace: openshift-marketplace
 spec:
   displayName: APIC Operators
-  image: ibmcom/ibm-apiconnect-catalog@sha256:481c96648f648b88c623ab3a69c2da2eb43c0ebe1dcf7bfce865cfd625a416c2
+  image: ibmcom/ibm-apiconnect-catalog@sha256:5cf2b9b2262c95fb8f11ca7a75a76f6f692e042d6ef4f87320099015b1738694
   publisher: IBM
   sourceType: grpc
   updateStrategy:
@@ -208,7 +208,7 @@ metadata:
   namespace: openshift-marketplace
 spec:
   displayName: OD Operators
-  image: cp.stg.icr.io/cp/ibm-integration-operations-dashboard-catalog:2.2.0-2021-03-17-1700-6602786a-od-release-2021.1.1-0-rc6@sha256:553ceed50b279e0fd526a1d5f6e22e70eed7114a09a09f3a4898e936f41f8263
+  image: cp.stg.icr.io/cp/ibm-integration-operations-dashboard-catalog:2.2.0-2021-03-23-0936-30146a77@sha256:b9fdaf04a602668afc2aab2964bade733fd35e804834ca7bc1a380a25df749da
   publisher: IBM
   sourceType: grpc
   updateStrategy:
