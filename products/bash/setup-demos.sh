@@ -730,7 +730,7 @@ for EACH_PRODUCT in $(echo "${REQUIRED_PRODUCTS_JSON}" | jq -r '. | keys[]'); do
       FAILED_INSTALL_PRODUCTS_LIST+=($EACH_PRODUCT)
     else
       echo -e "\n$TICK [SUCCESS] Successfully released Tracing $ECHO_LINE '$TRACING_RELEASE_NAME'"
-      update_product_status "$TRACING_RELEASE_NAME" "$EACH_PRODUCT" "true" "false"
+      update_product_status "$TRACING_RELEASE_NAME" "$EACH_PRODUCT" "true" "true"
     fi # release-tracing.sh
     divider
     ;;
