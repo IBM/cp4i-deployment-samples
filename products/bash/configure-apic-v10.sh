@@ -76,9 +76,14 @@ CATALOG_NAME_DDD="${ORG_NAME_DDD}-catalog"
 PORG_ADMIN_EMAIL=${PORG_ADMIN_EMAIL:-"cp4i-admin@apiconnect.net"} # update to recipient of portal site creation email
 ACE_REGISTRATION_SECRET_NAME="ace-v11-service-creds"              # corresponds to registration obj currently hard-coded in configmap
 PROVIDER_SECRET_NAME="cp4i-admin-creds"                           # corresponds to credentials obj currently hard-coded in configmap
-CONFIGURATOR_IMAGE=${CONFIGURATOR_IMAGE:-"cp.stg.icr.io/cp/apic/ibm-apiconnect-apiconnect-configurator:10.0.2.0"}
-# CONFIGURATOR_IMAGE=${CONFIGURATOR_IMAGE:-"cp.icr.io/cp/apic/ibm-apiconnect-apiconnect-configurator:10.0.2.0"}
-# CONFIGURATOR_IMAGE=${CONFIGURATOR_IMAGE:-"cp.icr.io/cp/apic/ibm-apiconnect-apiconnect-configurator:10.0.1.0"}
+
+STAGING_AUTHS=$(oc get secret --namespace ${NAMESPACE} ibm-entitlement-key -o json | jq -r '.data.".dockerconfigjson"' | base64 --decode | jq -r '.auths["cp.stg.icr.io"]')
+if [[ "$STAGING_AUTHS" == "" || "$STAGING_AUTHS" == "null" ]]; then
+  REPO="cp.icr.io"
+else
+  REPO="cp.stg.icr.io"
+fi
+CONFIGURATOR_IMAGE=${CONFIGURATOR_IMAGE:-"${REPO}/cp/apic/ibm-apiconnect-apiconnect-configurator:10.0.2.0"}
 MAIL_SERVER_HOST=${MAIL_SERVER_HOST:-"smtp.mailtrap.io"}
 MAIL_SERVER_PORT=${MAIL_SERVER_PORT:-"2525"}
 MAIL_SERVER_USERNAME=${MAIL_SERVER_USERNAME:-"<your-username>"}

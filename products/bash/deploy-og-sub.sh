@@ -14,7 +14,6 @@
 #
 # PARAMETERS:
 #   -n : <namespace> (string), Defaults to "cp4i"
-#   -p : Use pre-release catalog sources
 #
 # USAGE:
 #   With defaults values
@@ -25,26 +24,29 @@
 #
 
 function usage() {
-  echo "Usage: $0 -n <namespace> -p"
+  echo "Usage: $0 -n <namespace>"
   exit 1
 }
 
 namespace="cp4i"
-USE_PRERELEASE_CATALOGS=false
 
 while getopts "n:p" opt; do
   case ${opt} in
   n)
     namespace="$OPTARG"
     ;;
-  p)
-    USE_PRERELEASE_CATALOGS=true
-    ;;
   \?)
     usage
     ;;
   esac
 done
+
+STAGING_AUTHS=$(oc get secret --namespace ${namespace} ibm-entitlement-key -o json | jq -r '.data.".dockerconfigjson"' | base64 --decode | jq -r '.auths["cp.stg.icr.io"]')
+if [[ "$STAGING_AUTHS" == "" || "$STAGING_AUTHS" == "null" ]]; then
+  USE_PRERELEASE_CATALOGS=false
+else
+  USE_PRERELEASE_CATALOGS=true
+fi
 
 if [[ "${USE_PRERELEASE_CATALOGS}" == "true" ]]; then
   NAVIGATOR_CATALOG="pn-operators"

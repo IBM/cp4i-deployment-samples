@@ -379,13 +379,33 @@ echo -e "$INFO [INFO] Current storage classes:\n"
 oc get sc
 divider
 
-# Create secret to pull images from the ER
+# Create/update secret to pull images from the ER
 echo -e "$INFO [INFO] Creating secret to pull images from the ER\n"
-oc -n $JOB_NAMESPACE create secret docker-registry ibm-entitlement-key \
-  --docker-server=$IMAGE_REPO \
-  --docker-username=$DOCKER_REGISTRY_USER \
-  --docker-password=$DOCKER_REGISTRY_PASS \
-  --dry-run -o yaml | oc apply -f -
+EXISTING_DOCKER_AUTHS=$(oc get secret --namespace ${JOB_NAMESPACE} ibm-entitlement-key -o json | jq -r '.data.".dockerconfigjson"' | base64 --decode | jq -r .auths)
+if [[ "$EXISTING_DOCKER_AUTHS" == "" ]]; then
+  EXISTING_DOCKER_AUTHS='{}'
+fi
+NEW_DOCKER_AUTHS=$(oc create secret docker-registry --namespace ${JOB_NAMESPACE} ibm-entitlement-key \
+    --docker-server=${IMAGE_REPO} \
+    --docker-username=${DOCKER_REGISTRY_USER} \
+    --docker-password=${DOCKER_REGISTRY_PASS} \
+    --dry-run=client -o json | jq -r '.data.".dockerconfigjson"' | base64 --decode | jq -r .auths)
+
+if [[ "$OSTYPE" == "linux-gnu"* ]]; then
+  BASE64_FLAG="-w0"
+else
+  BASE64_FLAG=""
+fi
+COMBINED_DOCKER_CFG_B64=$(echo $EXISTING_DOCKER_AUTHS $NEW_DOCKER_AUTHS | jq -s -r '{"auths": add}' | base64 $BASE64_FLAG)
+cat <<EOF | oc apply --namespace ${JOB_NAMESPACE} -f -
+apiVersion: v1
+kind: Secret
+metadata:
+  name: ibm-entitlement-key
+type: kubernetes.io/dockerconfigjson
+data:
+  .dockerconfigjson: $COMBINED_DOCKER_CFG_B64
+EOF
 
 divider
 

@@ -26,10 +26,24 @@ spec:
         - name: output
           workspace: git-source
 
+    - name: fixup-dockerfiles
+      runAfter:
+        - git-clone-eei
+      taskRef:
+        name: run-script
+      params:
+        - name: script
+          value: "products/bash/fixup-dockerfiles.sh"
+        - name: params
+          value: " -n {{NAMESPACE}}"
+      workspaces:
+        - name: git-source
+          workspace: git-source
+
     # build simulator app image
     - name: build-simulator-image
       runAfter:
-        - git-clone-eei
+        - fixup-dockerfiles
       taskRef:
         name: build-task-no-pvc
       params:
@@ -63,7 +77,7 @@ spec:
     # build projection claim app image
     - name: build-projection-claims-image
       runAfter:
-        - git-clone-eei
+        - fixup-dockerfiles
       taskRef:
         name: build-task-no-pvc
       params:
@@ -97,7 +111,7 @@ spec:
     # build mq image
     - name: build-mq-image
       runAfter:
-        - git-clone-eei
+        - fixup-dockerfiles
       taskRef:
         name: build-task-no-pvc
       params:
@@ -131,7 +145,7 @@ spec:
     # build ace rest
     - name: build-ace-rest
       runAfter:
-        - git-clone-eei
+        - fixup-dockerfiles
       taskRef:
         name: build-task
       params:
@@ -152,7 +166,7 @@ spec:
     # build ace db-writer
     - name: build-ace-db-writer
       runAfter:
-        - git-clone-eei
+        - fixup-dockerfiles
       taskRef:
         name: build-task
       params:
@@ -202,7 +216,7 @@ spec:
 
     - name: push-to-apic
       runAfter:
-        - git-clone-eei
+        - fixup-dockerfiles
       taskRef:
         name: run-script
       params:

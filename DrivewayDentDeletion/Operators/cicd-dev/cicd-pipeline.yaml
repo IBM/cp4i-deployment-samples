@@ -27,10 +27,24 @@ spec:
         - name: output
           workspace: git-source
 
+    - name: fixup-dockerfiles
+      runAfter:
+        - clone-git-source
+      taskRef:
+        name: run-script
+      params:
+        - name: script
+          value: "products/bash/fixup-dockerfiles.sh"
+        - name: params
+          value: " -n {{NAMESPACE}}"
+      workspaces:
+        - name: git-source
+          workspace: git-source
+
     # MQ build in dev namespace
     - name: build-mq
       runAfter:
-        - clone-git-source
+        - fixup-dockerfiles
       taskRef:
         name: build-task
       params:
@@ -72,7 +86,7 @@ spec:
     # build all ace in dev namespace
     - name: build-ace-int-server-ace-api
       runAfter:
-        - clone-git-source
+        - fixup-dockerfiles
       taskRef:
         name: build-task
       params:
@@ -92,7 +106,7 @@ spec:
 
     - name: build-ace-int-server-ace-acme
       runAfter:
-        - clone-git-source
+        - fixup-dockerfiles
       taskRef:
         name: build-task
       params:
@@ -112,7 +126,7 @@ spec:
 
     - name: build-ace-int-server-ace-bernie
       runAfter:
-        - clone-git-source
+        - fixup-dockerfiles
       taskRef:
         name: build-task
       params:
@@ -132,7 +146,7 @@ spec:
 
     - name: build-ace-int-server-ace-chris
       runAfter:
-        - clone-git-source
+        - fixup-dockerfiles
       taskRef:
         name: build-task
       params:
