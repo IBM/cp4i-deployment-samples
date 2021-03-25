@@ -79,8 +79,8 @@ while getopts "c:d:i:n:p:r:tz:" opt; do
   esac
 done
 
-source $CURRENT_DIR/license-helper.sh -n $namespace
-echo "[DEBUG] ACE license: $(getACELicense)"
+source $CURRENT_DIR/license-helper.sh
+echo "[DEBUG] ACE license: $(getACELicense $namespace)"
 
 echo "Current directory: $CURRENT_DIR"
 
@@ -131,7 +131,7 @@ spec:
   designerFlowsOperationMode: disabled
   license:
     accept: true
-    license: $(getACELicense)
+    license: $(getACELicense $namespace)
     use: CloudPakForIntegrationProduction
   replicas: ${ace_replicas}
   router:

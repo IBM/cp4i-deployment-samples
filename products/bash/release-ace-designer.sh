@@ -50,8 +50,8 @@ while getopts "n:r:s:" opt; do
   esac
 done
 
-source $CURRENT_DIR/license-helper.sh -n $namespace
-echo "[DEBUG] ACE license: $(getACELicense)"
+source $CURRENT_DIR/license-helper.sh
+echo "[DEBUG] ACE license: $(getACELicense $namespace)"
 
 echo "INFO: Release ACE Designer..."
 echo "INFO: Namespace: '$namespace'"
@@ -95,7 +95,7 @@ spec:
   designerFlowsOperationMode: local
   license:
     accept: true
-    license: $(getACELicense)
+    license: $(getACELicense $namespace)
     use: CloudPakForIntegrationNonProduction
   replicas: 1
   version: 11.0.0.10

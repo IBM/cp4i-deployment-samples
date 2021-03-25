@@ -55,8 +55,8 @@ while getopts "n:r:s:p" opt; do
   esac
 done
 
-source $CURRENT_DIR/license-helper.sh -n $namespace
-echo "[DEBUG] ACE license: $(getACELicense)"
+source $CURRENT_DIR/license-helper.sh
+echo "[DEBUG] ACE license: $(getACELicense $namespace)"
 
 echo "INFO: Release ACE Dashboard..."
 echo "INFO: Namespace: '$namespace'"
@@ -92,7 +92,7 @@ metadata:
 spec:
   license:
     accept: true
-    license: $(getACELicense)
+    license: $(getACELicense $namespace)
     use: ${use}
   replicas: 1
   storage:

@@ -12,76 +12,45 @@
 # PREREQUISITES:
 #   - Logged into cluster on the OC CLI (https://docs.openshift.com/container-platform/4.4/cli_reference/openshift_cli/getting-started-cli.html)
 #
-# PARAMETERS:
-#   -n : <NAMESPACE> (string), defaults to "cp4i"
-#
 # USAGE:
-#   With default values
-#     ./license-helper.sh
-#   Overriding namespace
-#     ./license-helper.sh -n cp4i
+#   source ./license-helper.sh; getAllLicenses \$NAMESPACE
 #******************************************************************************
 
-LICENSES_CM="demo-licenses"
-NAMESPACE="cp4i"
+LICENSES_CM=demo-licenses
 
 function usage() {
-  echo "Usage: $0 -n <NAMESPACE>"
+  echo "Usage: source $0; getAllLicenses \$NAMESPACE"
 }
 
-while getopts "n:" opt; do
+while getopts "" opt; do
   case ${opt} in
-  n)
-    NAMESPACE="$OPTARG"
-    ;;
-  \?)
-    usage
-    exit
-    ;;
+    \?)
+      usage
+      exit
+      ;;
   esac
 done
 
-set -x
-echo "[GET_LICENSE_DEBUG]"
-oc -n $NAMESPACE get configmaps
-oc -n $NAMESPACE get configmap $LICENSES_CM -ojson
-set +x
-LICENSES=$(oc -n $NAMESPACE get configmap $LICENSES_CM -ojson 2> /dev/null)
-echo "[DEBUG] Licenses configmap:"
-echo $LICENSES
-
-#------------------------------------------------ INSTALL JQ -----------------------------------------------------------
-
-echo -e "\nINFO: Checking if jq is pre-installed..."
-jqInstalled=false
-jqVersionCheck=$(jq --version)
-
-if [ $? -ne 0 ]; then
-  jqInstalled=false
-else
-  jqInstalled=true
-fi
-
-if [[ !$jqInstalled ]]; then
-  echo "INFO: JQ is not installed, installing jq..."
-  curl -L -o /tmp/jq https://github.com/stedolan/jq/releases/download/jq-1.6/jq-linux64
-  chmod +x /tmp/jq
-fi
-
-echo -e "\nINFO: Installed JQ version is $(/tmp/jq --version)"
-
 function getAllLicenses() {
-  echo $LICENSES | /tmp/jq -r '.data'
+  oc -n $1 get configmap $LICENSES_CM -ojsonpath='{.data}'
 }
 
 function getDemoLicense() {
-  echo $LICENSES | tr '\r\n' ' ' | /tmp/jq -r '.data.demo'
+  oc -n $1 get configmap $LICENSES_CM -ojsonpath='{.data.demo}'
 }
 
 function getACELicense() {
-  echo $LICENSES | tr '\r\n' ' ' | /tmp/jq -r '.data.ace'
+  oc -n $1 get configmap $LICENSES_CM -ojsonpath='{.data.ace}'
+}
+
+function getAPICLicense() {
+  oc -n $1 get configmap $LICENSES_CM -ojsonpath='{.data.apic}'
+}
+
+function getARCLicense() {
+  oc -n $1 get configmap $LICENSES_CM -ojsonpath='{.data.ar}'
 }
 
 function getMQLicense() {
-  echo $LICENSES | tr '\r\n' ' ' | /tmp/jq -r '.data.mq'
+  oc -n $1 get configmap $LICENSES_CM -ojsonpath='{.data.mq}'
 }

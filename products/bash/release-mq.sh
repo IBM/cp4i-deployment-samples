@@ -72,8 +72,8 @@ while getopts "n:r:i:q:z:t" opt; do
   esac
 done
 
-source $CURRENT_DIR/license-helper.sh -n $namespace
-echo "[DEBUG] MQ license: $(getMQLicense)"
+source $CURRENT_DIR/license-helper.sh
+echo "[DEBUG] MQ license: $(getMQLicense $namespace)"
 
 echo "Current directory: $CURRENT_DIR"
 echo "Namespace: $namespace"
@@ -117,7 +117,7 @@ metadata:
 spec:
   license:
     accept: true
-    license: $(getMQLicense)
+    license: $(getMQLicense $namespace)
     use: NonProduction
   queueManager:
     name: ${qm_name}
