@@ -10,6 +10,13 @@ spec:
         class: cp4i-block-performance
       file:
         class: ibmc-file-gold-gid
+    license:
+      accept: true
+      ace: L-APEH-BPUCJK
+      apic: L-RJON-BRSHKF
+      ar: L-NCAN-BXWG76
+      demo: L-RJON-BYRMYW
+      mq: L-RJON-BN7PN3
     # Include this? Maybe when we turn this into an operator the samples repo would
     # be baked in as a locally running image, so can work with airgap.
     samplesRepoBranch: main
