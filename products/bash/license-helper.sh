@@ -47,10 +47,14 @@ function getAPICLicense() {
   oc -n $1 get configmap $LICENSES_CM -ojsonpath='{.data.apic}'
 }
 
-function getARCLicense() {
+function getARLicense() {
   oc -n $1 get configmap $LICENSES_CM -ojsonpath='{.data.ar}'
 }
 
 function getMQLicense() {
   oc -n $1 get configmap $LICENSES_CM -ojsonpath='{.data.mq}'
+}
+
+function getTracingLicense() {
+  oc -n $1 get configmap $LICENSES_CM -ojsonpath='{.data.tracing}'
 }

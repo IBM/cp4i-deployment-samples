@@ -54,6 +54,9 @@ while getopts "n:r:tp" opt; do
   esac
 done
 
+source $CURRENT_DIR/license-helper.sh
+echo "[DEBUG] APIC license: $(getAPICLicense $namespace)"
+
 profile="n3xc4.m16"
 if [[ "$production" == "true" ]]; then
   echo "Production Mode Enabled"
@@ -87,6 +90,7 @@ spec:
   version: 10.0.1.0
   license:
     accept: true
+    license: $(getAPICLicense $namespace)
     use: production
   profile: ${profile}
   gateway:

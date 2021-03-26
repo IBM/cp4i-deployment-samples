@@ -53,6 +53,9 @@ while getopts "n:r:a:c:" opt; do
   esac
 done
 
+source $CURRENT_DIR/license-helper.sh
+echo "[DEBUG] AR license: $(getARLicense $namespace)"
+
 json=$(oc get configmap -n $namespace operator-info -o json 2> /dev/null)
 if [[ $? == 0 ]]; then
   METADATA_NAME=$(echo $json | tr '\r\n' ' ' | jq -r '.data.METADATA_NAME')
@@ -75,6 +78,7 @@ metadata:
 spec:
   license:
     accept: true
+    license: $(getARLicense $namespace)
   storage:
     assetDataVolume:
       class: ${assetDataVolume}
