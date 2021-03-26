@@ -26,16 +26,6 @@
 #   Overriding the namespace and release-name
 #     ./release-ace-integration-server -d policyproject-ddd-test -n cp4i -r cp4i-bernie-ace
 
-function divider() {
-  echo -e "\n-------------------------------------------------------------------------------------------------------------------\n"
-}
-
-function usage() {
-  echo "Usage: $0 -c <ace_policy_names> -d <POLICY_PROJECT_TYPE> -i <is_image_name> -n <namespace> -p <ace_replicas> -r <is_release_name> -t -z <tracing_namespace>"
-  divider
-  exit 1
-}
-
 tick="\xE2\x9C\x85"
 cross="\xE2\x9D\x8C"
 namespace="cp4i"
@@ -46,7 +36,16 @@ tracing_namespace=""
 CURRENT_DIR=$(dirname $0)
 POLICY_PROJECT_TYPE="policyproject-ddd-dev"
 ace_replicas="2"
-echo "Current directory: $CURRENT_DIR"
+
+function divider() {
+  echo -e "\n-------------------------------------------------------------------------------------------------------------------\n"
+}
+
+function usage() {
+  echo "Usage: $0 -c <ace_policy_names> -d <POLICY_PROJECT_TYPE> -i <is_image_name> -n <namespace> -p <ace_replicas> -r <is_release_name> -t -z <tracing_namespace>"
+  divider
+  exit 1
+}
 
 while getopts "c:d:i:n:p:r:tz:" opt; do
   case ${opt} in
@@ -79,6 +78,11 @@ while getopts "c:d:i:n:p:r:tz:" opt; do
     ;;
   esac
 done
+
+source $CURRENT_DIR/license-helper.sh
+echo "[DEBUG] ACE license: $(getACELicense $namespace)"
+
+echo "Current directory: $CURRENT_DIR"
 
 if [ "$tracing_enabled" == "true" ]; then
   if [ -z "$tracing_namespace" ]; then tracing_namespace=${namespace}; fi
@@ -127,7 +131,7 @@ spec:
   designerFlowsOperationMode: disabled
   license:
     accept: true
-    license: L-APEH-BPUCJK
+    license: $(getACELicense $namespace)
     use: CloudPakForIntegrationProduction
   replicas: ${ace_replicas}
   router:

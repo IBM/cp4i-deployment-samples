@@ -41,6 +41,7 @@ The script takes an input `yaml` or `json` file specifying the following:
   - [Samples Repository](https://github.com/IBM/cp4i-deployment-samples) branch
   - File storage class
   - Block storage class
+  - Licenses
   - Namespace for installing everything
   - APIC configuration parameters
 
@@ -58,6 +59,13 @@ spec:
         class: cp4i-block-performance
       file:
         class: ibmc-file-gold-gid
+    license:
+      accept: true
+      ace: L-APEH-BPUCJK
+      apic: L-RJON-BRSHKF
+      ar: L-NCAN-BXWG76
+      demo: L-RJON-BYRMYW
+      mq: L-RJON-BN7PN3
     samplesRepoBranch: main
 
   apic:

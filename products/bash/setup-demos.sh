@@ -366,7 +366,13 @@ GENERAL=$(echo $JSON | jq -r .spec.general)
 BLOCK_STORAGE_CLASS=$(echo $GENERAL | jq -r '.storage.block | if has("class") then .class else "cp4i-block-performance" end')
 FILE_STORAGE_CLASS=$(echo $GENERAL | jq -r '.storage.file | if has("class") then .class else "ibmc-file-gold-gid" end')
 SAMPLES_REPO_BRANCH=$(echo $GENERAL | jq -r 'if has("samplesRepoBranch") then .samplesRepoBranch else "'$SAMPLES_REPO_BRANCH'" end')
+LICENSE=$(echo $JSON | jq -r .spec.license)
+LICENSE_ACCEPT=$(echo $LICENSE | jq -r 'if has("accept") then .accept else "false" end')
+DEMO_LICENSE=$(echo $LICENSE | jq -r 'if has("demo") then .demo else "L-RJON-BYRMYW" end')
+ACE_LICENSE=$(echo $LICENSE | jq -r 'if has("ace") then .ace else "L-APEH-BPUCJK" end')
+MQ_LICENSE=$(echo $LICENSE | jq -r 'if has("mq") then .mq else "L-RJON-BN7PN3" end')
 NAMESPACE=$(echo $JSON | jq -r .metadata.namespace)
+NAME=$(echo $JSON | jq -r .metadata.name)
 REQUIRED_DEMOS_JSON=$(echo $JSON | jq -c '.spec | if has("demos") then .demos else {} end')
 REQUIRED_PRODUCTS_JSON=$(echo $JSON | jq -c '.spec | if has("products") then .products else {} end')
 REQUIRED_ADDONS_JSON=$(echo $JSON | jq -c '.spec | if has("addons") then .addons else {} end')
@@ -526,6 +532,20 @@ else
 fi
 
 check_phase_and_exit_on_failed
+
+cat <<EOF | oc apply --namespace ${NAMESPACE} -f -
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: demo-licenses
+data:
+  demo: $DEMO_LICENSE
+  ace: $ACE_LICENSE
+  mq: $MQ_LICENSE
+EOF
+
+echo "[DEBUG] Licenses configmap:"
+echo $(oc -n $NAMESPACE get configmap demo-licenses -oyaml)
 
 METADATA_NAME=$(oc get demo -n $NAMESPACE -o jsonpath='{.items[0].metadata.name}')
 METADATA_UID=$(oc get demo -n $NAMESPACE $METADATA_NAME -o json | jq -r '.metadata.uid')

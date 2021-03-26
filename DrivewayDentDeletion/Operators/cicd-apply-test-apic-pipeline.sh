@@ -142,6 +142,21 @@ fi
 divider
 
 # create tekton tasks
+echo -e "$INFO [INFO] Create common tekton tasks for the test pipeline of the driveway dent deletion demo"
+TRACING="-t -z $NAMESPACE"
+if cat $CURRENT_DIR/../../CommonPipelineResources/cicd-tasks.yaml |
+  sed "s#{{NAMESPACE}}#$NAMESPACE#g;" |
+  sed "s#{{TRACING}}#$TRACING#g;" |
+  oc apply -f -; then
+  echo -e "\n$TICK [SUCCESS] Successfully applied tekton tasks in the '$NAMESPACE' namespace"
+else
+  echo -e "\n$CROSS [ERROR] Failed to apply tekton tasks in the '$NAMESPACE' namespace"
+  SUM=$((SUM + 1))
+fi
+
+divider
+
+# create tekton tasks for test
 echo -e "$INFO [INFO] Create tekton tasks for the test apic pipeline of the driveway dent deletion demo\n"
 TRACING="-t -z $NAMESPACE"
 if cat $CURRENT_DIR/cicd-test-apic/cicd-tasks.yaml |
