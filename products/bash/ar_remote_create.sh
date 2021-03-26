@@ -59,8 +59,8 @@ tick="\xE2\x9C\x94"
 cross="\xE2\x9D\x8C"
 
 echo "=== Initialising Asset repository with a remote ==="
-rm -rf ar_create_tmp
-mkdir -p ar_create_tmp
+rm -rf /tmp/ar_create_tmp
+mkdir -p /tmp/ar_create_tmp
 
 for i in $(seq 1 60); do
   cp4iuser=$(oc get secrets -n ibm-common-services platform-auth-idp-credentials -o jsonpath='{.data.admin_username}' | base64 --decode)
@@ -151,11 +151,11 @@ i=1
 retries=10
 interval=10
 response=500
-echo "" >./ar_create_tmp/remote.status.log
+echo "" >/tmp/ar_create_tmp/remote.status.log
 
 function test_remote() {
   response=$(curl -X POST --silent --insecure \
-    https://$1/api/remotes/test -d "$3" -H "Content-Type: application/json" -H "Authorization: Bearer $2" -o ./ar_create_tmp/remote-status.log -w %{http_code})
+    https://$1/api/remotes/test -d "$3" -H "Content-Type: application/json" -H "Authorization: Bearer $2" -o /tmp/ar_create_tmp/remote-status.log -w %{http_code})
 }
 
 ## retries request until we get a 200, or hit max retries
@@ -165,7 +165,7 @@ until [[ $response =~ 200 || "$retries" -eq "$i" ]]; do
   test_remote $ar_path $token $remote
   ((i = i + 1))
   printf "Remote test response: "
-  cat ./ar_create_tmp/remote-status.log
+  cat /tmp/ar_create_tmp/remote-status.log
   echo ""
   echo "Response code: $response"
   sleep $interval
@@ -181,14 +181,14 @@ echo "Git Remote repository contacted."
 
 ## Create a catalog
 echo "- Creating catalog within asset repository"
-create_response=$(curl --insecure -s https://$ar_path/api/catalogs -w %{http_code} -X POST -d "$modified_remote" -o ./ar_create_tmp/catalog_create.json -H "Content-Type: application/json" -H "Authorization: Bearer $token")
+create_response=$(curl --insecure -s https://$ar_path/api/catalogs -w %{http_code} -X POST -d "$modified_remote" -o /tmp/ar_create_tmp/catalog_create.json -H "Content-Type: application/json" -H "Authorization: Bearer $token")
 if [[ ! $create_response =~ 200 ]]; then
   printf "$cross "
   echo "Response code: $create_response"
-  cat ./ar_create_tmp/catalog_create.json
+  cat /tmp/ar_create_tmp/catalog_create.json
   exit 1
 fi
-catalogId=$(jq '.id' ./ar_create_tmp/catalog_create.json -r)
+catalogId=$(jq '.id' /tmp/ar_create_tmp/catalog_create.json -r)
 # sleeping here because of eventual consistency bug with catalog creation
 sleep 5
 printf "$tick "
@@ -196,17 +196,17 @@ echo "Catalog created with id: $catalogId"
 
 ## Fetch remote config for a catalog
 echo "- Fetching remote config for catalog"
-config_response=$(curl --insecure -s https://$ar_path/api/remotes/config/$catalogId?remote_type=git_connection -w %{http_code} -o ./ar_create_tmp/remote_config.json -H "Content-Type: application/json" -H "Authorization: Bearer $token")
+config_response=$(curl --insecure -s https://$ar_path/api/remotes/config/$catalogId?remote_type=git_connection -w %{http_code} -o /tmp/ar_create_tmp/remote_config.json -H "Content-Type: application/json" -H "Authorization: Bearer $token")
 if [[ ! $config_response =~ 200 ]]; then
   printf "$cross "
   echo "Response code: $config_response"
-  cat ./ar_create_tmp/remote_config.json
+  cat /tmp/ar_create_tmp/remote_config.json
   exit 1
 fi
 ## Modify remote.json to include asset types from configs
 printf "$tick "
 echo "Fetched remote config for catalog id $catalogId"
-asset_types=$(jq '.assetTypes | map(.name) | join(",")' ./ar_create_tmp/remote_config.json -r)
+asset_types=$(jq '.assetTypes | map(.name) | join(",")' /tmp/ar_create_tmp/remote_config.json -r)
 echo "- Configuring remote for the following asset types $asset_types"
 modified_remote=$(jq --arg asset_types $asset_types '.entity.remote_repo.asset_types= $asset_types' <<<"$remote")
 printf "$tick "
@@ -214,14 +214,14 @@ echo "Git remote config asset types populated."
 
 ## Create remote
 echo "=== Creating git remote for Asset repository ===="
-create_response=$(curl --insecure -s https://$ar_path/api/remotes/?catalog_id=$catalogId -w %{http_code} -X POST -d "$modified_remote" -o ./ar_create_tmp/remote_create.json -H "Content-Type: application/json" -H "Authorization: Bearer $token")
+create_response=$(curl --insecure -s https://$ar_path/api/remotes/?catalog_id=$catalogId -w %{http_code} -X POST -d "$modified_remote" -o /tmp/ar_create_tmp/remote_create.json -H "Content-Type: application/json" -H "Authorization: Bearer $token")
 if [[ ! $create_response =~ 201 ]]; then
   printf "$cross "
   echo "Response code: $create_response"
-  cat ./ar_create_tmp/remote_create.json
+  cat /tmp/ar_create_tmp/remote_create.json
   exit 1
 fi
 printf "$tick "
 echo "Git remote created."
 echo "=== Asset repository initialised with a git remote ==="
-rm -rf ./ar_create_tmp
+rm -rf /tmp/ar_create_tmp

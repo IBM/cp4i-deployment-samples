@@ -27,6 +27,15 @@
 #   Overriding the namespace and release-name
 #     ./release-mq.sh -n cp4i -r mq-demo -i image-registry.openshift-image-registry.svc:5000/cp4i/mq-ddd -q mq-qm
 
+tick="\xE2\x9C\x85"
+cross="\xE2\x9D\x8C"
+namespace="cp4i"
+release_name="mq-demo"
+qm_name="QUICKSTART"
+tracing_namespace=""
+tracing_enabled="false"
+CURRENT_DIR=$(dirname $0)
+
 function divider() {
   echo -e "\n-------------------------------------------------------------------------------------------------------------------\n"
 }
@@ -36,17 +45,6 @@ function usage() {
   divider
   exit 1
 }
-
-tick="\xE2\x9C\x85"
-cross="\xE2\x9D\x8C"
-namespace="cp4i"
-release_name="mq-demo"
-qm_name="QUICKSTART"
-tracing_namespace=""
-tracing_enabled="false"
-CURRENT_DIR=$(dirname $0)
-echo "Current directory: $CURRENT_DIR"
-echo "Namespace: $namespace"
 
 while getopts "n:r:i:q:z:t" opt; do
   case ${opt} in
@@ -73,6 +71,12 @@ while getopts "n:r:i:q:z:t" opt; do
     ;;
   esac
 done
+
+source $CURRENT_DIR/license-helper.sh
+echo "[DEBUG] MQ license: $(getMQLicense $namespace)"
+
+echo "Current directory: $CURRENT_DIR"
+echo "Namespace: $namespace"
 
 # when called from install.sh
 if [ "$tracing_enabled" == "true" ]; then
@@ -113,7 +117,7 @@ metadata:
 spec:
   license:
     accept: true
-    license: L-RJON-BXUPZ2
+    license: $(getMQLicense $namespace)
     use: NonProduction
   queueManager:
     name: ${qm_name}

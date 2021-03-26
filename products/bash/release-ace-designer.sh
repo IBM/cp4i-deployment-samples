@@ -23,13 +23,15 @@
 #   Overriding the namespace and release-name
 #     ./release-ace-designer.sh -n cp4i-prod -r prod
 
+designer_release_name="ace-designer-demo"
+namespace="cp4i"
+storage="ibmc-block-gold"
+CURRENT_DIR=$(dirname $0)
+
 function usage() {
   echo "Usage: $0 -n <namespace> -r <designer_release_name>"
 }
 
-namespace="cp4i"
-designer_release_name="ace-designer-demo"
-storage="ibmc-block-gold"
 while getopts "n:r:s:" opt; do
   case ${opt} in
   n)
@@ -47,6 +49,10 @@ while getopts "n:r:s:" opt; do
     ;;
   esac
 done
+
+source $CURRENT_DIR/license-helper.sh
+echo "[DEBUG] ACE license: $(getACELicense $namespace)"
+
 echo "INFO: Release ACE Designer..."
 echo "INFO: Namespace: '$namespace'"
 echo "INFO: Designer Release Name: '$designer_release_name'"
@@ -82,7 +88,7 @@ spec:
     enabled: true
   license:
     accept: true
-    license: L-APEH-BY5CY7
+    license: $(getACELicense $namespace)
     use: CloudPakForIntegrationNonProduction
   replicas: 1
   useCommonServices: true

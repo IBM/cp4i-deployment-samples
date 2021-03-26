@@ -10,6 +10,12 @@ spec:
         class: cp4i-block-performance
       file:
         class: ibmc-file-gold-gid
+    license:
+      accept: true
+      ace: L-APEH-BPUCJK
+      apic: L-RJON-BRSHKF
+      ar: L-NCAN-BXWG76
+      demo: L-RJON-BYRMYW
     samplesRepoBranch: main
   demos:
     cognitiveCarRepair: true
