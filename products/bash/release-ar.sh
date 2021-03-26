@@ -31,6 +31,7 @@ namespace="cp4i"
 release_name="demo"
 assetDataVolume="ibmc-file-gold-gid"
 couchVolume="ibmc-block-gold"
+CURRENT_DIR=$(dirname $0)
 
 while getopts "n:r:a:c:" opt; do
   case ${opt} in

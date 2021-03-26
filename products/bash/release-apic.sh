@@ -32,6 +32,7 @@ namespace="cp4i"
 release_name="ademo"
 tracing="false"
 production="false"
+CURRENT_DIR=$(dirname $0)
 
 while getopts "n:r:tp" opt; do
   case ${opt} in

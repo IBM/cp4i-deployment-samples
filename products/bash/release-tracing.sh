@@ -34,6 +34,7 @@ release_name="tracing-demo"
 block_storage="ibmc-block-gold"
 file_storage="ibmc-file-gold-gid"
 production="false"
+CURRENT_DIR=$(dirname $0)
 
 while getopts "n:r:b:d:f:p" opt; do
   case ${opt} in
