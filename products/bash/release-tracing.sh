@@ -134,6 +134,7 @@ metadata:
 spec:
   license:
     accept: true
+    license: $(getTracingLicense $namespace)
   storage:
     configDbVolume:
       class: "${file_storage}"
