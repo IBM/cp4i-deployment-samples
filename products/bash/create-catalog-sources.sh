@@ -138,7 +138,7 @@ metadata:
   namespace: openshift-marketplace
 spec:
   displayName: APIC Operators
-  image: ibmcom/ibm-apiconnect-catalog@sha256:d98f9e59a6a63b3e1cebc9f23bc4d252c67f9bd5cb6e1434febaf6602fb86087
+  image: ibmcom/ibm-apiconnect-catalog@sha256:f88e6027145b70e382c6c66e1aab6405e0ac98cb1313c7b11edea71308d1f2f2
   publisher: IBM
   sourceType: grpc
   updateStrategy:
