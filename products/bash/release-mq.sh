@@ -94,7 +94,7 @@ elif [[ "$release_name" =~ "eei" ]]; then
   numberOfContainers=1
 fi
 
-json=$(oc get configmap -n $namespace operator-info -o json 2> /dev/null)
+json=$(oc get configmap -n $namespace operator-info -o json 2>/dev/null)
 if [[ $? == 0 ]]; then
   METADATA_NAME=$(echo $json | tr '\r\n' ' ' | jq -r '.data.METADATA_NAME')
   METADATA_UID=$(echo $json | tr '\r\n' ' ' | jq -r '.data.METADATA_UID')
@@ -108,7 +108,7 @@ metadata:
   name: ${release_name}
   namespace: ${namespace}
   $(if [[ ! -z ${METADATA_UID} && ! -z ${METADATA_NAME} ]]; then
-  echo "ownerReferences:
+    echo "ownerReferences:
     - apiVersion: integration.ibm.com/v1beta1
       kind: Demo
       name: ${METADATA_NAME}
@@ -206,7 +206,7 @@ metadata:
   name: ${release_name}
   namespace: ${namespace}
   $(if [[ ! -z ${METADATA_UID} && ! -z ${METADATA_NAME} ]]; then
-  echo "ownerReferences:
+    echo "ownerReferences:
     - apiVersion: integration.ibm.com/v1beta1
       kind: Demo
       name: ${METADATA_NAME}
@@ -215,7 +215,7 @@ metadata:
 spec:
   license:
     accept: true
-    license: L-RJON-BUVMQX
+    license: $(getMQLicense $namespace)
     use: NonProduction
   pki:
     keys:

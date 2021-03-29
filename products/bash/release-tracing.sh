@@ -34,6 +34,7 @@ release_name="tracing-demo"
 block_storage="ibmc-block-gold"
 file_storage="ibmc-file-gold-gid"
 production="false"
+CURRENT_DIR=$(dirname $0)
 
 while getopts "n:r:b:d:f:p" opt; do
   case ${opt} in
@@ -59,7 +60,10 @@ while getopts "n:r:b:d:f:p" opt; do
   esac
 done
 
-json=$(oc get configmap -n $namespace operator-info -o json 2> /dev/null)
+source $CURRENT_DIR/license-helper.sh
+echo "[DEBUG] Tracing license: $(getTracingLicense $namespace)"
+
+json=$(oc get configmap -n $namespace operator-info -o json 2>/dev/null)
 if [[ $? == 0 ]]; then
   METADATA_NAME=$(echo $json | tr '\r\n' ' ' | jq -r '.data.METADATA_NAME')
   METADATA_UID=$(echo $json | tr '\r\n' ' ' | jq -r '.data.METADATA_UID')
@@ -78,7 +82,7 @@ metadata:
     app.kubernetes.io/managed-by: ibm-integration-operations-dashboard
     app.kubernetes.io/name: ibm-integration-operations-dashboard
   $(if [[ ! -z ${METADATA_UID} && ! -z ${METADATA_NAME} ]]; then
-  echo "ownerReferences:
+    echo "ownerReferences:
     - apiVersion: integration.ibm.com/v1beta1
       kind: Demo
       name: ${METADATA_NAME}
@@ -90,7 +94,7 @@ spec:
       value: production
   license:
     accept: true
-    license: CP4I
+    license: $(getTracingLicense $namespace)
   replicas:
     configDb: 3
     frontend: 3
@@ -121,7 +125,7 @@ metadata:
     app.kubernetes.io/managed-by: ibm-integration-operations-dashboard
     app.kubernetes.io/name: ibm-integration-operations-dashboard
   $(if [[ ! -z ${METADATA_UID} && ! -z ${METADATA_NAME} ]]; then
-  echo "ownerReferences:
+    echo "ownerReferences:
     - apiVersion: integration.ibm.com/v1beta1
       kind: Demo
       name: ${METADATA_NAME}
@@ -130,7 +134,11 @@ metadata:
 spec:
   license:
     accept: true
+<<<<<<< HEAD
     license: CP4I
+=======
+    license: $(getTracingLicense $namespace)
+>>>>>>> origin/main
   storage:
     configDbVolume:
       class: "${file_storage}"
@@ -172,7 +180,7 @@ metadata:
       kind: Demo
       name: ${METADATA_NAME}
       uid: ${METADATA_UID}"
-  fi)
+fi)
 spec:
   odNamespace: "${namespace}"
   odInstanceName: "${release_name}"

@@ -32,6 +32,7 @@ namespace="cp4i"
 release_name="ademo"
 tracing="false"
 production="false"
+CURRENT_DIR=$(dirname $0)
 
 while getopts "n:r:tp" opt; do
   case ${opt} in
@@ -56,13 +57,16 @@ done
 
 profile="n1xc10.m48"
 license_use="nonproduction"
+source $CURRENT_DIR/license-helper.sh
+echo "[DEBUG] APIC license: $(getAPICLicense $namespace)"
+
 if [[ "$production" == "true" ]]; then
   echo "Production Mode Enabled"
   profile="n12xc4.m12"
   license_use="production"
 fi
 
-json=$(oc get configmap -n $namespace operator-info -o json 2> /dev/null)
+json=$(oc get configmap -n $namespace operator-info -o json 2>/dev/null)
 if [[ $? == 0 ]]; then
   METADATA_NAME=$(echo $json | tr '\r\n' ' ' | jq -r '.data.METADATA_NAME')
   METADATA_UID=$(echo $json | tr '\r\n' ' ' | jq -r '.data.METADATA_UID')
@@ -90,7 +94,7 @@ spec:
   license:
     accept: true
     use: ${license_use}
-    license: L-RJON-BXWP45
+    license: $(getAPICLicense $namespace)
   profile: ${profile}
   gateway:
     openTracing:

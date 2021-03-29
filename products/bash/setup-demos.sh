@@ -370,7 +370,10 @@ LICENSE=$(echo $JSON | jq -r .spec.license)
 LICENSE_ACCEPT=$(echo $LICENSE | jq -r 'if has("accept") then .accept else "false" end')
 DEMO_LICENSE=$(echo $LICENSE | jq -r 'if has("demo") then .demo else "L-RJON-BYRMYW" end')
 ACE_LICENSE=$(echo $LICENSE | jq -r 'if has("ace") then .ace else "L-APEH-BPUCJK" end')
+APIC_LICENSE=$(echo $LICENSE | jq -r 'if has("apic") then .apic else "L-RJON-BRSHKF" end')
+AR_LICENSE=$(echo $LICENSE | jq -r 'if has("ar") then .ar else "L-NCAN-BXWG76" end')
 MQ_LICENSE=$(echo $LICENSE | jq -r 'if has("mq") then .mq else "L-RJON-BN7PN3" end')
+TRACING_LICENSE=$(echo $LICENSE | jq -r 'if has("tracing") then .tracing else "CP4I" end')
 NAMESPACE=$(echo $JSON | jq -r .metadata.namespace)
 NAME=$(echo $JSON | jq -r .metadata.name)
 REQUIRED_DEMOS_JSON=$(echo $JSON | jq -c '.spec | if has("demos") then .demos else {} end')
@@ -539,7 +542,10 @@ metadata:
 data:
   demo: $DEMO_LICENSE
   ace: $ACE_LICENSE
+  apic: $APIC_LICENSE
+  ar: $AR_LICENSE
   mq: $MQ_LICENSE
+  tracing: $TRACING_LICENSE
 EOF
 
 echo "[DEBUG] Licenses configmap:"
