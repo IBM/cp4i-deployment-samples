@@ -547,8 +547,8 @@ EOF
 echo "[DEBUG] Licenses configmap:"
 echo $(oc -n $NAMESPACE get configmap demo-licenses -oyaml)
 
-METADATA_NAME=$(oc get demo -n $NAMESPACE -o jsonpath='{.items[0].metadata.name}')
-METADATA_UID=$(oc get demo -n $NAMESPACE $METADATA_NAME -o json | jq -r '.metadata.uid')
+METADATA_NAME=$(oc get demo -n $NAMESPACE -o jsonpath='{.items[0].metadata.name}' 2> /dev/null)
+METADATA_UID=$(oc get demo -n $NAMESPACE $METADATA_NAME -o json | jq -r '.metadata.uid' 2> /dev/null)
 
 if [[ $METADATA_NAME && $METADATA_UID != '' ]]; then
   cat <<EOF | oc apply --namespace ${NAMESPACE} -f -
