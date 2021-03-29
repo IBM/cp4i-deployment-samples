@@ -34,6 +34,7 @@ release_name="tracing-demo"
 block_storage="ibmc-block-gold"
 file_storage="ibmc-file-gold-gid"
 production="false"
+CURRENT_DIR=$(dirname $0)
 
 while getopts "n:r:b:d:f:p" opt; do
   case ${opt} in
@@ -58,6 +59,9 @@ while getopts "n:r:b:d:f:p" opt; do
     ;;
   esac
 done
+
+source $CURRENT_DIR/license-helper.sh
+echo "[DEBUG] Tracing license: $(getTracingLicense $namespace)"
 
 json=$(oc get configmap -n $namespace operator-info -o json 2> /dev/null)
 if [[ $? == 0 ]]; then
@@ -90,6 +94,7 @@ spec:
       value: production
   license:
     accept: true
+    license: $(getTracingLicense $namespace)
   replicas:
     configDb: 3
     frontend: 3
@@ -129,6 +134,7 @@ metadata:
 spec:
   license:
     accept: true
+    license: $(getTracingLicense $namespace)
   storage:
     configDbVolume:
       class: "${file_storage}"

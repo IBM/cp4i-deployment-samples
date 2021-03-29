@@ -32,6 +32,7 @@ namespace="cp4i"
 release_name="ademo"
 tracing="false"
 production="false"
+CURRENT_DIR=$(dirname $0)
 
 while getopts "n:r:tp" opt; do
   case ${opt} in
@@ -53,6 +54,9 @@ while getopts "n:r:tp" opt; do
     ;;
   esac
 done
+
+source $CURRENT_DIR/license-helper.sh
+echo "[DEBUG] APIC license: $(getAPICLicense $namespace)"
 
 profile="n3xc4.m16"
 if [[ "$production" == "true" ]]; then
@@ -87,6 +91,7 @@ spec:
   version: 10.0.1.0
   license:
     accept: true
+    license: $(getAPICLicense $namespace)
     use: production
   profile: ${profile}
   gateway:

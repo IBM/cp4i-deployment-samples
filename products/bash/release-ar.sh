@@ -31,6 +31,7 @@ namespace="cp4i"
 release_name="demo"
 assetDataVolume="ibmc-file-gold-gid"
 couchVolume="ibmc-block-gold"
+CURRENT_DIR=$(dirname $0)
 
 while getopts "n:r:a:c:" opt; do
   case ${opt} in
@@ -52,6 +53,9 @@ while getopts "n:r:a:c:" opt; do
     ;;
   esac
 done
+
+source $CURRENT_DIR/license-helper.sh
+echo "[DEBUG] AR license: $(getARLicense $namespace)"
 
 json=$(oc get configmap -n $namespace operator-info -o json 2> /dev/null)
 if [[ $? == 0 ]]; then
@@ -75,6 +79,7 @@ metadata:
 spec:
   license:
     accept: true
+    license: $(getARLicense $namespace)
   storage:
     assetDataVolume:
       class: ${assetDataVolume}
