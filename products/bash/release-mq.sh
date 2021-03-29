@@ -215,7 +215,7 @@ metadata:
 spec:
   license:
     accept: true
-    license: L-RJON-BN7PN3
+    license: $(getMQLicense $namespace)
     use: NonProduction
   pki:
     keys:
