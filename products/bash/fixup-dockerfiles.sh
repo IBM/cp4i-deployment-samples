@@ -42,6 +42,31 @@ done
 
 SCRIPT_DIR=$(dirname $0)
 
+echo -e "\nINFO: Checking if jq is pre-installed..."
+jqInstalled=false
+jqVersionCheck=$(jq --version)
+
+if [ $? -ne 0 ]; then
+  jqInstalled=false
+else
+  jqInstalled=true
+fi
+
+if [[ "$jqInstalled" == "false" ]]; then
+  echo "INFO: JQ is not installed, installing jq..."
+  if [[ "$OSTYPE" == "linux-gnu"* ]]; then
+    echo "INFO: Installing on linux"
+    wget -O jq https://github.com/stedolan/jq/releases/download/jq-1.6/jq-linux64
+    chmod +x ./jq
+  elif [[ "$OSTYPE" == "darwin"* ]]; then
+    echo "INFO: Installing on MAC"
+    /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)"
+    brew install jq
+  fi
+fi
+
+  echo -e "\nINFO: Installed JQ version is $(./jq --version)"
+
 # Check if the ibm-entitlement-key secret includes the staging ER
 STAGING_AUTHS=$(oc get secret --namespace ${namespace} ibm-entitlement-key -o json | jq -r '.data.".dockerconfigjson"' | base64 --decode | jq -r '.auths["cp.stg.icr.io"]')
 if [[ "$STAGING_AUTHS" == "" || "$STAGING_AUTHS" == "null" ]]; then
