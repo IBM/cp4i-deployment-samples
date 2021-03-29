@@ -83,6 +83,18 @@ if [[ "$STAGING_AUTHS" == "" || "$STAGING_AUTHS" == "null" ]]; then
 else
   REPO="cp.stg.icr.io"
 fi
+
+if [[ $(oc get secret cp4i-demo-apic-smtp-secret -n "$NAMESPACE") ]]; then
+  MAIL_SERVER_HOST=$(oc get secret cp4i-demo-apic-smtp-secret -n "$NAMESPACE" -o json | jq -r '.data.mailServerHost' | base64 -D)
+  MAIL_SERVER_PORT=$(oc get secret cp4i-demo-apic-smtp-secret -n "$NAMESPACE" -o json | jq -r '.data.mailServerPort' | base64 -D)
+  MAIL_SERVER_USERNAME=$(oc get secret cp4i-demo-apic-smtp-secret -n "$NAMESPACE" -o json | jq -r '.data.username' | base64 -D)
+  MAIL_SERVER_PASSWORD=$(oc get secret cp4i-demo-apic-smtp-secret -n "$NAMESPACE" -o json | jq -r '.data.password' | base64 -D)
+  MAIL_SERVER_EMAIL_ADDRESS=$(oc get secret cp4i-demo-apic-smtp-secret -n "$NAMESPACE" -o json | jq -r '.data.emailAddress' | base64 -D)
+else
+  echo -e "\nThe secret 'cp4i-demo-apic-smtp-secret' does not exist in the namespace '$NAMESPACE'"
+  exit 1
+fi
+
 CONFIGURATOR_IMAGE=${CONFIGURATOR_IMAGE:-"${REPO}/cp/apic/ibm-apiconnect-apiconnect-configurator:10.0.2.0"}
 MAIL_SERVER_HOST=${MAIL_SERVER_HOST:-"smtp.mailtrap.io"}
 MAIL_SERVER_PORT=${MAIL_SERVER_PORT:-"2525"}
