@@ -134,11 +134,7 @@ metadata:
 spec:
   license:
     accept: true
-<<<<<<< HEAD
-    license: CP4I
-=======
     license: $(getTracingLicense $namespace)
->>>>>>> origin/main
   storage:
     configDbVolume:
       class: "${file_storage}"
