@@ -236,7 +236,7 @@ EOF
 else
   echo -e "$INFO [INFO] Using the release catalog sources"
   cat <<EOF | oc apply -f -
-`  ---
+---
 apiVersion: operators.coreos.com/v1alpha1
 kind: CatalogSource
 metadata:
