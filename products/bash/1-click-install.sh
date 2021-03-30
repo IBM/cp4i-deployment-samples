@@ -298,7 +298,6 @@ fi
 divider
 
 if [[ -z "$tempERKey" ]]; then
-  # Use the entitlement key
   export DOCKER_REGISTRY_USER=${DOCKER_REGISTRY_USER:-ekey}
   export DOCKER_REGISTRY_PASS=${DOCKER_REGISTRY_PASS:-none}
 else
@@ -386,10 +385,10 @@ if [[ "$EXISTING_DOCKER_AUTHS" == "" ]]; then
   EXISTING_DOCKER_AUTHS='{}'
 fi
 NEW_DOCKER_AUTHS=$(oc create secret docker-registry --namespace ${JOB_NAMESPACE} ibm-entitlement-key \
-    --docker-server=${IMAGE_REPO} \
-    --docker-username=${DOCKER_REGISTRY_USER} \
-    --docker-password=${DOCKER_REGISTRY_PASS} \
-    --dry-run=client -o json | jq -r '.data.".dockerconfigjson"' | base64 --decode | jq -r .auths)
+  --docker-server=${IMAGE_REPO} \
+  --docker-username=${DOCKER_REGISTRY_USER} \
+  --docker-password=${DOCKER_REGISTRY_PASS} \
+  --dry-run=client -o json | jq -r '.data.".dockerconfigjson"' | base64 --decode | jq -r .auths)
 
 if [[ "$OSTYPE" == "linux-gnu"* ]]; then
   BASE64_FLAG="-w0"
@@ -419,7 +418,7 @@ fi
 
 divider
 
-if ! $CURRENT_DIR/create-catalog-sources.sh ; then
+if ! $CURRENT_DIR/create-catalog-sources.sh; then
   echo -e "$CROSS [ERROR] Failed to create catalog sources"
   divider
   exit 1
