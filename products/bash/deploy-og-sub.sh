@@ -30,7 +30,7 @@ function usage() {
 
 namespace="cp4i"
 
-while getopts "n:p" opt; do
+while getopts "n:" opt; do
   case ${opt} in
   n)
     namespace="$OPTARG"
@@ -112,7 +112,7 @@ function wait_for_subscription_with_timeout() {
 
     if [[ "$wait" == "1" ]]; then
       if [ $time -ge ${TIMEOUT_SECONDS} ]; then
-        echo "ERROR: Failed after waiting for $(($TIMEOUT_SECONDS/60)) minutes"
+        echo "ERROR: Failed after waiting for $(($TIMEOUT_SECONDS / 60)) minutes"
         export wait_for_subscription_with_timeout_result=1
         return 1
       fi
@@ -237,7 +237,6 @@ function delete_datapower_subscription() {
     oc delete subscriptions -n ${NAMESPACE} ${SUBSCRIPTIONS}
   fi
 }
-
 
 if [[ "$CLUSTER_SCOPED" != "true" ]]; then
   OPERATOR_GROUP_COUNT=$(oc get operatorgroups -n ${namespace} -o json | jq '.items | length')
