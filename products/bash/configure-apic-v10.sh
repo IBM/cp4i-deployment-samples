@@ -83,7 +83,7 @@ if [[ "$STAGING_AUTHS" == "" || "$STAGING_AUTHS" == "null" ]]; then
 else
   REPO="cp.stg.icr.io"
 fi
-CONFIGURATOR_IMAGE=${CONFIGURATOR_IMAGE:-"${REPO}/cp/apic/ibm-apiconnect-apiconnect-configurator:10.0.2.0"}
+CONFIGURATOR_IMAGE=${CONFIGURATOR_IMAGE:-"${REPO}/cp/apic/ibm-apiconnect-apiconnect-master@sha256:bb1fda3a0e0c07cb2fb6540240e3e3ef4305e1b327abbce2c6169954c5945d2a"}
 MAIL_SERVER_HOST=${MAIL_SERVER_HOST:-"smtp.mailtrap.io"}
 MAIL_SERVER_PORT=${MAIL_SERVER_PORT:-"2525"}
 MAIL_SERVER_USERNAME=${MAIL_SERVER_USERNAME:-"<your-username>"}
