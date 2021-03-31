@@ -14,6 +14,7 @@
 #
 # PARAMETERS:
 #   -n : <namespace> (string), Defaults to "cp4i"
+#   -d : Enables deployment of the demos operator
 #
 # USAGE:
 #   With defaults values
@@ -29,9 +30,13 @@ function usage() {
 }
 
 namespace="cp4i"
+DEPLOY_DEMOS=false
 
-while getopts "n:" opt; do
+while getopts "n:d" opt; do
   case ${opt} in
+  d)
+    DEPLOY_DEMOS=true
+    ;;
   n)
     namespace="$OPTARG"
     ;;
@@ -69,7 +74,7 @@ else
   DP_CATALOG="ibm-operator-catalog"
   ES_CATALOG="ibm-operator-catalog"
   MQ_CATALOG="ibm-operator-catalog"
-  DEMOS_CATALOG="ibm-operator-catalog"
+  DEMOS_CATALOG="cp4i-demo-operator-catalog-source"
 fi
 
 function output_time() {
@@ -259,17 +264,26 @@ fi
 # as tracing uses a CRD created by the navigator operator.
 echo "INFO: Applying subscription for platform navigator"
 create_subscription ${namespace} ${NAVIGATOR_CATALOG} "ibm-integration-platform-navigator" "v4.2"
-
+wait_for_subscription ${namespace} ${NAVIGATOR_CATALOG} "ibm-integration-platform-navigator" "v4.2"
 create_subscription ${namespace} ${ASPERA_CATALOG} "aspera-hsts-operator" "v1.2-eus"
+wait_for_subscription ${namespace} ${ASPERA_CATALOG} "aspera-hsts-operator" "v1.2-eus"
 create_subscription ${namespace} ${ACE_CATALOG} "ibm-appconnect" "v1.3"
+wait_for_subscription ${namespace} ${ACE_CATALOG} "ibm-appconnect" "v1.3"
 create_subscription ${namespace} ${ES_CATALOG} "ibm-eventstreams" "v2.3"
+wait_for_subscription ${namespace} ${ES_CATALOG} "ibm-eventstreams" "v2.3"
 
 create_subscription ${namespace} ${MQ_CATALOG} "ibm-mq" "v1.5"
+wait_for_subscription ${namespace} ${MQ_CATALOG} "ibm-mq" "v1.5"
 create_subscription ${namespace} ${AR_CATALOG} "ibm-integration-asset-repository" "v1.2"
-create_subscription ${namespace} ${DEMOS_CATALOG} "ibm-integration-demos-operator" "v1.0"
+wait_for_subscription ${namespace} ${AR_CATALOG} "ibm-integration-asset-repository" "v1.2"
 
-echo "INFO: Wait for platform navigator before applying the APIC/Tracing subscriptions"
-wait_for_subscription ${namespace} ${NAVIGATOR_CATALOG} "ibm-integration-platform-navigator" "v4.2"
+if [[ "${DEPLOY_DEMOS}" == "true" ]]; then
+  create_subscription ${namespace} ${DEMOS_CATALOG} "ibm-integration-demos-operator" "v1.0"
+  wait_for_subscription ${namespace} ${DEMOS_CATALOG} "ibm-integration-demos-operator" "v1.0"
+fi
+
+# echo "INFO: Wait for platform navigator before applying the APIC/Tracing subscriptions"
+# wait_for_subscription ${namespace} ${NAVIGATOR_CATALOG} "ibm-integration-platform-navigator" "v4.2"
 echo "INFO: ClusterServiceVersion for the Platform Navigator is now installed, proceeding with installation..."
 
 echo "INFO: Apply the APIC/Tracing subscriptions"
