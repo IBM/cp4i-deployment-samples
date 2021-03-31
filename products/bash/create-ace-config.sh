@@ -115,6 +115,41 @@ done
 
 POSTGRES_NAMESPACE=${POSTGRES_NAMESPACE:-$NAMESPACE}
 
+if [[ -z "${NAMESPACE// /}" ]]; then
+  echo -e "$CROSS [ERROR] Namespace parameter is empty. Please provide a value for '-n' parameter."
+  MISSING_PARAMS="true"
+fi
+
+if [[ -z "${POSTGRES_NAMESPACE// /}" ]]; then
+  echo -e "$CROSS [ERROR] Namespace parameter is empty. Please provide a value for '-g' parameter."
+  MISSING_PARAMS="true"
+fi
+
+if [[ -z "${DB_NAME// /}" ]]; then
+  echo -e "$CROSS [ERROR] Database name of the postgres parameter is empty. Please provide a value for '-d' parameter."
+  MISSING_PARAMS="true"
+fi
+
+if [[ -z "${DB_USER// /}" ]]; then
+  echo -e "$CROSS [ERROR] Database username for postgres parameter is empty. Please provide a value for '-u' parameter."
+  MISSING_PARAMS="true"
+fi
+
+if [[ -z "${DB_PASS// /}" ]]; then
+  echo -e "$CROSS [ERROR] Database password for postgres parameter is empty. Please provide a value for '-p' parameter."
+  MISSING_PARAMS="true"
+fi
+
+if [[ -z "${SUFFIX// /}" ]]; then
+  echo -e "$CROSS [ERROR] Suffix parameter is empty. Please provide a value for '-s' parameter."
+  MISSING_PARAMS="true"
+fi
+
+if [[ "$MISSING_PARAMS" == "true" ]]; then
+  divider
+  usage
+fi
+
 if [[ -z "$DEBUG" ]]; then
   DEBUG="false"
 fi

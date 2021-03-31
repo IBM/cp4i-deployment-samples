@@ -94,7 +94,7 @@ elif [[ "$release_name" =~ "eei" ]]; then
   numberOfContainers=1
 fi
 
-json=$(oc get configmap -n $namespace operator-info -o json 2> /dev/null)
+json=$(oc get configmap -n $namespace operator-info -o json 2>/dev/null)
 if [[ $? == 0 ]]; then
   METADATA_NAME=$(echo $json | tr '\r\n' ' ' | jq -r '.data.METADATA_NAME')
   METADATA_UID=$(echo $json | tr '\r\n' ' ' | jq -r '.data.METADATA_UID')
@@ -108,7 +108,7 @@ metadata:
   name: ${release_name}
   namespace: ${namespace}
   $(if [[ ! -z ${METADATA_UID} && ! -z ${METADATA_NAME} ]]; then
-  echo "ownerReferences:
+    echo "ownerReferences:
     - apiVersion: integration.ibm.com/v1beta1
       kind: Demo
       name: ${METADATA_NAME}
@@ -131,7 +131,7 @@ spec:
             - name: MQSNOAUT
               value: 'yes'
           name: qmgr
-  version: 9.2.0.0-r1
+  version: 9.2.2.0-r1
   web:
     enabled: true
   tracing:
@@ -177,7 +177,7 @@ data:
     Service:
       Name=AuthorizationService
       EntryPoints=14
-      SecurityPolicy=User
+      SecurityPolicy=UserExternal
 ---
 kind: Secret
 apiVersion: v1
@@ -206,7 +206,7 @@ metadata:
   name: ${release_name}
   namespace: ${namespace}
   $(if [[ ! -z ${METADATA_UID} && ! -z ${METADATA_NAME} ]]; then
-  echo "ownerReferences:
+    echo "ownerReferences:
     - apiVersion: integration.ibm.com/v1beta1
       kind: Demo
       name: ${METADATA_NAME}
@@ -250,7 +250,7 @@ spec:
             - name: MQS_PERMIT_UNKNOWN_ID
               value: 'true'
           name: qmgr
-  version: 9.2.0.0-r1
+  version: 9.2.2.0-r1
   web:
     enabled: true
   tracing:
@@ -262,24 +262,6 @@ EOF
     exit 1
   fi
 
-  # -------------------------------------- Register Tracing ---------------------------------------------------------------------
-  oc get secrets icp4i-od-store-cred -n ${namespace}
-  if [ $? -ne 0 ] && [ "$tracing_enabled" == "true" ]; then
-    echo "[INFO] secret icp4i-od-store-cred does not exist in ${namespace}, running tracing registration"
-    echo "Tracing_Namespace= ${tracing_namespace}"
-    echo "Namespace= ${namespace}"
-    if ! ${CURRENT_DIR}/register-tracing.sh -n $tracing_namespace -a ${namespace}; then
-      echo "INFO: Running with test environment flag"
-      echo "ERROR: Failed to register tracing in project '$namespace'"
-      exit 1
-    fi
-  else
-    if [ "$tracing_enabled" == "false" ]; then
-      echo "[INFO] Tracing Registration not need. Tracing set to $tracing_enabled"
-    else
-      echo "[INFO] secret icp4i-od-store-cred exist, no need to run tracing registration"
-    fi
-  fi
   # -------------------------------------- INSTALL JQ ---------------------------------------------------------------------
 
   divider

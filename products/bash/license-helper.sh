@@ -17,11 +17,11 @@
 #*******************************************************************************
 
 LICENSES_CM="demo-licenses"
-DEFAULT_ACE="L-APEH-BPUCJK"
-DEFAULT_APIC="L-RJON-BRSHKF"
+DEFAULT_ACE="L-APEH-BY5CY7"
+DEFAULT_APIC="L-RJON-BXWP45"
 DEFAULT_AR="L-NCAN-BXWG76"
 DEFAULT_DEMO="L-RJON-BYRMYW"
-DEFAULT_MQ="L-RJON-BN7PN3"
+DEFAULT_MQ="L-RJON-BXUPZ2"
 DEFAULT_TRACING="CP4I"
 
 function usage() {
@@ -30,39 +30,39 @@ function usage() {
 
 while getopts "" opt; do
   case ${opt} in
-    \?)
-      usage
-      exit
-      ;;
+  \?)
+    usage
+    exit
+    ;;
   esac
 done
 
 function getACELicense() {
-  ACE_LICENSE=$(oc -n $1 get configmap $LICENSES_CM -ojsonpath='{.data.ace}' 2> /dev/null)
+  ACE_LICENSE=$(oc -n $1 get configmap $LICENSES_CM -ojsonpath='{.data.ace}' 2>/dev/null)
   [[ $? == 0 && !$ACE_LICENSE == '' ]] && echo $ACE_LICENSE || echo $DEFAULT_ACE
 }
 
 function getAPICLicense() {
-  APIC_LICENSE=$(oc -n $1 get configmap $LICENSES_CM -ojsonpath='{.data.apic}' 2> /dev/null)
+  APIC_LICENSE=$(oc -n $1 get configmap $LICENSES_CM -ojsonpath='{.data.apic}' 2>/dev/null)
   [[ $? == 0 && !$APIC_LICENSE == '' ]] && echo $APIC_LICENSE || echo $DEFAULT_APIC
 }
 
 function getARLicense() {
-  AR_LICENSE=$(oc -n $1 get configmap $LICENSES_CM -ojsonpath='{.data.ar}' 2> /dev/null)
+  AR_LICENSE=$(oc -n $1 get configmap $LICENSES_CM -ojsonpath='{.data.ar}' 2>/dev/null)
   [[ $? == 0 && !$AR_LICENSE == '' ]] && echo $AR_LICENSE || echo $DEFAULT_AR
 }
 
 function getDemoLicense() {
-  DEMO_LICENSE=$(oc -n $1 get configmap $LICENSES_CM -ojsonpath='{.data.demo}' 2> /dev/null)
+  DEMO_LICENSE=$(oc -n $1 get configmap $LICENSES_CM -ojsonpath='{.data.demo}' 2>/dev/null)
   [[ $? == 0 && !$DEMO_LICENSE == '' ]] && echo $DEMO_LICENSE || echo $DEFAULT_DEMO
 }
 
 function getMQLicense() {
-  MQ_LICENSE=$(oc -n $1 get configmap $LICENSES_CM -ojsonpath='{.data.mq}' 2> /dev/null)
+  MQ_LICENSE=$(oc -n $1 get configmap $LICENSES_CM -ojsonpath='{.data.mq}' 2>/dev/null)
   [[ $? == 0 && !$MQ_LICENSE == '' ]] && echo $MQ_LICENSE || echo $DEFAULT_MQ
 }
 
 function getTracingLicense() {
-  TRACING_LICENSE=$(oc -n $1 get configmap $LICENSES_CM -ojsonpath='{.data.tracing}' 2> /dev/null)
+  TRACING_LICENSE=$(oc -n $1 get configmap $LICENSES_CM -ojsonpath='{.data.tracing}' 2>/dev/null)
   [[ $? == 0 && !$TRACING_LICENSE == '' ]] && echo $TRACING_LICENSE || echo $DEFAULT_TRACING
 }

@@ -80,10 +80,11 @@ spec:
   license:
     accept: true
     license: $(getARLicense $namespace)
+  replicas: 1
   storage:
     assetDataVolume:
       class: ${assetDataVolume}
     couchVolume:
       class: ${couchVolume}
-  version: 2020.3.1-0
+  version: 2021.1.1-0
 EOF

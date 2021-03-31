@@ -55,16 +55,18 @@ while getopts "n:r:tp" opt; do
   esac
 done
 
+profile="n1xc10.m48"
+license_use="nonproduction"
 source $CURRENT_DIR/license-helper.sh
 echo "[DEBUG] APIC license: $(getAPICLicense $namespace)"
 
-profile="n3xc4.m16"
 if [[ "$production" == "true" ]]; then
   echo "Production Mode Enabled"
   profile="n12xc4.m12"
+  license_use="production"
 fi
 
-json=$(oc get configmap -n $namespace operator-info -o json 2> /dev/null)
+json=$(oc get configmap -n $namespace operator-info -o json 2>/dev/null)
 if [[ $? == 0 ]]; then
   METADATA_NAME=$(echo $json | tr '\r\n' ' ' | jq -r '.data.METADATA_NAME')
   METADATA_UID=$(echo $json | tr '\r\n' ' ' | jq -r '.data.METADATA_UID')
@@ -88,14 +90,20 @@ metadata:
     app.kubernetes.io/managed-by: ibm-apiconnect
     app.kubernetes.io/name: apiconnect-production
 spec:
-  version: 10.0.1.0
+  version: 10.0.2.0
   license:
     accept: true
+    use: ${license_use}
     license: $(getAPICLicense $namespace)
-    use: production
   profile: ${profile}
   gateway:
     openTracing:
       enabled: ${tracing}
       odTracingNamespace: ${namespace}
+      imageAgent: 'cp.icr.io/cp/icp4i/od/icp4i-od-agent:1.1.0-rc6-amd64@sha256:9143f522727dcfa7e3a45dee17aff324df52fe05f4d6a40466859a084db59e4f'
+      imageCollector: 'cp.icr.io/cp/icp4i/od/icp4i-od-collector:1.1.0-rc6-amd64@sha256:2c17a1bb5d45fa0b8bae6f2581ec6f5308a605b6a8934b78188eda3c6a0ef21f'
+    replicaCount: 1
+  management:
+    testAndMonitor:
+      enabled: true
 EOF

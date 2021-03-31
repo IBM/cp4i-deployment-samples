@@ -24,22 +24,26 @@
 #     ./release-navigator -n cp4i-prod -r 1
 
 function usage() {
-  echo "Usage: $0 -n <namespace> -r <replicas>"
+  echo "Usage: $0 -n <namespace> -r <replicas> -s <file storage>"
 }
 
 namespace="cp4i"
-replicas="3"
+replicas="1"
+storage="ibmc-file-gold-gid"
 
 SCRIPT_DIR="$(dirname $0)"
 echo "Current Dir: $SCRIPT_DIR"
 
-while getopts "n:r:" opt; do
+while getopts "n:r:s:" opt; do
   case ${opt} in
   n)
     namespace="$OPTARG"
     ;;
   r)
     replicas="$OPTARG"
+    ;;
+  s)
+    storage="$OPTARG"
     ;;
   \?)
     usage
@@ -60,9 +64,12 @@ metadata:
 spec:
   license:
     accept: true
+    license: L-RJON-BXUPZ2
   mqDashboard: true
   replicas: ${replicas}
-  version: 2020.3.1
+  version: 2021.1.1
+  storage:
+    class: ibmc-file-gold-gid
 EOF
 
   if [ $time -gt 10 ]; then
@@ -86,8 +93,6 @@ while [[ "$(oc get PlatformNavigator -n ${namespace} ${namespace}-navigator -o j
     exit 1
   fi
   echo "INFO: Waiting up to 60 minutes for platform navigator object to be ready. Waited ${time} minute(s)."
-
-  ${SCRIPT_DIR}/fix-cs-dependencies.sh
 
   time=$((time + 1))
   sleep 60

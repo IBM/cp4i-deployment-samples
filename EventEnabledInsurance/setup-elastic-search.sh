@@ -113,7 +113,9 @@ function wait_for_subscription() {
   echo "$NAME has succeeded"
 }
 
-cat <<EOF | oc apply -f -
+OPERATOR_GROUP_COUNT=$(oc get operatorgroups -n ${ELASTIC_NAMESPACE} -o json | jq '.items | length')
+if [[ "${OPERATOR_GROUP_COUNT}" == "0" ]]; then
+  cat <<EOF | oc apply -f -
 apiVersion: operators.coreos.com/v1
 kind: OperatorGroup
 metadata:
@@ -123,6 +125,7 @@ spec:
   targetNamespaces:
     - $ELASTIC_NAMESPACE
 EOF
+fi
 
 cat <<EOF | oc apply -f -
 apiVersion: operators.coreos.com/v1alpha1
@@ -168,15 +171,16 @@ spec:
   http:
     tls:
       selfSignedCertificate:
+        disabled: false
         # https://www.elastic.co/guide/en/cloud-on-k8s/1.0/k8s-common-k8s-elastic-co-v1.html#common-k8s-elastic-co-v1-selfsignedcertificate
         subjectAltNames:
         - dns: "$ELASTIC_CR_NAME-es-http.$ELASTIC_NAMESPACE.svc.cluster.local"
   nodeSets:
     - name: default
       config:
-        node.master: true
-        node.data: true
-        node.ingest: true
+        node.roles:
+          - master
+          - data
         node.attr.attr_name: attr_value
         node.store.allow_mmap: false
       podTemplate:

@@ -49,14 +49,14 @@ spec:
           eventstreams.production.type: CloudPakForIntegrationNonProduction
           productID: 2a79e49111f44ec3acd89608e56138f5
           productName: IBM Event Streams for Non Production
-           # Use the latest version of Eventstreams
-          productVersion: 10.1.0
+          # Use the latest version of Eventstreams
+          productVersion: 10.3.0
           productMetric: VIRTUAL_PROCESSOR_CORE
           productChargedContainers: eei-cluster-connect
           cloudpakId: c8b82d189e7545f0892db9ef2731b90d
           cloudpakName: IBM Cloud Pak for Integration
-           # Use the latest version of Eventstreams
-          cloudpakVersion: 2020.3.1
+          # Use the latest version of Eventstreams
+          cloudpakVersion: 2021.1.1
           productCloudpakRatio: "2:1"
   config:
     group.id: connect-cluster
@@ -197,7 +197,7 @@ spec:
   tasksMax: 1
   config:
     # These are connection details to the Postgres database setup by the prereqs.
-    database.hostname: "postgresql.cp4i.svc.cluster.local"
+    database.hostname: "postgresql"
     database.port: "5432"
     # The following credentials refer to the mounted secret and use the FileConfigProvider
     # from the KafkaConnectS2I to extract properties from the properties file.

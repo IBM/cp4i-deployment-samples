@@ -77,28 +77,20 @@ metadata:
       uid: ${METADATA_UID}"
   fi)
 spec:
-  pod:
-    containers:
-      ui:
-        resources:
-          limits:
-            cpu: 400m
-            memory: 400M
-          requests:
-            cpu: 400m
-            memory: 400M
   couchdb:
+    replicas: 1
     storage:
+      class: ${storage}
       size: 10Gi
       type: persistent-claim
-      class: ${storage}
   designerFlowsOperationMode: local
+  designerMappingAssist:
+    enabled: true
   license:
     accept: true
     license: $(getACELicense $namespace)
     use: CloudPakForIntegrationNonProduction
   replicas: 1
-  version: 11.0.0.10
-  designerMappingAssist:
-    enabled: true
+  useCommonServices: true
+  version: 11.0.0.11-r2
 EOF

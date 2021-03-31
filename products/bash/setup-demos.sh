@@ -65,10 +65,10 @@ MISSING_PREREQS="false"
 COGNITIVE_CAR_REPAIR_PRODUCTS_LIST=("aceDashboard" "aceDesigner" "apic" "assetRepo" "tracing")
 COGNITIVE_CAR_REPAIR_ADDONS_LIST=()
 # driveway dent deletion demo list
-DRIVEWAY_DENT_DELETION_PRODUCTS_LIST=("mq" "aceDashboard" "apic" "tracing")
+DRIVEWAY_DENT_DELETION_PRODUCTS_LIST=("aceDashboard" "apic" "tracing")
 DRIVEWAY_DENT_DELETION_ADDONS_LIST=("postgres" "ocpPipelines")
 # event insurance demo list
-EVENT_ENABLED_INSURANCE_PRODUCTS_LIST=("mq" "aceDashboard" "apic" "eventStreams" "tracing")
+EVENT_ENABLED_INSURANCE_PRODUCTS_LIST=("aceDashboard" "apic" "eventStreams" "tracing")
 EVENT_ENABLED_INSURANCE_ADDONS_LIST=("postgres" "elasticSearch" "ocpPipelines")
 # mapping assist demo list
 MAPPING_ASSIST_PRODUCTS_LIST=("aceDesigner")
@@ -429,7 +429,6 @@ for DEMO in $(echo $REQUIRED_DEMOS_JSON | jq -r 'keys[]'); do
     ;;
   drivewayDentDeletion)
     PRODUCTS_FOR_DEMO='
-      mq
       aceDashboard
       apic
       tracing
@@ -447,7 +446,6 @@ for DEMO in $(echo $REQUIRED_DEMOS_JSON | jq -r 'keys[]'); do
     ;;
   eventEnabledInsurance)
     PRODUCTS_FOR_DEMO='
-      mq
       aceDashboard
       apic
       eventStreams
@@ -758,7 +756,7 @@ for EACH_PRODUCT in $(echo "${REQUIRED_PRODUCTS_JSON}" | jq -r '. | keys[]'); do
       FAILED_INSTALL_PRODUCTS_LIST+=($EACH_PRODUCT)
     else
       echo -e "\n$TICK [SUCCESS] Successfully released Tracing $ECHO_LINE '$TRACING_RELEASE_NAME'"
-      update_product_status "$TRACING_RELEASE_NAME" "$EACH_PRODUCT" "true" "false"
+      update_product_status "$TRACING_RELEASE_NAME" "$EACH_PRODUCT" "true" "true"
     fi # release-tracing.sh
     divider
     ;;
@@ -770,24 +768,6 @@ for EACH_PRODUCT in $(echo "${REQUIRED_PRODUCTS_JSON}" | jq -r '. | keys[]'); do
     ;;
   esac
 done
-
-#-------------------------------------------------------------------------------------------------------------------
-#  If tracing is enabled, register tracing after all required product installations
-#-------------------------------------------------------------------------------------------------------------------
-
-if [[ "$TRACING_ENABLED" == "true" ]]; then
-  echo -e "$INFO [INFO] Registering tracing in the '$NAMESPACE' namespace...\n"
-  if ! $SCRIPT_DIR/register-tracing.sh -n "$NAMESPACE"; then
-    update_conditions "Failed to register tracing in the '$NAMESPACE' namespace" "Releasing"
-    update_phase "Failed"
-    update_product_status "$TRACING_RELEASE_NAME" "tracing" "true" "false"
-    FAILED_INSTALL_PRODUCTS_LIST+=(tracing)
-  else
-    echo -e "\n$TICK [SUCCESS] Successfully registered tracing in the '$NAMESPACE' namespace"
-    update_product_status "$TRACING_RELEASE_NAME" "tracing" "true" "true"
-  fi # release-tracing.sh
-  divider
-fi
 
 #-------------------------------------------------------------------------------------------------------------------
 # Configure APIC if APIC is amongst selected product. Tracing registration is a pre-req for this step.

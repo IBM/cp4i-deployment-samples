@@ -94,11 +94,29 @@ spec:
     accept: true
     license: $(getACELicense $namespace)
     use: ${use}
+  pod:
+    containers:
+      content-server:
+        resources:
+          limits:
+            cpu: 250m
+            memory: 512Mi
+          requests:
+            cpu: 50m
+            memory: 50Mi
+      control-ui:
+        resources:
+          limits:
+            cpu: 250m
+            memory: 250Mi
+          requests:
+            cpu: 50m
+            memory: 125Mi
   replicas: 1
   storage:
     class: ${storage}
     size: 5Gi
     type: persistent-claim
   useCommonServices: true
-  version: 11.0.0.10
+  version: 11.0.0.11-r2
 EOF

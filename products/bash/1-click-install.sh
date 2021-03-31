@@ -303,7 +303,7 @@ if [[ -z "$tempERKey" ]]; then
   export DOCKER_REGISTRY_PASS=${DOCKER_REGISTRY_PASS:-none}
 else
   # Use the tempERKey override as an api key
-  export DOCKER_REGISTRY_USER="ekey"
+  export DOCKER_REGISTRY_USER="iamapikey"
   export DOCKER_REGISTRY_PASS=${tempERKey}
 fi
 
@@ -379,13 +379,33 @@ echo -e "$INFO [INFO] Current storage classes:\n"
 oc get sc
 divider
 
-# Create secret to pull images from the ER
+# Create/update secret to pull images from the ER
 echo -e "$INFO [INFO] Creating secret to pull images from the ER\n"
-oc -n $JOB_NAMESPACE create secret docker-registry ibm-entitlement-key \
-  --docker-server=$IMAGE_REPO \
-  --docker-username=$DOCKER_REGISTRY_USER \
-  --docker-password=$DOCKER_REGISTRY_PASS \
-  --dry-run -o yaml | oc apply -f -
+EXISTING_DOCKER_AUTHS=$(oc get secret --namespace ${JOB_NAMESPACE} ibm-entitlement-key -o json | jq -r '.data.".dockerconfigjson"' | base64 --decode | jq -r .auths)
+if [[ "$EXISTING_DOCKER_AUTHS" == "" ]]; then
+  EXISTING_DOCKER_AUTHS='{}'
+fi
+NEW_DOCKER_AUTHS=$(oc create secret docker-registry --namespace ${JOB_NAMESPACE} ibm-entitlement-key \
+    --docker-server=${IMAGE_REPO} \
+    --docker-username=${DOCKER_REGISTRY_USER} \
+    --docker-password=${DOCKER_REGISTRY_PASS} \
+    --dry-run=client -o json | jq -r '.data.".dockerconfigjson"' | base64 --decode | jq -r .auths)
+
+if [[ "$OSTYPE" == "linux-gnu"* ]]; then
+  BASE64_FLAG="-w0"
+else
+  BASE64_FLAG=""
+fi
+COMBINED_DOCKER_CFG_B64=$(echo $EXISTING_DOCKER_AUTHS $NEW_DOCKER_AUTHS | jq -s -r '{"auths": add}' | base64 $BASE64_FLAG)
+cat <<EOF | oc apply --namespace ${JOB_NAMESPACE} -f -
+apiVersion: v1
+kind: Secret
+metadata:
+  name: ibm-entitlement-key
+type: kubernetes.io/dockerconfigjson
+data:
+  .dockerconfigjson: $COMBINED_DOCKER_CFG_B64
+EOF
 
 divider
 
@@ -399,39 +419,13 @@ fi
 
 divider
 
-echo -e "$INFO [INFO] Applying catalogsources\n"
-cat <<EOF | oc apply -f -
----
-apiVersion: operators.coreos.com/v1alpha1
-kind: CatalogSource
-metadata:
-  name: opencloud-operators
-  namespace: openshift-marketplace
-spec:
-  displayName: IBMCS Operators
-  publisher: IBM
-  sourceType: grpc
-  image: docker.io/ibmcom/ibm-common-service-catalog:3.5
-  updateStrategy:
-    registryPoll:
-      interval: 45m
-
----
-
-apiVersion: operators.coreos.com/v1alpha1
-kind: CatalogSource
-metadata:
-  name: ibm-operator-catalog
-  namespace: openshift-marketplace
-spec:
-  displayName: ibm-operator-catalog
-  publisher: IBM Content
-  sourceType: grpc
-  image: docker.io/ibmcom/ibm-operator-catalog
-  updateStrategy:
-    registryPoll:
-      interval: 45m
-EOF
+if ! $CURRENT_DIR/create-catalog-sources.sh ; then
+  echo -e "$CROSS [ERROR] Failed to create catalog sources"
+  divider
+  exit 1
+else
+  echo -e "\n$TICK [SUCCESS] Created the catalog sources"
+fi
 
 divider
 
@@ -441,6 +435,18 @@ if ! $CURRENT_DIR/deploy-og-sub.sh -n "$DEPLOY_OPERATOR_NAMESPACE"; then
   exit 1
 else
   echo -e "\n$TICK [SUCCESS] Deployed the operator groups and subscriptions"
+fi
+
+divider
+
+if [[ $(echo "$CLUSTER_TYPE" | tr '[:upper:]' '[:lower:]') == "roks" ]]; then
+  if ! $CURRENT_DIR/setup-roks-iam.sh; then
+    echo -e "$CROSS [ERROR] Failed to setup iam for roks cluster"
+    divider
+    exit 1
+  else
+    echo -e "\n$TICK [SUCCESS] IAM setup for roks cluster"
+  fi
 fi
 
 divider

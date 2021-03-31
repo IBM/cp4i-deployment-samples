@@ -76,7 +76,14 @@ CATALOG_NAME_DDD="${ORG_NAME_DDD}-catalog"
 PORG_ADMIN_EMAIL=${PORG_ADMIN_EMAIL:-"cp4i-admin@apiconnect.net"} # update to recipient of portal site creation email
 ACE_REGISTRATION_SECRET_NAME="ace-v11-service-creds"              # corresponds to registration obj currently hard-coded in configmap
 PROVIDER_SECRET_NAME="cp4i-admin-creds"                           # corresponds to credentials obj currently hard-coded in configmap
-CONFIGURATOR_IMAGE=${CONFIGURATOR_IMAGE:-"cp.icr.io/cp/apic/ibm-apiconnect-apiconnect-configurator:10.0.1.0"}
+
+STAGING_AUTHS=$(oc get secret --namespace ${NAMESPACE} ibm-entitlement-key -o json | jq -r '.data.".dockerconfigjson"' | base64 --decode | jq -r '.auths["cp.stg.icr.io"]')
+if [[ "$STAGING_AUTHS" == "" || "$STAGING_AUTHS" == "null" ]]; then
+  REPO="cp.icr.io"
+else
+  REPO="cp.stg.icr.io"
+fi
+CONFIGURATOR_IMAGE=${CONFIGURATOR_IMAGE:-"${REPO}/cp/apic/ibm-apiconnect-apiconnect-configurator:10.0.2.0"}
 MAIL_SERVER_HOST=${MAIL_SERVER_HOST:-"smtp.mailtrap.io"}
 MAIL_SERVER_PORT=${MAIL_SERVER_PORT:-"2525"}
 MAIL_SERVER_USERNAME=${MAIL_SERVER_USERNAME:-"<your-username>"}
@@ -91,9 +98,6 @@ for i in $(seq 1 120); do
     break
   else
     echo "Waiting for APIC install to complete (Attempt $i of 120). Status: $APIC_STATUS"
-
-    ${CURRENT_DIR}/fix-cs-dependencies.sh
-
     kubectl get apic,pods,pvc -n $NAMESPACE
     echo "Checking again in one minute..."
     sleep 60
@@ -138,6 +142,11 @@ CMC_UI_EP=$(oc get route -n $NAMESPACE ${RELEASE_NAME}-mgmt-admin -o jsonpath='{
 C_API_EP=$(oc get route -n $NAMESPACE ${RELEASE_NAME}-mgmt-consumer-api -o jsonpath='{.spec.host}')
 API_EP=$(oc get route -n $NAMESPACE ${RELEASE_NAME}-mgmt-platform-api -o jsonpath='{.spec.host}')
 PTL_WEB_EP=$(oc get route -n $NAMESPACE ${RELEASE_NAME}-ptl-portal-web -o jsonpath='{.spec.host}')
+
+echo "Ensure any previous configurator job no longer exists"
+set +e
+oc delete job -n ${NAMESPACE} ${RELEASE_NAME}-apic-configurator-post-install
+set -e
 
 # create the k8s resources
 echo "Applying manifests"
@@ -225,6 +234,13 @@ data:
         password: "${CLOUD_MANAGER_PASS}"
       provider:
         secret_name: ${PROVIDER_SECRET_NAME}
+    registry_settings:
+      admin_user_registry_urls:
+      - https://${API_EP}/api/user-registries/admin/cloud-manager-lur
+      - https://${API_EP}/api/user-registries/admin/common-services
+      provider_user_registry_urls:
+      - https://${API_EP}/api/user-registries/admin/api-manager-lur
+      - https://${API_EP}/api/user-registries/admin/common-services
     registrations:
       - registration:
           name: 'ace-v11'

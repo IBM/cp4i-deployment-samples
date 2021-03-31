@@ -14,13 +14,14 @@
 #
 # PARAMETERS:
 #   -n : <namespace> (string), Defaults to "cp4i"
+#   -d : Enables deployment of the demos operator
 #
 # USAGE:
 #   With defaults values
 #     ./deploy-og-sub.sh
 #
 #   Overriding the namespace
-#     ./deploy-og-sub -n cp4i-prod
+#     ./deploy-og-sub.sh -n cp4i-prod
 #
 
 function usage() {
@@ -29,9 +30,13 @@ function usage() {
 }
 
 namespace="cp4i"
+DEPLOY_DEMOS=false
 
-while getopts "n:" opt; do
+while getopts "n:d" opt; do
   case ${opt} in
+  d)
+    DEPLOY_DEMOS=true
+    ;;
   n)
     namespace="$OPTARG"
     ;;
@@ -41,17 +46,36 @@ while getopts "n:" opt; do
   esac
 done
 
-# Get auth port with internal url and apply the operand config in common services namespace
-IAM_Update_OperandConfig() {
-  export EXTERNAL=$(oc get configmap cluster-info -n kube-system -o jsonpath='{.data.master_public_url}')
-  export INT_URL="${EXTERNAL}/.well-known/oauth-authorization-server"
-  export IAM_URL=$(curl $INT_URL 2>/dev/null | jq -r '.issuer')
-  echo "INFO: External url: ${EXTERNAL}"
-  echo "INFO: INT_URL: ${INT_URL}"
-  echo "INFO: IAM URL : ${IAM_URL}"
-  echo "INFO: Updating the OperandConfig 'common-service' for IAM Authentication"
-  oc get OperandConfig -n ibm-common-services $(oc get OperandConfig -n ibm-common-services | sed -n 2p | awk '{print $1}') -o json | jq '(.spec.services[] | select(.name == "ibm-iam-operator") | .spec.authentication)|={"config":{"roksEnabled":true,"roksURL":"'$IAM_URL'","roksUserPrefix":"IAM#"}}' | oc apply -f -
-}
+STAGING_AUTHS=$(oc get secret --namespace ${namespace} ibm-entitlement-key -o json | jq -r '.data.".dockerconfigjson"' | base64 --decode | jq -r '.auths["cp.stg.icr.io"]')
+if [[ "$STAGING_AUTHS" == "" || "$STAGING_AUTHS" == "null" ]]; then
+  USE_PRERELEASE_CATALOGS=false
+else
+  USE_PRERELEASE_CATALOGS=true
+fi
+
+if [[ "${USE_PRERELEASE_CATALOGS}" == "true" ]]; then
+  NAVIGATOR_CATALOG="pn-operators"
+  ACE_CATALOG="ace-operators"
+  AR_CATALOG="ar-operators"
+  OD_CATALOG="od-operators"
+  APIC_CATALOG="apic-operators"
+  ASPERA_CATALOG="aspera-operators"
+  DP_CATALOG="dp-operators"
+  ES_CATALOG="es-operators"
+  MQ_CATALOG="mq-operators"
+  DEMOS_CATALOG="cp4i-demo-operator-catalog-source"
+else
+  NAVIGATOR_CATALOG="ibm-operator-catalog"
+  ACE_CATALOG="ibm-operator-catalog"
+  AR_CATALOG="ibm-operator-catalog"
+  OD_CATALOG="ibm-operator-catalog"
+  APIC_CATALOG="ibm-operator-catalog"
+  ASPERA_CATALOG="ibm-operator-catalog"
+  DP_CATALOG="ibm-operator-catalog"
+  ES_CATALOG="ibm-operator-catalog"
+  MQ_CATALOG="ibm-operator-catalog"
+  DEMOS_CATALOG="cp4i-demo-operator-catalog-source"
+fi
 
 function output_time() {
   SECONDS=${1}
@@ -62,12 +86,14 @@ function output_time() {
   fi
 }
 
-function wait_for_subscription() {
+function wait_for_subscription_with_timeout() {
   NAMESPACE=${1}
   SOURCE=${2}
   NAME=${3}
   CHANNEL=${4}
+  TIMEOUT_SECONDS=${5}
   SOURCE_NAMESPACE="openshift-marketplace"
+
   SUBSCRIPTION_NAME="${NAME}-${CHANNEL}-${SOURCE}-${SOURCE_NAMESPACE}"
 
   echo "Waiting for subscription \"${SUBSCRIPTION_NAME}\" in namespace \"${NAMESPACE}\""
@@ -90,9 +116,10 @@ function wait_for_subscription() {
     fi
 
     if [[ "$wait" == "1" ]]; then
-      if [ $time -ge 7200 ]; then
-        echo "ERROR: Failed after waiting for 120 minutes"
-        exit 1
+      if [ $time -ge ${TIMEOUT_SECONDS} ]; then
+        echo "ERROR: Failed after waiting for $(($TIMEOUT_SECONDS/60)) minutes"
+        export wait_for_subscription_with_timeout_result=1
+        return 1
       fi
 
       echo "Retrying in ${wait_time} seconds, waited for $(output_time $time) so far"
@@ -101,6 +128,15 @@ function wait_for_subscription() {
     fi
   done
   echo "$SUBSCRIPTION_NAME has succeeded"
+  export wait_for_subscription_with_timeout_result=0
+  return 0
+}
+
+function wait_for_subscription() {
+  wait_for_subscription_with_timeout ${1} ${2} ${3} ${4} 7200
+  if [[ "${wait_for_subscription_with_timeout_result}" != "0" ]]; then
+    exit ${wait_for_subscription_with_timeout_result}
+  fi
 }
 
 function wait_for_all_subscriptions() {
@@ -167,6 +203,7 @@ function create_subscription() {
   NAME=${3}
   CHANNEL=${4}
   SOURCE_NAMESPACE="openshift-marketplace"
+
   SUBSCRIPTION_NAME="${NAME}-${CHANNEL}-${SOURCE}-${SOURCE_NAMESPACE}"
 
   cat <<EOF | oc apply -f -
@@ -184,8 +221,33 @@ spec:
 EOF
 }
 
+function delete_datapower_subscription() {
+  NAMESPACE=${1}
+
+  INSTALL_PLANS=$(oc get installplans -n ${NAMESPACE} | grep "datapower-operator" | awk '{print $1}' | xargs)
+  if [[ "$INSTALL_PLANS" != "" ]]; then
+    echo "About to delete installplans: $INSTALL_PLANS"
+    oc delete installplans -n ${NAMESPACE} ${INSTALL_PLANS}
+  fi
+
+  CSVS=$(oc get csvs -n ${NAMESPACE} | grep "datapower-operator" | awk '{print $1}' | xargs)
+  if [[ "$CSVS" != "" ]]; then
+    echo "About to delete csvs: $CSVS"
+    oc delete csvs -n ${NAMESPACE} ${CSVS}
+  fi
+
+  SUBSCRIPTIONS=$(oc get subscriptions -n ${NAMESPACE} | grep "datapower-operator" | awk '{print $1}' | xargs)
+  if [[ "$SUBSCRIPTIONS" != "" ]]; then
+    echo "About to delete subscriptions: $SUBSCRIPTIONS"
+    oc delete subscriptions -n ${NAMESPACE} ${SUBSCRIPTIONS}
+  fi
+}
+
+
 if [[ "$CLUSTER_SCOPED" != "true" ]]; then
-  cat <<EOF | oc apply -f -
+  OPERATOR_GROUP_COUNT=$(oc get operatorgroups -n ${namespace} -o json | jq '.items | length')
+  if [[ "${OPERATOR_GROUP_COUNT}" == "0" ]]; then
+    cat <<EOF | oc apply -f -
 apiVersion: operators.coreos.com/v1
 kind: OperatorGroup
 metadata:
@@ -195,51 +257,40 @@ spec:
   targetNamespaces:
     - ${namespace}
 EOF
+  fi
 fi
 
 # Create the subscription for navigator. This needs to be before APIC (ibm-apiconnect)
 # so APIC knows it's running in CP4I and before tracing (ibm-integration-operations-dashboard)
 # as tracing uses a CRD created by the navigator operator.
 echo "INFO: Applying subscription for platform navigator"
-create_subscription ${namespace} "ibm-operator-catalog" "ibm-integration-platform-navigator" "v4.0"
+create_subscription ${namespace} ${NAVIGATOR_CATALOG} "ibm-integration-platform-navigator" "v4.2"
+wait_for_subscription ${namespace} ${NAVIGATOR_CATALOG} "ibm-integration-platform-navigator" "v4.2"
+create_subscription ${namespace} ${ASPERA_CATALOG} "aspera-hsts-operator" "v1.2-eus"
+wait_for_subscription ${namespace} ${ASPERA_CATALOG} "aspera-hsts-operator" "v1.2-eus"
+create_subscription ${namespace} ${ACE_CATALOG} "ibm-appconnect" "v1.3"
+wait_for_subscription ${namespace} ${ACE_CATALOG} "ibm-appconnect" "v1.3"
+create_subscription ${namespace} ${ES_CATALOG} "ibm-eventstreams" "v2.3"
+wait_for_subscription ${namespace} ${ES_CATALOG} "ibm-eventstreams" "v2.3"
 
-echo "INFO: Applying individual subscriptions for CP4I dependencies"
-create_subscription ${namespace} "certified-operators" "couchdb-operator-certified" "v1.4"
-create_subscription ${namespace} "ibm-operator-catalog" "aspera-hsts-operator" "v1.1"
-# Datapower should get the correct version installed from the APIC operator
-# create_subscription ${namespace} "ibm-operator-catalog" "datapower-operator" "v1.1"
-create_subscription ${namespace} "ibm-operator-catalog" "ibm-appconnect" "v1.0"
-create_subscription ${namespace} "ibm-operator-catalog" "ibm-eventstreams" "v2.1"
-create_subscription ${namespace} "ibm-operator-catalog" "ibm-mq" "v1.1"
-create_subscription ${namespace} "ibm-operator-catalog" "ibm-integration-asset-repository" "v1.0"
+create_subscription ${namespace} ${MQ_CATALOG} "ibm-mq" "v1.5"
+wait_for_subscription ${namespace} ${MQ_CATALOG} "ibm-mq" "v1.5"
+create_subscription ${namespace} ${AR_CATALOG} "ibm-integration-asset-repository" "v1.2"
+wait_for_subscription ${namespace} ${AR_CATALOG} "ibm-integration-asset-repository" "v1.2"
 
-echo "INFO: Wait for platform navigator before applying the APIC/Tracing subscriptions"
-wait_for_subscription ${namespace} "ibm-operator-catalog" "ibm-integration-platform-navigator" "v4.0"
+if [[ "${DEPLOY_DEMOS}" == "true" ]]; then
+  create_subscription ${namespace} ${DEMOS_CATALOG} "ibm-integration-demos-operator" "v1.0"
+  wait_for_subscription ${namespace} ${DEMOS_CATALOG} "ibm-integration-demos-operator" "v1.0"
+fi
+
+# echo "INFO: Wait for platform navigator before applying the APIC/Tracing subscriptions"
+# wait_for_subscription ${namespace} ${NAVIGATOR_CATALOG} "ibm-integration-platform-navigator" "v4.2"
+echo "INFO: ClusterServiceVersion for the Platform Navigator is now installed, proceeding with installation..."
 
 echo "INFO: Apply the APIC/Tracing subscriptions"
-create_subscription ${namespace} "ibm-operator-catalog" "ibm-apiconnect" "v2.0"
-create_subscription ${namespace} "ibm-operator-catalog" "ibm-integration-operations-dashboard" "v2.0"
+create_subscription ${namespace} ${APIC_CATALOG} "ibm-apiconnect" "v2.2"
 
-# echo "INFO: Applying the subscription for the uber operator"
-# create_subscription ${namespace} "ibm-operator-catalog" "ibm-cp-integration" "v1.0"
-# echo "INFO: ClusterServiceVersion for the Platform Navigator is now installed, proceeding with installation..."
+create_subscription ${namespace} ${OD_CATALOG} "ibm-integration-operations-dashboard" "v2.2"
 
 echo "INFO: Wait for all subscriptions to succeed"
 wait_for_all_subscriptions ${namespace}
-
-if [[ $(echo "$CLUSTER_TYPE" | tr '[:upper:]' '[:lower:]') == "roks" ]]; then
-  # Wait for up to 10 minutes for the OperandConfig to appear in the common services namespace for a ROKS cluster
-  time=0
-  while [ "$(oc get OperandConfig -n ibm-common-services | sed -n 2p | awk '{print $1}')" != "common-service" ]; do
-    if [ $time -gt 10 ]; then
-      echo "ERROR: Exiting installation as OperandConfig 'common-services is not found'"
-      exit 1
-    fi
-    echo "INFO: Waiting up to 10 minutes for OperandConfig 'common-services' to be available. Waited ${time} minute(s)."
-    time=$((time + 1))
-    sleep 60
-  done
-  echo "INFO: Operand config common-services found: $(oc get OperandConfig -n ibm-common-services | sed -n 2p | awk '{print $1}')"
-  echo "INFO: Proceeding with updating the OperandConfig to enable Openshift Authentication..."
-  IAM_Update_OperandConfig
-fi

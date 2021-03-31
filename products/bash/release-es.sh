@@ -75,7 +75,7 @@ metadata:
       uid: ${METADATA_UID}"
   fi)
 spec:
-  version: 10.1.0
+  version: 10.2.0-eus
   license:
     accept: true
     use: CloudPakForIntegrationProduction
@@ -134,7 +134,7 @@ metadata:
       uid: ${METADATA_UID}"
   fi)
 spec:
-  version: 10.1.0
+  version: 10.3.0
   license:
     accept: true
     use: CloudPakForIntegrationNonProduction

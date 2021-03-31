@@ -1,4 +1,5 @@
-FROM cp.icr.io/cp/ibm-mqadvanced-server-integration@sha256:b03d83a14f5fc21b943ed23ca9c532bd564821b72d782864f7345d388334a197
+# Note if ibm-entitlement-key includes an auth for cp.stg.icr.io then this will be changed to cp.stg.icr.io:
+FROM cp.icr.io/cp/ibm-mqadvanced-server-integration@sha256:99c9bc6d3fb56a62b841ed51175fa2239d57124da7e84dca2c9a9472dcba0374
 RUN echo -e "\
   DEFINE QLOCAL('QuoteBO') DEFPSIST(YES) \n\
   DEFINE QLOCAL('Quote') DEFPSIST(YES) BOQNAME('QuoteBO') BOTHRESH(99) \n\
