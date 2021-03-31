@@ -34,7 +34,7 @@ DEPLOY_DEMOS=false
 
 while getopts "n:d" opt; do
   case ${opt} in
-  p)
+  d)
     DEPLOY_DEMOS=true
     ;;
   n)
@@ -278,7 +278,7 @@ wait_for_subscription ${namespace} ${MQ_CATALOG} "ibm-mq" "v1.5"
 create_subscription ${namespace} ${AR_CATALOG} "ibm-integration-asset-repository" "v1.2"
 wait_for_subscription ${namespace} ${AR_CATALOG} "ibm-integration-asset-repository" "v1.2"
 
-if [[ "${USE_PRERELEASE_CATALOGS}" == "true" ]]; then
+if [[ "${DEPLOY_DEMOS}" == "true" ]]; then
   create_subscription ${namespace} ${DEMOS_CATALOG} "ibm-integration-demos-operator" "v1.0"
   wait_for_subscription ${namespace} ${DEMOS_CATALOG} "ibm-integration-demos-operator" "v1.0"
 fi
