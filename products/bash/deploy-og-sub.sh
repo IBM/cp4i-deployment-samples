@@ -14,6 +14,7 @@
 #
 # PARAMETERS:
 #   -n : <namespace> (string), Defaults to "cp4i"
+#   -d : Enables deployment of the demos operator
 #
 # USAGE:
 #   With defaults values
@@ -29,9 +30,13 @@ function usage() {
 }
 
 namespace="cp4i"
+DEPLOY_DEMOS=false
 
-while getopts "n:p" opt; do
+while getopts "n:d" opt; do
   case ${opt} in
+  d)
+    DEPLOY_DEMOS=true
+    ;;
   n)
     namespace="$OPTARG"
     ;;
@@ -272,8 +277,11 @@ create_subscription ${namespace} ${MQ_CATALOG} "ibm-mq" "v1.5"
 wait_for_subscription ${namespace} ${MQ_CATALOG} "ibm-mq" "v1.5"
 create_subscription ${namespace} ${AR_CATALOG} "ibm-integration-asset-repository" "v1.2"
 wait_for_subscription ${namespace} ${AR_CATALOG} "ibm-integration-asset-repository" "v1.2"
-create_subscription ${namespace} ${DEMOS_CATALOG} "ibm-integration-demos-operator" "v1.0"
-wait_for_subscription ${namespace} ${DEMOS_CATALOG} "ibm-integration-demos-operator" "v1.0"
+
+if [[ "${DEPLOY_DEMOS}" == "true" ]]; then
+  create_subscription ${namespace} ${DEMOS_CATALOG} "ibm-integration-demos-operator" "v1.0"
+  wait_for_subscription ${namespace} ${DEMOS_CATALOG} "ibm-integration-demos-operator" "v1.0"
+fi
 
 # echo "INFO: Wait for platform navigator before applying the APIC/Tracing subscriptions"
 # wait_for_subscription ${namespace} ${NAVIGATOR_CATALOG} "ibm-integration-platform-navigator" "v4.2"
