@@ -65,7 +65,7 @@ if [[ "$jqInstalled" == "false" ]]; then
   fi
 fi
 
-  echo -e "\nINFO: Installed JQ version is $(./jq --version)"
+echo -e "\nINFO: Installed JQ version is $(./jq --version)"
 
 # Check if the ibm-entitlement-key secret includes the staging ER
 STAGING_AUTHS=$(oc get secret --namespace ${namespace} ibm-entitlement-key -o json | jq -r '.data.".dockerconfigjson"' | base64 --decode | jq -r '.auths["cp.stg.icr.io"]')
