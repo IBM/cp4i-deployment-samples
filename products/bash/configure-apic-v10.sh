@@ -401,13 +401,10 @@ api_manager_ui: https://$APIM_UI_EP/manager
 cloud_manager_ui: https://$CMC_UI_EP/admin
 platform_api: https://$API_EP/api
 consumer_api: https://$C_API_EP/consumer-api
-
 provider_credentials (api manager):
   username: ${API_MANAGER_USER}
   password: ${API_MANAGER_PASS}
-
 portal_site_password_reset_link: $PORTAL_SITE_RESET_URL
-
 ace_registration:
   client_id: ${ACE_CLIENT_ID}
   client_secret: ${ACE_CLIENT_SECRET}
