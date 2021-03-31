@@ -303,7 +303,7 @@ if [[ -z "$tempERKey" ]]; then
   export DOCKER_REGISTRY_PASS=${DOCKER_REGISTRY_PASS:-none}
 else
   # Use the tempERKey override as an api key
-  export DOCKER_REGISTRY_USER="ekey"
+  export DOCKER_REGISTRY_USER="iamapikey"
   export DOCKER_REGISTRY_PASS=${tempERKey}
 fi
 
