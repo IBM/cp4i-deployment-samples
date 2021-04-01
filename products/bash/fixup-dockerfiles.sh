@@ -23,12 +23,12 @@
 #     ./fixup-dockerfiles.sh -n cp4i-prod
 
 function usage() {
-  echo "Usage: $0 -n <namespace> "
+  echo "Usage: $0 -n <namespace>"
 }
 
 namespace="cp4i"
 
-while getopts "n:r:pa:" opt; do
+while getopts "n:" opt; do
   case ${opt} in
   n)
     namespace="$OPTARG"
@@ -88,7 +88,6 @@ SCRIPT_DIR="$(dirname $0)"
 DOCKERFILES="$SCRIPT_DIR/../../DrivewayDentDeletion/Operators/Dockerfiles/* $SCRIPT_DIR/../../EventEnabledInsurance/ACE/*.Dockerfile $SCRIPT_DIR/../../EventEnabledInsurance/MQ/Dockerfile"
 for DOCKERFILE in $DOCKERFILES; do
   echo $DOCKERFILE
-  cat $DOCKERFILE | sed
-
-  cat $DOCKERFILE | sed "s/cp.icr.io/cp.stg.icr.io/"
+  sed -i -e "s/cp.icr.io/cp.stg.icr.io/g" $DOCKERFILE
+  rm -rf ${DOCKERFILE}-e
 done
