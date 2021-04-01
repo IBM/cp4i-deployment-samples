@@ -30,8 +30,8 @@ done
 echo "${in_file}"
 echo "${out_file}"
 
-
-git clone --branch main https://github.com/IBM/cp4i-deployment-samples.git /tmp
+mkdir /tmp/git-repo 
+git clone --branch main https://github.com/IBM/cp4i-deployment-samples.git /tmp/git-repo
 echo "PWD: $PWD"
 echo "CURRENT_DIR: $CURRENT_DIR"
 echo ls $CURRENT_DIR
@@ -39,7 +39,7 @@ echo ls $PWD
 echo ls /git-repo
 echo ls /tmp
 echo $HOME
-if ! /tmp/products/bash/setup-demos.sh -i ${in_file} -o ${out_file} ; then
+if ! /tmp/git-repo/products/bash/setup-demos.sh -i ${in_file} -o ${out_file} ; then
 echo "Failed to start setup-demos.sh"
 exit 1
 fi
