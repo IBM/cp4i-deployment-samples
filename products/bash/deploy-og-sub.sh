@@ -25,7 +25,7 @@
 #
 
 function usage() {
-  echo "Usage: $0 -n <namespace>"
+  echo "Usage: $0 -n <namespace> -d"
   exit 1
 }
 
