@@ -339,6 +339,16 @@ if [ $? -ne 0 ]; then
   MISSING_PREREQS="true"
 fi
 
+divider && echo -e "$INFO [INFO] Checking if 'ocp-pipeline' is already installed...\n"
+oc get serviceaccount pipeline
+if [ $? -ne 0 ]; then
+  echo -e "$INFO [INFO] 'ocp-pipeline currently not installed, attempting to install...\n" 1>&2
+  if ! $SCRIPT_DIR/install-ocp-pipeline.sh; then
+    echo -e "$CROSS [ERROR] 'ocp-pipeline' needs to be installed before running this script" 1>&2
+    MISSING_PREREQS="true"
+  fi
+fi
+
 if [[ "$MISSING_PREREQS" == "true" ]]; then
   divider
   exit 1
