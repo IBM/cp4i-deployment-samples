@@ -86,14 +86,11 @@ echo -e "\nINFO: LS PWD is\n $(ls $PWD)"
 # Check if the ibm-entitlement-key secret includes the staging ER
 STAGING_AUTHS=$(oc get secret --namespace ${namespace} ibm-entitlement-key -o json | ./jq -r '.data.".dockerconfigjson"' | base64 --decode | ./jq -r '.auths["cp.stg.icr.io"]')
 if [[ "$STAGING_AUTHS" == "" || "$STAGING_AUTHS" == "null" ]]; then
-  echo "Using production images for dockerfiles"
-  exit 0
-fi
-
-STAGING_AUTHS=$(oc get secret --namespace ${namespace} ibm-entitlement-key -o json | jq -r '.data.".dockerconfigjson"' | base64 --decode | jq -r '.auths["cp.stg.icr.io"]')
-if [[ "$STAGING_AUTHS" == "" || "$STAGING_AUTHS" == "null" ]]; then
-  echo "Using production images for dockerfiles"
-  exit 0
+  STAGING_AUTHS=$(oc get secret --namespace ${namespace} ibm-entitlement-key -o json | jq -r '.data.".dockerconfigjson"' | base64 --decode | jq -r '.auths["cp.stg.icr.io"]')
+  if [[ "$STAGING_AUTHS" == "" || "$STAGING_AUTHS" == "null" ]]; then
+    echo "Using production images for dockerfiles"
+    exit 0
+  fi
 fi
 
 SCRIPT_DIR="$(dirname $0)"
