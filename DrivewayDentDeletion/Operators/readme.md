@@ -23,11 +23,11 @@ The script carries out the following:
 These steps will need to be documented in the demo docs:
 - Fork/clone the repo
 - Run the script to create the dev pipeline, configured to use the forked repo. Set
-`FORKED_REPO` to the URL for your repo and change the `<NAMESPACE>` to the namespace of 1-click install in which you want the pipeline to run.
+`FORKED_REPO` to the URL for your repo,  `<NAMESPACE>` to the namespace of 1-click install in which you want the pipeline to run, BRANCH to `v2020.3.1`, or `main` for 2021.1.1.
   ```
   export NAMESPACE=<NAMESPACE>
   oc project $NAMESPACE
-  export BRANCH=main
+  export BRANCH=<BRANCH for required version of CP4I>
   export FORKED_REPO=https://github.com/IBM/cp4i-deployment-samples.git
   ./cicd-apply-dev-pipeline.sh -n $NAMESPACE -r $FORKED_REPO -b $BRANCH
   ```
@@ -37,7 +37,7 @@ These steps will need to be documented in the demo docs:
   ```
   export NAMESPACE=<NAMESPACE>
   oc project $NAMESPACE
-  export BRANCH=main
+  export BRANCH=<BRANCH for required version of CP4I>
   export FORKED_REPO=https://github.com/IBM/cp4i-deployment-samples.git
   ./cicd-apply-test-pipeline.sh -n $NAMESPACE -r $FORKED_REPO -b $BRANCH
   ```
@@ -46,7 +46,7 @@ These steps will need to be documented in the demo docs:
   ```
   export NAMESPACE=<NAMESPACE>
   oc project $NAMESPACE
-  export BRANCH=main
+  export BRANCH=<BRANCH for required version of CP4I>
   export FORKED_REPO=https://github.com/IBM/cp4i-deployment-samples.git
   ./cicd-apply-test-apic-pipeline.sh -n $NAMESPACE -r $FORKED_REPO -b $BRANCH
   ```
