@@ -344,7 +344,7 @@ oc get serviceaccount pipeline
 if [ $? -ne 0 ]; then
   echo -e "$INFO [INFO] 'ocp-pipeline' currently not installed, attempting to install...\n" 1>&2
   $SCRIPT_DIR/install-ocp-pipeline.sh
-  if [ $? -ne 0 ]; then
+  if [ $? -eq 2 ]; then
     echo -e "$CROSS [ERROR] 'ocp-pipeline' needs to be installed before running this script" 1>&2
     MISSING_PREREQS="true"
   fi
