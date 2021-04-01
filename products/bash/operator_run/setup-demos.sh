@@ -30,13 +30,12 @@ done
 echo "${in_file}"
 echo "${out_file}"
 
-
 git clone --branch main https://github.com/IBM/cp4i-deployment-samples.git /code-repo
 echo "PWD: $PWD"
 echo "CURRENT_DIR: $CURRENT_DIR"
 echo ls
-if ! $CURRENT_DIR/code-repo/products/bash/setup-demos.sh -i ${in_file} -o ${out_file} ; then
-echo "Failed to start setup-demos.sh"
-exit 1
+echo ls $CURRENT_DIR/code-repo/
+if ! $CURRENT_DIR/code-repo/products/bash/setup-demos.sh -i ${in_file} -o ${out_file}; then
+  echo "Failed to start setup-demos.sh"
+  exit 1
 fi
-
