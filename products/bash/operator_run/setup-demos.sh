@@ -42,4 +42,3 @@ if ! $PWD/git-repo/products/bash/setup-demos.sh -i ${in_file} -o ${out_file} ; t
 echo "Failed to start setup-demos.sh"
 exit 1
 fi
-
