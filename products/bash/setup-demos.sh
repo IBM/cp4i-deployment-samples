@@ -128,6 +128,7 @@ function update_conditions() {
   # add condition to condition array
   STATUS=$(echo $STATUS | jq -c '.conditions += ['"${CONDITION_TO_ADD}"']')
   $DEBUG && echo -e "\n$INFO [DEBUG] Printing the status conditions array" && echo $STATUS | jq -r '.conditions'
+  echo $STATUS >$OUTPUT_FILE
 }
 
 #----------------------------------------------------
@@ -136,6 +137,7 @@ function update_phase() {
   PHASE=${1} # Pending, Running or Failed
   $DEBUG && divider && echo -e "$INFO [DEBUG] update_phase(): phase($PHASE)" && divider
   STATUS=$(echo $STATUS | jq -c '.phase="'$PHASE'"')
+  echo $STATUS >$OUTPUT_FILE
 }
 
 #----------------------------------------------------
@@ -502,6 +504,7 @@ fi
 $DEBUG && echo -e "$INFO [DEBUG] Deleting old status, assigning new status and changing the status phase to 'Pending' as installation is starting..."
 JSON=$(echo $JSON | jq -r 'del(.status) | .status.version="'$DEMO_VERSION'" | .status.conditions=[] | .status.phase="Pending" | .status.demos=[] | .status.addons=[] | .status.products=[] | .status.namespaces=[] ')
 STATUS=$(echo $JSON | jq -r .status)
+echo $STATUS >$OUTPUT_FILE
 
 #-------------------------------------------------------------------------------------------------------------------
 # Check if the namespace and the secret exists
