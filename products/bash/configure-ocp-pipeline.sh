@@ -42,7 +42,7 @@ echo "INFO: Namespace passed: $namespace"
 
 echo "INFO: Creating secret to pull base images from Entitled Registry"
 DOCKERCONFIGJSON_ER=$(oc get secret -n ${namespace} ibm-entitlement-key -o json | jq -r '.data.".dockerconfigjson"' | base64 --decode)
-if [ -z ${DOCKERCONFIGJSON_ER} ]; then
+if [[ -z ${DOCKERCONFIGJSON_ER} ]]; then
   echo "ERROR: Failed to find ibm-entitlement-key secret in the namespace '${namespace}'" 1>&2
   exit 1
 fi

@@ -17,13 +17,6 @@
       },
       "samplesRepoBranch": "DEMO_DEPLOYMENT_BRANCH"
     },
-    "apic": {
-      "emailAddress": "PORG_ADMIN_EMAIL",
-      "mailServerHost": "MAIL_SERVER_HOST",
-      "mailServerPort": "MAIL_SERVER_PORT",
-      "mailServerUsername": "MAIL_SERVER_USERNAME",
-      "mailServerPassword": "MAIL_SERVER_PASSWORD"
-    },
     "demos": {
       "all": "DEMO_PREPARATION",
       "cognitiveCarRepair": "COGNITIVE_CAR_REPAIR_DEMO",
