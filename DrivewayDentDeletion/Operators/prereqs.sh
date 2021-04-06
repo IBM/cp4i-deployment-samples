@@ -130,35 +130,59 @@ divider
 
 for EACH_DEPLOY_TYPE in "${DEPLOY_NAMES[@]}"; do
   echo -e "$INFO [INFO] Generating user, database name and password for the postgres database in the '$NAMESPACE' namespace"
-  DB_POD=$(oc get pod -n $POSTGRES_NAMESPACE -l name=postgresql -o jsonpath='{.items[].metadata.name}')
   DB_USER=$(echo ${NAMESPACE}_${EACH_DEPLOY_TYPE}_${SUFFIX} | sed 's/-/_/g')
   DB_NAME="db_$DB_USER"
-  DB_PASS=$(
-    LC_ALL=C tr -dc 'A-Za-z0-9' </dev/urandom | head -c 32
-    echo
-  )
-  PASSWORD_ENCODED=$(echo -n $DB_PASS | base64)
+  EXISTING_PASSWORD=$(oc -n $NAMESPACE get secret postgres-credential-$SUFFIX-$EACH_DEPLOY_TYPE -ojsonpath='{.data.password}')
 
-  divider
+  if [[ $? == 0 ]]; then
+    echo "INFO: Retrieving existing password"
+    if [[ "$OSTYPE" == "linux-gnu"* ]]; then
+      echo "INFO: DB_PASS base64 decode command for linux"
+      DB_PASS=$(echo $EXISTING_PASSWORD | base64 -dw0)
+    elif [[ "$OSTYPE" == "darwin"* ]]; then
+      echo "INFO: DB_PASS base64 decode for MAC"
+      DB_PASS=$(echo $EXISTING_PASSWORD | base64 -d)
+    fi
+  else
+    DB_PASS=$(
+      LC_ALL=C tr -dc 'A-Za-z0-9' </dev/urandom | head -c 32
+      echo
+    )
 
-  echo -e "$INFO [INFO] Creating a secret for the database user '$DB_USER' in the database '$DB_NAME' with the password generated\n"
-  # everything inside 'data' must be in the base64 encoded form
-  cat <<EOF | oc apply -f -
+    PASSWORD_ENCODED=$(echo -n $DB_PASS | base64)
+    json=$(oc get configmap -n $NAMESPACE operator-info -o json 2> /dev/null)
+    if [[ $? == 0 ]]; then
+      METADATA_NAME=$(echo $json | tr '\r\n' ' ' | jq -r '.data.METADATA_NAME')
+      METADATA_UID=$(echo $json | tr '\r\n' ' ' | jq -r '.data.METADATA_UID')
+    fi
+
+    echo -e "$INFO [INFO] Creating a secret for the database user '$DB_USER' in the database '$DB_NAME' with the password generated\n"
+    # everything inside 'data' must be in the base64 encoded form
+    cat <<EOF | oc apply -f -
 apiVersion: v1
 kind: Secret
 metadata:
-  namespace: $NAMESPACE
   name: postgres-credential-${SUFFIX}-${EACH_DEPLOY_TYPE}
+  namespace: $NAMESPACE
+  $(if [[ ! -z ${METADATA_UID} && ! -z ${METADATA_NAME} ]]; then
+  echo "ownerReferences:
+    - apiVersion: integration.ibm.com/v1beta1
+      kind: Demo
+      name: ${METADATA_NAME}
+      uid: ${METADATA_UID}"
+  fi)
 type: Opaque
 stringData:
   username: $DB_USER
 data:
   password: $PASSWORD_ENCODED
 EOF
+  fi
 
   divider
 
   echo -e "$INFO [INFO] Creating '$DB_NAME' database and '$DB_USER' user in the postgres instance in the '$POSTGRES_NAMESPACE' namespace" && divider
+  echo -e "[EEI_PREREQS_DEBUG] $CURRENT_DIR/../../products/bash/configure-postgres-db.sh -n $POSTGRES_NAMESPACE -u $DB_USER -d $DB_NAME -p $DB_PASS -e $SUFFIX"
   if ! $CURRENT_DIR/../../products/bash/configure-postgres-db.sh -n "$POSTGRES_NAMESPACE" -u "$DB_USER" -d "$DB_NAME" -p "$DB_PASS" -e "$SUFFIX"; then
     echo -e "\n$CROSS [ERROR] Failed to configure postgres in the '$POSTGRES_NAMESPACE' namespace with the user '$DB_USER' and database name '$DB_NAME'\n"
     exit 1
