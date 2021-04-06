@@ -128,7 +128,6 @@ echo -e "$INFO [INFO] Installing prerequisites for the driveway dent deletion de
 
 divider
 
-echo "1"
 for EACH_DEPLOY_TYPE in "${DEPLOY_NAMES[@]}"; do
   echo -e "$INFO [INFO] Generating user, database name and password for the postgres database in the '$NAMESPACE' namespace"
   DB_USER=$(echo ${NAMESPACE}_${EACH_DEPLOY_TYPE}_${SUFFIX} | sed 's/-/_/g')
