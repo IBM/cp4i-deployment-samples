@@ -131,11 +131,6 @@ if [[ $? == 0 ]]; then
   METADATA_UID=$(echo $json | tr '\r\n' ' ' | $JQ -r '.data.METADATA_UID')
 fi
 
-RESOURCE_VERSION=$(oc get QueueManager -n ${namespace} ${release_name} -o jsonpath='{.metadata.resourceVersion}' 2>/dev/null)
-if [[ "$?" != "0" ]]; then
-  RESOURCE_VERSION=0
-fi
-
 if [ -z $image_name ]; then
   cat <<EOF | oc apply -f -
 apiVersion: mq.ibm.com/v1beta1
@@ -150,7 +145,6 @@ metadata:
       name: ${METADATA_NAME}
       uid: ${METADATA_UID}"
   fi)
-  resourceVersion: "${RESOURCE_VERSION}"
 spec:
   license:
     accept: true
@@ -256,7 +250,6 @@ metadata:
       name: ${METADATA_NAME}
       uid: ${METADATA_UID}"
   fi)
-  resourceVersion: "${RESOURCE_VERSION}"
 spec:
   license:
     accept: true

@@ -60,41 +60,41 @@ else
 fi
 
 cat <<EOF | oc apply -f -
-apiVersion: v1	
-kind: ServiceAccount	
-metadata:	
+apiVersion: v1
+kind: ServiceAccount
+metadata:
   name: $SERVICE_ACCOUNT_NAME
   namespace: $NAMESPACE
 
 ---
 
 # Role to get and patch the file-gid deployment in the app api group in the kube-system namespace
-kind: Role	
-apiVersion: rbac.authorization.k8s.io/v1	
-metadata:	
+kind: Role
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
   name: $ROLE_NAME
-  namespace: kube-system	
-rules:	
+  namespace: kube-system
+rules:
   # Permissions to get and patch the file-gid deployment in the app api group in the kube-system namespace
-  - apiGroups: ["apps"]	
-    resources: ["deployments"]	
+  - apiGroups: ["apps"]
+    resources: ["deployments"]
     verbs: ["get", "patch"]
 
 ---
 
 # Role binding to get and patch the file-gid deployment
-apiVersion: rbac.authorization.k8s.io/v1	
-kind: RoleBinding	
-metadata:	
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
   name: $ROLE_BINDING_NAME
-  namespace: kube-system	
-subjects:	
-  - kind: ServiceAccount	
+  namespace: kube-system
+subjects:
+  - kind: ServiceAccount
     name: $SERVICE_ACCOUNT_NAME
     namespace: $NAMESPACE
-roleRef:	
-  apiGroup: rbac.authorization.k8s.io	
-  kind: Role	
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
   name: $ROLE_NAME
 
 ---
@@ -112,7 +112,7 @@ spec:
         spec:
           containers:
             - name: oc
-              image: 'quay.io/openshift/origin-cli:latest'
+              image: 'quay.io/openshift/origin-cli:4.6.0'
               args:
                 - oc
                 - patch
