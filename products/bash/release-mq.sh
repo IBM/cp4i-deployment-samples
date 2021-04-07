@@ -94,10 +94,41 @@ elif [[ "$release_name" =~ "eei" ]]; then
   numberOfContainers=1
 fi
 
+# -------------------------------------- INSTALL JQ ---------------------------------------------------------------------
+
+divider
+
+echo -e "\nINFO: Checking if jq is pre-installed..."
+jqInstalled=false
+jqVersionCheck=$(jq --version)
+
+if [ $? -ne 0 ]; then
+  jqInstalled=false
+else
+  jqInstalled=true
+fi
+
+JQ=jq
+if [[ "$jqInstalled" == "false" ]]; then
+  echo "INFO: JQ is not installed, installing jq..."
+  if [[ "$OSTYPE" == "linux-gnu"* ]]; then
+    echo "INFO: Installing on linux"
+    wget -O jq https://github.com/stedolan/jq/releases/download/jq-1.6/jq-linux64
+    chmod +x ./jq
+    JQ=./jq
+  elif [[ "$OSTYPE" == "darwin"* ]]; then
+    echo "INFO: Installing on MAC"
+    /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)"
+    brew install jq
+  fi
+fi
+
+echo -e "\nINFO: Installed JQ version is $($JQ --version)"
+
 json=$(oc get configmap -n $namespace operator-info -o json 2>/dev/null)
 if [[ $? == 0 ]]; then
-  METADATA_NAME=$(echo $json | tr '\r\n' ' ' | jq -r '.data.METADATA_NAME')
-  METADATA_UID=$(echo $json | tr '\r\n' ' ' | jq -r '.data.METADATA_UID')
+  METADATA_NAME=$(echo $json | tr '\r\n' ' ' | $JQ -r '.data.METADATA_NAME')
+  METADATA_UID=$(echo $json | tr '\r\n' ' ' | $JQ -r '.data.METADATA_UID')
 fi
 
 RESOURCE_VERSION=$(oc get QueueManager -n ${namespace} ${release_name} -o jsonpath='{.metadata.resourceVersion}' 2>/dev/null)
@@ -276,35 +307,6 @@ EOF
     exit 1
   fi
 
-  # -------------------------------------- INSTALL JQ ---------------------------------------------------------------------
-
-  divider
-
-  echo -e "\nINFO: Checking if jq is pre-installed..."
-  jqInstalled=false
-  jqVersionCheck=$(jq --version)
-
-  if [ $? -ne 0 ]; then
-    jqInstalled=false
-  else
-    jqInstalled=true
-  fi
-
-  if [[ "$jqInstalled" == "false" ]]; then
-    echo "INFO: JQ is not installed, installing jq..."
-    if [[ "$OSTYPE" == "linux-gnu"* ]]; then
-      echo "INFO: Installing on linux"
-      wget -O jq https://github.com/stedolan/jq/releases/download/jq-1.6/jq-linux64
-      chmod +x ./jq
-    elif [[ "$OSTYPE" == "darwin"* ]]; then
-      echo "INFO: Installing on MAC"
-      /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)"
-      brew install jq
-    fi
-  fi
-
-  echo -e "\nINFO: Installed JQ version is $(./jq --version)"
-
   divider
 
   # -------------------------------------- CHECK FOR NEW IMAGE DEPLOYMENT STATUS ------------------------------------------
@@ -337,7 +339,7 @@ EOF
 
     for eachMQPod in $allCorrespondingPods; do
       echo -e "\nINFO: For MQ demo pod '$eachMQPod':"
-      imageInPod=$(oc get pod $eachMQPod -n $namespace -o json | ./jq -r '.spec.containers[0].image')
+      imageInPod=$(oc get pod $eachMQPod -n $namespace -o json | $JQ -r '.spec.containers[0].image')
       echo "INFO: Image present in the pod '$eachMQPod' is '$imageInPod'"
       if [[ $imageInPod == *:$imageTag ]]; then
         echo "INFO: Image tag matches.."
