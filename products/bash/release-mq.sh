@@ -119,7 +119,7 @@ metadata:
       name: ${METADATA_NAME}
       uid: ${METADATA_UID}"
   fi)
-  resourceVersion: ${RESOURCE_VERSION}
+  resourceVersion: "${RESOURCE_VERSION}"
 spec:
   license:
     accept: true
@@ -167,9 +167,16 @@ else
   fi
 
   echo "INFO: Setting up certs for MQ TLS"
-  QM_KEY=$(cat $CURRENT_DIR/mq/createcerts/server.key | base64 -w0)
-  QM_CERT=$(cat $CURRENT_DIR/mq/createcerts/server.crt | base64 -w0)
-  APP_CERT=$(cat $CURRENT_DIR/mq/createcerts/application.crt | base64 -w0)
+  if [[ "$OSTYPE" == "linux-gnu"* ]]; then
+    QM_KEY=$(base64 -w0 $CURRENT_DIR/mq/createcerts/server.key)
+    QM_CERT=$(base64 -w0 $CURRENT_DIR/mq/createcerts/server.crt)
+    APP_CERT=$(base64 -w0 $CURRENT_DIR/mq/createcerts/application.crt)
+  elif [[ "$OSTYPE" == "darwin"* ]]; then
+    QM_KEY=$(base64 $CURRENT_DIR/mq/createcerts/server.key)
+    QM_CERT=$(base64 $CURRENT_DIR/mq/createcerts/server.crt)
+    APP_CERT=$(base64 $CURRENT_DIR/mq/createcerts/application.crt)
+  fi
+
 
   cat <<EOF | oc apply -f -
 ---
@@ -218,7 +225,7 @@ metadata:
       name: ${METADATA_NAME}
       uid: ${METADATA_UID}"
   fi)
-  resourceVersion: ${RESOURCE_VERSION}
+  resourceVersion: "${RESOURCE_VERSION}"
 spec:
   license:
     accept: true
