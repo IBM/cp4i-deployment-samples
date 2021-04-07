@@ -103,7 +103,7 @@ spec:
     - name: git-source
   steps:
     - name: oc
-      image: quay.io/openshift/origin-cli:latest
+      image: quay.io/openshift/origin-cli:4.6.0
       script: "/workspace/git-source/$(params.script) $(params.params)"
 ---
 apiVersion: tekton.dev/v1beta1
@@ -135,5 +135,5 @@ spec:
     - name: git-source
   steps:
     - name: oc
-      image: quay.io/openshift/origin-cli:latest
+      image: quay.io/openshift/origin-cli:4.6.0
       script: "/workspace/git-source/products/bash/$(params.releaseScript) -n $(params.namespace) -r $(params.releaseName) -i image-registry.openshift-image-registry.svc:5000/$(params.namespace)/$(params.imageName):$(params.imageTag) {{TRACING}} $(params.acePolicyProjectParam)"

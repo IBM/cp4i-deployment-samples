@@ -110,6 +110,7 @@ echo -e "$INFO [INFO] Database user name: '$DB_USER'"
 echo -e "$INFO [INFO] Database name: '$DB_NAME'"
 echo -e "$INFO [INFO] Postgres pod name in the '$POSTGRES_NAMESPACE' namespace: '$DB_POD'"
 echo -e "$INFO [INFO] Postgres svc name: '$DB_SVC'"
+echo -e "$INFO [INFO] Demo type: '$DEMO'"
 
 divider
 

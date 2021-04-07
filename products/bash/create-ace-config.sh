@@ -183,7 +183,7 @@ cp -r $CURRENT_DIR/ace $CURRENT_DIR/mq $WORKING_DIR/
 $DEBUG && divider && echo -e "[DEBUG] Listing /tmp:\n$(ls -lAFL /tmp)"
 
 EXISTING_PASS=$(oc get secret ace-api-creds-$SUFFIX -ojsonpath='{.data.pass}' | base64 --decode)
-if [[ -z $EXISTING_SECRET ]]; then
+if [[ -z $EXISTING_PASS ]]; then
   API_PASS=$(
     LC_ALL=C tr -dc 'A-Za-z0-9' </dev/urandom | head -c 16
     echo

@@ -83,6 +83,17 @@ if [[ "$STAGING_AUTHS" == "" || "$STAGING_AUTHS" == "null" ]]; then
 else
   REPO="cp.stg.icr.io"
 fi
+
+if [[ $(oc get secret cp4i-demo-apic-smtp-secret -n "$NAMESPACE") ]]; then
+  MAIL_SERVER_HOST=$(oc get secret cp4i-demo-apic-smtp-secret -n "$NAMESPACE" -o json | jq -r '.data.mailServerHost' | base64 --decode)
+  MAIL_SERVER_PORT=$(oc get secret cp4i-demo-apic-smtp-secret -n "$NAMESPACE" -o json | jq -r '.data.mailServerPort' | base64 --decode)
+  MAIL_SERVER_USERNAME=$(oc get secret cp4i-demo-apic-smtp-secret -n "$NAMESPACE" -o json | jq -r '.data.mailServerUsername' | base64 --decode)
+  MAIL_SERVER_PASSWORD=$(oc get secret cp4i-demo-apic-smtp-secret -n "$NAMESPACE" -o json | jq -r '.data.mailServerPassword' | base64 --decode)
+  PORG_ADMIN_EMAIL=$(oc get secret cp4i-demo-apic-smtp-secret -n "$NAMESPACE" -o json | jq -r '.data.emailAddress' | base64 --decode)
+else
+  echo -e "\nThe secret 'cp4i-demo-apic-smtp-secret' does not exist in the namespace '$NAMESPACE', continuing configuring APIC with default SMTP values..."
+fi
+
 CONFIGURATOR_IMAGE=${CONFIGURATOR_IMAGE:-"${REPO}/cp/apic/ibm-apiconnect-apiconnect-master@sha256:bb1fda3a0e0c07cb2fb6540240e3e3ef4305e1b327abbce2c6169954c5945d2a"}
 MAIL_SERVER_HOST=${MAIL_SERVER_HOST:-"smtp.mailtrap.io"}
 MAIL_SERVER_PORT=${MAIL_SERVER_PORT:-"2525"}
@@ -142,11 +153,6 @@ CMC_UI_EP=$(oc get route -n $NAMESPACE ${RELEASE_NAME}-mgmt-admin -o jsonpath='{
 C_API_EP=$(oc get route -n $NAMESPACE ${RELEASE_NAME}-mgmt-consumer-api -o jsonpath='{.spec.host}')
 API_EP=$(oc get route -n $NAMESPACE ${RELEASE_NAME}-mgmt-platform-api -o jsonpath='{.spec.host}')
 PTL_WEB_EP=$(oc get route -n $NAMESPACE ${RELEASE_NAME}-ptl-portal-web -o jsonpath='{.spec.host}')
-
-echo "Ensure any previous configurator job no longer exists"
-set +e
-oc delete job -n ${NAMESPACE} ${RELEASE_NAME}-apic-configurator-post-install
-set -e
 
 # create the k8s resources
 echo "Applying manifests"
@@ -390,13 +396,10 @@ api_manager_ui: https://$APIM_UI_EP/manager
 cloud_manager_ui: https://$CMC_UI_EP/admin
 platform_api: https://$API_EP/api
 consumer_api: https://$C_API_EP/consumer-api
-
 provider_credentials (api manager):
   username: ${API_MANAGER_USER}
   password: ${API_MANAGER_PASS}
-
 portal_site_password_reset_link: $PORTAL_SITE_RESET_URL
-
 ace_registration:
   client_id: ${ACE_CLIENT_ID}
   client_secret: ${ACE_CLIENT_SECRET}
