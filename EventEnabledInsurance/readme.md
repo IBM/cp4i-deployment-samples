@@ -570,13 +570,13 @@ Prereqs:
 
 1. Delete the integration server:
     ```sh
-    oc -n $NAMESPACE get integrationserver ace-db-writer-int-srv-eei -o yaml > ~/dbwriter.yaml
+    oc get integrationserver ace-db-writer-int-srv-eei -n $NAMESPACE -o json | jq -r 'del(.metadata.resourceVersion)' > ~/dbwriter.json
     oc -n $NAMESPACE delete integrationserver ace-db-writer-int-srv-eei
     ```
     The post call will succeed but the message won't be taken off the queue and won't be processed
 2. Recreate integration server:
     ```sh
-    oc apply -f ~/dbwriter.yaml
+    oc apply -f ~/dbwriter.json
     ```
 3. Test post and get (they should work now)
 
