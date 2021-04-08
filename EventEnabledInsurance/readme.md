@@ -584,7 +584,7 @@ Prereqs:
 
 1. Delete the queue manager instance:
     ```sh
-    oc get queuemanager mq-eei -n $NAMESPACE -o json | jq -r 'del(.metadata.annotations["kubectl.kubernetes.io/last-applied-configuration"])' > ~/eei-queuemanager.json
+    oc get queuemanager mq-eei -n $NAMESPACE -o json | jq -r 'del(.metadata.resourceVersion)' > ~/eei-queuemanager.json
     oc -n $NAMESPACE delete queuemanager mq-eei
     ```
 2. Test post call and you should receive an error that contains: `Failed to make a client connection to queue manager`. The get call will still return existing data if the projection claims db has already been populated.
