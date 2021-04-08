@@ -570,13 +570,13 @@ Prereqs:
 
 1. Delete the integration server:
     ```sh
-    oc -n $NAMESPACE get integrationserver ace-db-writer-int-srv-eei -o yaml > ~/dbwriter.yaml
+    oc get integrationserver ace-db-writer-int-srv-eei -n $NAMESPACE -o json | jq -r 'del(.metadata.resourceVersion)' > ~/dbwriter.json
     oc -n $NAMESPACE delete integrationserver ace-db-writer-int-srv-eei
     ```
     The post call will succeed but the message won't be taken off the queue and won't be processed
 2. Recreate integration server:
     ```sh
-    oc apply -f ~/dbwriter.yaml
+    oc apply -f ~/dbwriter.json
     ```
 3. Test post and get (they should work now)
 
@@ -584,13 +584,13 @@ Prereqs:
 
 1. Delete the queue manager instance:
     ```sh
-    oc -n $NAMESPACE get queuemanager mq-eei -o yaml > ~/eei-queuemanager.yaml
+    oc get queuemanager mq-eei -n $NAMESPACE -o json | jq -r 'del(.metadata.resourceVersion)' > ~/eei-queuemanager.json
     oc -n $NAMESPACE delete queuemanager mq-eei
     ```
 2. Test post call and you should receive an error that contains: `Failed to make a client connection to queue manager`. The get call will still return existing data if the projection claims db has already been populated.
 3. Recreate queue manager and wait for phase to be running:
     ```sh
-    oc apply -n $NAMESPACE -f ~/eei-queuemanager.yaml
+    oc apply -n $NAMESPACE -f ~/eei-queuemanager.json
     oc get queuemanager -n $NAMESPACE mq-eei
     ```
 4. Test post and get (they should work now)
