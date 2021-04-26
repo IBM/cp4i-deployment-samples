@@ -99,6 +99,11 @@ x-ibm-configuration:
   phase: realized
   enforced: true
   testable: true
+  activity-log:
+    success-content: payload
+    error-content: header
+    enabled: true
+  buffering: true  
 securityDefinitions:
   clientID:
     type: apiKey
