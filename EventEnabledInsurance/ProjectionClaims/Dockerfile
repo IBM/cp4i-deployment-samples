@@ -1,4 +1,4 @@
-FROM docker.io/library/gradle:jdk8 AS build
+FROM docker.io/library/gradle:6-jdk8 AS build
 COPY --chown=gradle:gradle build.gradle /home/gradle/src/
 COPY --chown=gradle:gradle src /home/gradle/src/src
 WORKDIR /home/gradle/src
