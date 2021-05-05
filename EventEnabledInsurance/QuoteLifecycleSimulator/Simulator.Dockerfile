@@ -1,4 +1,4 @@
-FROM golang:alpine AS builder
+FROM docker.io/library/golang:alpine AS builder
 
 # static env variable to enable the use of go modules
 ENV GO111MODULE=on
