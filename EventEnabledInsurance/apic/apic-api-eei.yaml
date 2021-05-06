@@ -104,6 +104,11 @@ x-ibm-configuration:
   testable: true
   application-authentication:
     certificate: false
+  activity-log:
+    success-content: payload
+    error-content: header
+    enabled: true
+  buffering: true    
 securityDefinitions:
   clientID:
     type: apiKey
