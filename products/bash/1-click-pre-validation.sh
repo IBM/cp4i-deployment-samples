@@ -182,7 +182,7 @@ if [[ "${demoPreparation}" == "true" ]]; then
 fi #demoPreparation
 
 if [[ $(oc get node -o json | jq -r '.items[].metadata.labels["ibm-cloud.kubernetes.io/zone"]' | uniq | wc -l | xargs) != 1 ]]; then
-  echo -e "$cross ERROR: MZR clusters are not supported, please try again with a cluster with all nodes in a single zone"
+  echo -e "$cross ERROR: This Software Catalog installer does not support multi-zone (MZR) clusters - see https://ibm.biz/cp4i-swcat-limitations for more details, or please try again with a cluster with all nodes in a single zone"
   check=1
 else
   echo -e "$tick INFO: Cluster nodes are all in a single zone"
