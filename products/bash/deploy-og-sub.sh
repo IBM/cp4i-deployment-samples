@@ -262,34 +262,34 @@ fi
 # Create the subscription for navigator. This needs to be before APIC (ibm-apiconnect)
 # so APIC knows it's running in CP4I and before tracing (ibm-integration-operations-dashboard)
 # as tracing uses a CRD created by the navigator operator.
-echo "INFO: Applying subscription for platform navigator"
-create_subscription ${namespace} ${NAVIGATOR_CATALOG} "ibm-integration-platform-navigator" "v4.2"
-wait_for_subscription ${namespace} ${NAVIGATOR_CATALOG} "ibm-integration-platform-navigator" "v4.2"
-create_subscription ${namespace} ${ASPERA_CATALOG} "aspera-hsts-operator" "v1.2-eus"
-wait_for_subscription ${namespace} ${ASPERA_CATALOG} "aspera-hsts-operator" "v1.2-eus"
-create_subscription ${namespace} ${ACE_CATALOG} "ibm-appconnect" "v1.3"
-wait_for_subscription ${namespace} ${ACE_CATALOG} "ibm-appconnect" "v1.3"
-create_subscription ${namespace} ${ES_CATALOG} "ibm-eventstreams" "v2.3"
-wait_for_subscription ${namespace} ${ES_CATALOG} "ibm-eventstreams" "v2.3"
+# echo "INFO: Applying subscription for platform navigator"
+# create_subscription ${namespace} ${NAVIGATOR_CATALOG} "ibm-integration-platform-navigator" "v4.2"
+# wait_for_subscription ${namespace} ${NAVIGATOR_CATALOG} "ibm-integration-platform-navigator" "v4.2"
+# create_subscription ${namespace} ${ASPERA_CATALOG} "aspera-hsts-operator" "v1.2-eus"
+# wait_for_subscription ${namespace} ${ASPERA_CATALOG} "aspera-hsts-operator" "v1.2-eus"
+# create_subscription ${namespace} ${ACE_CATALOG} "ibm-appconnect" "v1.3"
+# wait_for_subscription ${namespace} ${ACE_CATALOG} "ibm-appconnect" "v1.3"
+# create_subscription ${namespace} ${ES_CATALOG} "ibm-eventstreams" "v2.3"
+# wait_for_subscription ${namespace} ${ES_CATALOG} "ibm-eventstreams" "v2.3"
 
-create_subscription ${namespace} ${MQ_CATALOG} "ibm-mq" "v1.5"
-wait_for_subscription ${namespace} ${MQ_CATALOG} "ibm-mq" "v1.5"
-create_subscription ${namespace} ${AR_CATALOG} "ibm-integration-asset-repository" "v1.2"
-wait_for_subscription ${namespace} ${AR_CATALOG} "ibm-integration-asset-repository" "v1.2"
+# create_subscription ${namespace} ${MQ_CATALOG} "ibm-mq" "v1.5"
+# wait_for_subscription ${namespace} ${MQ_CATALOG} "ibm-mq" "v1.5"
+# create_subscription ${namespace} ${AR_CATALOG} "ibm-integration-asset-repository" "v1.2"
+# wait_for_subscription ${namespace} ${AR_CATALOG} "ibm-integration-asset-repository" "v1.2"
 
-if [[ "${DEPLOY_DEMOS}" == "true" ]]; then
-  create_subscription ${namespace} ${DEMOS_CATALOG} "ibm-integration-demos-operator" "v1.0"
-  wait_for_subscription ${namespace} ${DEMOS_CATALOG} "ibm-integration-demos-operator" "v1.0"
-fi
+# if [[ "${DEPLOY_DEMOS}" == "true" ]]; then
+#   create_subscription ${namespace} ${DEMOS_CATALOG} "ibm-integration-demos-operator" "v1.0"
+#   wait_for_subscription ${namespace} ${DEMOS_CATALOG} "ibm-integration-demos-operator" "v1.0"
+# fi
 
 # echo "INFO: Wait for platform navigator before applying the APIC/Tracing subscriptions"
 # wait_for_subscription ${namespace} ${NAVIGATOR_CATALOG} "ibm-integration-platform-navigator" "v4.2"
 echo "INFO: ClusterServiceVersion for the Platform Navigator is now installed, proceeding with installation..."
 
 echo "INFO: Apply the APIC/Tracing subscriptions"
-create_subscription ${namespace} ${APIC_CATALOG} "ibm-apiconnect" "v2.2"
+create_subscription ${namespace} ibm-apiconnect-catalog "ibm-apiconnect" "v2.3"
 
-create_subscription ${namespace} ${OD_CATALOG} "ibm-integration-operations-dashboard" "v2.2"
+# create_subscription ${namespace} ${OD_CATALOG} "ibm-integration-operations-dashboard" "v2.2"
 
 echo "INFO: Wait for all subscriptions to succeed"
 wait_for_all_subscriptions ${namespace}

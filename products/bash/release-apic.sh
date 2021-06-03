@@ -106,4 +106,11 @@ spec:
   management:
     testAndMonitor:
       enabled: true
+      aiEnabled: true
+      jaegerEndpoint: >-
+        jaeger-bookshop-query-api.${namespace}.svc:16686
+    aiDataService:
+      enabled: true
+      jaegerEndpoint: >-
+        jaeger-bookshop-query-api.${namespace}.svc:16686
 EOF
