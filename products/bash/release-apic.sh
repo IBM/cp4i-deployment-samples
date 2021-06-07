@@ -99,7 +99,7 @@ spec:
   gateway:
     jaegerTracing:
       jaegerCollectorEndpoint: jaeger-bookshop-collector:14268/api/traces
-      agentImage: datapower-docker-local.artifactory.swg-devops.com/jaegertracing/jaeger-agent:latest
+      agentImage: jaegertracing/jaeger-agent:latest
       samplingType: ratelimiting
       samplingRate: "25"
     replicaCount: 1
