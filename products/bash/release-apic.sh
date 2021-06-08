@@ -98,7 +98,7 @@ spec:
   profile: ${profile}
   gateway:
     jaegerTracing:
-      jaegerCollectorEndpoint: jaeger-bookshop-collector:14268/api/traces
+      jaegerCollectorEndpoint: jaeger-bookshop-collector:14250
       agentImage: jaegertracing/jaeger-agent:latest
       samplingType: ratelimiting
       samplingRate: "25"
