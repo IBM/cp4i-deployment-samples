@@ -96,7 +96,7 @@ metadata:
   namespace: openshift-marketplace
 spec:
   displayName: ACE Operators
-  image: cp.stg.icr.io/cp/appconnect-operator-catalog@ sha256:733a509b21f16f4cf2da325f9c2dd3ca02e20cb4ba8618244311353bb53e91e8
+  image: cp.stg.icr.io/cp/appconnect-operator-catalog@sha256:733a509b21f16f4cf2da325f9c2dd3ca02e20cb4ba8618244311353bb53e91e8
   publisher: IBM
   sourceType: grpc
   updateStrategy:
