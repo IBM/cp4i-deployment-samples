@@ -64,10 +64,10 @@ metadata:
 spec:
   license:
     accept: true
-    license: L-RJON-BXUPZ2
+    license: L-RJON-BZFQU2
   mqDashboard: true
   replicas: ${replicas}
-  version: 2021.1.1
+  version: 2021.2.1
   storage:
     class: ibmc-file-gold-gid
 EOF
