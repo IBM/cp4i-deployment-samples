@@ -15,7 +15,7 @@
 # PARAMETERS:
 #   -n : <namespace> (string), Defaults to "cp4i"
 #   -d : Enables deployment of the demos operator
-#   -p : Pre-release subscriptions
+#   -p : Pre_release subscriptions
 #
 # USAGE:
 #   With defaults values
@@ -26,7 +26,7 @@
 #
 
 function usage() {
-  echo "Usage: $0 -n <namespace> -d"
+  echo "Usage: $0 -n <namespace> -d -p"
   exit 1
 }
 
@@ -34,7 +34,7 @@ namespace="cp4i"
 DEPLOY_DEMOS=false
 pre_release=false
 
-while getopts "n:d:p" opt; do
+while getopts "n:dp" opt; do
   case ${opt} in
   d)
     DEPLOY_DEMOS=true
@@ -268,7 +268,7 @@ fi
 # so APIC knows it's running in CP4I and before tracing (ibm-integration-operations-dashboard)
 # as tracing uses a CRD created by the navigator operator.
 echo "INFO: Applying subscription for platform navigator"
-if [[ "${pre_releaese}" == "true" ]]; then
+if [[ "${pre_release}" == "true" ]]; then
   create_subscription ${namespace} ${NAVIGATOR_CATALOG} "ibm-integration-platform-navigator" "v5.0"
   wait_for_subscription ${namespace} ${NAVIGATOR_CATALOG} "ibm-integration-platform-navigator" "v5.0"
   create_subscription ${namespace} ${ASPERA_CATALOG} "aspera-hsts-operator" "v1.2-eus"
