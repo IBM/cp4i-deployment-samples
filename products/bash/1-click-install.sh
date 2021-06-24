@@ -418,7 +418,7 @@ fi
 
 divider
 
-if ! $CURRENT_DIR/create-catalog-sources.sh; then
+if ! $CURRENT_DIR/create-catalog-sources.sh -p; then
   echo -e "$CROSS [ERROR] Failed to create catalog sources"
   divider
   exit 1
@@ -428,7 +428,7 @@ fi
 
 divider
 
-if ! $CURRENT_DIR/deploy-og-sub.sh -n "$DEPLOY_OPERATOR_NAMESPACE"; then
+if ! $CURRENT_DIR/deploy-og-sub.sh -n "$DEPLOY_OPERATOR_NAMESPACE" -p; then
   echo -e "$CROSS [ERROR] Failed to deploy the operator group and subscriptions"
   divider
   exit 1
