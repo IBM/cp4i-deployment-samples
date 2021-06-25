@@ -55,7 +55,7 @@ while getopts "n:r:tp" opt; do
   esac
 done
 
-profile="n1xc7.m48"
+profile="n1xc10.m48"
 license_use="nonproduction"
 source $CURRENT_DIR/license-helper.sh
 echo "[DEBUG] APIC license: $(getAPICLicense $namespace)"
