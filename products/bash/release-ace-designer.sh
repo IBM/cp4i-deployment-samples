@@ -92,5 +92,5 @@ spec:
     use: CloudPakForIntegrationNonProduction
   replicas: 1
   useCommonServices: true
-  version: 11.0.0.11-r2
+  version: 12.0
 EOF
