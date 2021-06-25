@@ -308,7 +308,7 @@ fi
 echo "INFO: ClusterServiceVersion for the Platform Navigator is now installed, proceeding with installation..."
 
 echo "INFO: Apply the APIC/Tracing subscriptions"
-if [[ "${pre_releaese}" == "true" ]]; then
+if [[ "${pre_release}" == "true" ]]; then
   create_subscription ${namespace} ${APIC_CATALOG} "ibm-apiconnect" "v2.3"
 
   create_subscription ${namespace} ${OD_CATALOG} "ibm-integration-operations-dashboard" "v2.3"
