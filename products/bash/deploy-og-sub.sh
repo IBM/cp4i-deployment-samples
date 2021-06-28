@@ -273,8 +273,8 @@ if [[ "${pre_release}" == "true" ]]; then
   wait_for_subscription ${namespace} ${NAVIGATOR_CATALOG} "ibm-integration-platform-navigator" "v5.0"
   create_subscription ${namespace} ${ASPERA_CATALOG} "aspera-hsts-operator" "v1.2-eus"
   wait_for_subscription ${namespace} ${ASPERA_CATALOG} "aspera-hsts-operator" "v1.2-eus"
-  create_subscription ${namespace} ${ACE_CATALOG} "ibm-appconnect" "v1.3"
-  wait_for_subscription ${namespace} ${ACE_CATALOG} "ibm-appconnect" "v1.3"
+  create_subscription ${namespace} ${ACE_CATALOG} "ibm-appconnect" "v1.5"
+  wait_for_subscription ${namespace} ${ACE_CATALOG} "ibm-appconnect" "v1.5"
   create_subscription ${namespace} ${ES_CATALOG} "ibm-eventstreams" "v2.3"
   wait_for_subscription ${namespace} ${ES_CATALOG} "ibm-eventstreams" "v2.3"
 
