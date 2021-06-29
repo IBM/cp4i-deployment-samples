@@ -30,15 +30,19 @@ function usage() {
 namespace="cp4i"
 release_name="epm-demo"
 production="false"
-storageClass=""
+storageClass="ibmc-file-gold-gid"
+apic_releasename="ademo"
 
-while getopts "n:r:pc:" opt; do
+while getopts "n:r:a:pc:" opt; do
   case ${opt} in
   n)
     namespace="$OPTARG"
     ;;
   r)
     release_name="$OPTARG"
+    ;;
+  a)
+    apic_releasename="$OPTARG"
     ;;
   p)
     production="true"
@@ -55,14 +59,14 @@ done
 # EventEndpointManagement needs APIC up and running
 # So we check APIC status before proceeding to install
 for i in $(seq 1 120); do
-  APIC_STATUS=$(kubectl get apiconnectcluster.apiconnect.ibm.com -n $NAMESPACE ${RELEASE_NAME} -o jsonpath='{.status.phase}')
+  APIC_STATUS=$(kubectl get apiconnectcluster.apiconnect.ibm.com -n ${namespace} ${apic_releasename} -o jsonpath='{.status.phase}')
   if [ "$APIC_STATUS" == "Ready" ]; then
     printf "$tick"
     echo "[OK] APIC is ready"
     break
   else
     echo "Waiting for APIC install to complete (Attempt $i of 120). Status: $APIC_STATUS"
-    kubectl get apic,pods,pvc -n $NAMESPACE
+    kubectl get apic,pods,pvc -n ${namespace}
     echo "Checking again in one minute..."
     sleep 60
   fi
