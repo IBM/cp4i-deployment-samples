@@ -1,0 +1,15 @@
+{
+  "name": "http-request",
+  "version": "1.0.0",
+  "description": "Prepare and send http request to another service",
+  "main": "httpRequest.js",
+  "scripts": {
+    "test": "None"
+  },
+  "author": "James Zafar",
+  "license": "ISC",
+  "dependencies": {
+    "axios": "^0.21.1",
+    "requesterror": "file:../RequestError"
+  }
+}

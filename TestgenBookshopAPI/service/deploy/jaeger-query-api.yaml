@@ -1,0 +1,26 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: jaeger-bookshop-query-api
+  namespace: '{{NAMESPACE}}'
+spec:
+  selector:
+    app: jaeger
+    app.kubernetes.io/component: query
+    app.kubernetes.io/name: jaeger-bookshop-query
+  ports:
+    - name: http-api
+      protocol: TCP
+      port: 16686
+---
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: jaeger-bookshop-api
+  namespace: '{{NAMESPACE}}'
+spec:
+  to:
+    kind: Service
+    name: jaeger-bookshop-query-api
+wildcardPolicy: None
