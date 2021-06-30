@@ -13,29 +13,15 @@ The implementation consists of a number of cooperating microservices:
 - the _customer-order-service_ manages customers and their orders
 - the _services_ service hosts support services for the bookshop
 
-Service images are stored by default in the public IBM image registry `icr.io/integration`.
-
 ## Build
 
-To build locally from your current branch and deliver results to the default location:
+You have to specify a target repository, and optionally provide an API key if needed:
 
 ```sh
-$ ./scripts/build.sh
+$ ./scripts/build.sh --repository acme.images.com/bookshop --api-key "abc123"
 ```
 
-You can specify a different target repository, either in your local image registry:
-
-```sh
-$ ./scripts/build.sh bookshop
-```
-
-or in a remote registry:
-
-```sh
-$ ./scripts/build.sh acme.images.com/bookshop
-```
-
-In the latter case you must be logged in to the registry for the push to succeed.
+You must be logged in to the registry for the push to succeed.
 
 ## Deploy
 
