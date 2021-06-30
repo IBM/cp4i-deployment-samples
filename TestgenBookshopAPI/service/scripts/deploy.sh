@@ -10,7 +10,7 @@ cd $(dirname $0)/../deploy
 script="$(basename $0)"
 
 USAGE="Usage:
-  ${script} --latest --api-key <api-key> [options]
+  ${script} [options]
   ${script} --tag <tag> [options] [repository]
 
 Common options:

@@ -5,7 +5,52 @@
 # You must already be logged in to the repository.
 # The default repository is the IBM Public Repository.
 
-repository=${1:-icr.io/integration/bookshop-api}
+cd $(dirname $0)
+script="$(basename $0)"
+repository=""
+
+USAGE="Usage:
+  ${script} --repository <repository> --api-key <api-key> [options]
+
+Common options:
+  -h, --help
+"
+
+function usage {
+  local msg="$1"
+  echo && echo "${msg}" >&2
+  echo && echo "${USAGE}" >&2
+  exit 2
+}
+
+while [[ $# > 0 ]]; do
+  case "$1" in
+  -r | --repository)
+    repository=$2
+    shift 2 || usage "Missing repository"
+    ;;
+  --api-key)
+    api_key=$2
+    shift 2 || usage "Missing API key"
+    ;;
+  -h | --help)
+    echo "${USAGE}"
+    exit 0
+    ;;
+  -*)
+    usage "Unrecognised option: $1"
+    ;;
+  esac
+done
+
+if [[ -z "${repository}" ]]; then
+  usage "--repository is required"
+fi
+
+if [[ "${repository}" == *"hyc-cip-docker-local.artifactory.swg-devops.com"* && -z "${api_key}" ]]; then
+  echo -e "\nArtifactory needs an API key to push images."
+  usage "--api-key is required"
+fi
 
 tag=$(date +"%Y-%m-%d-%H%M")
 branch=$(git branch --show-current)
@@ -50,4 +95,4 @@ if [[ ${repository} == *.* ]]; then
   done
 fi
 
-echo ${tag}
+echo "Image tag: '${tag}'"
