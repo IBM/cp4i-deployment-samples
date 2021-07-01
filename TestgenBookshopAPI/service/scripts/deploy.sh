@@ -10,11 +10,11 @@ cd $(dirname $0)/../deploy
 script="$(basename $0)"
 
 USAGE="Usage:
-  ${script} [options]
-  ${script} --tag <tag> [options] [repository]
+  ${script} [options] [repository]
 
 Common options:
   -h, --help
+  -t, --tag TAG
   -n, --namespace NAMESPACE
   --jaeger-endpoint URL
   --language LANG
@@ -61,14 +61,16 @@ while [[ $# > 0 ]]; do
   esac
 done
 
-if [[ -z "${tag}" ]]; then
-  usage "--tag is required"
-fi
-
-tag=${tag:-latest}
 echo "Using image tag ${tag}"
 
-namespace=${namespace:-cp4i-bookshop}
+echo "Checking if 'oc' CLI is installed and you are connected to a cluster"
+oc_installed_version=$(oc projects | grep default | awk '{print $1}')
+if [[ "$oc_installed_version" != "default" ]]; then
+  echo "oc is either not installed or you are not logged in to the cluster, exiting now"
+  exit 1
+fi
+
+namespace=${namespace:-$(oc project -q)}
 echo "Using namespace ${namespace}"
 
 language=${language:-fr}
