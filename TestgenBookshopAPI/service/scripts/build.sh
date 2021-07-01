@@ -3,8 +3,8 @@
 # build.sh [repository]
 # Build the Bookshop images and push them to the specified repository.
 # You must already be logged in to the repository.
+# Provide the full path to the repository where the images will be pushed
 
-cd $(dirname $0)
 script="$(basename $0)"
 repository=""
 
@@ -41,11 +41,7 @@ if [[ "${branch}" != main ]]; then
   tag="${tag}-${branch}"
 fi
 
-echo $repository
-echo $api_key
-echo $tag
-
-exit 1
+echo "Using repository $repository"
 
 # build images, retag as latest and push all to the specified repository
 
@@ -80,6 +76,9 @@ if [[ ${repository} == *.* ]]; then
   done
 fi
 
-echo "Image tag: '${tag}'"
-echo "Image tag: 'latest'"
-echo ${images}
+echo -e "\nImage tag: '${tag}'"
+echo -e "Latest image tag: 'latest'\n"
+
+for image in ${images}; do
+  echo ${image}
+done

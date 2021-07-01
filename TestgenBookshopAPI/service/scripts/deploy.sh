@@ -4,6 +4,7 @@
 # Deploy the Bookshop from the specified repository.
 # You must already be logged in to the repository.
 # The default repository is the IBM icr.io/integration repository.
+# If a custom repository is mentioned, it should be the complete path leaving out the image name
 
 cd $(dirname $0)/../deploy
 
@@ -91,8 +92,6 @@ echo "  books-service:${books_tag}"
 echo "  customer-order-service:${customers_tag}"
 echo "  bookshop-services:${services_tag}"
 echo "  gateway-service:${gateway_tag}"
-
-exit 1
 
 function deploy {
   local tag=$1
