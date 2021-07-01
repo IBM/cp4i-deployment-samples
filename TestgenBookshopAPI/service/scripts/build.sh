@@ -7,6 +7,7 @@
 
 script="$(basename $0)"
 repository=""
+usingMainBranch=false
 
 USAGE="Usage:
   ${script} <repository>
@@ -39,6 +40,8 @@ tag=$(date +"%Y-%m-%d-%H%M")
 branch=$(git branch --show-current)
 if [[ "${branch}" != main ]]; then
   tag="${tag}-${branch}"
+else
+  usingMainBranch=true
 fi
 
 echo "Using repository $repository"
@@ -46,28 +49,44 @@ echo "Using repository $repository"
 # build images, retag as latest and push all to the specified repository
 
 image=${repository}/books-service:${tag}
-latest=${repository}/books-service:latest
 docker build -t ${image} --build-arg SRC_DIR=books-microservice . || exit 1
-docker tag ${image} ${latest} || exit 1
-images="${images} ${image} ${latest}"
+if [[ "$usingMainBranch" == true ]]; then
+  latest=${repository}/books-service:latest
+  docker tag ${image} ${latest} || exit 1
+  images="${images} ${image} ${latest}"
+else
+  images="${images} ${image}"
+fi
 
 image=${repository}/customer-order-service:${tag}
-latest=${repository}/customer-order-service:latest
 docker build -t ${image} --build-arg SRC_DIR=customer-microservice . || exit 1
-docker tag ${image} ${latest} || exit 1
-images="${images} ${image} ${latest}"
+if [[ "$usingMainBranch" == true ]]; then
+  latest=${repository}/customer-order-service:latest
+  docker tag ${image} ${latest} || exit 1
+  images="${images} ${image} ${latest}"
+else
+  images="${images} ${image}"
+fi
 
 image=${repository}/bookshop-services:${tag}
-latest=${repository}/bookshop-services:latest
 docker build -t ${image} --build-arg SRC_DIR=services . || exit 1
-docker tag ${image} ${latest} || exit 1
-images="${images} ${image} ${latest}"
+if [[ "$usingMainBranch" == true ]]; then
+  latest=${repository}/bookshop-services:latest
+  docker tag ${image} ${latest} || exit 1
+  images="${images} ${image} ${latest}"
+else
+  images="${images} ${image}"
+fi
 
 image=${repository}/gateway-service:${tag}
-latest=${repository}/gateway-service:latest
 docker build -t ${image} --build-arg SRC_DIR=gateway-service . || exit 1
-docker tag ${image} ${latest} || exit 1
-images="${images} ${image} ${latest}"
+if [[ "$usingMainBranch" == true ]]; then
+  latest=${repository}/gateway-service:latest
+  docker tag ${image} ${latest} || exit 1
+  images="${images} ${image} ${latest}"
+else
+  images="${images} ${image}"
+fi
 
 # push to repository if not local
 if [[ ${repository} == *.* ]]; then
@@ -77,7 +96,7 @@ if [[ ${repository} == *.* ]]; then
 fi
 
 echo -e "\nImage tag: '${tag}'"
-echo -e "Latest image tag: 'latest'\n"
+$usingMainBranch && echo -e "Latest image tag: 'latest'"
 
 for image in ${images}; do
   echo ${image}

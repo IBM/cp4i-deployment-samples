@@ -15,10 +15,10 @@ The implementation consists of a number of cooperating microservices:
 
 ## Build
 
-You have to specify a target repository, and optionally provide an API key if needed:
+You must specify a target repository:
 
 ```sh
-$ ./scripts/build.sh --repository acme.images.com/bookshop --api-key "abc123"
+$ ./scripts/build.sh 'acme.images.com/bookshop'
 ```
 
 You must be logged in to the registry for the push to succeed.
