@@ -90,3 +90,23 @@ spec:
       class: ${couchVolume}
   version: 2021.2.1-0
 EOF
+
+echo "patching service account"
+
+oc patch serviceaccount default -n $namespace -p '{"imagePullSecrets": [{"name": "ibm-entitlement-key"}]}'
+
+time=0
+while ! oc get pod -n $namespace -l inter-pod-anti-affinity=$release_name-ibm-integration-asset-repository-nlp -o jsonpath='{.items[].metadata.name}' 2> /dev/null; do
+  if [ $time -gt 10 ]; then
+    echo -e "\n$CROSS [ERROR] Timed-out trying to wait for $release_name-ibm-integration-asset-repository-nlp pod to appear in the '$namespace' namespace"
+    divider
+    exit 1
+  fi
+  echo -e "$INFO [INFO] Waiting for upto 10 minutes for $release_name-ibm-integration-asset-repository-nlp pod in '$namespace' namespace to appear. Waited $time minute(s)"
+  time=$((time + 1))
+  sleep 60
+done
+
+AR_NLP_POD=$(oc get pod -n $namespace -l inter-pod-anti-affinity=$release_name-ibm-integration-asset-repository-nlp -o jsonpath='{.items[].metadata.name}')
+
+oc delete pod $AR_NLP_POD
