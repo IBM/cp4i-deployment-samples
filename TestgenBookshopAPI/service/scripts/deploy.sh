@@ -64,8 +64,7 @@ done
 echo "Using image tag ${tag}"
 
 echo "Checking if 'oc' CLI is installed and you are connected to a cluster"
-oc_installed_version=$(oc projects | grep default | awk '{print $1}')
-if [[ "$oc_installed_version" != "default" ]]; then
+if ! oc projects >/dev/null 2>&1; then
   echo "oc is either not installed or you are not logged in to the cluster, exiting now"
   exit 1
 fi
@@ -92,6 +91,8 @@ echo "  books-service:${books_tag}"
 echo "  customer-order-service:${customers_tag}"
 echo "  bookshop-services:${services_tag}"
 echo "  gateway-service:${gateway_tag}"
+
+exit 1
 
 function deploy {
   local tag=$1
