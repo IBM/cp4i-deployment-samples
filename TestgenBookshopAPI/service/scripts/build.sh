@@ -7,7 +7,7 @@
 
 script="$(basename $0)"
 repository=""
-usingMainBranch=false
+using_main_branch=false
 
 USAGE="Usage:
   ${script} <repository>
@@ -41,7 +41,7 @@ branch=$(git branch --show-current)
 if [[ "${branch}" != main ]]; then
   tag="${tag}-${branch}"
 else
-  usingMainBranch=true
+  using_main_branch=true
 fi
 
 echo "Using repository $repository"
@@ -50,7 +50,7 @@ echo "Using repository $repository"
 
 image=${repository}/books-service:${tag}
 docker build -t ${image} --build-arg SRC_DIR=books-microservice . || exit 1
-if [[ "$usingMainBranch" == true ]]; then
+if [[ "$using_main_branch" == true ]]; then
   latest=${repository}/books-service:latest
   docker tag ${image} ${latest} || exit 1
   images="${images} ${image} ${latest}"
@@ -60,7 +60,7 @@ fi
 
 image=${repository}/customer-order-service:${tag}
 docker build -t ${image} --build-arg SRC_DIR=customer-microservice . || exit 1
-if [[ "$usingMainBranch" == true ]]; then
+if [[ "$using_main_branch" == true ]]; then
   latest=${repository}/customer-order-service:latest
   docker tag ${image} ${latest} || exit 1
   images="${images} ${image} ${latest}"
@@ -70,7 +70,7 @@ fi
 
 image=${repository}/bookshop-services:${tag}
 docker build -t ${image} --build-arg SRC_DIR=services . || exit 1
-if [[ "$usingMainBranch" == true ]]; then
+if [[ "$using_main_branch" == true ]]; then
   latest=${repository}/bookshop-services:latest
   docker tag ${image} ${latest} || exit 1
   images="${images} ${image} ${latest}"
@@ -80,7 +80,7 @@ fi
 
 image=${repository}/gateway-service:${tag}
 docker build -t ${image} --build-arg SRC_DIR=gateway-service . || exit 1
-if [[ "$usingMainBranch" == true ]]; then
+if [[ "$using_main_branch" == true ]]; then
   latest=${repository}/gateway-service:latest
   docker tag ${image} ${latest} || exit 1
   images="${images} ${image} ${latest}"
@@ -96,7 +96,7 @@ if [[ ${repository} == *.* ]]; then
 fi
 
 echo -e "\nImage tag: '${tag}'"
-$usingMainBranch && echo -e "Latest image tag: 'latest'"
+$using_main_branch && echo -e "Latest image tag: 'latest'"
 
 for image in ${images}; do
   echo ${image}
