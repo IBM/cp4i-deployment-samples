@@ -3,17 +3,13 @@
 # build.sh [repository]
 # Build the Bookshop images and push them to the specified repository.
 # You must already be logged in to the repository.
-# The default repository is the IBM Public Repository.
 
 cd $(dirname $0)
 script="$(basename $0)"
 repository=""
 
 USAGE="Usage:
-  ${script} --repository <repository> --api-key <api-key> [options]
-
-Common options:
-  -h, --help
+  ${script} <repository>
 "
 
 function usage {
@@ -25,31 +21,18 @@ function usage {
 
 while [[ $# > 0 ]]; do
   case "$1" in
-  -r | --repository)
-    repository=$2
-    shift 2 || usage "Missing repository"
-    ;;
-  --api-key)
-    api_key=$2
-    shift 2 || usage "Missing API key"
-    ;;
-  -h | --help)
-    echo "${USAGE}"
-    exit 0
-    ;;
   -*)
     usage "Unrecognised option: $1"
+    ;;
+  *)
+    repository=$1
+    shift
     ;;
   esac
 done
 
 if [[ -z "${repository}" ]]; then
-  usage "--repository is required"
-fi
-
-if [[ "${repository}" == *"hyc-cip-docker-local.artifactory.swg-devops.com"* && -z "${api_key}" ]]; then
-  echo -e "\nArtifactory needs an API key to push images."
-  usage "--api-key is required"
+  usage "repository is required"
 fi
 
 tag=$(date +"%Y-%m-%d-%H%M")
@@ -58,35 +41,37 @@ if [[ "${branch}" != main ]]; then
   tag="${tag}-${branch}"
 fi
 
+echo $repository
+echo $api_key
+echo $tag
+
+exit 1
+
 # build images, retag as latest and push all to the specified repository
 
 image=${repository}/books-service:${tag}
-images="${image}"
+latest=${repository}/books-service:latest
 docker build -t ${image} --build-arg SRC_DIR=books-microservice . || exit 1
-docker tag ${repository}/books-service:${tag} ${repository}/books-service:latest || exit 1
-image=${repository}/books-service:latest
-images="${images} ${image}"
+docker tag ${image} ${latest} || exit 1
+images="${images} ${image} ${latest}"
 
 image=${repository}/customer-order-service:${tag}
-images="${images} ${image}"
+latest=${repository}/customer-order-service:latest
 docker build -t ${image} --build-arg SRC_DIR=customer-microservice . || exit 1
-docker tag ${repository}/customer-order-service:${tag} ${repository}/customer-order-service:latest || exit 1
-image=${repository}/customer-order-service:latest
-images="${images} ${image}"
+docker tag ${image} ${latest} || exit 1
+images="${images} ${image} ${latest}"
 
 image=${repository}/bookshop-services:${tag}
-images="${images} ${image}"
+latest=${repository}/bookshop-services:latest
 docker build -t ${image} --build-arg SRC_DIR=services . || exit 1
-docker tag ${repository}/bookshop-services:${tag} ${repository}/bookshop-services:latest || exit 1
-image=${repository}/bookshop-services:latest
-images="${images} ${image}"
+docker tag ${image} ${latest} || exit 1
+images="${images} ${image} ${latest}"
 
 image=${repository}/gateway-service:${tag}
-images="${images} ${image}"
+latest=${repository}/gateway-service:latest
 docker build -t ${image} --build-arg SRC_DIR=gateway-service . || exit 1
-docker tag ${repository}/gateway-service:${tag} ${repository}/gateway-service:latest || exit 1
-image=${repository}/gateway-service:latest
-images="${images} ${image}"
+docker tag ${image} ${latest} || exit 1
+images="${images} ${image} ${latest}"
 
 # push to repository if not local
 if [[ ${repository} == *.* ]]; then
@@ -96,3 +81,5 @@ if [[ ${repository} == *.* ]]; then
 fi
 
 echo "Image tag: '${tag}'"
+echo "Image tag: 'latest'"
+echo ${images}
