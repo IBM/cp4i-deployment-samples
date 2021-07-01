@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: bookshop-services
+  namespace: '{{NAMESPACE}}'
+spec:
+  selector:
+    app: bookshop-services
+  ports:
+    - name: http
+      protocol: TCP
+      port: 5000

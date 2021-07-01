@@ -1,0 +1,10 @@
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: bookshop-gateway
+  namespace: '{{NAMESPACE}}'
+spec:
+  to:
+    kind: Service
+    name: bookshop-gateway-service
+wildcardPolicy: None

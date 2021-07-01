@@ -1,0 +1,44 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+    name: '{{LANGUAGE}}books-v1'
+    namespace: '{{NAMESPACE}}'
+    labels:
+        app: '{{LANGUAGE}}books-microservice'
+        version: v1
+spec:
+    replicas: 1
+    selector:
+        matchLabels:
+            app: '{{LANGUAGE}}books-microservice'
+            version: v1
+    template:
+        metadata:
+            labels:
+                app: '{{LANGUAGE}}books-microservice'
+                version: v1
+            annotations:
+                sidecar.istio.io/inject: 'true'
+        spec:
+            containers:
+            - name: '{{LANGUAGE}}books-microservice'
+              image: '{{REPOSITORY}}/books-service:{{TAG}}'
+              ports:
+              - containerPort: 5000
+              env:
+              - name: JAEGER_SERVICE_NAME
+                value: '{{LANGUAGE}}books-service'
+              - name: JAEGER_ENDPOINT
+                value: '{{JAEGER_ENDPOINT}}'
+              - name: OTEL_EXPORTER_JAEGER_ENDPOINT
+                value: '{{JAEGER_ENDPOINT}}'
+              - name: JAEGER_SAMPLER_TYPE
+                value: const
+              - name: JAEGER_SAMPLER_PARAM
+                value: '1'
+              - name: LANGUAGE
+                value: '{{LANGUAGES}}'
+              - name: ALL_LANGUAGES
+                value: '{{ALL_LANGUAGE}}'
+            imagePullSecrets:
+            - name: "artifactory-key"

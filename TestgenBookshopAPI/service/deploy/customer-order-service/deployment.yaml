@@ -1,0 +1,40 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+    name: customers-v1
+    namespace: '{{NAMESPACE}}'
+    labels:
+        app: customer-order-microservice
+        version: v1
+spec:
+    replicas: 1
+    selector:
+        matchLabels:
+            app: customer-order-microservice
+            version: v1
+    template:
+        metadata:
+            labels:
+                app: customer-order-microservice
+                version: v1
+            annotations:
+                sidecar.istio.io/inject: 'true'
+        spec:
+            containers:
+            - name: customer-order-microservice
+              image: '{{REPOSITORY}}/customer-order-service:{{TAG}}'
+              ports:
+              - containerPort: 5000
+              env:
+              - name: JAEGER_SERVICE_NAME
+                value: customer-order-service
+              - name: JAEGER_ENDPOINT
+                value: '{{JAEGER_ENDPOINT}}'
+              - name: OTEL_EXPORTER_JAEGER_ENDPOINT
+                value: '{{JAEGER_ENDPOINT}}'
+              - name: JAEGER_SAMPLER_TYPE
+                value: const
+              - name: JAEGER_SAMPLER_PARAM
+                value: '1'
+            imagePullSecrets:
+            - name: "artifactory-key"

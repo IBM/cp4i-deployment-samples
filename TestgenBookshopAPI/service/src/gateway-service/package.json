@@ -1,0 +1,21 @@
+{
+  "name": "gateway-service",
+  "version": "1.0.0",
+  "description": "",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "license": "IBM",
+  "dependencies": {
+    "@opentelemetry/core": "^0.20.0",
+    "@opentelemetry/exporter-jaeger": "^0.20.0",
+    "@opentelemetry/instrumentation-grpc": "^0.20.0",
+    "@opentelemetry/instrumentation-http": "^0.20.0",
+    "@opentelemetry/node": "^0.20.0",
+    "@opentelemetry/propagator-jaeger": "^0.20.0",
+    "@opentelemetry/tracing": "^0.20.0",
+    "express": "^4.17.1",
+    "express-http-proxy": "^1.6.2"
+  }
+}

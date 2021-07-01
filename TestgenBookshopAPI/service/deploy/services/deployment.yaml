@@ -1,0 +1,42 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: services-v1
+  namespace: '{{NAMESPACE}}'
+  labels:
+    app: bookshop-services
+    version: v1
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: bookshop-services
+      version: v1
+  template:
+    metadata:
+      labels:
+        app: bookshop-services
+        version: v1
+      annotations:
+        sidecar.istio.io/inject: 'true'
+    spec:
+      containers:
+      - name: bookshop-services
+        image: '{{REPOSITORY}}/bookshop-services:{{TAG}}'
+        ports:
+        - containerPort: 5000
+        env:
+        - name: JAEGER_SERVICE_NAME
+          value: bookshop-services
+        - name: JAEGER_ENDPOINT
+          value: '{{JAEGER_ENDPOINT}}'
+        - name: OTEL_EXPORTER_JAEGER_ENDPOINT
+          value: '{{JAEGER_ENDPOINT}}'
+        - name: JAEGER_SAMPLER_TYPE
+          value: const
+        - name: JAEGER_SAMPLER_PARAM
+          value: '1'
+        - name: USAGE_SERVICE_URL
+          value: http://bookshop-services:5000/services/usage
+      imagePullSecrets:
+      - name: "artifactory-key"

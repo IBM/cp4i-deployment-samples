@@ -44,3 +44,10 @@ icp4i-od-cacert.pem
 # setup demo temp files
 demos-backup.json
 demos.json-e
+
+# testgen bookshop api
+.history/
+.vscode/
+node_modules/
+__pycache__/
+*.pyc
