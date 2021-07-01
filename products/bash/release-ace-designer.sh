@@ -86,6 +86,8 @@ spec:
   designerFlowsOperationMode: local
   designerMappingAssist:
     enabled: true
+    incrementalLearning:
+      useIncrementalLearning: true
   license:
     accept: true
     license: $(getACELicense $namespace)

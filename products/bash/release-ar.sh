@@ -77,6 +77,8 @@ metadata:
       uid: ${METADATA_UID}"
   fi)
 spec:
+  designerAIFeatures:
+    enabled: true
   license:
     accept: true
     license: $(getARLicense $namespace)
