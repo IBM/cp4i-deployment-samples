@@ -277,25 +277,23 @@ if [[ "${pre_release}" == "true" ]]; then
   wait_for_subscription ${namespace} ${ACE_CATALOG} "ibm-appconnect" "v1.5"
   create_subscription ${namespace} ${ES_CATALOG} "ibm-eventstreams" "v2.3"
   wait_for_subscription ${namespace} ${ES_CATALOG} "ibm-eventstreams" "v2.3"
-
   create_subscription ${namespace} ${MQ_CATALOG} "ibm-mq" "v1.5"
   wait_for_subscription ${namespace} ${MQ_CATALOG} "ibm-mq" "v1.5"
   create_subscription ${namespace} ${AR_CATALOG} "ibm-integration-asset-repository" "v1.3"
   wait_for_subscription ${namespace} ${AR_CATALOG} "ibm-integration-asset-repository" "v1.3"
 else
-  create_subscription ${namespace} ${NAVIGATOR_CATALOG} "ibm-integration-platform-navigator" "v4.2"
-  wait_for_subscription ${namespace} ${NAVIGATOR_CATALOG} "ibm-integration-platform-navigator" "v4.2"
+  create_subscription ${namespace} ${NAVIGATOR_CATALOG} "ibm-integration-platform-navigator" "v5.0"
+  wait_for_subscription ${namespace} ${NAVIGATOR_CATALOG} "ibm-integration-platform-navigator" "v5.0"
   create_subscription ${namespace} ${ASPERA_CATALOG} "aspera-hsts-operator" "v1.2-eus"
   wait_for_subscription ${namespace} ${ASPERA_CATALOG} "aspera-hsts-operator" "v1.2-eus"
-  create_subscription ${namespace} ${ACE_CATALOG} "ibm-appconnect" "v1.3"
-  wait_for_subscription ${namespace} ${ACE_CATALOG} "ibm-appconnect" "v1.3"
+  create_subscription ${namespace} ${ACE_CATALOG} "ibm-appconnect" "v1.5"
+  wait_for_subscription ${namespace} ${ACE_CATALOG} "ibm-appconnect" "v1.5"
   create_subscription ${namespace} ${ES_CATALOG} "ibm-eventstreams" "v2.3"
   wait_for_subscription ${namespace} ${ES_CATALOG} "ibm-eventstreams" "v2.3"
-
   create_subscription ${namespace} ${MQ_CATALOG} "ibm-mq" "v1.5"
   wait_for_subscription ${namespace} ${MQ_CATALOG} "ibm-mq" "v1.5"
-  create_subscription ${namespace} ${AR_CATALOG} "ibm-integration-asset-repository" "v1.2"
-  wait_for_subscription ${namespace} ${AR_CATALOG} "ibm-integration-asset-repository" "v1.2"
+  create_subscription ${namespace} ${AR_CATALOG} "ibm-integration-asset-repository" "v1.3"
+  wait_for_subscription ${namespace} ${AR_CATALOG} "ibm-integration-asset-repository" "v1.3"
 fi
 
 if [[ "${DEPLOY_DEMOS}" == "true" ]]; then
@@ -310,12 +308,10 @@ echo "INFO: ClusterServiceVersion for the Platform Navigator is now installed, p
 echo "INFO: Apply the APIC/Tracing subscriptions"
 if [[ "${pre_release}" == "true" ]]; then
   create_subscription ${namespace} ${APIC_CATALOG} "ibm-apiconnect" "v2.3"
-
   create_subscription ${namespace} ${OD_CATALOG} "ibm-integration-operations-dashboard" "v2.3"
 else
-  create_subscription ${namespace} ${APIC_CATALOG} "ibm-apiconnect" "v2.2"
-
-  create_subscription ${namespace} ${OD_CATALOG} "ibm-integration-operations-dashboard" "v2.2"
+  create_subscription ${namespace} ${APIC_CATALOG} "ibm-apiconnect" "v2.3"
+  create_subscription ${namespace} ${OD_CATALOG} "ibm-integration-operations-dashboard" "v2.3"
 fi
 
 echo "INFO: Wait for all subscriptions to succeed"
