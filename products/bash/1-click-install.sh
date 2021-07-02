@@ -428,7 +428,7 @@ fi
 
 divider
 
-if ! $CURRENT_DIR/deploy-og-sub.sh -n "$DEPLOY_OPERATOR_NAMESPACE" -p; then
+if ! $CURRENT_DIR/deploy-og-sub.sh -n "$DEPLOY_OPERATOR_NAMESPACE"; then
   echo -e "$CROSS [ERROR] Failed to deploy the operator group and subscriptions"
   divider
   exit 1
