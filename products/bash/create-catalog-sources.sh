@@ -243,28 +243,9 @@ spec:
       interval: 45m
 ---
 EOF
-
-
 else
   echo -e "$INFO [INFO] Using the release catalog sources"
   cat <<EOF | oc apply -f -
----
-apiVersion: operators.coreos.com/v1alpha1
-kind: CatalogSource
-metadata:
-  name: opencloud-operators
-  namespace: openshift-marketplace
-spec:
-  displayName: IBMCS Operators
-  publisher: IBM
-  sourceType: grpc
-  image: docker.io/ibmcom/ibm-common-service-catalog:latest
-  updateStrategy:
-    registryPoll:
-      interval: 45m
-
----
-
 apiVersion: operators.coreos.com/v1alpha1
 kind: CatalogSource
 metadata:
@@ -274,7 +255,7 @@ spec:
   displayName: ibm-operator-catalog
   publisher: IBM Content
   sourceType: grpc
-  image: docker.io/ibmcom/ibm-operator-catalog
+  image: icr.io/cpopen/ibm-operator-catalog:latest
   updateStrategy:
     registryPoll:
       interval: 45m
