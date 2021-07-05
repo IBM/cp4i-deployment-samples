@@ -37,8 +37,8 @@ const handlePostBook = async ({rawRequest, authHeader, contentType, requestUrl})
             }
             return ({
                 code: 201,
-                bookLocation: (requestUrl + response.data.book.book_id),
-                book: response.data.book
+                bookLocation: (requestUrl + response.data.book_id),
+                book: response.data
             });
         }
     }

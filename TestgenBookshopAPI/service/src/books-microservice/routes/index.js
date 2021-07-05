@@ -8,7 +8,7 @@ const handleDeleteBook = require('../handleRequests/Books/handleDelete');
 
 router.get('/books/:book_id', async (req, res) => {
     const response = await handleGetBook({
-        'bookID': req.params.book_id, 
+        'bookID': req.params.book_id,
         'authHeader': req.get('Authorization'),
         'request': req
     });
@@ -25,20 +25,18 @@ router.get('/books/:book_id', async (req, res) => {
             }
         });
     } else {
-        res.status(response.code).json({
-            book: response.book
-        })
+        res.status(response.code).json(response.book)
     }
 });
 
 router.put('/books/:book_id', async (req, res) => {
     const response = await handlePutBook({
         'rawRequest': req,
-        'bookID': req.params.book_id, 
+        'bookID': req.params.book_id,
         'authHeader': req.get('Authorization'),
         'contentType': req.get('Content-Type'),
     });
-    
+
     const authFailed = response.code === 401 ? {"WWW-Authenticate": 'Access to this resource requires authentication'} : undefined
 
     if(response instanceof Error) {
@@ -51,16 +49,14 @@ router.put('/books/:book_id', async (req, res) => {
             }
         });
     } else {
-        res.status(response.code).json({
-            book: response.book
-        })
-    } 
+        res.status(response.code).json(response.book)
+    }
 });
 
 router.post('/books', async (req, res) => {
     const url = req.protocol + "://" + req.get("host") + req.originalUrl + "/";
     const request = {
-        'rawRequest': req, 
+        'rawRequest': req,
         'authHeader': req.get('Authorization'),
         'contentType': req.get('Content-Type'),
         'returnUrl': url
@@ -79,19 +75,17 @@ router.post('/books', async (req, res) => {
     } else {
         res.status(response.code)
             .set("Location", response.bookLocation)
-            .json({
-                book: response.book
-            })
+            .json(response.book)
     }
 });
 
 router.delete('/books/:book_id', async (req, res) => {
     const response = await handleDeleteBook({
-        'bookID': req.params.book_id, 
+        'bookID': req.params.book_id,
         'authHeader': req.get('Authorization'),
         'request': req
     });
-    
+
     const authFailed = response.code === 401 ? {"WWW-Authenticate": 'Access to this resource requires authentication'} : undefined
 
     if(response instanceof Error) {
@@ -104,7 +98,7 @@ router.delete('/books/:book_id', async (req, res) => {
             }
         });
     } else {
-        res.status(response.code).json({});
+        res.status(response.code).end();
     }
 });
 
