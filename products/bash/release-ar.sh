@@ -77,6 +77,8 @@ metadata:
       uid: ${METADATA_UID}"
   fi)
 spec:
+  designerAIFeatures:
+    enabled: true
   license:
     accept: true
     license: $(getARLicense $namespace)
@@ -86,5 +88,5 @@ spec:
       class: ${assetDataVolume}
     couchVolume:
       class: ${couchVolume}
-  version: 2021.1.1-0
+  version: 2021.2.1-0
 EOF
