@@ -684,7 +684,7 @@ for EACH_PRODUCT in $(echo "${REQUIRED_PRODUCTS_JSON}" | jq -r '. | keys[]'); do
 
   aceDesigner)
     echo -e "$INFO [INFO] Releasing ACE Designer $ECHO_LINE '$ACE_DESIGNER_RELEASE_NAME'...\n"
-    if ! $SCRIPT_DIR/release-ace-designer.sh -n "$NAMESPACE" -r "$ACE_DESIGNER_RELEASE_NAME" -s "$BLOCK_STORAGE_CLASS"; then
+    if ! $SCRIPT_DIR/release-ace-designer.sh -n "$NAMESPACE" -r "$ACE_DESIGNER_RELEASE_NAME" -s "$BLOCK_STORAGE_CLASS" -f "$FILE_STORAGE_CLASS"; then
       update_conditions "Failed to release ACE Designer $ECHO_LINE '$ACE_DESIGNER_RELEASE_NAME'" "Releasing"
       update_phase "Failed"
       FAILED_INSTALL_PRODUCTS_LIST+=($EACH_PRODUCT)

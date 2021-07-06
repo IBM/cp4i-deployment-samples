@@ -54,7 +54,7 @@ metadata:
   namespace: openshift-marketplace
 spec:
   displayName: IBMCS Operators
-  image: hyc-cloud-private-daily-docker-local.artifactory.swg-devops.com/ibmcom/ibm-common-service-catalog:20210316-1951
+  image: quay.io/opencloudio/ibm-common-service-catalog:3.7.4
   publisher: IBM
   sourceType: grpc
   updateStrategy:
@@ -68,7 +68,7 @@ metadata:
   namespace: openshift-marketplace
 spec:
   displayName: IBMABP Operators
-  image: docker.io/ibmcom/ibm-automation-foundation-core-catalog@sha256:e34c8b699d0481848974904ac2014fb029bd2c08b38fe902ba615dbe4354a3e1
+  image: docker.io/ibmcom/ibm-automation-foundation-core-catalog:1.0.2
   publisher: IBM
   sourceType: grpc
   updateStrategy:
@@ -82,7 +82,7 @@ metadata:
   namespace: openshift-marketplace
 spec:
   displayName: PN Operators
-  image: cp.stg.icr.io/cp/ibm-integration-platform-navigator-catalog:latest
+  image: cp.stg.icr.io/cp/ibm-integration-platform-navigator-catalog@sha256:83afb3c22f2a8d03b67eb43ffe40c5fd0b1c814494d66ffc5b903cdbcdb1d71d
   publisher: IBM
   sourceType: grpc
   updateStrategy:
@@ -96,7 +96,7 @@ metadata:
   namespace: openshift-marketplace
 spec:
   displayName: ACE Operators
-  image: docker.io/ibmcom/appconnect-operator-catalog:1.3.0-20210322-152242@sha256:82b429c3bbe14cb8b1919f0dfa82557cbf2223c51f2e83327ce87336817f99cf
+  image: cp.stg.icr.io/cp/appconnect-operator-catalog@sha256:733a509b21f16f4cf2da325f9c2dd3ca02e20cb4ba8618244311353bb53e91e8
   publisher: IBM
   sourceType: grpc
   updateStrategy:
@@ -110,7 +110,7 @@ metadata:
  namespace: openshift-marketplace
 spec:
  displayName: MQ Operators
- image: docker.io/ibmcom/ibm-mq-operator-catalog@sha256:f0404c2a1c543274c940c55a2f86f22c29ee6431a7e9a81a3cc00249d60ba005
+ image: cp.stg.icr.io/cp/ibm-mq-operator-catalog@sha256:f0404c2a1c543274c940c55a2f86f22c29ee6431a7e9a81a3cc00249d60ba005
  publisher: IBM
  sourceType: grpc
  updateStrategy:
@@ -124,7 +124,7 @@ metadata:
   namespace: openshift-marketplace
 spec:
   displayName: ES Operators
-  image: cp.stg.icr.io/cp/ibm-eventstreams-catalog:2021-03-17-13.19.19-5849e9a
+  image: cp.stg.icr.io/cp/ibm-eventstreams-catalog@sha256:9eb1bf45628b58e8a68c6cb04e63a4381e136b6aae755cbf06a4ef4edddb1f60
   publisher: IBM
   sourceType: grpc
   updateStrategy:
@@ -138,9 +138,21 @@ metadata:
   namespace: openshift-marketplace
 spec:
   displayName: APIC Operators
-  image: ibmcom/ibm-apiconnect-catalog@sha256:f88e6027145b70e382c6c66e1aab6405e0ac98cb1313c7b11edea71308d1f2f2
+  image: ibmcom/ibm-apiconnect-catalog@sha256:fbf789f0fb4882a95544979dad9c55752892dc42ae084af0548f6f7a52d03cf3
   publisher: IBM
   sourceType: grpc
+  updateStrategy:
+    registryPoll:
+      interval: 45m
+---
+apiVersion: operators.coreos.com/v1alpha1
+kind: CatalogSource
+metadata:
+  name: ibm-ai-wmltraining-catalog
+  namespace: openshift-marketplace
+spec:
+  sourceType: grpc
+  image: icr.io/cpopen/ibm-ai-wmltraining-operator-catalog@sha256:8461ee40e9188d12264d8fc108591122ae5546c73469f16dfc7a3bf07c52e322
   updateStrategy:
     registryPoll:
       interval: 45m
@@ -152,7 +164,7 @@ metadata:
   namespace: openshift-marketplace
 spec:
   displayName: DP Operators
-  image: cp.stg.icr.io/cp/datapower-operator-catalog@sha256:119157f3d0839674b9bb58ac1462b0963964e8b16f4ed4d5e2e91d199b28723d
+  image: cp.stg.icr.io/cp/datapower-operator-catalog@sha256:a4ef16148b1500c97e058e3ae0f16d6729a3118b264dc3e0d2812f3603028cba
   publisher: IBM
   sourceType: grpc
   updateStrategy:
@@ -180,7 +192,7 @@ metadata:
   namespace: openshift-marketplace
 spec:
   displayName: Aspera Operators
-  image: docker.io/ibmcom/aspera-hsts-catalog@sha256:3ada193cc000c49cb15c5f31d6ce775cd1dfa1b5e5094794b119fe2721856da5
+  image: cp.stg.icr.io/cp/icp4i/aspera/aspera-hsts-catalog@sha256:bd532c3a076412af26a1c050bd1403ee9d6fe55c81a4561c96f7d2e51e2e08c5
   publisher: IBM
   sourceType: grpc
   updateStrategy:
@@ -194,7 +206,7 @@ metadata:
   namespace: openshift-marketplace
 spec:
   displayName: AR Operators
-  image: docker.io/ibmcom/ibm-integration-asset-repository-catalog@sha256:2be42bf3651b4c6d2e3bb967437b6ce34144fa403155e4a614ca3e3c635173f2
+  image: cp.stg.icr.io/cp/ibm-integration-asset-repository-catalog@sha256:5048ac2bb95913bb47dc71b50beb619509447501ac5a92a6131a30d3c9b2e46a
   publisher: IBM
   sourceType: grpc
   updateStrategy:
@@ -208,7 +220,7 @@ metadata:
   namespace: openshift-marketplace
 spec:
   displayName: OD Operators
-  image: cp.stg.icr.io/cp/ibm-integration-operations-dashboard-catalog:2.2.0-2021-03-23-0936-30146a77@sha256:b9fdaf04a602668afc2aab2964bade733fd35e804834ca7bc1a380a25df749da
+  image: cp.stg.icr.io/cp/ibm-integration-operations-dashboard-catalog@sha256:2df3723d4ad18f32853f7212e36274e2938a46347917fd3d4e759158f010a4d3
   publisher: IBM
   sourceType: grpc
   updateStrategy:
@@ -231,28 +243,9 @@ spec:
       interval: 45m
 ---
 EOF
-
-
 else
   echo -e "$INFO [INFO] Using the release catalog sources"
   cat <<EOF | oc apply -f -
----
-apiVersion: operators.coreos.com/v1alpha1
-kind: CatalogSource
-metadata:
-  name: opencloud-operators
-  namespace: openshift-marketplace
-spec:
-  displayName: IBMCS Operators
-  publisher: IBM
-  sourceType: grpc
-  image: docker.io/ibmcom/ibm-common-service-catalog:latest
-  updateStrategy:
-    registryPoll:
-      interval: 45m
-
----
-
 apiVersion: operators.coreos.com/v1alpha1
 kind: CatalogSource
 metadata:
@@ -262,7 +255,7 @@ spec:
   displayName: ibm-operator-catalog
   publisher: IBM Content
   sourceType: grpc
-  image: docker.io/ibmcom/ibm-operator-catalog
+  image: icr.io/cpopen/ibm-operator-catalog:latest
   updateStrategy:
     registryPoll:
       interval: 45m

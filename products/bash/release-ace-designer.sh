@@ -26,13 +26,14 @@
 designer_release_name="ace-designer-demo"
 namespace="cp4i"
 storage="ibmc-block-gold"
+file_storage="ibmc-file-gold-gid"
 CURRENT_DIR=$(dirname $0)
 
 function usage() {
   echo "Usage: $0 -n <namespace> -r <designer_release_name>"
 }
 
-while getopts "n:r:s:" opt; do
+while getopts "n:r:s:f:" opt; do
   case ${opt} in
   n)
     namespace="$OPTARG"
@@ -42,6 +43,9 @@ while getopts "n:r:s:" opt; do
     ;;
   s)
     storage="$OPTARG"
+    ;;
+  f)
+    file_storage="$OPTARG"
     ;;
   \?)
     usage
@@ -86,11 +90,15 @@ spec:
   designerFlowsOperationMode: local
   designerMappingAssist:
     enabled: true
+    incrementalLearning:
+      useIncrementalLearning: true
+      storage:
+        class: ${file_storage}
   license:
     accept: true
     license: $(getACELicense $namespace)
     use: CloudPakForIntegrationNonProduction
   replicas: 1
   useCommonServices: true
-  version: 11.0.0.11-r2
+  version: '12.0.1.0-r1'
 EOF

@@ -179,20 +179,7 @@ fi
 printf "$tick "
 echo "Git Remote repository contacted."
 
-## Create a catalog
-echo "- Creating catalog within asset repository"
-create_response=$(curl --insecure -s https://$ar_path/api/catalogs -w %{http_code} -X POST -d "$modified_remote" -o /tmp/ar_create_tmp/catalog_create.json -H "Content-Type: application/json" -H "Authorization: Bearer $token")
-if [[ ! $create_response =~ 200 ]]; then
-  printf "$cross "
-  echo "Response code: $create_response"
-  cat /tmp/ar_create_tmp/catalog_create.json
-  exit 1
-fi
-catalogId=$(jq '.id' /tmp/ar_create_tmp/catalog_create.json -r)
-# sleeping here because of eventual consistency bug with catalog creation
-sleep 5
-printf "$tick "
-echo "Catalog created with id: $catalogId"
+catalogId="catalog"
 
 ## Fetch remote config for a catalog
 echo "- Fetching remote config for catalog"

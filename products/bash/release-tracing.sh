@@ -111,7 +111,7 @@ spec:
     tracingVolume:
       class: "${block_storage}"
       size: 150Gi
-  version: 2020.4.1-0-eus
+  version: 2021.2.1-0
 EOF
 else
   cat <<EOF | oc apply -f -
@@ -142,7 +142,7 @@ spec:
       class: "${file_storage}"
     tracingVolume:
       class: "${block_storage}"
-  version: 2021.1.1-0
+  version: 2021.2.1-0
 EOF
 fi
 
