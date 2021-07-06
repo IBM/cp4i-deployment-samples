@@ -13,7 +13,7 @@ const handleDeleteOrder = require('../handleRequests/Orders/handleDeleteOrder');
 
 router.get('/customers/:customerID', (req, res) => {
     const response = handleGetCustomer({
-        'customer_id': req.params.customerID, 
+        'customer_id': req.params.customerID,
         'authHeader': req.get('Authorization')
     });
 
@@ -29,16 +29,14 @@ router.get('/customers/:customerID', (req, res) => {
             }
         });
     } else {
-        res.status(response.code).json({
-            customer: response.customer
-        })
+        res.status(response.code).json(response.customer)
     }
 });
 
 router.post('/customers', (req, res) => {
     const url = req.protocol + "://" + req.get("host") + req.originalUrl + "/";
     const response = handlePostCustomer({
-        'requestBody': req.body, 
+        'requestBody': req.body,
         'authHeader': req.get('Authorization'),
         'contentType': req.get('Content-Type'),
         'returnURL': url
@@ -58,18 +56,16 @@ router.post('/customers', (req, res) => {
     } else {
         res.status(response.code)
             .set("Location", response.customerLoc)
-            .json({
-                customer: response.customer
-            })
+            .json(response.customer)
     }
 });
 
 router.delete('/customers/:customer_id', (req, res) => {
     const response = handleDeleteCustomer({
-        'customerID': req.params.customer_id, 
+        'customerID': req.params.customer_id,
         'authHeader': req.get('Authorization')
     });
-    
+
     const authFailed = response.code === 401 ? {"WWW-Authenticate": 'Access to this resource requires authentication'} : undefined
 
     if(response instanceof Error) {
@@ -82,18 +78,18 @@ router.delete('/customers/:customer_id', (req, res) => {
             }
         });
     } else {
-        res.status(response.code).json({});
+        res.status(response.code).end();
     }
 });
 
 router.put('/customers/:customer_id', (req, res) => {
     const response = handlePutCustomer({
-        'requestBody': req.body, 
-        'customerId': req.params.customer_id, 
+        'requestBody': req.body,
+        'customerId': req.params.customer_id,
         'authHeader': req.get('Authorization'),
         'contentType': req.get('Content-Type')
     });
-    
+
     const authFailed = response.code === 401 ? {"WWW-Authenticate": 'Access to this resource requires authentication'} : undefined
 
     if(response instanceof Error) {
@@ -106,10 +102,8 @@ router.put('/customers/:customer_id', (req, res) => {
             }
         });
     } else {
-        res.status(response.code).json({
-            customer: response.customer
-        })
-    } 
+        res.status(response.code).json(response.customer)
+    }
 });
 
 router.get('/customers/:customer_id/orders/:order_id', (req, res) => {
@@ -131,9 +125,7 @@ router.get('/customers/:customer_id/orders/:order_id', (req, res) => {
             }
         });
     } else {
-        res.status(response.code).json({
-            order: response.orderDetail
-        })
+        res.status(response.code).json(response.orderDetail)
     }
 });
 
@@ -146,7 +138,7 @@ router.post('/customers/:customerID/orders', async (req, res) => {
         'contentType': req.get('Content-Type'),
         'returnUrl': url
     });
-    
+
     const authFailed = response.code === 401 ? {"WWW-Authenticate": 'Access to this resource requires authentication'} : undefined
 
     if(response instanceof Error) {
@@ -161,21 +153,19 @@ router.post('/customers/:customerID/orders', async (req, res) => {
     } else {
         res.status(response.code)
             .set("Location", response.orderLoc)
-            .json({
-                order: response.orderDetail
-            });
+            .json(response.orderDetail);
     }
 });
 
 router.put('/customers/:customer_id/orders/:order_id', async (req, res) => {
     const response = await handlePutOrder({
-        'request': req, 
+        'request': req,
         'customerId': req.params.customer_id,
         'orderId': req.params.order_id,
         'authHeader': req.get('Authorization'),
         'contentType': req.get('Content-Type')
     });
-    
+
     const authFailed = response.code === 401 ? {"WWW-Authenticate": 'Access to this resource requires authentication'} : undefined
 
     if(response instanceof Error) {
@@ -188,19 +178,17 @@ router.put('/customers/:customer_id/orders/:order_id', async (req, res) => {
             }
         });
     } else {
-        res.status(response.code).json({
-            orderDetails: response.updatedOrder
-        })
-    } 
+        res.status(response.code).json(response.updatedOrder)
+    }
 });
 
 router.delete('/customers/:customer_id/orders/:order_id', (req, res) => {
     const response = handleDeleteOrder({
-        'customerId': req.params.customer_id, 
+        'customerId': req.params.customer_id,
         'orderId': req.params.order_id,
         'authHeader': req.get('Authorization')
     });
-    
+
     const authFailed = response.code === 401 ? {"WWW-Authenticate": 'Access to this resource requires authentication'} : undefined
 
     if(response instanceof Error) {
@@ -213,7 +201,7 @@ router.delete('/customers/:customer_id/orders/:order_id', (req, res) => {
             }
         });
     } else {
-        res.status(response.code).json({});
+        res.status(response.code).end();
     }
 });
 

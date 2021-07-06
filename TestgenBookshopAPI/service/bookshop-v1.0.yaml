@@ -1,7 +1,7 @@
 swagger: '2.0'
 info:
   title: Bookshop API
-  x-ibm-name: bookshop-api-3
+  x-ibm-name: bookshop-api
   version: '1.0'
 schemes:
   - https
@@ -73,7 +73,7 @@ x-ibm-configuration:
       encoded: false
   activity-log:
     enabled: true
-    error-content: header
+    error-content: payload
     success-content: payload
   buffering: true
   application-authentication:
