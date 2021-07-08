@@ -49,7 +49,7 @@ The deployment creates a route `bookshop-gateway` in the target namespace that s
 
 ## Use
 
-You can generate a random workload from the script [bookshop-client.sh](./../client/python/client/bookshop_client.py).
+You can generate a random workload using the script [bookshop-client.sh](../client/scripts/bookshop-client.sh).
 
 Resources are stored in memory so don't survive restarts.
 
