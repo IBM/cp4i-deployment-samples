@@ -1,0 +1,108 @@
+# balance of requests between resource types
+resources:
+  books: 2
+  customers: 1
+  orders: 3
+# balance of methods across requests
+methods:
+  books:
+    delete: 14
+    get: 60
+    post: 16
+    put: 10
+  customers:
+    delete: 14
+    get: 60
+    post: 16
+    put: 10
+  orders:
+    delete: 40
+    get: 200
+    post: 40
+    put: 100
+# balance of error cases within methods
+errors:
+  books:
+    delete:
+      invalid_input: 2
+      not_authenticated: 1
+      not_authorized: 1
+      not_found: 5
+      OK: 91
+    get:
+      invalid_input: 2
+      not_authenticated: 1
+      not_found: 5
+      OK: 92
+    post:
+      exists: 2
+      invalid_input: 3
+      not_authenticated: 1
+      not_authorized: 1
+      unavailable: 3
+      unknown: 1
+      OK: 89
+    put:
+      invalid_input: 3
+      invalid_update: 3
+      not_authenticated: 1
+      not_found: 1
+      OK: 92
+  customers:
+    delete:
+      invalid_input: 2
+      not_authenticated: 1
+      not_authorized: 1
+      not_found: 5
+      OK: 91
+    get:
+      invalid_input: 2
+      not_authenticated: 1
+      not_found: 5
+      OK: 92
+    post:
+      exists: 2
+      invalid_input: 3
+      not_authenticated: 1
+      not_authorized: 1
+      unavailable: 3
+      unknown: 1
+      OK: 89
+    put:
+      invalid_input: 3
+      invalid_update: 3
+      not_authenticated: 1
+      not_found: 1
+      OK: 92
+  orders:
+    delete:
+      customer_not_found: 1
+      invalid_url: 2
+      not_authenticated: 1
+      not_authorized: 1
+      order_not_found: 1
+      OK: 91
+    get:
+      customer_not_found: 1
+      invalid_url: 2
+      not_authenticated: 1
+      order_not_found: 1
+      OK: 95
+    post:
+      book_not_found: 5
+      customer_not_found: 1
+      invalid_input: 3
+      invalid_url: 2
+      not_authenticated: 1
+      not_authorized: 1
+      OK: 87
+    put:
+      book_not_found: 2
+      customer_not_found: 1
+      invalid_input: 1
+      invalid_url: 1
+      not_authenticated: 1
+      not_authorized: 1
+      order_not_found: 1
+      out_of_stock: 5
+      OK: 87
