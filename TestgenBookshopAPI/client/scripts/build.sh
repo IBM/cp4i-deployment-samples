@@ -6,6 +6,8 @@
 # Provide the full path to the repository where the images will be pushed
 
 script="$(basename $0)"
+cd $(dirname $0)/..
+echo $PWD
 repository=""
 using_main_branch=true
 
@@ -49,18 +51,18 @@ echo "Using repository $repository"
 
 image=${repository}/client:${tag}
 docker build -t ${image} . || exit 1
-docker push ${image}
+docker push ${image} || exit 1
 
 if [[ "${using_main_branch}" == true ]]; then
   latest=${repository}/client:latest
   docker tag ${image} ${latest} || exit 1
-  docker push ${latest}
+  docker push ${latest} || exit 1
 fi
 
 echo -e "\nImages:"
+$using_main_branch && echo ${latest}
 echo ${image}
-${using_main_branch} && echo ${latest}
 
 echo -e "\nImage tags:"
+$using_main_branch && echo "latest"
 echo ${tag}
-${using_main_branch} && echo "latest"
