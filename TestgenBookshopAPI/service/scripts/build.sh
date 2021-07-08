@@ -37,7 +37,7 @@ if [[ -z "${repository}" ]]; then
 fi
 
 tag=$(date +"%Y-%m-%d-%H%M")
-branch=$(git branch --show-current)
+branch=$(git rev-parse --abbrev-ref HEAD)
 if [[ "${branch}" != main ]]; then
   tag="${tag}-${branch}"
 else
