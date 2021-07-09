@@ -53,8 +53,7 @@ image=${repository}/client:${tag}
 docker build -t ${image} . || exit 1
 docker push ${image} || exit 1
 
-# todo: revert condition
-if [[ "${using_main_branch}" == false ]]; then
+if [[ "${using_main_branch}" == true ]]; then
   latest=${repository}/client:latest
   docker tag ${image} ${latest} || exit 1
   docker push ${latest} || exit 1
