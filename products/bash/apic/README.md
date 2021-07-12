@@ -8,7 +8,7 @@ Configure apic for Car Crash Demo
 
 ## Usage
 
-- PLEASE NOTE: The `configure-apic-v10.sh` is for Demos only and not recommended for use anywhere else. The script uses unsupported internal features that are NOT suitable for production usecases.
+- PLEASE NOTE: The `configure-apic-v10.sh` script uses unsupported internal features and is for demo purposes ONLY. It is NOT suitable for production use cases.
 
 - `configure-apic-v10.sh` uses and apic-configurator image to setup car crash demo in apic
 
@@ -55,4 +55,3 @@ User can setup car crash demo if they have got their own APIC instance outside 1
     export CONFIGURATOR_IMAGE="${IMAGE_REPO}/cp/icp4i/icip-configurator:apic-dte-21"
 ```
 - run `configure-apic.sh`
-
