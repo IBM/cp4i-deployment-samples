@@ -8,9 +8,11 @@ Configure apic for Car Crash Demo
 
 ## Usage
 
-- `configure-apic.sh` uses and apic-configurator image to setup car crash demo in apic
+- PLEASE NOTE: The `configure-apic-v10.sh` script uses unsupported internal features and is for demo purposes ONLY. It is NOT suitable for production use cases.
 
-- `configure-apic.sh` is called from installation script from ibm-cp-integration case.tgz (https://github.com/IBM/cloud-pak/blob/master/repo/case/ibm-cp-integration-1.0.24.tgz). Before calling the `configure-apic.sh` the install script in case.tgz does the following:
+- `configure-apic-v10.sh` uses and apic-configurator image to setup car crash demo in apic
+
+- `configure-apic-v10.sh` is called from installation script from ibm-cp-integration case.tgz (https://github.com/IBM/cloud-pak/blob/master/repo/case/ibm-cp-integration-1.0.24.tgz). Before calling the `configure-apic-v10.sh` the install script in case.tgz does the following:
 
     - set pre-reqs to install APIC i.e namespace, secrets and entitlement keys
 
@@ -53,4 +55,3 @@ User can setup car crash demo if they have got their own APIC instance outside 1
     export CONFIGURATOR_IMAGE="${IMAGE_REPO}/cp/icp4i/icip-configurator:apic-dte-21"
 ```
 - run `configure-apic.sh`
-
