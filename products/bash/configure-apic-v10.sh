@@ -9,6 +9,9 @@
 #******************************************************************************
 
 #******************************************************************************
+# PLEASE NOTE: The configure-apic-v10.sh is for Demos only and not recommended for use anywhere else. 
+# The script uses unsupported internal features that are NOT suitable for production usecases.
+#
 # PREREQUISITES:
 #   - Logged into cluster on the OC CLI (https://docs.openshift.com/container-platform/4.4/cli_reference/openshift_cli/getting-started-cli.html)
 #
