@@ -1,6 +1,6 @@
 # Bookshop client
 
-A bookshop client to call the bookshop API to add some sample traces.
+Sends a simulated workload to the Bookshop API to create some sample traces.
 
 ## Build
 
