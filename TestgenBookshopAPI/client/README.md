@@ -63,17 +63,3 @@ Prerequisites:
 | `-v` or `--verbose`             | Show request summary                                   |
 | `-vv` or `--debug`              | Show request detail                                    |
 | `-h` or `--help`                | Available usage and options                            |
-
-## Create or Update the books database file
-
-You can add or create a new copy of the [books database file](bookshop/books.db) using [create-client-db.js](create-client-db.js).
-
-Prerequisites to running the file:
-
-- Node.js should be installed locally. Download and install from [here](https://nodejs.org/en/download/).
-
-You can either use the above file as is or edit the content to create a database file with your custom values:
-
-```bash
-node create-client-db.js
-```
