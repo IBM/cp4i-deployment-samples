@@ -56,7 +56,7 @@ There are additional options you can specify:
 | `--language LANG`           | Two-letter ISO language code for the language service | `fr` (French)                                       |
 | `-h, --help`                | Print option summary and exit                         |                                                     |
 
-The deployment creates a route `bookshop-gateway` in the target namespace that serves both `/books` and `/customers` and you can use this to check that the deployment has succeeded. However, to use the API as a subject for automated test generation, you must load the OpenAPI document [bookshop-v1.0.yaml](./bookshop-v1.0.yaml) into your API Management instance and then access the bookshop through the API Management gateway.
+The deployment creates a route `bookshop-gateway` in the target namespace that serves both `/books` and `/customers` and you can use this to check that the deployment has succeeded. However, to use the API as a subject for automated test generation, you must load the OpenAPI document [bookshop-v1.0.yaml](../bookshop-v1.0.yaml) into your API Management instance and then access the bookshop through the API Management gateway.
 
 ## Use
 
