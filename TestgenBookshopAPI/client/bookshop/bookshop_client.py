@@ -77,11 +77,11 @@ def send_requests(config):
         if resp.status_code == 201 and req.method == 'POST':
             resp_json = resp.json()
             if res_type == 'books':
-                config.books_database[resp_json['book_id']] = resp_json
+                config.books_database[resp_json['book']['book_id']] = resp_json['book']
             elif res_type == 'customers':
-                config.customers_database[resp_json['customer_id']] = resp_json
+                config.customers_database[resp_json['customer']['customer_id']] = resp_json['customer']
             elif res_type == 'orders':
-                config.orders_database[resp_json['order_id']] = resp_json
+                config.orders_database[resp_json['order']['order_id']] = resp_json['order']
 
         debug_request(config, req, resp)
 
