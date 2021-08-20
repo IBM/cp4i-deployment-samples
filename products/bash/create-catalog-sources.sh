@@ -110,7 +110,7 @@ metadata:
  namespace: openshift-marketplace
 spec:
  displayName: MQ Operators
- image: cp.stg.icr.io/cp/ibm-mq-operator-catalog@sha256:f0404c2a1c543274c940c55a2f86f22c29ee6431a7e9a81a3cc00249d60ba005
+ image: icr.io/cpopen/ibm-mq-operator-catalog@sha256:94642ded53b9fa318dbb5700f3ae647799d47e4c361067afb36430c587691b02
  publisher: IBM
  sourceType: grpc
  updateStrategy:
