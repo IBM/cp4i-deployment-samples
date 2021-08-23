@@ -12,7 +12,8 @@ spec:
   ports:
     - name: http-api
       protocol: TCP
-      port: 16685
+      port: 16686
+      targetPort: 16685
 ---
 apiVersion: route.openshift.io/v1
 kind: Route
