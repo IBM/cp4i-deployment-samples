@@ -1,5 +1,5 @@
 # Note if ibm-entitlement-key includes an auth for cp.stg.icr.io then this will be changed to cp.stg.icr.io:
-FROM icr.io/cpopen/ibm-mq-operator-catalog@sha256:94642ded53b9fa318dbb5700f3ae647799d47e4c361067afb36430c587691b02
+FROM cp.icr.io/cp/ibm-mqadvanced-server-integration@sha256:e527f7279954a0abd9e5a50b8287dbdc3fff36aaeacf0335ebc0c4f7a0aab58e
 RUN echo -e "\
   DEFINE QLOCAL('QuoteBO') DEFPSIST(YES) \n\
   DEFINE QLOCAL('Quote') DEFPSIST(YES) BOQNAME('QuoteBO') BOTHRESH(99) \n\
