@@ -53,7 +53,7 @@ const searchLangServices = async (auth, request, bookID) => {
             prepReq.reqHeaders
         )
         if (!(response instanceof Error)) {
-            return response.data.book;
+            return response.data;
         } else if(response.code !== 404) {
             return response;
         }
