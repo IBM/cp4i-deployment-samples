@@ -67,6 +67,7 @@ if [[ $? == 0 ]]; then
   METADATA_UID=$(echo $json | tr '\r\n' ' ' | jq -r '.data.METADATA_UID')
 fi
 
+# cat <<EOF
 cat <<EOF | oc apply -f -
 apiVersion: appconnect.ibm.com/v1beta1
 kind: DesignerAuthoring
@@ -94,6 +95,7 @@ spec:
       useIncrementalLearning: true
       storage:
         class: ${file_storage}
+        type: persistent-claim
   license:
     accept: true
     license: $(getACELicense $namespace)
