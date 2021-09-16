@@ -75,7 +75,7 @@ metadata:
       uid: ${METADATA_UID}"
   fi)
 spec:
-  version: 10.2.0-eus
+  version: 10.4.0
   license:
     accept: true
     use: CloudPakForIntegrationProduction
@@ -90,10 +90,10 @@ spec:
       authorization:
         type: runas
       config:
-        inter.broker.protocol.version: '2.6'
+        inter.broker.protocol.version: '2.8'
         interceptor.class.names: com.ibm.eventstreams.interceptors.metrics.ProducerMetricsInterceptor
         log.cleaner.threads: 6
-        log.message.format.version: '2.6'
+        log.message.format.version: '2.8'
         num.io.threads: 24
         num.network.threads: 9
         num.replica.fetchers: 3
@@ -134,7 +134,7 @@ metadata:
       uid: ${METADATA_UID}"
   fi)
 spec:
-  version: 10.3.0
+  version: 10.4.0
   license:
     accept: true
     use: CloudPakForIntegrationNonProduction
@@ -151,9 +151,9 @@ spec:
     kafka:
       replicas: 3
       config:
-        inter.broker.protocol.version: '2.6'
+        inter.broker.protocol.version: '2.8'
         interceptor.class.names: com.ibm.eventstreams.interceptors.metrics.ProducerMetricsInterceptor
-        log.message.format.version: '2.6'
+        log.message.format.version: '2.8'
         offsets.topic.replication.factor: 1
         transaction.state.log.min.isr: 1
         transaction.state.log.replication.factor: 1

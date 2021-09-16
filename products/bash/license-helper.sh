@@ -17,11 +17,11 @@
 #*******************************************************************************
 
 LICENSES_CM="demo-licenses"
-DEFAULT_ACE="L-KSBM-C37J2R"
+DEFAULT_ACE="L-APEH-C49KZH"
 DEFAULT_APIC="L-RJON-BZEP9N"
 DEFAULT_AR="L-NCAN-C3CJ8D"
 DEFAULT_DEMO="L-RJON-BYRMYW"
-DEFAULT_MQ="L-RJON-BXUPZ2"
+DEFAULT_MQ="L-RJON-BZFQU2"
 DEFAULT_TRACING="CP4I"
 
 function usage() {
