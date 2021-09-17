@@ -162,7 +162,7 @@ spec:
             - name: MQSNOAUT
               value: 'yes'
           name: qmgr
-  version: 9.2.2.0-r1
+  version: 9.2.3.0-r1
   web:
     enabled: true
   tracing:
@@ -288,7 +288,7 @@ spec:
             - name: MQS_PERMIT_UNKNOWN_ID
               value: 'true'
           name: qmgr
-  version: 9.2.2.0-r1
+  version: 9.2.3.0-r1
   web:
     enabled: true
   tracing:

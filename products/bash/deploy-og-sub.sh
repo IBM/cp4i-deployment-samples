@@ -277,8 +277,8 @@ if [[ "${pre_release}" == "true" ]]; then
   wait_for_subscription ${namespace} ${ACE_CATALOG} "ibm-appconnect" "v1.5"
   create_subscription ${namespace} ${ES_CATALOG} "ibm-eventstreams" "v2.3"
   wait_for_subscription ${namespace} ${ES_CATALOG} "ibm-eventstreams" "v2.3"
-  create_subscription ${namespace} ${MQ_CATALOG} "ibm-mq" "v1.5"
-  wait_for_subscription ${namespace} ${MQ_CATALOG} "ibm-mq" "v1.5"
+  create_subscription ${namespace} ${MQ_CATALOG} "ibm-mq" "v1.6"
+  wait_for_subscription ${namespace} ${MQ_CATALOG} "ibm-mq" "v1.6"
   create_subscription ${namespace} ${AR_CATALOG} "ibm-integration-asset-repository" "v1.3"
   wait_for_subscription ${namespace} ${AR_CATALOG} "ibm-integration-asset-repository" "v1.3"
 else
@@ -290,8 +290,8 @@ else
   wait_for_subscription ${namespace} ${ACE_CATALOG} "ibm-appconnect" "v1.5"
   create_subscription ${namespace} ${ES_CATALOG} "ibm-eventstreams" "v2.3"
   wait_for_subscription ${namespace} ${ES_CATALOG} "ibm-eventstreams" "v2.3"
-  create_subscription ${namespace} ${MQ_CATALOG} "ibm-mq" "v1.5"
-  wait_for_subscription ${namespace} ${MQ_CATALOG} "ibm-mq" "v1.5"
+  create_subscription ${namespace} ${MQ_CATALOG} "ibm-mq" "v1.6"
+  wait_for_subscription ${namespace} ${MQ_CATALOG} "ibm-mq" "v1.6"
   create_subscription ${namespace} ${AR_CATALOG} "ibm-integration-asset-repository" "v1.3"
   wait_for_subscription ${namespace} ${AR_CATALOG} "ibm-integration-asset-repository" "v1.3"
 fi
