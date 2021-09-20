@@ -206,7 +206,7 @@ roleRef:
 subjects:
 - kind: ServiceAccount
   name: ${OD_OPERATOR_SA}
-  namespace: cp4i
+  namespace: ${namespace}
 ---
 EOF
 
