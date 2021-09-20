@@ -178,7 +178,7 @@ metadata:
   namespace: openshift-marketplace
 spec:
   displayName: Redis for Aspera Operators
-  image: cp.stg.icr.io/cp/icp4i/aspera/aspera-hsts-catalog@sha256:a10701d595b179d38ffc0ea16b0c89c1def78bd4c20276f7570f9bdeee5de917
+  image: cp.stg.icr.io/cp/ibm-cloud-databases-redis-catalog@sha256:bb65ca87c987b040b0a8cea4cf44af9bf1a0110442f249529032dd580cc29b36
   publisher: IBM
   sourceType: grpc
   updateStrategy:
@@ -192,7 +192,7 @@ metadata:
   namespace: openshift-marketplace
 spec:
   displayName: Aspera Operators
-  image: cp.stg.icr.io/cp/icp4i/aspera/aspera-hsts-catalog@sha256:df8f43edc104787297686d1988c5f14e2862464c0097e4fed3042e9539e7c827
+  image: cp.stg.icr.io/cp/icp4i/aspera/aspera-hsts-catalog@sha256:a10701d595b179d38ffc0ea16b0c89c1def78bd4c20276f7570f9bdeee5de917
   publisher: IBM
   sourceType: grpc
   updateStrategy:
