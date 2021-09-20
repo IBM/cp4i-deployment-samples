@@ -166,6 +166,7 @@ done
 
 # Find the ServiceAccount used by the OD operator pod
 OD_OPERATOR_SA=$(oc get pod \
+  -n ${namespace} \
   -l app.kubernetes.io/instance=ibm-integration-operations-dashboard \
   -l app.kubernetes.io/managed-by=ibm-integration-operations-dashboard \
   -l app.kubernetes.io/name=ibm-integration-operations-dashboard-operator \
