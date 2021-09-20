@@ -44,7 +44,7 @@ done
 
 echo -e "$INFO [INFO] Applying catalogsources\n"
 if [[ "${USE_PRERELEASE_CATALOGS}" == "true" ]]; then
-  echo -e "$INFO [INFO] Using the pre-release catalog sources as specified at https://ibm.ent.box.com/notes/765437595126"
+  echo -e "$INFO [INFO] Using the Q3 pre-release catalog sources as specified at https://ibm.box.com/s/nmzp13h9dctd3ikexxo233py92w6z91k"
   cat <<EOF | oc apply -f -
 ---
 apiVersion: operators.coreos.com/v1alpha1
@@ -54,7 +54,7 @@ metadata:
   namespace: openshift-marketplace
 spec:
   displayName: IBMCS Operators
-  image: quay.io/opencloudio/ibm-common-service-catalog:3.7.4
+  image: hyc-cloud-private-daily-docker-local.artifactory.swg-devops.com/ibmcom/ibm-common-service-catalog:latest-validated
   publisher: IBM
   sourceType: grpc
   updateStrategy:
@@ -68,7 +68,7 @@ metadata:
   namespace: openshift-marketplace
 spec:
   displayName: IBMABP Operators
-  image: docker.io/ibmcom/ibm-automation-foundation-core-catalog:1.0.2
+  image: cp.stg.icr.io/cp/ibm-automation-foundation-core-catalog:latest-validated
   publisher: IBM
   sourceType: grpc
   updateStrategy:
@@ -82,7 +82,7 @@ metadata:
   namespace: openshift-marketplace
 spec:
   displayName: PN Operators
-  image: cp.stg.icr.io/cp/ibm-integration-platform-navigator-catalog@sha256:83afb3c22f2a8d03b67eb43ffe40c5fd0b1c814494d66ffc5b903cdbcdb1d71d
+  image: cp.stg.icr.io/cp/ibm-integration-platform-navigator-catalog:latest
   publisher: IBM
   sourceType: grpc
   updateStrategy:
@@ -96,7 +96,7 @@ metadata:
   namespace: openshift-marketplace
 spec:
   displayName: ACE Operators
-  image: cp.stg.icr.io/cp/appconnect-operator-catalog@sha256:733a509b21f16f4cf2da325f9c2dd3ca02e20cb4ba8618244311353bb53e91e8
+  image: cp.stg.icr.io/cp/appconnect-operator-catalog:latest-cd
   publisher: IBM
   sourceType: grpc
   updateStrategy:
@@ -124,7 +124,7 @@ metadata:
   namespace: openshift-marketplace
 spec:
   displayName: ES Operators
-  image: cp.stg.icr.io/cp/ibm-eventstreams-catalog@sha256:9eb1bf45628b58e8a68c6cb04e63a4381e136b6aae755cbf06a4ef4edddb1f60
+  image: cp.stg.icr.io/cp/ibm-eventstreams-catalog:2021-09-15-10.56.15-eb7924b
   publisher: IBM
   sourceType: grpc
   updateStrategy:
@@ -138,7 +138,7 @@ metadata:
   namespace: openshift-marketplace
 spec:
   displayName: APIC Operators
-  image: ibmcom/ibm-apiconnect-catalog@sha256:fbf789f0fb4882a95544979dad9c55752892dc42ae084af0548f6f7a52d03cf3
+  image: docker.io/ibmcom/ibm-apiconnect-catalog@sha256:98a0cb600be842718b7377c5d270b7d0a27afaf52be448ef682e5e76d0c15278
   publisher: IBM
   sourceType: grpc
   updateStrategy:
@@ -164,7 +164,7 @@ metadata:
   namespace: openshift-marketplace
 spec:
   displayName: DP Operators
-  image: cp.stg.icr.io/cp/datapower-operator-catalog@sha256:a4ef16148b1500c97e058e3ae0f16d6729a3118b264dc3e0d2812f3603028cba
+  image: cp.stg.icr.io/cp/datapower-operator-catalog:latest-cd
   publisher: IBM
   sourceType: grpc
   updateStrategy:
@@ -178,7 +178,7 @@ metadata:
   namespace: openshift-marketplace
 spec:
   displayName: Redis for Aspera Operators
-  image: cp.stg.icr.io/cp/ibm-cloud-databases-redis-catalog@sha256:bb65ca87c987b040b0a8cea4cf44af9bf1a0110442f249529032dd580cc29b36
+  image: cp.stg.icr.io/cp/icp4i/aspera/aspera-hsts-catalog@sha256:a10701d595b179d38ffc0ea16b0c89c1def78bd4c20276f7570f9bdeee5de917
   publisher: IBM
   sourceType: grpc
   updateStrategy:
@@ -192,7 +192,7 @@ metadata:
   namespace: openshift-marketplace
 spec:
   displayName: Aspera Operators
-  image: cp.stg.icr.io/cp/icp4i/aspera/aspera-hsts-catalog@sha256:a10701d595b179d38ffc0ea16b0c89c1def78bd4c20276f7570f9bdeee5de917
+  image: cp.stg.icr.io/cp/icp4i/aspera/aspera-hsts-catalog@sha256:df8f43edc104787297686d1988c5f14e2862464c0097e4fed3042e9539e7c827
   publisher: IBM
   sourceType: grpc
   updateStrategy:
@@ -206,7 +206,7 @@ metadata:
   namespace: openshift-marketplace
 spec:
   displayName: AR Operators
-  image: cp.stg.icr.io/cp/ibm-integration-asset-repository-catalog@sha256:5048ac2bb95913bb47dc71b50beb619509447501ac5a92a6131a30d3c9b2e46a
+  image: cp.stg.icr.io/cp/ibm-integration-asset-repository-catalog:1.3.2-2021-09-06-1534-815bfd8b-service-v2021.2.1-1-amd64@sha256:9c065c84879686e4a45b9f23a121958f59d9372c1378e8b75536405da1d10693
   publisher: IBM
   sourceType: grpc
   updateStrategy:
@@ -220,7 +220,7 @@ metadata:
   namespace: openshift-marketplace
 spec:
   displayName: OD Operators
-  image: cp.stg.icr.io/cp/ibm-integration-operations-dashboard-catalog@sha256:2df3723d4ad18f32853f7212e36274e2938a46347917fd3d4e759158f010a4d3
+  image: cp.stg.icr.io/cp/ibm-integration-operations-dashboard-catalog:2.4.0-2021-09-10-0845-d238b3ef@sha256:34054f6688ce05a29a66707296c736e31f662364f758058a2542ce41cfc5e40d
   publisher: IBM
   sourceType: grpc
   updateStrategy:
