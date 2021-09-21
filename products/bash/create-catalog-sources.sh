@@ -124,7 +124,7 @@ metadata:
   namespace: openshift-marketplace
 spec:
   displayName: ES Operators
-  image: cp.stg.icr.io/cp/ibm-eventstreams-catalog:2021-09-15-10.56.15-eb7924b
+  image: cp.stg.icr.io/cp/ibm-eventstreams-catalog:latest-cd
   publisher: IBM
   sourceType: grpc
   updateStrategy:
