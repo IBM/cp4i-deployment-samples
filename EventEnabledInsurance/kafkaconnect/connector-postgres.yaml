@@ -3,7 +3,7 @@ kind: KafkaConnector
 metadata:
   name: eei-postgres
   labels:
-    eventstreams.ibm.com/cluster: eei-cluster
+    eventstreams.ibm.com/cluster: eei-cluster2 # TODO Set this back to eei-cluster
 spec:
   # This uses the Postgres Debezium plugin from the KafkaConnectS2I
   class: io.debezium.connector.postgresql.PostgresConnector
