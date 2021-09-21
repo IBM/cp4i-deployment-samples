@@ -152,7 +152,7 @@ metadata:
   namespace: openshift-marketplace
 spec:
   sourceType: grpc
-  image: icr.io/cpopen/ibm-ai-wmltraining-operator-catalog@sha256:8461ee40e9188d12264d8fc108591122ae5546c73469f16dfc7a3bf07c52e322
+  image: icr.io/cpopen/ibm-ai-wmltraining-operator-catalog@sha256:4e88b9f2df60be6af156d188657763dfa4cbe074c40ea85ba82858796e3cd6a3
   updateStrategy:
     registryPoll:
       interval: 45m
