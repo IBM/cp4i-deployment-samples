@@ -145,8 +145,8 @@ spec:
   schemaRegistry:
     storage:
       type: ephemeral
-  security:
-    internalTls: NONE
+#  security:
+#    internalTls: NONE
   strimziOverrides:
     kafka:
       replicas: 3
