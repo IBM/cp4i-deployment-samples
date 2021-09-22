@@ -292,10 +292,10 @@ Apply the yaml using:
 oc apply -f connector-postgres.yaml
 ```
 
-TODO:::
-Wait for connector to be ready:
+Wait for connector to be ready using:
+```
 oc get KafkaConnector eei-postgres -w
-
+```
 
 Find the connector pod and watch the logs:
 ```
@@ -423,9 +423,10 @@ Apply the yaml using:
 oc apply -f connector-elastic.yaml
 ```
 
-TODO:::
-Wait for connector to be ready:
+Wait for connector to be ready using:
+```
 oc get KafkaConnector eei-elastic -w
+```
 
 Find the connector pod and watch the logs:
 ```
