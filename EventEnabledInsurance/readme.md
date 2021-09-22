@@ -35,14 +35,18 @@ metadata:
   annotations:
     eventstreams.ibm.com/use-connector-resources: "true"
 spec:
+  replicas: 1
+
   # Use the latest version of kafka
   version: 2.8.0
-  replicas: 1
+
   # The `es-demo` Event Streams runtime is setup with no external access. This is the
   # service name of the demo bootstrap server and can only be used within the cluster.
   bootstrapServers: es-demo-kafka-bootstrap:9092
-  # TODO Is the following needed?
-  # image: my-connect-cluster-image:latest
+
+  # Set the following to the newly built custom image once it has been built and pushed to the cluster
+  # image: image-registry.openshift-image-registry.svc:5000/<namespace>/eei-connect-cluster-image:latest
+
   template:
     pod:
       imagePullSecrets: []
@@ -51,28 +55,35 @@ spec:
           eventstreams.production.type: CloudPakForIntegrationNonProduction
           productID: 2a79e49111f44ec3acd89608e56138f5
           productName: IBM Event Streams for Non Production
+
           # Use the latest version of Eventstreams
           productVersion: 10.4.0
+
           productMetric: VIRTUAL_PROCESSOR_CORE
           productChargedContainers: eei-cluster-connect
           cloudpakId: c8b82d189e7545f0892db9ef2731b90d
           cloudpakName: IBM Cloud Pak for Integration
+
           # Use the latest version of Eventstreams
           cloudpakVersion: 2021.3.1
+
           productCloudpakRatio: "2:1"
   config:
     group.id: connect-cluster
     offset.storage.topic: connect-cluster-offsets
     config.storage.topic: connect-cluster-configs
     status.storage.topic: connect-cluster-status
+
     # There is no need to change the replication factors, `es-demos` has 3 replicas and so
     # the default value of 3 is appropriate.
     config.storage.replication.factor: 3
     offset.storage.replication.factor: 3
     status.storage.replication.factor: 3
+
     # The following 2 properties enable a class that allows reading properties from files.
     config.providers: file
     config.providers.file.class: org.apache.kafka.common.config.provider.FileConfigProvider
+
   # This mounts secrets into the connector at /opt/kafka/external-configuration. These
   # secrets have been pre-created by the prereqs.sh script and configure access to the
   # demo installs of Postgres and Elasticsearch.
@@ -84,6 +95,7 @@ spec:
       - name: elastic-connector-config
         secret:
           secretName: eei-elastic-credential
+
 # There is no need to add tls or authentication properties, `es-demos` has no security setup.
 #  tls:
 #    trustedCertificates:
@@ -147,18 +159,20 @@ Add connectors for Postgres Debezium and Elasticsearch.
 You should end up with a dir structure as follows:
 ![dir structure](./media/my-plugins-dir.png)
 
-Find the docker image used by the eei-cluster connect pod.
+<!---
+When using pre-release the base image in the Dockerfile may need updating. If so then
+find the docker image used by the eei-cluster connect pod and change the FROM in the Dockerfile
+to use that image. May need to change it from cp.icr.io to cp.stg.icr.io.
+-->
 
-Edit the Dockerfile to fix the FROM image ... TODO
-
-Do a docker login to cp.[stg.]icr.io
+Do a docker login to cp.icr.io using your entitlement key.
 
 Then from the dir above `my-plugins` run:
 ```
 docker build -t eei-connect-cluster-image:latest .
 ```
 
-Push the image
+Push the image to the cluster's image registry. Expose the registry and get the login details:
 ```
 oc patch configs.imageregistry.operator.openshift.io/cluster --patch '{"spec":{"defaultRoute":true}}' --type=merge
 export IMAGE_REPO="$(oc get route default-route -n openshift-image-registry --template='{{ .spec.host }}')"
@@ -172,6 +186,7 @@ echo "DOCKER_REGISTRY_PASS=${DOCKER_REGISTRY_PASS}"
 docker login $IMAGE_REPO -u $DOCKER_REGISTRY_USER -p $DOCKER_REGISTRY_PASS
 ```
 
+Tag the image and push to the cluster:
 ```
 NAMESPACE=$(oc project -q)
 docker tag eei-connect-cluster-image:latest $IMAGE_REPO/${NAMESPACE}/eei-connect-cluster-image:latest
@@ -190,7 +205,7 @@ Get the image name:
 echo "$(oc get imagestream eei-connect-cluster-image -o json | jq -r .status.dockerImageRepository):latest"
 ```
 
-Edit the image property in the KafkaConnect and re-apply.
+Edit the image property in the kafka-connect.yaml and re-apply.
 
 Describe the `KafkaConnect` and check that the Status section shows the PostgresConnector and ElasticSinkConnector:
 ```
@@ -276,6 +291,11 @@ Apply the yaml using:
 ```
 oc apply -f connector-postgres.yaml
 ```
+
+TODO:::
+Wait for connector to be ready:
+oc get KafkaConnector eei-postgres -w
+
 
 Find the connector pod and watch the logs:
 ```
@@ -402,6 +422,10 @@ Apply the yaml using:
 ```
 oc apply -f connector-elastic.yaml
 ```
+
+TODO:::
+Wait for connector to be ready:
+oc get KafkaConnector eei-elastic -w
 
 Find the connector pod and watch the logs:
 ```
