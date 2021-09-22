@@ -262,23 +262,29 @@ metadata:
   labels:
     eventstreams.ibm.com/cluster: eei-cluster
 spec:
-  # This uses the Postgres Debezium plugin from the KafkaConnectS2I
-  class: io.debezium.connector.postgresql.PostgresConnector
   tasksMax: 1
+
+  # This uses the Postgres Debezium plugin from the KafkaConnect
+  class: io.debezium.connector.postgresql.PostgresConnector
+
   config:
     # These are connection details to the Postgres database setup by the prereqs.
     database.hostname: "postgresql"
     database.port: "5432"
+
     # The following credentials refer to the mounted secret and use the FileConfigProvider
-    # from the KafkaConnectS2I to extract properties from the properties file.
-    database.dbname : "${file:/opt/kafka/external-configuration/postgres-connector-config/connector.properties:dbName}"
+    # from the KafkaConnect to extract properties from the properties file.
+    database.dbname: "${file:/opt/kafka/external-configuration/postgres-connector-config/connector.properties:dbName}"
     database.user: "${file:/opt/kafka/external-configuration/postgres-connector-config/connector.properties:dbUsername}"
     database.password: "${file:/opt/kafka/external-configuration/postgres-connector-config/connector.properties:dbPassword}"
+
     # This is the prefix used for the topic created by this connector.
     database.server.name: "sor"
+
     # The Postgres Debezium connector has various ways of monitoring the Postgres database.
     #  We're using Postgres 10 which includes the `pgoutput` plugin by default.
     plugin.name: pgoutput
+
     # The following settings disable autocreation of a Postgres PUBLICATION and instead use
     # the one we created as part of the prereqs. This allows the Debezium Connector to
     # connect to Postgres with reduced privileges. For this connector to create a PUBLICATION
@@ -394,26 +400,32 @@ metadata:
   labels:
     eventstreams.ibm.com/cluster: eei-cluster
 spec:
-  # This uses the Elasticsearch plugin from the KafkaConnectS2I
-  class: com.ibm.eventstreams.connect.elasticsink.ElasticSinkConnector
   tasksMax: 1
+
+  # This uses the Elasticsearch plugin from the KafkaConnect
+  class: com.ibm.eventstreams.connect.elasticsink.ElasticSinkConnector
+
   config:
     # Monitors the topic that is being populated by the postgres connector.
     topics: sor.public.quotes
+
     # The following credentials refer to the mounted secret and use the FileConfigProvider
-    # from the KafkaConnectS2I to extract properties from the properties file.
+    # from the KafkaConnect to extract properties from the properties file.
     es.connection: "${file:/opt/kafka/external-configuration/elastic-connector-config/connector.properties:dbConnection}"
     es.user.name: "${file:/opt/kafka/external-configuration/elastic-connector-config/connector.properties:dbUser}"
     es.password: "${file:/opt/kafka/external-configuration/elastic-connector-config/connector.properties:dbPassword}"
+
     # Use the default document/index builders
     es.document.builder: com.ibm.eventstreams.connect.elasticsink.builders.JsonDocumentBuilder
     es.index.builder: com.ibm.eventstreams.connect.elasticsink.builders.DefaultIndexBuilder
+
     # Use the KeyIdentifierBuilder to do CDC, so the Elasticsearch index only includes
     # the latest copy of all rows from the original data.
     es.identifier.builder: com.ibm.eventstreams.connect.elasticsink.builders.KeyIdentifierBuilder
+
     # Setup the truststore to trust the Elasticsearch self signed certificate. The Elasticsearch
     # operator creates this certificate and the prereqs create a jks truststore from it and
-    # add it to a secret that gets mounted into the connector pod.
+    # adds it to a secret that gets mounted into the connector pod.
     es.tls.truststore.location: /opt/kafka/external-configuration/elastic-connector-config/elastic-ts.jks
     es.tls.truststore.password: "${file:/opt/kafka/external-configuration/elastic-connector-config/connector.properties:truststorePassword}"
 ```
