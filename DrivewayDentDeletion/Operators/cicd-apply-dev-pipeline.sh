@@ -16,7 +16,7 @@
 #   -r : <REPO> (string), Defaults to 'https://github.com/IBM/cp4i-deployment-samples.git'
 #   -b : <BRANCH> (string), Defaults to 'main'
 #   -f : <DEFAULT_FILE_STORAGE> (string), Default to 'ibmc-file-gold-gid'
-#   -g : <DEFAULT_BLOCK_STORAGE> (string), Default to 'cp4i-block-performance'
+#   -g : <DEFAULT_BLOCK_STORAGE> (string), Default to 'ibmc-block-gold'
 #
 #   With defaults values
 #     ./cicd-apply-dev-pipeline.sh
@@ -46,7 +46,7 @@ SUM=0
 CURRENT_DIR=$(dirname $0)
 MISSING_PARAMS="false"
 DEFAULT_FILE_STORAGE="ibmc-file-gold-gid"
-DEFAULT_BLOCK_STORAGE="cp4i-block-performance"
+DEFAULT_BLOCK_STORAGE="ibmc-block-gold"
 
 while getopts "n:r:b:f:g:" opt; do
   case ${opt} in
