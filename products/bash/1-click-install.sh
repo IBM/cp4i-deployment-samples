@@ -418,7 +418,7 @@ fi
 
 divider
 
-if ! $CURRENT_DIR/create-catalog-sources.sh -p; then
+if ! $CURRENT_DIR/create-catalog-sources.sh; then
   echo -e "$CROSS [ERROR] Failed to create catalog sources"
   divider
   exit 1
