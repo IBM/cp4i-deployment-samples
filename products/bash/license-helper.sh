@@ -45,6 +45,7 @@ function getACELicense() {
 
 function getAPICLicense() {
   APIC_LICENSE=$(oc -n $1 get configmap $LICENSES_CM -ojsonpath='{.data.apic}' 2>/dev/null)
+  oc -n $1 get configmap $LICENSES_CM -ojsonpath='{.data.apic}'
   [[ $? -eq 0 && ! -z $APIC_LICENSE ]] && echo $APIC_LICENSE || echo $DEFAULT_APIC
 }
 
@@ -60,6 +61,7 @@ function getDemoLicense() {
 
 function getMQLicense() {
   MQ_LICENSE=$(oc -n $1 get configmap $LICENSES_CM -ojsonpath='{.data.mq}' 2>/dev/null)
+  oc -n $1 get configmap $LICENSES_CM -ojsonpath='{.data.mq}'
   [[ $? -eq 0 && ! -z $MQ_LICENSE ]] && echo $MQ_LICENSE || echo $DEFAULT_MQ
 }
 
