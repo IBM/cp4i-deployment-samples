@@ -39,6 +39,7 @@ done
 
 function getACELicense() {
   ACE_LICENSE=$(oc -n $1 get configmap $LICENSES_CM -ojsonpath='{.data.ace}' 2>/dev/null)
+  oc -n $1 get configmap $LICENSES_CM -ojsonpath='{.data.ace}' 2>/dev/null
   [[ $? -eq 0 && ! -z $ACE_LICENSE ]] && echo $ACE_LICENSE || echo $DEFAULT_ACE
 }
 
