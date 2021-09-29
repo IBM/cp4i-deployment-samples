@@ -147,7 +147,7 @@ spec:
   service:
     endpointType: https
   useCommonServices: true
-  version: '12.0.1.0-r1'
+  version: '12.0.1.0-r4'
   tracing:
     enabled: ${tracing_enabled}
     namespace: ${tracing_namespace}

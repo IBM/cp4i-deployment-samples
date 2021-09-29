@@ -16,6 +16,8 @@
 #   -n : <namespace> (string), Defaults to "cp4i"
 #   -d : Enables deployment of the demos operator
 #   -p : Pre_release subscriptions
+#   -a : Output alm-examples
+#   -e : Extra safe but slow, waits for each operator to complete installing before going on to the next
 #
 # USAGE:
 #   With defaults values
@@ -26,24 +28,28 @@
 #
 
 function usage() {
-  echo "Usage: $0 -n <namespace> -d -p"
+  echo "Usage: $0 -n <namespace> -d"
   exit 1
 }
 
 namespace="cp4i"
+ALM_EXAMPLES=false
 DEPLOY_DEMOS=false
-pre_release=false
+EXTRA_SAFE_BUT_SLOW=false
 
-while getopts "n:dp" opt; do
+while getopts "n:dae" opt; do
   case ${opt} in
+  a)
+    ALM_EXAMPLES=true
+    ;;
   d)
     DEPLOY_DEMOS=true
     ;;
+  e)
+    EXTRA_SAFE_BUT_SLOW=true
+    ;;
   n)
     namespace="$OPTARG"
-    ;;
-  p)
-    pre_release=true
     ;;
   \?)
     usage
@@ -51,36 +57,59 @@ while getopts "n:dp" opt; do
   esac
 done
 
-STAGING_AUTHS=$(oc get secret --namespace ${namespace} ibm-entitlement-key -o json | jq -r '.data.".dockerconfigjson"' | base64 --decode | jq -r '.auths["cp.stg.icr.io"]')
-if [[ "$STAGING_AUTHS" == "" || "$STAGING_AUTHS" == "null" ]]; then
-  USE_PRERELEASE_CATALOGS=false
-else
-  USE_PRERELEASE_CATALOGS=true
-fi
-
-if [[ "${USE_PRERELEASE_CATALOGS}" == "true" ]]; then
-  NAVIGATOR_CATALOG="pn-operators"
-  ACE_CATALOG="ace-operators"
-  AR_CATALOG="ar-operators"
-  OD_CATALOG="od-operators"
-  APIC_CATALOG="apic-operators"
-  ASPERA_CATALOG="aspera-operators"
-  DP_CATALOG="dp-operators"
-  ES_CATALOG="es-operators"
-  MQ_CATALOG="mq-operators"
-  DEMOS_CATALOG="cp4i-demo-operator-catalog-source"
-else
-  NAVIGATOR_CATALOG="ibm-operator-catalog"
-  ACE_CATALOG="ibm-operator-catalog"
-  AR_CATALOG="ibm-operator-catalog"
-  OD_CATALOG="ibm-operator-catalog"
-  APIC_CATALOG="ibm-operator-catalog"
-  ASPERA_CATALOG="ibm-operator-catalog"
-  DP_CATALOG="ibm-operator-catalog"
-  ES_CATALOG="ibm-operator-catalog"
-  MQ_CATALOG="ibm-operator-catalog"
-  DEMOS_CATALOG="cp4i-demo-operator-catalog-source"
-fi
+# To regenerate the following list install the catalog sources (pre-release if required) using:
+#    ./create-catalog-sources.sh -p
+# Wait for the catalog sources to install, then run:
+# CHANNELS_JSON=$(oc get packagemanifest -o json | jq -r '.items[] | { name: .metadata.name, catalog: .status.catalogSource, channel: .status.channels[-1].name }')
+# ENTRIES="NAVIGATOR=ibm-integration-platform-navigator
+# ACE=ibm-appconnect
+# APIC=ibm-apiconnect
+# AR=ibm-integration-asset-repository
+# ASPERA=aspera-hsts-operator
+# DEMOS=ibm-integration-demos-operator
+# DP=datapower-operator
+# ES=ibm-eventstreams
+# MQ=ibm-mq
+# OD=ibm-integration-operations-dashboard"
+# for ENTRY in ${ENTRIES} ; do
+#   IFS="=" read -r PRODUCT NAME <<< "${ENTRY}"
+#   CHANNEL_JSON=$(echo $CHANNELS_JSON | jq -r "select(.name == \"${NAME}\")")
+#   CHANNEL=$(echo $CHANNEL_JSON | jq -r ".channel")
+#   CATALOG=$(echo $CHANNEL_JSON | jq -r ".catalog")
+#   echo "${PRODUCT}_CATALOG=$CATALOG"
+#   echo "${PRODUCT}_NAME=$NAME"
+#   echo "${PRODUCT}_CHANNEL=$CHANNEL"
+# done
+NAVIGATOR_CATALOG=ibm-operator-catalog
+NAVIGATOR_NAME=ibm-integration-platform-navigator
+NAVIGATOR_CHANNEL=v5.1
+ACE_CATALOG=ibm-operator-catalog
+ACE_NAME=ibm-appconnect
+ACE_CHANNEL=v2.0
+APIC_CATALOG=ibm-operator-catalog
+APIC_NAME=ibm-apiconnect
+APIC_CHANNEL=v2.3
+AR_CATALOG=ibm-operator-catalog
+AR_NAME=ibm-integration-asset-repository
+AR_CHANNEL=v1.3
+ASPERA_CATALOG=ibm-operator-catalog
+ASPERA_NAME=aspera-hsts-operator
+ASPERA_CHANNEL=v1.3
+DEMOS_CATALOG=cp4i-demo-operator-catalog-source
+DEMOS_NAME=ibm-integration-demos-operator
+DEMOS_CHANNEL=v1.0
+DP_CATALOG=ibm-operator-catalog
+DP_NAME=datapower-operator
+DP_CHANNEL=v1.4
+ES_CATALOG=ibm-operator-catalog
+ES_NAME=ibm-eventstreams
+ES_CHANNEL=v2.4
+MQ_CATALOG=ibm-operator-catalog
+MQ_NAME=ibm-mq
+MQ_CHANNEL=v1.6
+OD_CATALOG=ibm-operator-catalog
+OD_NAME=ibm-integration-operations-dashboard
+OD_CHANNEL=v2.4
 
 function output_time() {
   SECONDS=${1}
@@ -224,24 +253,28 @@ spec:
   source: ${SOURCE}
   sourceNamespace: ${SOURCE_NAMESPACE}
 EOF
+
+  if [[ "${EXTRA_SAFE_BUT_SLOW}" == "true" ]]; then
+    wait_for_subscription ${NAMESPACE} ${SOURCE} "${NAME}" "${CHANNEL}"
+  fi
 }
 
 function delete_datapower_subscription() {
   NAMESPACE=${1}
 
-  INSTALL_PLANS=$(oc get installplans -n ${NAMESPACE} | grep "datapower-operator" | awk '{print $1}' | xargs)
+  INSTALL_PLANS=$(oc get installplans -n ${NAMESPACE} | grep "${DP_NAME}" | awk '{print $1}' | xargs)
   if [[ "$INSTALL_PLANS" != "" ]]; then
     echo "About to delete installplans: $INSTALL_PLANS"
     oc delete installplans -n ${NAMESPACE} ${INSTALL_PLANS}
   fi
 
-  CSVS=$(oc get csvs -n ${NAMESPACE} | grep "datapower-operator" | awk '{print $1}' | xargs)
+  CSVS=$(oc get csvs -n ${NAMESPACE} | grep "${DP_NAME}" | awk '{print $1}' | xargs)
   if [[ "$CSVS" != "" ]]; then
     echo "About to delete csvs: $CSVS"
     oc delete csvs -n ${NAMESPACE} ${CSVS}
   fi
 
-  SUBSCRIPTIONS=$(oc get subscriptions -n ${NAMESPACE} | grep "datapower-operator" | awk '{print $1}' | xargs)
+  SUBSCRIPTIONS=$(oc get subscriptions -n ${NAMESPACE} | grep "${DP_NAME}" | awk '{print $1}' | xargs)
   if [[ "$SUBSCRIPTIONS" != "" ]]; then
     echo "About to delete subscriptions: $SUBSCRIPTIONS"
     oc delete subscriptions -n ${NAMESPACE} ${SUBSCRIPTIONS}
@@ -268,51 +301,147 @@ fi
 # so APIC knows it's running in CP4I and before tracing (ibm-integration-operations-dashboard)
 # as tracing uses a CRD created by the navigator operator.
 echo "INFO: Applying subscription for platform navigator"
-if [[ "${pre_release}" == "true" ]]; then
-  create_subscription ${namespace} ${NAVIGATOR_CATALOG} "ibm-integration-platform-navigator" "v5.0"
-  wait_for_subscription ${namespace} ${NAVIGATOR_CATALOG} "ibm-integration-platform-navigator" "v5.0"
-  create_subscription ${namespace} ${ASPERA_CATALOG} "aspera-hsts-operator" "v1.2-eus"
-  wait_for_subscription ${namespace} ${ASPERA_CATALOG} "aspera-hsts-operator" "v1.2-eus"
-  create_subscription ${namespace} ${ACE_CATALOG} "ibm-appconnect" "v1.5"
-  wait_for_subscription ${namespace} ${ACE_CATALOG} "ibm-appconnect" "v1.5"
-  create_subscription ${namespace} ${ES_CATALOG} "ibm-eventstreams" "v2.3"
-  wait_for_subscription ${namespace} ${ES_CATALOG} "ibm-eventstreams" "v2.3"
-  create_subscription ${namespace} ${MQ_CATALOG} "ibm-mq" "v1.6"
-  wait_for_subscription ${namespace} ${MQ_CATALOG} "ibm-mq" "v1.6"
-  create_subscription ${namespace} ${AR_CATALOG} "ibm-integration-asset-repository" "v1.3"
-  wait_for_subscription ${namespace} ${AR_CATALOG} "ibm-integration-asset-repository" "v1.3"
-else
-  create_subscription ${namespace} ${NAVIGATOR_CATALOG} "ibm-integration-platform-navigator" "v5.0"
-  wait_for_subscription ${namespace} ${NAVIGATOR_CATALOG} "ibm-integration-platform-navigator" "v5.0"
-  create_subscription ${namespace} ${ASPERA_CATALOG} "aspera-hsts-operator" "v1.2-eus"
-  wait_for_subscription ${namespace} ${ASPERA_CATALOG} "aspera-hsts-operator" "v1.2-eus"
-  create_subscription ${namespace} ${ACE_CATALOG} "ibm-appconnect" "v1.5"
-  wait_for_subscription ${namespace} ${ACE_CATALOG} "ibm-appconnect" "v1.5"
-  create_subscription ${namespace} ${ES_CATALOG} "ibm-eventstreams" "v2.3"
-  wait_for_subscription ${namespace} ${ES_CATALOG} "ibm-eventstreams" "v2.3"
-  create_subscription ${namespace} ${MQ_CATALOG} "ibm-mq" "v1.6"
-  wait_for_subscription ${namespace} ${MQ_CATALOG} "ibm-mq" "v1.6"
-  create_subscription ${namespace} ${AR_CATALOG} "ibm-integration-asset-repository" "v1.3"
-  wait_for_subscription ${namespace} ${AR_CATALOG} "ibm-integration-asset-repository" "v1.3"
-fi
+create_subscription ${namespace} ${NAVIGATOR_CATALOG} "${NAVIGATOR_NAME}" "$NAVIGATOR_CHANNEL"
+
+echo "INFO: Applying subscriptions for aspera, ace, event streams, mq, and asset repo"
+create_subscription ${namespace} ${ASPERA_CATALOG} "${ASPERA_NAME}" "${ASPERA_CHANNEL}"
+create_subscription ${namespace} ${ACE_CATALOG} "${ACE_NAME}" "${ACE_CHANNEL}"
+create_subscription ${namespace} ${ES_CATALOG} "${ES_NAME}" "${ES_CHANNEL}"
+create_subscription ${namespace} ${MQ_CATALOG} "${MQ_NAME}" "${MQ_CHANNEL}"
+create_subscription ${namespace} ${AR_CATALOG} "${AR_NAME}" "${AR_CHANNEL}"
 
 if [[ "${DEPLOY_DEMOS}" == "true" ]]; then
-  create_subscription ${namespace} ${DEMOS_CATALOG} "ibm-integration-demos-operator" "v1.0"
-  wait_for_subscription ${namespace} ${DEMOS_CATALOG} "ibm-integration-demos-operator" "v1.0"
+  echo "INFO: Applying subscription for demos"
+  create_subscription ${namespace} ${DEMOS_CATALOG} "${DEMOS_NAME}" "${DEMOS_CHANNEL}"
 fi
 
-# echo "INFO: Wait for platform navigator before applying the APIC/Tracing subscriptions"
-# wait_for_subscription ${namespace} ${NAVIGATOR_CATALOG} "ibm-integration-platform-navigator" "v4.2"
-echo "INFO: ClusterServiceVersion for the Platform Navigator is now installed, proceeding with installation..."
+if [[ "${EXTRA_SAFE_BUT_SLOW}" == "false" ]]; then
+  echo "INFO: Wait for platform navigator before applying the APIC/Tracing subscriptions"
+  wait_for_subscription ${namespace} ${NAVIGATOR_CATALOG} "${NAVIGATOR_NAME}" "$NAVIGATOR_CHANNEL"
+fi
 
 echo "INFO: Apply the APIC/Tracing subscriptions"
-if [[ "${pre_release}" == "true" ]]; then
-  create_subscription ${namespace} ${APIC_CATALOG} "ibm-apiconnect" "v2.3"
-  create_subscription ${namespace} ${OD_CATALOG} "ibm-integration-operations-dashboard" "v2.3"
-else
-  create_subscription ${namespace} ${APIC_CATALOG} "ibm-apiconnect" "v2.3"
-  create_subscription ${namespace} ${OD_CATALOG} "ibm-integration-operations-dashboard" "v2.3"
-fi
+create_subscription ${namespace} ${APIC_CATALOG} "${APIC_NAME}" "${APIC_CHANNEL}"
+create_subscription ${namespace} ${OD_CATALOG} "${OD_NAME}" "${OD_CHANNEL}"
 
 echo "INFO: Wait for all subscriptions to succeed"
 wait_for_all_subscriptions ${namespace}
+
+if [[ "${ALM_EXAMPLES}" == "true" ]]; then
+  SOURCE_NAMESPACE="openshift-marketplace"
+
+  SUBSCRIPTION_NAME="${NAVIGATOR_NAME}-${NAVIGATOR_CHANNEL}-${NAVIGATOR_CATALOG}-${SOURCE_NAMESPACE}"
+  csv=$(oc get subscription -n ${NAMESPACE} ${SUBSCRIPTION_NAME} -o json | jq -r .status.currentCSV)
+  nav_examples=$(oc get csv $csv -n ${NAMESPACE} -o jsonpath='{.metadata.annotations.alm-examples}' | jq '[.[] | select(.kind=="PlatformNavigator")]')
+  echo "###################################"
+  echo "# Examples for release-navigator.sh"
+  echo "###################################"
+  echo $nav_examples | yq r -P -
+
+  SUBSCRIPTION_NAME="${ACE_NAME}-${ACE_CHANNEL}-${ACE_CATALOG}-${SOURCE_NAMESPACE}"
+  csv=$(oc get subscription -n ${NAMESPACE} ${SUBSCRIPTION_NAME} -o json | jq -r .status.currentCSV)
+  ace_dashboard_examples=$(oc get csv $csv -n ${NAMESPACE} -o jsonpath='{.metadata.annotations.alm-examples}' | jq '[.[] | select(.kind=="Dashboard")]')
+  ace_dashboard_versions=$(oc get csv $csv -n ${NAMESPACE} -o json | jq '.spec.customresourcedefinitions.owned[] | select(.kind=="Dashboard") | .specDescriptors[] | select(.path=="version") | ."x-descriptors"')
+  ace_designer_examples=$(oc get csv $csv -n ${NAMESPACE} -o jsonpath='{.metadata.annotations.alm-examples}' | jq '[.[] | select(.kind=="DesignerAuthoring")]')
+  ace_designer_versions=$(oc get csv $csv -n ${NAMESPACE} -o json | jq '.spec.customresourcedefinitions.owned[] | select(.kind=="DesignerAuthoring") | .specDescriptors[] | select(.path=="version") | ."x-descriptors"')
+  ace_integration_server_examples=$(oc get csv $csv -n ${NAMESPACE} -o jsonpath='{.metadata.annotations.alm-examples}' | jq '[.[] | select(.kind=="IntegrationServer")]')
+  ace_integration_server_versions=$(oc get csv $csv -n ${NAMESPACE} -o json | jq '.spec.customresourcedefinitions.owned[] | select(.kind=="IntegrationServer") | .specDescriptors[] | select(.path=="version") | ."x-descriptors"')
+  echo ""
+  echo "#######################################"
+  echo "# Examples for release-ace-dashboard.sh"
+  echo "#######################################"
+  echo $ace_dashboard_examples | yq r -P -
+  echo "#######################################"
+  echo "# Versions for release-ace-dashboard.sh"
+  echo "#######################################"
+  echo $ace_dashboard_versions | yq r -P -
+  echo ""
+  echo "######################################"
+  echo "# Examples for release-ace-designer.sh"
+  echo "######################################"
+  echo $ace_designer_examples | yq r -P -
+  echo "######################################"
+  echo "# Versions for release-ace-designer.sh"
+  echo "######################################"
+  echo $ace_designer_versions | yq r -P -
+  echo ""
+  echo "################################################"
+  echo "# Examples for release-ace-integration-server.sh"
+  echo "################################################"
+  echo $ace_integration_server_examples | yq r -P -
+  echo "################################################"
+  echo "# Versions for release-ace-integration-server.sh"
+  echo "################################################"
+  echo $ace_integration_server_versions | yq r -P -
+
+  SUBSCRIPTION_NAME="${APIC_NAME}-${APIC_CHANNEL}-${APIC_CATALOG}-${SOURCE_NAMESPACE}"
+  csv=$(oc get subscription -n ${NAMESPACE} ${SUBSCRIPTION_NAME} -o json | jq -r .status.currentCSV)
+  apic_examples=$(oc get csv $csv -n ${NAMESPACE} -o jsonpath='{.metadata.annotations.alm-examples}' | jq '[.[] | select(.kind=="APIConnectCluster")]')
+  apic_versions=$(oc get csv $csv -n ${NAMESPACE} -o json | jq '.spec.customresourcedefinitions.owned[] | select(.kind=="APIConnectCluster") | .specDescriptors[] | select(.path=="version") | ."x-descriptors"')
+  echo ""
+  echo "##############################"
+  echo "# Examples for release-apic.sh"
+  echo "##############################"
+  echo $apic_examples | yq r -P -
+  echo "##############################"
+  echo "# Versions for release-apic.sh"
+  echo "##############################"
+  echo $apic_versions | yq r -P -
+
+  SUBSCRIPTION_NAME="${AR_NAME}-${AR_CHANNEL}-${AR_CATALOG}-${SOURCE_NAMESPACE}"
+  csv=$(oc get subscription -n ${NAMESPACE} ${SUBSCRIPTION_NAME} -o json | jq -r .status.currentCSV)
+  ar_examples=$(oc get csv $csv -n ${NAMESPACE} -o jsonpath='{.metadata.annotations.alm-examples}' | jq '[.[] | select(.kind=="AssetRepository")]')
+  ar_versions=$(oc get csv $csv -n ${NAMESPACE} -o json | jq '.spec.customresourcedefinitions.owned[] | select(.kind=="AssetRepository") | .specDescriptors[] | select(.path=="version") | ."x-descriptors"')
+  echo ""
+  echo "############################"
+  echo "# Examples for release-ar.sh"
+  echo "############################"
+  echo $ar_examples | yq r -P -
+  echo "############################"
+  echo "# Versions for release-ar.sh"
+  echo "############################"
+  echo $ar_versions | yq r -P -
+
+  SUBSCRIPTION_NAME="${ES_NAME}-${ES_CHANNEL}-${ES_CATALOG}-${SOURCE_NAMESPACE}"
+  csv=$(oc get subscription -n ${NAMESPACE} ${SUBSCRIPTION_NAME} -o json | jq -r .status.currentCSV)
+  es_examples=$(oc get csv $csv -n ${NAMESPACE} -o jsonpath='{.metadata.annotations.alm-examples}' | jq '[.[] | select(.kind=="EventStreams")]')
+  es_versions=$(oc get csv $csv -n ${NAMESPACE} -o json | jq '.spec.customresourcedefinitions.owned[] | select(.kind=="EventStreams") | .specDescriptors[] | select(.path=="version") | ."x-descriptors"')
+  echo ""
+  echo "############################"
+  echo "# Examples for release-es.sh"
+  echo "############################"
+  echo $es_examples | yq r -P -
+  echo "############################"
+  echo "# Versions for release-es.sh"
+  echo "############################"
+  echo $es_versions | yq r -P -
+
+  SUBSCRIPTION_NAME="${MQ_NAME}-${MQ_CHANNEL}-${MQ_CATALOG}-${SOURCE_NAMESPACE}"
+  csv=$(oc get subscription -n ${NAMESPACE} ${SUBSCRIPTION_NAME} -o json | jq -r .status.currentCSV)
+  mq_examples=$(oc get csv $csv -n ${NAMESPACE} -o jsonpath='{.metadata.annotations.alm-examples}' | jq '[.[] | select(.kind=="QueueManager")]')
+  # mq_versions=$(oc get csv $csv -n ${NAMESPACE} -o json | jq '.spec.customresourcedefinitions.owned[] | select(.kind=="QueueManager") | .specDescriptors[] | select(.path=="version") | ."x-descriptors"')
+  mq_versions=$(oc get csv $csv -n ${NAMESPACE} -o json | jq '.spec.customresourcedefinitions.owned[] | select(.kind=="QueueManager") | .specDescriptors[] | select(.path=="version") | .description')
+  echo ""
+  echo "############################"
+  echo "# Examples for release-mq.sh"
+  echo "############################"
+  echo $mq_examples | yq r -P -
+  echo "############################"
+  echo "# Versions for release-mq.sh"
+  echo "############################"
+  echo $mq_versions
+
+  SUBSCRIPTION_NAME="${OD_NAME}-${OD_CHANNEL}-${OD_CATALOG}-${SOURCE_NAMESPACE}"
+  csv=$(oc get subscription -n ${NAMESPACE} ${SUBSCRIPTION_NAME} -o json | jq -r .status.currentCSV)
+  od_examples=$(oc get csv $csv -n ${NAMESPACE} -o jsonpath='{.metadata.annotations.alm-examples}' | jq '[.[] | select(.kind=="OperationsDashboard")]')
+  od_versions=$(oc get csv $csv -n ${NAMESPACE} -o json | jq '.spec.customresourcedefinitions.owned[] | select(.kind=="OperationsDashboard") | .specDescriptors[] | select(.path=="version") | ."x-descriptors"')
+  echo ""
+  echo "#################################"
+  echo "# Examples for release-tracing.sh"
+  echo "#################################"
+  echo $od_examples | yq r -P -
+  echo "#################################"
+  echo "# Versions for release-tracing.sh"
+  echo "#################################"
+  echo $od_versions | yq r -P -
+fi

@@ -90,7 +90,7 @@ metadata:
     app.kubernetes.io/managed-by: ibm-apiconnect
     app.kubernetes.io/name: apiconnect-production
 spec:
-  version: 10.0.3.0
+  version: 10.0.3.0-ifix1
   license:
     accept: true
     use: ${license_use}

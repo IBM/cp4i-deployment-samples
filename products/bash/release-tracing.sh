@@ -111,7 +111,7 @@ spec:
     tracingVolume:
       class: "${block_storage}"
       size: 150Gi
-  version: 2021.2.1-0
+  version: 2021.3.1-0
 EOF
 else
   cat <<EOF | oc apply -f -
@@ -142,7 +142,7 @@ spec:
       class: "${file_storage}"
     tracingVolume:
       class: "${block_storage}"
-  version: 2021.2.1-0
+  version: 2021.3.1-0
 EOF
 fi
 
@@ -163,6 +163,52 @@ for i in $(seq 1 400); do
     sleep 15
   fi
 done
+
+# Find the ServiceAccount used by the OD operator pod
+OD_OPERATOR_SA=$(oc get pod \
+  -n ${namespace} \
+  -l app.kubernetes.io/instance=ibm-integration-operations-dashboard \
+  -l app.kubernetes.io/managed-by=ibm-integration-operations-dashboard \
+  -l app.kubernetes.io/name=ibm-integration-operations-dashboard-operator \
+  -l name=ibm-integration-operations-dashboard-operator \
+  -o json | jq -r '[.items[].spec.serviceAccount][0]')
+
+# Work around issue that operator doesn't have permissions on operationsdashboardservicebindings/status
+cat <<EOF | oc apply -f -
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  namespace: ${namespace}
+  name: operationsdashboardservicebindings-fix
+rules:
+- apiGroups:
+  - integration.ibm.com
+  resources:
+  - operationsdashboardservicebindings/status
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  namespace: ${namespace}
+  name: operationsdashboardservicebindings-fix
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: operationsdashboardservicebindings-fix
+subjects:
+- kind: ServiceAccount
+  name: ${OD_OPERATOR_SA}
+  namespace: ${namespace}
+---
+EOF
 
 cat <<EOF | oc apply -f -
 apiVersion: integration.ibm.com/v1beta2

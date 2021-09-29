@@ -94,11 +94,12 @@ spec:
       useIncrementalLearning: true
       storage:
         class: ${file_storage}
+        type: persistent-claim
   license:
     accept: true
     license: $(getACELicense $namespace)
     use: CloudPakForIntegrationNonProduction
   replicas: 1
   useCommonServices: true
-  version: '12.0.1.0-r1'
+  version: '12.0.1.0-r4'
 EOF
