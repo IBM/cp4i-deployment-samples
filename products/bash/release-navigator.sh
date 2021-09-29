@@ -14,7 +14,7 @@
 #
 # PARAMETERS:
 #   -n : <namespace> (string), Defaults to "cp4i"
-#   -r : <replicas> (string), Defaults to "3"
+#   -r : <replicas> (string), Defaults to "1"
 #
 # USAGE:
 #   With default values
@@ -64,12 +64,12 @@ metadata:
 spec:
   license:
     accept: true
-    license: L-RJON-BZFQU2
+    license: L-RJON-C5CSNH
   mqDashboard: true
   replicas: ${replicas}
-  version: 2021.2.1
+  version: 2021.3.1
   storage:
-    class: ibmc-file-gold-gid
+    class: ${storage}
 EOF
 
   if [ $time -gt 10 ]; then
