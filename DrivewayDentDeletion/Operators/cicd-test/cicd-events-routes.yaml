@@ -6,7 +6,7 @@ spec:
   serviceAccountName: pipeline
   triggers:
     - template:
-        name: test-triggertemplate
+        ref: test-triggertemplate
 
 ---
 apiVersion: route.openshift.io/v1
