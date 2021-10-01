@@ -39,30 +39,30 @@ done
 
 function getACELicense() {
   ACE_LICENSE=$(oc -n $1 get configmap $LICENSES_CM -ojsonpath='{.data.ace}' 2>/dev/null)
-  [[ $? == 0 && !$ACE_LICENSE == '' ]] && echo $ACE_LICENSE || echo $DEFAULT_ACE
+  [[ $? -eq 0 && ! -z $ACE_LICENSE ]] && echo $ACE_LICENSE || echo $DEFAULT_ACE
 }
 
 function getAPICLicense() {
   APIC_LICENSE=$(oc -n $1 get configmap $LICENSES_CM -ojsonpath='{.data.apic}' 2>/dev/null)
-  [[ $? == 0 && !$APIC_LICENSE == '' ]] && echo $APIC_LICENSE || echo $DEFAULT_APIC
+  [[ $? -eq 0 && ! -z $APIC_LICENSE ]] && echo $APIC_LICENSE || echo $DEFAULT_APIC
 }
 
 function getARLicense() {
   AR_LICENSE=$(oc -n $1 get configmap $LICENSES_CM -ojsonpath='{.data.ar}' 2>/dev/null)
-  [[ $? == 0 && !$AR_LICENSE == '' ]] && echo $AR_LICENSE || echo $DEFAULT_AR
+  [[ $? -eq 0 && ! -z $AR_LICENSE ]] && echo $AR_LICENSE || echo $DEFAULT_AR
 }
 
 function getDemoLicense() {
   DEMO_LICENSE=$(oc -n $1 get configmap $LICENSES_CM -ojsonpath='{.data.demo}' 2>/dev/null)
-  [[ $? == 0 && !$DEMO_LICENSE == '' ]] && echo $DEMO_LICENSE || echo $DEFAULT_DEMO
+  [[ $? -eq 0 && ! -z $DEMO_LICENSE ]] && echo $DEMO_LICENSE || echo $DEFAULT_DEMO
 }
 
 function getMQLicense() {
   MQ_LICENSE=$(oc -n $1 get configmap $LICENSES_CM -ojsonpath='{.data.mq}' 2>/dev/null)
-  [[ $? == 0 && !$MQ_LICENSE == '' ]] && echo $MQ_LICENSE || echo $DEFAULT_MQ
+  [[ $? -eq 0 && ! -z $MQ_LICENSE ]] && echo $MQ_LICENSE || echo $DEFAULT_MQ
 }
 
 function getTracingLicense() {
   TRACING_LICENSE=$(oc -n $1 get configmap $LICENSES_CM -ojsonpath='{.data.tracing}' 2>/dev/null)
-  [[ $? == 0 && !$TRACING_LICENSE == '' ]] && echo $TRACING_LICENSE || echo $DEFAULT_TRACING
+  [[ $? -eq 0 && ! -z $TRACING_LICENSE ]] && echo $TRACING_LICENSE || echo $DEFAULT_TRACING
 }
