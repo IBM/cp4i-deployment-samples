@@ -237,8 +237,10 @@ if [[ $SUM -gt 0 ]]; then
   exit 1
 else
   # print route for webhook
-  echo -e "$INFO [INFO] Your trigger route for the github webhook is: $WEBHOOK_ROUTE"
-  echo -e "\n$INFO [INFO] The next step is to add the trigger URL to the forked repository as a webhook with the Content type as 'application/json', which triggers an initial run of the pipeline.\n"
+  echo -e "$INFO [INFO] Your trigger route for the github webhook for the test pipeline of the driveway dent deletion demo is: $WEBHOOK_ROUTE"
+  echo -e "$INFO [INFO] The next step is to add the trigger URL to the forked repository as a webhook with the Content type as 'application/json', which triggers an initial run of the pipeline."
+  echo -e "$INFO [INFO] To manually trigger a run of the pipeline use:"
+  echo -e "$INFO [INFO]    curl -X POST $WEBHOOK_ROUTE --header \"Content-Type: application/json\" --data '{\"message\":\"Test run\"}'\n"
   echo -e "$TICK  $ALL_DONE [SUCCESS] Successfully applied all the cicd pipeline resources and requirements in the '$NAMESPACE' namespace for the test pipeline of the driveway dent deletion demo"
 fi
 
