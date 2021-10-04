@@ -1,12 +1,32 @@
 #!/bin/bash
 
-namespace="test"
+# TODO parameterize this
+namespace="test3"
+
+# TODO need ibm-entitlement-key set as a pre-req
+
+# TODO need to run configure-ocp-pipeline.sh first
 
 tick="\xE2\x9C\x85"
 cross="\xE2\x9D\x8C"
 
-oc apply -f tasks.yaml
-oc apply -f pipeline.yaml
+if cat tasks.yaml |
+  sed "s#{{NAMESPACE}}#$namespace#g;" |
+  oc apply -n ${namespace} -f -; then
+  echo -e "\n$tick INFO: Successfully applied tasks.yaml"
+else
+  echo -e "\n$cross ERROR: Failed to apply tasks.yaml"
+  exit 1
+fi
+
+if cat pipeline.yaml |
+  sed "s#{{NAMESPACE}}#$namespace#g;" |
+  oc apply -n ${namespace} -f -; then
+  echo -e "\n$tick INFO: Successfully applied pipeline.yaml"
+else
+  echo -e "\n$cross ERROR: Failed to apply pipeline.yaml"
+  exit 1
+fi
 
 PIPELINE_RUN_NAME=cp4i-install
 oc delete pipelinerun ${PIPELINE_RUN_NAME}
@@ -78,6 +98,38 @@ subjects:
   name: pipeline
   namespace: ${namespace}
 ---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  namespace: openshift
+  name: pipelines-create-processedtemplates
+rules:
+- apiGroups:
+  - template.openshift.io
+  resources:
+  - processedtemplates
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  namespace: openshift
+  name: pipelines-create-processedtemplates-${namespace}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: pipelines-create-processedtemplates
+subjects:
+- kind: ServiceAccount
+  name: pipeline
+  namespace: ${namespace}
 EOF
 
 

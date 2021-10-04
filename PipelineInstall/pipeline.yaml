@@ -5,10 +5,56 @@ metadata:
   labels:
     app: cp4i-install
 spec:
+  params:
+    - name: namespace
+      type: string
+      description: The namespace into which to install
+      default: $(context.pipelineRun.namespace)
+    - name: tracing
+      type: string
+      description: Set to "true" to enable tracing
+      default: "false"
+    - name: fileStorageClass
+      type: string
+      description: The file storage class to use
+      default: "ibmc-file-gold-gid"
+    - name: blockStorageClass
+      type: string
+      description: The block storage class to use
+      default: "ibmc-block-gold"
+
+# TODO Pass own ref in and set for all created objects
+# TODO Allow passing the license and version?
   tasks:
-    - name: create-catalog-sources
+    # - name: command-image
+    #   taskRef:
+    #     name: run-command
+    #   params:
+    #     - name: command
+    #       value: |
+    #         echo "Got here, so image is built"
+    #         oc version
+    #         jq --version
+
+    # TODO Any way to avoid this if the image exists?
+    - name: command-image
+      taskRef:
+        name: build-task-no-pvc-or-workspace
+      params:
+        - name: dockerfile
+          value: |
+            # Use the CLI image for the minimum version
+            FROM quay.io/openshift/origin-cli:4.6.0
+
+            # Install JQ 1.6
+            RUN wget -O jq https://github.com/stedolan/jq/releases/download/jq-1.6/jq-linux64 -O /usr/local/bin/jq && chmod +x /usr/local/bin/jq
+        - name: imagePath
+          value: image-registry.openshift-image-registry.svc:5000/$(params.namespace)/run-command:latest
+    - name: catalog-sources
       taskRef:
         name: run-command
+      runAfter:
+        - command-image
       params:
         - name: command
           value: |
@@ -27,9 +73,9 @@ spec:
                 registryPoll:
                   interval: 45m
             EOF
-    - name: install-navigator-operator
+    - name: nav-op
       runAfter:
-        - create-catalog-sources
+        - catalog-sources
       taskRef:
         name: install-operator
       params:
@@ -39,3 +85,833 @@ spec:
           value: ibm-integration-platform-navigator
         - name: channel
           value: v5.1
+    - name: ace-op
+      runAfter:
+        - catalog-sources
+      taskRef:
+        name: install-operator
+      params:
+        - name: catalog-source
+          value: ibm-operator-catalog
+        - name: name
+          value: ibm-appconnect
+        - name: channel
+          value: v2.0
+    - name: apic-op
+      runAfter:
+        - catalog-sources
+        - nav-op
+      taskRef:
+        name: install-operator
+      params:
+        - name: catalog-source
+          value: ibm-operator-catalog
+        - name: name
+          value: ibm-apiconnect
+        - name: channel
+          value: v2.3
+    - name: ar-op
+      runAfter:
+        - catalog-sources
+      taskRef:
+        name: install-operator
+      params:
+        - name: catalog-source
+          value: ibm-operator-catalog
+        - name: name
+          value: ibm-integration-asset-repository
+        - name: channel
+          value: v1.3
+    - name: aspera-op
+      runAfter:
+        - catalog-sources
+      taskRef:
+        name: install-operator
+      params:
+        - name: catalog-source
+          value: ibm-operator-catalog
+        - name: name
+          value: aspera-hsts-operator
+        - name: channel
+          value: v1.3
+    - name: es-op
+      runAfter:
+        - catalog-sources
+      taskRef:
+        name: install-operator
+      params:
+        - name: catalog-source
+          value: ibm-operator-catalog
+        - name: name
+          value: ibm-eventstreams
+        - name: channel
+          value: v2.4
+    - name: mq-op
+      runAfter:
+        - catalog-sources
+      taskRef:
+        name: install-operator
+      params:
+        - name: catalog-source
+          value: ibm-operator-catalog
+        - name: name
+          value: ibm-mq
+        - name: channel
+          value: v1.6
+    - name: od-op
+      runAfter:
+        - catalog-sources
+        - nav-op
+      taskRef:
+        name: install-operator
+      params:
+        - name: catalog-source
+          value: ibm-operator-catalog
+        - name: name
+          value: ibm-integration-operations-dashboard
+        - name: channel
+          value: v2.4
+    - name: apic
+      taskRef:
+        name: run-command
+      runAfter:
+        - apic-op
+      params:
+        - name: command
+          value: |
+            #!/usr/bin/env bash
+
+            release_name="ademo"
+
+            APIC_LICENSE=$(oc get configmap demo-licenses -ojsonpath='{.data.apic}' 2>/dev/null)
+            if [[ $? -ne 0 ]]; then
+              APIC_LICENSE="L-RJON-BZEP9N"
+            fi
+
+            cat <<EOF | oc apply -f -
+            apiVersion: apiconnect.ibm.com/v1beta1
+            kind: APIConnectCluster
+            metadata:
+              namespace: $(params.namespace)
+              name: ${release_name}
+              labels:
+                app.kubernetes.io/instance: apiconnect
+                app.kubernetes.io/managed-by: ibm-apiconnect
+                app.kubernetes.io/name: apiconnect-production
+            spec:
+              version: 10.0.3.0-ifix1
+              license:
+                accept: true
+                use: "nonproduction"
+                license: ${APIC_LICENSE}
+              profile: "n1xc10.m48"
+              gateway:
+                openTracing:
+                  enabled: $(params.tracing)
+                  odTracingNamespace: $(params.namespace)
+                replicaCount: 1
+              management:
+                testAndMonitor:
+                  enabled: true
+            EOF
+
+            echo "Waiting for APIC installation to complete..."
+            for i in $(seq 1 360); do
+              STATUS=$(oc get apiconnectcluster.apiconnect.ibm.com -n $(params.namespace) ${release_name} -o jsonpath='{.status.phase}')
+              if [ "$STATUS" == "Ready" ]; then
+                echo "[OK] APIC is ready"
+                exit 0
+              fi
+              echo "Waiting for APIC install to complete (Attempt $i of 360). Status: $APIC_STATUS"
+              kubectl get apic,pods,pvc -n $(params.namespace)
+              echo "Checking again in 10 seconds..."
+              sleep 10
+            done
+
+            if [ "$STATUS" != "Ready" ]; then
+              echo "[ERROR] APIC failed to install"
+              exit 1
+            fi
+    - name: ace-designer
+      taskRef:
+        name: run-command
+      runAfter:
+        - ace-op
+      params:
+        - name: command
+          value: |
+            #!/usr/bin/env bash
+
+            release_name="ace-designer-demo"
+
+            ACE_LICENSE=$(oc get configmap demo-licenses -ojsonpath='{.data.ace}' 2>/dev/null)
+            if [[ $? -ne 0 ]]; then
+              ACE_LICENSE="L-APEH-C49KZH"
+            fi
+
+            cat <<EOF | oc apply -f -
+            apiVersion: appconnect.ibm.com/v1beta1
+            kind: DesignerAuthoring
+            metadata:
+              namespace: $(params.namespace)
+              name: ${release_name}
+            spec:
+              couchdb:
+                replicas: 1
+                storage:
+                  class: $(params.blockStorageClass)
+                  size: 10Gi
+                  type: persistent-claim
+              designerFlowsOperationMode: local
+              designerMappingAssist:
+                enabled: true
+                incrementalLearning:
+                  useIncrementalLearning: true
+                  storage:
+                    class: $(params.fileStorageClass)
+                    type: persistent-claim
+              license:
+                accept: true
+                license: ${ACE_LICENSE}
+                use: CloudPakForIntegrationNonProduction
+              replicas: 1
+              useCommonServices: true
+              version: '12.0.1.0-r4'
+            EOF
+
+            echo "Waiting for DesignerAuthoring to be ready..."
+            for i in $(seq 1 360); do
+              STATUS=$(oc get DesignerAuthoring -n $(params.namespace) ${release_name} -o jsonpath='{.status.phase}')
+              if [ "$STATUS" == "Ready" ]; then
+                echo "[OK] ACE Designer is ready"
+                exit 0
+              fi
+              echo "Waiting for ACE Designer install to complete (Attempt $i of 360). Status: $STATUS"
+              oc get pvc -n $(params.namespace) | grep Pending
+              echo "Checking again in 10 seconds..."
+              sleep 10
+            done
+
+            if [ "$STATUS" != "Ready" ]; then
+              echo "[ERROR] ACE Designer failed to install"
+              exit 1
+            fi
+
+            # oc wait --for=condition=available DesignerAuthoring --timeout=20m -n $(params.namespace) ${release_name}
+
+    - name: ace-dashboard
+      taskRef:
+        name: run-command
+      runAfter:
+        - ace-op
+      params:
+        - name: command
+          value: |
+            #!/usr/bin/env bash
+
+            release_name="ace-dashboard-demo"
+
+            ACE_LICENSE=$(oc get configmap demo-licenses -ojsonpath='{.data.ace}' 2>/dev/null)
+            if [[ $? -ne 0 ]]; then
+              ACE_LICENSE="L-APEH-C49KZH"
+            fi
+
+            cat <<EOF | oc apply -f -
+            apiVersion: appconnect.ibm.com/v1beta1
+            kind: Dashboard
+            metadata:
+              namespace: $(params.namespace)
+              name: ${release_name}
+            spec:
+              license:
+                accept: true
+                license: ${ACE_LICENSE}
+                use: "CloudPakForIntegrationNonProduction"
+              pod:
+                containers:
+                  content-server:
+                    resources:
+                      limits:
+                        cpu: 250m
+                        memory: 512Mi
+                      requests:
+                        cpu: 50m
+                        memory: 50Mi
+                  control-ui:
+                    resources:
+                      limits:
+                        cpu: 250m
+                        memory: 250Mi
+                      requests:
+                        cpu: 50m
+                        memory: 125Mi
+              replicas: 1
+              storage:
+                class: $(params.fileStorageClass)
+                size: 5Gi
+                type: persistent-claim
+              useCommonServices: true
+              version: '12.0.1.0-r4'
+            EOF
+
+            echo "Waiting for Dashboard to be ready..."
+            for i in $(seq 1 360); do
+              STATUS=$(oc get Dashboard -n $(params.namespace) ${release_name} -o jsonpath='{.status.phase}')
+              if [ "$STATUS" == "Ready" ]; then
+                echo "[OK] ACE Dashboard is ready"
+                exit 0
+              fi
+              echo "Waiting for ACE Dashboard install to complete (Attempt $i of 360). Status: $STATUS"
+              oc get pvc -n $(params.namespace) | grep Pending
+              echo "Checking again in 10 seconds..."
+              sleep 10
+            done
+
+            if [ "$STATUS" != "Ready" ]; then
+              echo "[ERROR] ACE Dashboard failed to install"
+              exit 1
+            fi
+
+            # oc wait --for=condition=available Dashboard --timeout=20m $(params.namespace) ${release_name}
+
+    - name: ar
+      taskRef:
+        name: run-command
+      runAfter:
+        - ar-op
+        # TODO shouldn't need to wait for Nav, but if AR installed before Nav then it creates a ZenService with a block storage class when it has to be a file storage class
+        # As an alternative can work around by creating an AutomationUIConfig object, see https://ibm-cloud.slack.com/archives/CHSQUDXKQ/p1633357438045400
+        - nav
+      params:
+        - name: command
+          value: |
+            #!/usr/bin/env bash
+
+            release_name="demo"
+
+            AR_LICENSE=$(oc get configmap demo-licenses -ojsonpath='{.data.ar}' 2>/dev/null)
+            if [[ $? -ne 0 ]]; then
+              AR_LICENSE="L-NCAN-C3CJ8D"
+            fi
+
+            cat <<EOF | oc apply -f -
+            apiVersion: integration.ibm.com/v1beta1
+            kind: AssetRepository
+            metadata:
+              namespace: $(params.namespace)
+              name: ${release_name}
+            spec:
+              designerAIFeatures:
+                enabled: true
+              license:
+                accept: true
+                license: ${AR_LICENSE}
+              replicas: 1
+              storage:
+                assetDataVolume:
+                  class: $(params.fileStorageClass)
+                couchVolume:
+                  class: $(params.blockStorageClass)
+              version: 2021.2.1-1
+            EOF
+
+            echo "Waiting for AssetRepository to be ready..."
+            for i in $(seq 1 360); do
+              STATUS=$(oc get AssetRepository -n $(params.namespace) ${release_name} -o jsonpath='{.status.phase}')
+              if [ "$STATUS" == "Ready" ]; then
+                echo "[OK] ACE AssetRepository is ready"
+                exit 0
+              fi
+              echo "Waiting for AssetRepository install to complete (Attempt $i of 360). Status: $STATUS"
+              oc get pvc -n $(params.namespace) | grep Pending
+              echo "Checking again in 10 seconds..."
+              sleep 10
+            done
+
+            if [ "$STATUS" != "Ready" ]; then
+              echo "[ERROR] AssetRepository failed to install"
+              exit 1
+            fi
+
+            # oc wait --for=condition=available AssetRepository --timeout=20m $(params.namespace) ${release_name}
+
+    - name: configure-ar
+      taskRef:
+        name: run-command
+      runAfter:
+        - ar
+      params:
+        - name: command
+          value: |
+            #!/usr/bin/env bash
+
+            CURRENT_DIR=$(dirname $0)
+
+            USING_OPERATORS=true
+
+            ## Defaults
+            NAMESPACE=$(params.namespace)
+            RELEASE_NAME=demo
+            GIT_REPO=${GIT_REPO:-"https://github.com/IBM/cp4i-demos.git"}
+            REMOTE_NAME=${REMOTE_NAME:-"CP4I Demo Assets"}
+            REMOTE_DESC=${REMOTE_DESC:-"Remote that populates the asset repository with assets for CP4I demos"}
+
+            asset_repo_release=$RELEASE_NAME
+            asset_repo_namespace=$NAMESPACE
+            ### End inputs
+
+            remote="{ \"metadata\": { \"asset_type\": \"remote_repo\", \"name\": \"$REMOTE_NAME\", \"description\": \"$REMOTE_DESC\" }, \"entity\": { \"remote_repo\": { \"asset_types\": \"\", \"remote_type\": \"git_connection\", \"branch\": \"main\", \"schedule\": \"EVERY_FIVE_MINS\", \"uri\": \"$GIT_REPO\" } } }"
+            tick="\xE2\x9C\x94"
+            cross="\xE2\x9D\x8C"
+
+            echo "=== Initialising Asset repository with a remote ==="
+            rm -rf /tmp/ar_create_tmp
+            mkdir -p /tmp/ar_create_tmp
+
+            for i in $(seq 1 60); do
+              cp4iuser=$(oc get secrets -n ibm-common-services platform-auth-idp-credentials -o jsonpath='{.data.admin_username}' | base64 --decode)
+              cp4ipwd=$(oc get secrets -n ibm-common-services platform-auth-idp-credentials -o jsonpath='{.data.admin_password}' | base64 --decode)
+              icpConsoleUrl="https://$(oc get routes -n ibm-common-services cp-console -o jsonpath='{.spec.host}')"
+
+              echo "- Generating access token for user at $icpConsoleUrl"
+              # get an icp token
+              token_response=$(curl --insecure -s -X POST -H "Content-Type: application/x-www-form-urlencoded" -d "grant_type=password&scope=openid&username=$cp4iuser&password=$cp4ipwd" $icpConsoleUrl/idprovider/v1/auth/identitytoken)
+              token=""
+
+              if [[ ! -z "$token_response" ]]; then
+                if jq -e '.access_token' >/dev/null 2>&1 <<<"$token_response"; then
+                  token=$(jq -r '.access_token' <<<"$token_response")
+                  break
+                else
+                  echo "Error: Failed to parse JSON, $token_response. (Attempt $i of 60)."
+                fi
+              else
+                echo "Error: No token found (Attempt $i of 60)"
+              fi
+              echo "Checking again in 10 seconds..."
+              sleep 10
+            done
+
+            echo "=== Checking the route has been created ==="
+            i=1
+            retries=30
+            interval=10
+            desiredResponseContent="/assets"
+
+            ar_path=""
+            until [[ "$ar_path" == *"$desiredResponseContent"* ]]; do
+              echo "Waiting for asset repo route to be created, attempt number: $i..."
+              ar_path=$(oc get ar -n $NAMESPACE $RELEASE_NAME -o json | jq -r '.status.endpoints[] | select ( .name == "ui").uri' | sed 's#^https://##;')
+              ((i = i + 1))
+              if [[ "$retries" -eq "$i" ]]; then
+                echo "Error: Asset repository route could not be found"
+                exit 1
+              fi
+              sleep $interval
+            done
+
+            printf "$tick "
+            echo "Asset repository as available at $ar_path"
+
+            echo "=== Checking that Asset repository is live ==="
+            i=1
+            retries=60
+            interval=10
+            response=500
+            function get_catalogs() {
+              response=$(curl --silent --insecure \
+                https://$1/api/catalogs -H "Authorization: Bearer $2" -o /dev/null -w %{http_code})
+            }
+
+            get_catalogs $ar_path $token
+            ## retries request until we get a 200, or hit max retries
+            until [[ $response =~ 200 || "$retries" -eq "$i" ]]; do
+              echo "Waiting for asset repo to come alive, attempt number: $i..."
+              get_catalogs $ar_path $token
+              ((i = i + 1))
+              echo "Response code: $response"
+              sleep $interval
+            done
+            ## If we never got a successful response, exit
+            if [[ ! $response =~ 200 || $i -eq $retries ]]; then
+              printf "$cross "
+              echo "Error: Asset repository could not be contacted at $ar_path"
+              exit 1
+            fi
+            printf "$tick "
+            echo "Asset repository contacted at $ar_path"
+
+            echo "=== Setting up git remote for Asset repository ==="
+
+            echo "- Checking that the Asset repository can communicate with git remote"
+            i=1
+            retries=10
+            interval=10
+            response=500
+            echo "" >/tmp/ar_create_tmp/remote.status.log
+
+            function test_remote() {
+              response=$(curl -X POST --silent --insecure \
+                https://$1/api/remotes/test -d "$3" -H "Content-Type: application/json" -H "Authorization: Bearer $2" -o /tmp/ar_create_tmp/remote-status.log -w %{http_code})
+            }
+
+            ## retries request until we get a 200, or hit max retries
+            test_remote $ar_path $token "$remote"
+            until [[ $response =~ 200 || "$retries" -eq "$i" ]]; do
+              echo "Waiting for git remote repository to connect: $i..."
+              test_remote $ar_path $token $remote
+              ((i = i + 1))
+              printf "Remote test response: "
+              cat /tmp/ar_create_tmp/remote-status.log
+              echo ""
+              echo "Response code: $response"
+              sleep $interval
+            done
+            ## If we never got a successful response, exit
+            if [[ ! $response =~ 200 || $i -eq $retries ]]; then
+              printf $cross
+              echo "Error: Git remote repository could not be contacted."
+              exit 1
+            fi
+            printf "$tick "
+            echo "Git Remote repository contacted."
+
+            catalogId="catalog"
+
+            ## Fetch remote config for a catalog
+            echo "- Fetching remote config for catalog"
+            config_response=$(curl --insecure -s https://$ar_path/api/remotes/config/$catalogId?remote_type=git_connection -w %{http_code} -o /tmp/ar_create_tmp/remote_config.json -H "Content-Type: application/json" -H "Authorization: Bearer $token")
+            if [[ ! $config_response =~ 200 ]]; then
+              printf "$cross "
+              echo "Response code: $config_response"
+              cat /tmp/ar_create_tmp/remote_config.json
+              exit 1
+            fi
+            ## Modify remote.json to include asset types from configs
+            printf "$tick "
+            echo "Fetched remote config for catalog id $catalogId"
+            asset_types=$(jq '.assetTypes | map(.name) | join(",")' /tmp/ar_create_tmp/remote_config.json -r)
+            echo "- Configuring remote for the following asset types $asset_types"
+            modified_remote=$(jq --arg asset_types $asset_types '.entity.remote_repo.asset_types= $asset_types' <<<"$remote")
+            printf "$tick "
+            echo "Git remote config asset types populated."
+
+            ## Create remote
+            echo "=== Creating git remote for Asset repository ===="
+            create_response=$(curl --insecure -s https://$ar_path/api/remotes/?catalog_id=$catalogId -w %{http_code} -X POST -d "$modified_remote" -o /tmp/ar_create_tmp/remote_create.json -H "Content-Type: application/json" -H "Authorization: Bearer $token")
+            if [[ ! $create_response =~ 201 ]]; then
+              printf "$cross "
+              echo "Response code: $create_response"
+              cat /tmp/ar_create_tmp/remote_create.json
+              exit 1
+            fi
+            printf "$tick "
+            echo "Git remote created."
+            echo "=== Asset repository initialised with a git remote ==="
+            rm -rf /tmp/ar_create_tmp
+
+    - name: es
+      taskRef:
+        name: run-command
+      runAfter:
+        - es-op
+      params:
+        - name: command
+          value: |
+            #!/usr/bin/env bash
+
+            release_name="es-demo"
+
+            cat <<EOF | oc apply -f -
+            apiVersion: eventstreams.ibm.com/v1beta1
+            kind: EventStreams
+            metadata:
+              namespace: $(params.namespace)
+              name: ${release_name}
+            spec:
+              version: 10.4.0
+              license:
+                accept: true
+                use: CloudPakForIntegrationNonProduction
+              adminApi: {}
+              adminUI: {}
+              collector: {}
+              restProducer: {}
+              schemaRegistry:
+                storage:
+                  type: ephemeral
+              security:
+                internalTls: NONE
+              strimziOverrides:
+                kafka:
+                  replicas: 3
+                  config:
+                    inter.broker.protocol.version: '2.8'
+                    interceptor.class.names: com.ibm.eventstreams.interceptors.metrics.ProducerMetricsInterceptor
+                    log.message.format.version: '2.8'
+                    offsets.topic.replication.factor: 1
+                    transaction.state.log.min.isr: 1
+                    transaction.state.log.replication.factor: 1
+                  listeners:
+                    plain: {}
+                  metrics: {}
+                  storage:
+                    type: ephemeral
+                zookeeper:
+                  replicas: 3
+                  metrics: {}
+                  storage:
+                    type: ephemeral
+            EOF
+
+            echo "Waiting for EventStreams to be ready..."
+            for i in $(seq 1 360); do
+              STATUS=$(oc get EventStreams -n $(params.namespace) ${release_name} -o jsonpath='{.status.phase}')
+              if [ "$STATUS" == "Ready" ]; then
+                echo "[OK] EventStreams is ready"
+                exit 0
+              fi
+              echo "Waiting for EventStreams install to complete (Attempt $i of 360). Status: $STATUS"
+              oc get pvc -n $(params.namespace) | grep Pending
+              echo "Checking again in 10 seconds..."
+              sleep 10
+            done
+
+            if [ "$STATUS" != "Ready" ]; then
+              echo "[ERROR] ACE EventStreams failed to install"
+              exit 1
+            fi
+
+            # oc wait --for=condition=available EventStreams --timeout=20m $(params.namespace) ${release_name}
+
+    - name: od
+      taskRef:
+        name: run-command
+      runAfter:
+        - od-op
+      params:
+        - name: command
+          value: |
+            #!/usr/bin/env bash
+
+            release_name="tracing-demo"
+
+            TRACING_LICENSE=$(oc get configmap demo-licenses -ojsonpath='{.data.tracing}' 2>/dev/null)
+            if [[ $? -ne 0 ]]; then
+              TRACING_LICENSE="CP4I"
+            fi
+
+            cat <<EOF | oc apply -f -
+            apiVersion: integration.ibm.com/v1beta2
+            kind: OperationsDashboard
+            metadata:
+              namespace: "$(params.namespace)"
+              name: "${release_name}"
+              labels:
+                app.kubernetes.io/instance: ibm-integration-operations-dashboard
+                app.kubernetes.io/managed-by: ibm-integration-operations-dashboard
+                app.kubernetes.io/name: ibm-integration-operations-dashboard
+            spec:
+              license:
+                accept: true
+                license: ${TRACING_LICENSE}
+              storage:
+                configDbVolume:
+                  class: "$(params.fileStorageClass)"
+                sharedVolume:
+                  class: "$(params.fileStorageClass)"
+                tracingVolume:
+                  class: "$(params.blockStorageClass)"
+              version: 2021.3.1-0
+            EOF
+
+            # If the icp4i-od-store-cred then create a dummy one that the service binding will populate
+            oc create secret generic -n $(params.namespace) icp4i-od-store-cred --from-literal=icp4i-od-cacert.pem="empty" --from-literal=username="empty" --from-literal=password="empty" --from-literal=tracingUrl="empty" 2>/dev/null
+
+            echo "Waiting for Operations Dashboard installation to complete..."
+            for i in $(seq 1 720); do
+              STATUS=$(oc get OperationsDashboard -n $(params.namespace) ${release_name} -o jsonpath='{.status.phase}')
+              if [ "$STATUS" == "Ready" ]; then
+                echo "Operations Dashboard is ready"
+                break
+              else
+                echo "Waiting for Operations Dashboard install to complete (Attempt $i of 720). Status: $STATUS"
+
+                echo "Checking again in 10 seconds..."
+                sleep 10
+              fi
+            done
+
+            # Find the ServiceAccount used by the OD operator pod
+            OD_OPERATOR_SA=$(oc get pod \
+              -n $(params.namespace) \
+              -l app.kubernetes.io/instance=ibm-integration-operations-dashboard \
+              -l app.kubernetes.io/managed-by=ibm-integration-operations-dashboard \
+              -l app.kubernetes.io/name=ibm-integration-operations-dashboard-operator \
+              -l name=ibm-integration-operations-dashboard-operator \
+              -o json | jq -r '[.items[].spec.serviceAccount][0]')
+
+            # Work around issue that operator doesn't have permissions on operationsdashboardservicebindings/status
+            cat <<EOF | oc apply -f -
+            apiVersion: rbac.authorization.k8s.io/v1
+            kind: Role
+            metadata:
+              namespace: $(params.namespace)
+              name: operationsdashboardservicebindings-fix
+            rules:
+            - apiGroups:
+              - integration.ibm.com
+              resources:
+              - operationsdashboardservicebindings/status
+              verbs:
+              - create
+              - delete
+              - get
+              - list
+              - patch
+              - update
+              - watch
+            ---
+            apiVersion: rbac.authorization.k8s.io/v1
+            kind: RoleBinding
+            metadata:
+              namespace: $(params.namespace)
+              name: operationsdashboardservicebindings-fix
+            roleRef:
+              apiGroup: rbac.authorization.k8s.io
+              kind: Role
+              name: operationsdashboardservicebindings-fix
+            subjects:
+            - kind: ServiceAccount
+              name: ${OD_OPERATOR_SA}
+              namespace: ${namespace}
+            ---
+            EOF
+
+            cat <<EOF | oc apply -f -
+            apiVersion: integration.ibm.com/v1beta2
+            kind: OperationsDashboardServiceBinding
+            metadata:
+              name: ${release_name}
+              namespace: $(params.namespace)
+            spec:
+              odNamespace: "$(params.namespace)"
+              odInstanceName: "${release_name}"
+              sourceInstanceName: "demo-tracing"
+              sourcePodName: "demo-tracing"
+              sourceSecretName: "icp4i-od-store-cred"
+            EOF
+
+    - name: nav
+      taskRef:
+        name: run-command
+      runAfter:
+        - nav-op
+      params:
+        - name: command
+          value: |
+            #!/usr/bin/env bash
+
+            replicas="2"
+
+            # Instantiate Platform Navigator
+            echo "INFO: Instantiating Platform Navigator"
+            cat <<EOF | oc apply -f -
+            apiVersion: integration.ibm.com/v1beta1
+            kind: PlatformNavigator
+            metadata:
+              namespace: $(params.namespace)
+              name: $(params.namespace)-navigator
+            spec:
+              license:
+                accept: true
+                license: L-RJON-C5CSNH
+              mqDashboard: true
+              replicas: 2
+              version: 2021.3.1
+              storage:
+                class: $(params.fileStorageClass)
+            EOF
+
+            # Waiting upto 90 minutes for platform navigator object to be ready
+            echo "INFO: Waiting upto 90 minutes for platform navigator object to be ready"
+            time=0
+
+            while [[ "$(oc get PlatformNavigator -n $(params.namespace) $(params.namespace)-navigator -o json | jq -r '.status.conditions[] | select(.type=="Ready").status')" != "True" ]]; do
+              echo "INFO: The platform navigator object status:"
+              echo "INFO: $(oc get PlatformNavigator -n $(params.namespace) $(params.namespace)-navigator)"
+              if [ $time -gt 900 ]; then
+                echo "ERROR: Exiting installation Platform Navigator object is not ready"
+                exit 1
+              fi
+              echo "INFO: Waiting up to 90 minutes for platform navigator object to be ready. Waited ${time} minute(s)."
+
+              time=$((time + 1))
+              sleep 6
+            done
+
+            # Printing the platform navigator object status
+            echo "INFO: The platform navigator object status:"
+            echo "INFO: $(oc get PlatformNavigator -n $(params.namespace) $(params.namespace)-navigator)"
+            echo "INFO: PLATFORM NAVIGATOR ROUTE IS: $(oc get route -n $(params.namespace) $(params.namespace)-navigator-pn -o json | jq -r .spec.host)"
+
+    - name: psql
+      taskRef:
+        name: run-command
+      runAfter:
+        - command-image
+      params:
+        - name: command
+          value: |
+            #!/usr/bin/env bash
+
+            release_name="tracing-demo"
+
+            POSTGRES_NAMESPACE="$(params.namespace)"
+
+            echo -e "Postgres namespace for release-psql: '$POSTGRES_NAMESPACE'\n"
+
+            echo "Installing PostgreSQL..."
+            cat <<EOF >/tmp/postgres.env
+              MEMORY_LIMIT=2Gi
+              NAMESPACE=openshift
+              DATABASE_SERVICE_NAME=postgresql
+              POSTGRESQL_USER=admin
+              POSTGRESQL_DATABASE=sampledb
+              VOLUME_CAPACITY=1Gi
+              POSTGRESQL_VERSION=10-el8
+            EOF
+
+            oc process -n openshift postgresql-persistent --param-file=/tmp/postgres.env | oc apply -n ${POSTGRES_NAMESPACE} -f -
+
+            echo "INFO: Waiting for postgres to be ready in the ${POSTGRES_NAMESPACE} namespace"
+            oc wait -n ${POSTGRES_NAMESPACE} --for=condition=available --timeout=20m deploymentconfig/postgresql
+            if [[ $? -ne 0 ]]; then
+              echo "ERROR: Postgres install failed"
+              exit 1
+            fi
+
+            DB_POD=$(oc get pod -n ${POSTGRES_NAMESPACE} -l name=postgresql -o jsonpath='{.items[].metadata.name}')
+            echo "INFO: Found DB pod as: ${DB_POD}"
+
+            echo "INFO: Changing DB parameters for Debezium support"
+            oc exec -n ${POSTGRES_NAMESPACE} -i $DB_POD \
+            -- psql <<EOF
+            ALTER SYSTEM SET wal_level = logical;
+            ALTER SYSTEM SET max_wal_senders=10;
+            ALTER SYSTEM SET max_replication_slots=10;
+            EOF
+
+            echo "INFO: Restarting postgres to pick up the parameter changes"
+            oc rollout latest -n ${POSTGRES_NAMESPACE} dc/postgresql
+
+            echo "INFO: Waiting for postgres to restart"
+            sleep 30
+            oc wait -n ${POSTGRES_NAMESPACE} --for=condition=available --timeout=20m deploymentconfig/postgresql
+            if [[ $? -ne 0 ]]; then
+              echo "ERROR: Postgres restart failed"
+              exit 1
+            fi
+
+            DB_POD=$(oc get pod -n ${POSTGRES_NAMESPACE} -l name=postgresql -o jsonpath='{.items[].metadata.name}')
+            echo "INFO: Found new DB pod as: ${DB_POD}"

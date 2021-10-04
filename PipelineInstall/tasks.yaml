@@ -1,6 +1,28 @@
 apiVersion: tekton.dev/v1beta1
 kind: Task
 metadata:
+  name: build-task-no-pvc-or-workspace
+spec:
+  params:
+    - name: dockerfile
+      type: string
+      description: The contents of the dockerfile to build.
+    - name: imagePath
+      type: string
+      description: The full path to push the image to. I.e. image-registry.openshift-image-registry.svc:5000/cp4i/image:latest
+  steps:
+    - name: build
+      image: quay.io/buildah/stable:latest
+      securityContext:
+        privileged: true
+      script: |
+        echo "$(params.dockerfile)" > ./Dockerfile
+        buildah --storage-driver vfs bud -f ./Dockerfile -t $(params.imagePath) ./
+        buildah --storage-driver vfs push --tls-verify=false $(params.imagePath)
+---
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
   name: run-command
 spec:
   params:
@@ -9,7 +31,7 @@ spec:
       description: The command to run
   steps:
     - name: command
-      image: quay.io/openshift/origin-cli:4.6.0
+      image: image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}/run-command:latest
       script: "$(params.command)"
 ---
 apiVersion: tekton.dev/v1beta1
@@ -29,13 +51,24 @@ spec:
       description: The channel. I.e. v5.1
   steps:
     - name: command
-      image: quay.io/openshift/origin-cli:4.6.0
+      image: image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}/run-command:latest
       script: |
+        #!/usr/bin/env bash
         SOURCE=$(params.catalog-source)
         NAME=$(params.name)
         CHANNEL=$(params.channel)
         SOURCE_NAMESPACE="openshift-marketplace"
         SUBSCRIPTION_NAME="${NAME}-${CHANNEL}-${SOURCE}-${SOURCE_NAMESPACE}"
+        TIMEOUT_SECONDS=7200
+
+        function output_time() {
+          SECONDS=${1}
+          if ((SECONDS > 59)); then
+            printf "%d minutes, %d seconds" $((SECONDS / 60)) $((SECONDS % 60))
+          else
+            printf "%d seconds" $SECONDS
+          fi
+        }
 
         cat <<EOF | oc apply -f -
         apiVersion: operators.coreos.com/v1alpha1
@@ -50,7 +83,7 @@ spec:
           sourceNamespace: ${SOURCE_NAMESPACE}
         EOF
 
-        echo "Waiting for subscription \"${SUBSCRIPTION_NAME}\" in namespace \"${NAMESPACE}\""
+        echo "Waiting for subscription \"${SUBSCRIPTION_NAME}\""
 
         phase=""
         time=0
