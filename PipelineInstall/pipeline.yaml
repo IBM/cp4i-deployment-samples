@@ -1,0 +1,41 @@
+apiVersion: tekton.dev/v1beta1
+kind: Pipeline
+metadata:
+  name: cp4i-install
+  labels:
+    app: cp4i-install
+spec:
+  tasks:
+    - name: create-catalog-sources
+      taskRef:
+        name: run-command
+      params:
+        - name: command
+          value: |
+            cat <<EOF | oc apply -f -
+            apiVersion: operators.coreos.com/v1alpha1
+            kind: CatalogSource
+            metadata:
+              name: ibm-operator-catalog
+              namespace: openshift-marketplace
+            spec:
+              displayName: ibm-operator-catalog
+              publisher: IBM Content
+              sourceType: grpc
+              image: icr.io/cpopen/ibm-operator-catalog:latest
+              updateStrategy:
+                registryPoll:
+                  interval: 45m
+            EOF
+    - name: install-navigator-operator
+      runAfter:
+        - create-catalog-sources
+      taskRef:
+        name: install-operator
+      params:
+        - name: catalog-source
+          value: ibm-operator-catalog
+        - name: name
+          value: ibm-integration-platform-navigator
+        - name: channel
+          value: v5.1

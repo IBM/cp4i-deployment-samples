@@ -1,0 +1,83 @@
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: run-command
+spec:
+  params:
+    - name: command
+      type: string
+      description: The command to run
+  steps:
+    - name: command
+      image: quay.io/openshift/origin-cli:4.6.0
+      script: "$(params.command)"
+---
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: install-operator
+spec:
+  params:
+    - name: catalog-source
+      type: string
+      description: The name of the catalog source to use. I.e. ibm-operator-catalog
+    - name: name
+      type: string
+      description: The name of the package. I.e. ibm-integration-platform-navigator
+    - name: channel
+      type: string
+      description: The channel. I.e. v5.1
+  steps:
+    - name: command
+      image: quay.io/openshift/origin-cli:4.6.0
+      script: |
+        SOURCE=$(params.catalog-source)
+        NAME=$(params.name)
+        CHANNEL=$(params.channel)
+        SOURCE_NAMESPACE="openshift-marketplace"
+        SUBSCRIPTION_NAME="${NAME}-${CHANNEL}-${SOURCE}-${SOURCE_NAMESPACE}"
+
+        cat <<EOF | oc apply -f -
+        apiVersion: operators.coreos.com/v1alpha1
+        kind: Subscription
+        metadata:
+          name: ${SUBSCRIPTION_NAME}
+        spec:
+          channel: ${CHANNEL}
+          installPlanApproval: Automatic
+          name: ${NAME}
+          source: ${SOURCE}
+          sourceNamespace: ${SOURCE_NAMESPACE}
+        EOF
+
+        echo "Waiting for subscription \"${SUBSCRIPTION_NAME}\" in namespace \"${NAMESPACE}\""
+
+        phase=""
+        time=0
+        wait_time=5
+        until [[ "$phase" == "Succeeded" ]]; do
+          csv=$(oc get subscription ${SUBSCRIPTION_NAME} -o json | jq -r .status.currentCSV)
+          wait=0
+          if [[ "$csv" == "null" ]]; then
+            echo "  ${SUBSCRIPTION_NAME}: Not got csv"
+            wait=1
+          else
+            phase=$(oc get csv $csv -o json 2>/dev/null | jq -r .status.phase)
+            if [[ "$phase" != "Succeeded" ]]; then
+              echo "  ${SUBSCRIPTION_NAME}: CSV \"$csv\" in phase \"${phase}\""
+              wait=1
+            fi
+          fi
+
+          if [[ "$wait" == "1" ]]; then
+            if [ $time -ge ${TIMEOUT_SECONDS} ]; then
+              echo "ERROR: Failed after waiting for $(($TIMEOUT_SECONDS / 60)) minutes"
+              exit 1
+            fi
+
+            echo "Retrying in ${wait_time} seconds, waited for $(output_time $time) so far"
+            ((time = time + $wait_time))
+            sleep $wait_time
+          fi
+        done
+        echo "$SUBSCRIPTION_NAME has succeeded"
