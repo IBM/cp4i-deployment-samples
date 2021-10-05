@@ -26,35 +26,30 @@ spec:
 # TODO Pass owner ref in and set for all created objects
 # TODO Allow passing the licenses and version?
   tasks:
-    - name: command-image
-      taskRef:
-        name: run-command
-      params:
-        - name: command
-          value: |
-            echo "Got here, so image is built"
-            oc version
-            jq --version
-
-    # TODO Any way to avoid this if the image exists?
     # - name: command-image
     #   taskRef:
     #     name: build-task-no-pvc-or-workspace
     #   params:
+    #     - name: imagePath
+    #       value: image-registry.openshift-image-registry.svc:5000/$(params.namespace)/run-command:latest
     #     - name: dockerfile
     #       value: |
     #         # Use the CLI image for the minimum version
-    #         FROM quay.io/openshift/origin-cli:4.6.0
+    #         FROM quay.io/openshift/origin-cli:4.6.0 as oc
+    #
+    #         FROM docker.io/library/openjdk:11 as jdk
+    #
+    #         # Copy oc
+    #         COPY --from=oc /usr/bin/oc /usr/local/bin
     #
     #         # Install JQ 1.6
     #         RUN wget -O jq https://github.com/stedolan/jq/releases/download/jq-1.6/jq-linux64 -O /usr/local/bin/jq && chmod +x /usr/local/bin/jq
-    #     - name: imagePath
-    #       value: image-registry.openshift-image-registry.svc:5000/$(params.namespace)/run-command:latest
+    #
+    #         RUN oc version ; jq --version
+
     - name: catalog-sources
       taskRef:
         name: run-command
-      runAfter:
-        - command-image
       params:
         - name: command
           value: |
@@ -76,8 +71,6 @@ spec:
     - name: operator-group
       taskRef:
         name: run-command
-      runAfter:
-        - command-image
       params:
         - name: command
           value: |
@@ -92,8 +85,6 @@ spec:
                 - $(params.namespace)
             EOF
     - name: nav-op
-      runAfter:
-        - catalog-sources
       taskRef:
         name: install-operator
       params:
@@ -104,8 +95,6 @@ spec:
         - name: channel
           value: v5.1
     - name: ace-op
-      runAfter:
-        - catalog-sources
       taskRef:
         name: install-operator
       params:
@@ -117,7 +106,6 @@ spec:
           value: v2.0
     - name: apic-op
       runAfter:
-        - catalog-sources
         - nav-op
       taskRef:
         name: install-operator
@@ -129,8 +117,6 @@ spec:
         - name: channel
           value: v2.3
     - name: ar-op
-      runAfter:
-        - catalog-sources
       taskRef:
         name: install-operator
       params:
@@ -141,8 +127,6 @@ spec:
         - name: channel
           value: v1.3
     - name: aspera-op
-      runAfter:
-        - catalog-sources
       taskRef:
         name: install-operator
       params:
@@ -153,8 +137,6 @@ spec:
         - name: channel
           value: v1.3
     - name: es-op
-      runAfter:
-        - catalog-sources
       taskRef:
         name: install-operator
       params:
@@ -165,8 +147,6 @@ spec:
         - name: channel
           value: v2.4
     - name: mq-op
-      runAfter:
-        - catalog-sources
       taskRef:
         name: install-operator
       params:
@@ -178,7 +158,6 @@ spec:
           value: v1.6
     - name: od-op
       runAfter:
-        - catalog-sources
         - nav-op
       taskRef:
         name: install-operator
@@ -197,12 +176,9 @@ spec:
       params:
         - name: command
           value: |
-            #!/usr/bin/env bash
-
             release_name="ademo"
 
-            APIC_LICENSE=$(oc get configmap demo-licenses -ojsonpath='{.data.apic}' 2>/dev/null)
-            if [[ $? -ne 0 ]]; then
+            if ! APIC_LICENSE=$(oc get configmap demo-licenses -ojsonpath='{.data.apic}' 2>/dev/null) ; then
               APIC_LICENSE="L-RJON-BZEP9N"
             fi
 
@@ -241,7 +217,7 @@ spec:
                 exit 0
               fi
               echo "Waiting for APIC install to complete (Attempt $i of 360). Status: $APIC_STATUS"
-              kubectl get apic,pods,pvc -n $(params.namespace)
+              oc get apic,pods,pvc -n $(params.namespace)
               echo "Checking again in 10 seconds..."
               sleep 10
             done
@@ -258,12 +234,9 @@ spec:
       params:
         - name: command
           value: |
-            #!/usr/bin/env bash
-
             release_name="ace-designer-demo"
 
-            ACE_LICENSE=$(oc get configmap demo-licenses -ojsonpath='{.data.ace}' 2>/dev/null)
-            if [[ $? -ne 0 ]]; then
+            if ! ACE_LICENSE=$(oc get configmap demo-licenses -ojsonpath='{.data.ace}' 2>/dev/null) ; then
               ACE_LICENSE="L-APEH-C49KZH"
             fi
 
@@ -314,9 +287,6 @@ spec:
               echo "[ERROR] ACE Designer failed to install"
               exit 1
             fi
-
-            # oc wait --for=condition=available DesignerAuthoring --timeout=20m -n $(params.namespace) ${release_name}
-
     - name: ace-dashboard
       taskRef:
         name: run-command
@@ -325,12 +295,9 @@ spec:
       params:
         - name: command
           value: |
-            #!/usr/bin/env bash
-
             release_name="ace-dashboard-demo"
 
-            ACE_LICENSE=$(oc get configmap demo-licenses -ojsonpath='{.data.ace}' 2>/dev/null)
-            if [[ $? -ne 0 ]]; then
+            if ! ACE_LICENSE=$(oc get configmap demo-licenses -ojsonpath='{.data.ace}' 2>/dev/null) ; then
               ACE_LICENSE="L-APEH-C49KZH"
             fi
 
@@ -389,9 +356,6 @@ spec:
               echo "[ERROR] ACE Dashboard failed to install"
               exit 1
             fi
-
-            # oc wait --for=condition=available Dashboard --timeout=20m $(params.namespace) ${release_name}
-
     - name: ar
       taskRef:
         name: run-command
@@ -403,12 +367,9 @@ spec:
       params:
         - name: command
           value: |
-            #!/usr/bin/env bash
-
             release_name="demo"
 
-            AR_LICENSE=$(oc get configmap demo-licenses -ojsonpath='{.data.ar}' 2>/dev/null)
-            if [[ $? -ne 0 ]]; then
+            if ! AR_LICENSE=$(oc get configmap demo-licenses -ojsonpath='{.data.ar}' 2>/dev/null) ; then
               AR_LICENSE="L-NCAN-C3CJ8D"
             fi
 
@@ -450,9 +411,6 @@ spec:
               echo "[ERROR] AssetRepository failed to install"
               exit 1
             fi
-
-            # oc wait --for=condition=available AssetRepository --timeout=20m $(params.namespace) ${release_name}
-
     - name: configure-ar
       taskRef:
         name: run-command
@@ -461,8 +419,6 @@ spec:
       params:
         - name: command
           value: |
-            #!/usr/bin/env bash
-
             CURRENT_DIR=$(dirname $0)
 
             USING_OPERATORS=true
@@ -636,8 +592,6 @@ spec:
       params:
         - name: command
           value: |
-            #!/usr/bin/env bash
-
             release_name="es-demo"
 
             cat <<EOF | oc apply -f -
@@ -699,9 +653,6 @@ spec:
               echo "[ERROR] ACE EventStreams failed to install"
               exit 1
             fi
-
-            # oc wait --for=condition=available EventStreams --timeout=20m $(params.namespace) ${release_name}
-
     - name: od
       taskRef:
         name: run-command
@@ -710,12 +661,9 @@ spec:
       params:
         - name: command
           value: |
-            #!/usr/bin/env bash
-
             release_name="tracing-demo"
 
-            TRACING_LICENSE=$(oc get configmap demo-licenses -ojsonpath='{.data.tracing}' 2>/dev/null)
-            if [[ $? -ne 0 ]]; then
+            if ! TRACING_LICENSE=$(oc get configmap demo-licenses -ojsonpath='{.data.tracing}' 2>/dev/null); then
               TRACING_LICENSE="CP4I"
             fi
 
@@ -744,7 +692,7 @@ spec:
             EOF
 
             # If the icp4i-od-store-cred then create a dummy one that the service binding will populate
-            oc create secret generic -n $(params.namespace) icp4i-od-store-cred --from-literal=icp4i-od-cacert.pem="empty" --from-literal=username="empty" --from-literal=password="empty" --from-literal=tracingUrl="empty" 2>/dev/null
+            oc create secret generic -n $(params.namespace) icp4i-od-store-cred --from-literal=icp4i-od-cacert.pem="empty" --from-literal=username="empty" --from-literal=password="empty" --from-literal=tracingUrl="empty" 2>/dev/null | true
 
             echo "Waiting for Operations Dashboard installation to complete..."
             for i in $(seq 1 720); do
@@ -828,8 +776,6 @@ spec:
       params:
         - name: command
           value: |
-            #!/usr/bin/env bash
-
             replicas="2"
 
             # Instantiate Platform Navigator
@@ -856,13 +802,14 @@ spec:
             time=0
 
             while [[ "$(oc get PlatformNavigator -n $(params.namespace) $(params.namespace)-navigator -o json | jq -r '.status.conditions[] | select(.type=="Ready").status')" != "True" ]]; do
-              echo "INFO: The platform navigator object status:"
               echo "INFO: $(oc get PlatformNavigator -n $(params.namespace) $(params.namespace)-navigator)"
               if [ $time -gt 900 ]; then
                 echo "ERROR: Exiting installation Platform Navigator object is not ready"
                 exit 1
               fi
-              echo "INFO: Waiting up to 90 minutes for platform navigator object to be ready. Waited ${time} minute(s)."
+
+              oc get Cartridge -n $(params.namespace) -o json | jq '.items[].status.conditions[]'
+              oc get ZenService -n $(params.namespace) -o json | jq '.items[].status.conditions[]'
 
               time=$((time + 1))
               sleep 6
@@ -876,13 +823,9 @@ spec:
     - name: psql
       taskRef:
         name: run-command
-      runAfter:
-        - command-image
       params:
         - name: command
           value: |
-            #!/usr/bin/env bash
-
             release_name="tracing-demo"
 
             POSTGRES_NAMESPACE="$(params.namespace)"
@@ -933,3 +876,136 @@ spec:
 
             DB_POD=$(oc get pod -n ${POSTGRES_NAMESPACE} -l name=postgresql -o jsonpath='{.items[].metadata.name}')
             echo "INFO: Found new DB pod as: ${DB_POD}"
+
+    - name: elastic-op
+      taskRef:
+        name: install-operator
+      params:
+        - name: catalog-source
+          value: certified-operators
+        - name: name
+          value: elasticsearch-eck-operator-certified
+        - name: channel
+          value: stable
+
+    - name: elastic
+      taskRef:
+        name: run-command
+      runAfter:
+        - elastic-op
+      params:
+        - name: command
+          value: |
+            ELASTIC_CR_NAME=elasticsearch-eei
+
+            cat <<EOF | oc apply -f -
+            apiVersion: elasticsearch.k8s.elastic.co/v1
+            kind: Elasticsearch
+            metadata:
+              name: $ELASTIC_CR_NAME
+              namespace: $(params.namespace)
+            spec:
+              version: 7.11.0
+              http:
+                tls:
+                  selfSignedCertificate:
+                    disabled: false
+                    # https://www.elastic.co/guide/en/cloud-on-k8s/1.0/k8s-common-k8s-elastic-co-v1.html#common-k8s-elastic-co-v1-selfsignedcertificate
+                    subjectAltNames:
+                    - dns: "$ELASTIC_CR_NAME-es-http.$(params.namespace).svc.cluster.local"
+              nodeSets:
+                - name: default
+                  config:
+                    node.roles:
+                      - master
+                      - data
+                    node.attr.attr_name: attr_value
+                    node.store.allow_mmap: false
+                  podTemplate:
+                    metadata:
+                      labels:
+                        name: $ELASTIC_CR_NAME
+                        demo: eei
+                    spec:
+                      containers:
+                        - name: elasticsearch
+                          resources:
+                            requests:
+                              memory: 4Gi
+                              cpu: 1
+                            limits:
+                              memory: 4Gi
+                              cpu: 2
+                  count: 1
+            EOF
+
+            time=0
+            ES_CR_STATE=$(oc get elasticsearch -n $(params.namespace) $ELASTIC_CR_NAME -o json | jq -r '.status.phase')
+            while [ "$ES_CR_STATE" != "Ready" ]; do
+              if [ $time -gt 100 ]; then
+                echo "ERROR: Timed-out waiting for elastic search CR to be ready"
+                echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
+                exit 1
+              fi
+
+              echo "Elasticsearch current status: ${ES_CR_STATE}"
+              time=$((time + 1))
+              sleep 6
+              ES_CR_STATE=$(oc get elasticsearch -n $(params.namespace) $ELASTIC_CR_NAME -o json | jq -r '.status.phase')
+            done
+
+            echo -e "INFO: The elastic search CR is now ready:\n"
+            oc get elasticsearch -n $(params.namespace)
+            echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
+
+            echo -e "INFO: The pods for the elastic search:\n"
+            oc get pods -n $(params.namespace) --selector='elasticsearch.k8s.elastic.co/cluster-name='${ELASTIC_CR_NAME}''
+
+            echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
+
+            echo -e "INFO: The elastic search service:\n"
+            oc get service -n $(params.namespace) $ELASTIC_CR_NAME-es-http
+
+    - name: setup-elastic
+      taskRef:
+        name: run-command
+      runAfter:
+        - elastic
+      params:
+        - name: command
+          value: |
+            ELASTIC_CR_NAME=elasticsearch-eei
+
+            ELASTIC_PASSWORD=$(oc get secret $ELASTIC_CR_NAME-es-elastic-user -n $(params.namespace) -o go-template='{{.data.elastic | base64decode}}')
+            ELASTIC_USER="elastic"
+
+            echo -e "\nINFO: Creating secret for elastic search connector"
+            oc get secret -n $(params.namespace) $ELASTIC_CR_NAME-es-http-certs-public -o json | jq -r '.data["ca.crt"]' | base64 --decode >/tmp/ca.crt
+            rm -rf /tmp/elastic-ts.jks
+
+            TRUSTSTORE_PASSWORD=$(
+              LC_ALL=C tr -dc 'A-Za-z0-9' </dev/urandom | head -c 32
+              echo
+            )
+            keytool -import -file /tmp/ca.crt -alias elasticCA -keystore /tmp/elastic-ts.jks -storepass "$TRUSTSTORE_PASSWORD" -noprompt
+            BASE64_TS="$(base64 -w0 /tmp/elastic-ts.jks)"
+
+            SECRET_EXISTS=$(oc -n $(params.namespace) get secret eei-elastic-credential)
+            if [[ -z $SECRET_EXISTS ]]; then
+              cat <<EOF | oc apply -f -
+            apiVersion: v1
+            kind: Secret
+            metadata:
+              namespace: $(params.namespace)
+              name: eei-elastic-credential
+            type: Opaque
+            stringData:
+              connector.properties: |-
+                dbConnection: $ELASTIC_CR_NAME-es-http.$(params.namespace).svc.cluster.local:9200
+                dbUser: $ELASTIC_USER
+                dbPassword: $ELASTIC_PASSWORD
+                truststorePassword: $TRUSTSTORE_PASSWORD
+            data:
+              elastic-ts.jks: $BASE64_TS
+            EOF
+            fi

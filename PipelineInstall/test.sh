@@ -28,18 +28,14 @@ ${SCRIPT_DIR}/../products/bash/configure-ocp-pipeline.sh -n ${namespace}
 tick="\xE2\x9C\x85"
 cross="\xE2\x9D\x8C"
 
-if cat ${SCRIPT_DIR}/tasks.yaml |
-  sed "s#{{NAMESPACE}}#$namespace#g;" |
-  oc apply -n ${namespace} -f -; then
+if cat ${SCRIPT_DIR}/tasks.yaml | oc apply -n ${namespace} -f -; then
   echo -e "\n$tick INFO: Successfully applied tasks.yaml"
 else
   echo -e "\n$cross ERROR: Failed to apply tasks.yaml"
   exit 1
 fi
 
-if cat ${SCRIPT_DIR}/pipeline.yaml |
-  sed "s#{{NAMESPACE}}#$namespace#g;" |
-  oc apply -n ${namespace} -f -; then
+if cat ${SCRIPT_DIR}/pipeline.yaml | oc apply -n ${namespace} -f -; then
   echo -e "\n$tick INFO: Successfully applied pipeline.yaml"
 else
   echo -e "\n$cross ERROR: Failed to apply pipeline.yaml"
@@ -72,8 +68,64 @@ done
 echo -e "\nINFO: 'pipeline' service account is now available\n"
 oc get sa pipeline
 
-# Give the pipeline sa permissions on catalogsources/processedtemplates/operatorgroups
+# Give the pipeline sa permissions on catalogsources/processedtemplates/operatorgroups/secrets/routes
 cat <<EOF | oc apply -f -
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  namespace: ibm-common-services
+  name: pipelines-read-routes
+rules:
+- apiGroups:
+  - "route.openshift.io"
+  resources:
+  - routes
+  verbs:
+  - get
+  - list
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  namespace: ibm-common-services
+  name: pipelines-read-routes-${namespace}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: pipelines-read-routes
+subjects:
+- kind: ServiceAccount
+  name: pipeline
+  namespace: ${namespace}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  namespace: ibm-common-services
+  name: pipelines-read-secrets
+rules:
+- apiGroups:
+  - ""
+  resources:
+  - secrets
+  verbs:
+  - get
+  - list
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  namespace: ibm-common-services
+  name: pipelines-read-secrets-${namespace}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: pipelines-read-secrets
+subjects:
+- kind: ServiceAccount
+  name: pipeline
+  namespace: ${namespace}
+---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
@@ -172,8 +224,74 @@ subjects:
 - kind: ServiceAccount
   name: pipeline
   namespace: ${namespace}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  namespace: ${namespace}
+  name: pipelines-create-roles-and-bindings
+rules:
+- apiGroups:
+  - rbac.authorization.k8s.io
+  resources:
+  - roles
+  - rolebindings
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  namespace: ${namespace}
+  name: pipelines-create-roles-and-bindings
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: pipelines-create-roles-and-bindings
+subjects:
+- kind: ServiceAccount
+  name: pipeline
+  namespace: ${namespace}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  namespace: ${namespace}
+  name: pipelines-create-od-bindings
+rules:
+- apiGroups:
+  - integration.ibm.com
+  resources:
+  - operationsdashboardservicebindings/status
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  namespace: ${namespace}
+  name: pipelines-create-od-bindings
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: pipelines-create-od-bindings
+subjects:
+- kind: ServiceAccount
+  name: pipeline
+  namespace: ${namespace}
 EOF
-
 
 cat <<EOF | oc apply -f -
 apiVersion: tekton.dev/v1beta1

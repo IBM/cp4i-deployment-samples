@@ -31,8 +31,13 @@ spec:
       description: The command to run
   steps:
     - name: command
-      image: image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}/run-command:latest
-      script: "$(params.command)"
+      image: image-registry.openshift-image-registry.svc:5000/$(context.taskRun.namespace)/run-command:latest
+      script: |
+        #!/usr/bin/env bash
+        set -e
+        echo "Running in bash with \"set -e\""
+        echo "Starting command:"
+        $(params.command)
 ---
 apiVersion: tekton.dev/v1beta1
 kind: Task
@@ -51,7 +56,7 @@ spec:
       description: The channel. I.e. v5.1
   steps:
     - name: command
-      image: image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}/run-command:latest
+      image: image-registry.openshift-image-registry.svc:5000/$(context.taskRun.namespace)/run-command:latest
       script: |
         #!/usr/bin/env bash
         SOURCE=$(params.catalog-source)
