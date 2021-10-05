@@ -1,16 +1,34 @@
 #!/bin/bash
 
-# TODO parameterize this
-namespace="test3"
+namespace="cp4i"
+SCRIPT_DIR=$(dirname $0)
+
+function usage() {
+  echo "Usage: $0 -n <namespace>"
+}
+
+while getopts "n:r:s:p" opt; do
+  case ${opt} in
+  n)
+    namespace="$OPTARG"
+    ;;
+  \?)
+    usage
+    exit
+    ;;
+  esac
+done
 
 # TODO need ibm-entitlement-key set as a pre-req
 
-# TODO need to run configure-ocp-pipeline.sh first
+# TODO Error handling
+${SCRIPT_DIR}/../products/bash/install-ocp-pipeline.sh
+${SCRIPT_DIR}/../products/bash/configure-ocp-pipeline.sh -n ${namespace}
 
 tick="\xE2\x9C\x85"
 cross="\xE2\x9D\x8C"
 
-if cat tasks.yaml |
+if cat ${SCRIPT_DIR}/tasks.yaml |
   sed "s#{{NAMESPACE}}#$namespace#g;" |
   oc apply -n ${namespace} -f -; then
   echo -e "\n$tick INFO: Successfully applied tasks.yaml"
@@ -19,7 +37,7 @@ else
   exit 1
 fi
 
-if cat pipeline.yaml |
+if cat ${SCRIPT_DIR}/pipeline.yaml |
   sed "s#{{NAMESPACE}}#$namespace#g;" |
   oc apply -n ${namespace} -f -; then
   echo -e "\n$tick INFO: Successfully applied pipeline.yaml"
@@ -54,16 +72,7 @@ done
 echo -e "\nINFO: 'pipeline' service account is now available\n"
 oc get sa pipeline
 
-# echo -e "\nINFO: Adding Entitled Registry secret to pipeline Service Account..."
-# if ! oc get sa --namespace ${namespace} pipeline -o json | jq -r 'del(.secrets[] | select(.name == "er-pull-secret")) | .secrets += [{"name": "er-pull-secret"}]' | oc replace -f -; then
-#   echo -e "ERROR: Failed to add the secret 'er-pull-secret' to the service account 'pipeline' in the '$namespace' namespace"
-#   exit 1
-# else
-#   echo -e "INFO: Successfully added the secret 'er-pull-secret' to the service account 'pipeline' in the '$namespace' namespace"
-# fi
-
-
-# Work around issue that operator doesn't have permissions on operationsdashboardservicebindings/status
+# Give the pipeline sa permissions on catalogsources/processedtemplates/operatorgroups
 cat <<EOF | oc apply -f -
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
@@ -126,6 +135,39 @@ roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: Role
   name: pipelines-create-processedtemplates
+subjects:
+- kind: ServiceAccount
+  name: pipeline
+  namespace: ${namespace}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  namespace: ${namespace}
+  name: pipelines-create-operatorgroups
+rules:
+- apiGroups:
+  - operators.coreos.com
+  resources:
+  - operatorgroups
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  namespace: ${namespace}
+  name: pipelines-create-operatorgroups
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: pipelines-create-operatorgroups
 subjects:
 - kind: ServiceAccount
   name: pipeline

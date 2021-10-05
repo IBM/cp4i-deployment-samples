@@ -23,33 +23,33 @@ spec:
       description: The block storage class to use
       default: "ibmc-block-gold"
 
-# TODO Pass own ref in and set for all created objects
-# TODO Allow passing the license and version?
+# TODO Pass owner ref in and set for all created objects
+# TODO Allow passing the licenses and version?
   tasks:
-    # - name: command-image
-    #   taskRef:
-    #     name: run-command
-    #   params:
-    #     - name: command
-    #       value: |
-    #         echo "Got here, so image is built"
-    #         oc version
-    #         jq --version
-
-    # TODO Any way to avoid this if the image exists?
     - name: command-image
       taskRef:
-        name: build-task-no-pvc-or-workspace
+        name: run-command
       params:
-        - name: dockerfile
+        - name: command
           value: |
-            # Use the CLI image for the minimum version
-            FROM quay.io/openshift/origin-cli:4.6.0
+            echo "Got here, so image is built"
+            oc version
+            jq --version
 
-            # Install JQ 1.6
-            RUN wget -O jq https://github.com/stedolan/jq/releases/download/jq-1.6/jq-linux64 -O /usr/local/bin/jq && chmod +x /usr/local/bin/jq
-        - name: imagePath
-          value: image-registry.openshift-image-registry.svc:5000/$(params.namespace)/run-command:latest
+    # TODO Any way to avoid this if the image exists?
+    # - name: command-image
+    #   taskRef:
+    #     name: build-task-no-pvc-or-workspace
+    #   params:
+    #     - name: dockerfile
+    #       value: |
+    #         # Use the CLI image for the minimum version
+    #         FROM quay.io/openshift/origin-cli:4.6.0
+    #
+    #         # Install JQ 1.6
+    #         RUN wget -O jq https://github.com/stedolan/jq/releases/download/jq-1.6/jq-linux64 -O /usr/local/bin/jq && chmod +x /usr/local/bin/jq
+    #     - name: imagePath
+    #       value: image-registry.openshift-image-registry.svc:5000/$(params.namespace)/run-command:latest
     - name: catalog-sources
       taskRef:
         name: run-command
@@ -72,6 +72,24 @@ spec:
               updateStrategy:
                 registryPoll:
                   interval: 45m
+            EOF
+    - name: operator-group
+      taskRef:
+        name: run-command
+      runAfter:
+        - command-image
+      params:
+        - name: command
+          value: |
+            cat <<EOF | oc apply -f -
+            apiVersion: operators.coreos.com/v1
+            kind: OperatorGroup
+            metadata:
+              name: $(params.namespace)-og
+              namespace: $(params.namespace)
+            spec:
+              targetNamespaces:
+                - $(params.namespace)
             EOF
     - name: nav-op
       runAfter:
