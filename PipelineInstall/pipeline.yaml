@@ -26,26 +26,26 @@ spec:
 # TODO Pass owner ref in and set for all created objects
 # TODO Allow passing the licenses and version?
   tasks:
-    # - name: command-image
-    #   taskRef:
-    #     name: build-task-no-pvc-or-workspace
-    #   params:
-    #     - name: imagePath
-    #       value: image-registry.openshift-image-registry.svc:5000/$(params.namespace)/run-command:latest
-    #     - name: dockerfile
-    #       value: |
-    #         # Use the CLI image for the minimum version
-    #         FROM quay.io/openshift/origin-cli:4.6.0 as oc
-    #
-    #         FROM docker.io/library/openjdk:11 as jdk
-    #
-    #         # Copy oc
-    #         COPY --from=oc /usr/bin/oc /usr/local/bin
-    #
-    #         # Install JQ 1.6
-    #         RUN wget -O jq https://github.com/stedolan/jq/releases/download/jq-1.6/jq-linux64 -O /usr/local/bin/jq && chmod +x /usr/local/bin/jq
-    #
-    #         RUN oc version ; jq --version
+    - name: command-image
+      taskRef:
+        name: build-task-no-pvc-or-workspace
+      params:
+        - name: imagePath
+          value: image-registry.openshift-image-registry.svc:5000/$(params.namespace)/run-command:latest
+        - name: dockerfile
+          value: |
+            # Use the CLI image for the minimum version
+            FROM quay.io/openshift/origin-cli:4.6.0 as oc
+
+            FROM docker.io/library/openjdk:11 as jdk
+
+            # Copy oc
+            COPY --from=oc /usr/bin/oc /usr/local/bin
+
+            # Install JQ 1.6
+            RUN wget -O jq https://github.com/stedolan/jq/releases/download/jq-1.6/jq-linux64 -O /usr/local/bin/jq && chmod +x /usr/local/bin/jq
+
+            RUN oc version ; jq --version
 
     - name: catalog-sources
       taskRef:
@@ -217,7 +217,9 @@ spec:
                 exit 0
               fi
               echo "Waiting for APIC install to complete (Attempt $i of 360). Status: $APIC_STATUS"
-              oc get apic,pods,pvc -n $(params.namespace)
+              oc get apic -n $(params.namespace)
+              oc get pods,pvc -n $(params.namespace) -l app.kubernetes.io/managed-by=ibm-apiconnect -l app.kubernetes.io/part-of=ademo
+
               echo "Checking again in 10 seconds..."
               sleep 10
             done
@@ -278,7 +280,7 @@ spec:
                 exit 0
               fi
               echo "Waiting for ACE Designer install to complete (Attempt $i of 360). Status: $STATUS"
-              oc get pvc -n $(params.namespace) | grep Pending
+              oc get pvc -n $(params.namespace) | grep Pending | true
               echo "Checking again in 10 seconds..."
               sleep 10
             done
@@ -347,7 +349,7 @@ spec:
                 exit 0
               fi
               echo "Waiting for ACE Dashboard install to complete (Attempt $i of 360). Status: $STATUS"
-              oc get pvc -n $(params.namespace) | grep Pending
+              oc get pvc -n $(params.namespace) | grep Pending | true
               echo "Checking again in 10 seconds..."
               sleep 10
             done
@@ -402,7 +404,7 @@ spec:
                 exit 0
               fi
               echo "Waiting for AssetRepository install to complete (Attempt $i of 360). Status: $STATUS"
-              oc get pvc -n $(params.namespace) | grep Pending
+              oc get pvc -n $(params.namespace) | grep Pending | true
               echo "Checking again in 10 seconds..."
               sleep 10
             done
@@ -644,7 +646,7 @@ spec:
                 exit 0
               fi
               echo "Waiting for EventStreams install to complete (Attempt $i of 360). Status: $STATUS"
-              oc get pvc -n $(params.namespace) | grep Pending
+              oc get pvc -n $(params.namespace) | grep Pending | true
               echo "Checking again in 10 seconds..."
               sleep 10
             done
@@ -808,8 +810,10 @@ spec:
                 exit 1
               fi
 
-              oc get Cartridge -n $(params.namespace) -o json | jq '.items[].status.conditions[]'
-              oc get ZenService -n $(params.namespace) -o json | jq '.items[].status.conditions[]'
+              echo "Cartridge status:"
+              oc get Cartridge -n $(params.namespace) -o json | jq -r '.items[].status.conditions[] | .type + " = " + .status + " : " + .message'
+              echo "ZenService status:"
+              oc get ZenService -n $(params.namespace) -o json | jq -r '.items[].status.conditions[] | .type + " = " + .status + " : " + .message'
 
               time=$((time + 1))
               sleep 6
@@ -818,7 +822,7 @@ spec:
             # Printing the platform navigator object status
             echo "INFO: The platform navigator object status:"
             echo "INFO: $(oc get PlatformNavigator -n $(params.namespace) $(params.namespace)-navigator)"
-            echo "INFO: PLATFORM NAVIGATOR ROUTE IS: $(oc get route -n $(params.namespace) $(params.namespace)-navigator-pn -o json | jq -r .spec.host)"
+            echo "INFO: PLATFORM NAVIGATOR ROUTE IS: https://$(oc get route -n $(params.namespace) $(params.namespace)-navigator-pn -o json | jq -r .spec.host)"
 
     - name: psql
       taskRef:
@@ -976,22 +980,21 @@ spec:
           value: |
             ELASTIC_CR_NAME=elasticsearch-eei
 
-            ELASTIC_PASSWORD=$(oc get secret $ELASTIC_CR_NAME-es-elastic-user -n $(params.namespace) -o go-template='{{.data.elastic | base64decode}}')
-            ELASTIC_USER="elastic"
+            if ! oc -n $(params.namespace) get secret eei-elastic-credential; then
+              ELASTIC_PASSWORD=$(oc get secret $ELASTIC_CR_NAME-es-elastic-user -n $(params.namespace) -o go-template='{{.data.elastic | base64decode}}')
+              ELASTIC_USER="elastic"
 
-            echo -e "\nINFO: Creating secret for elastic search connector"
-            oc get secret -n $(params.namespace) $ELASTIC_CR_NAME-es-http-certs-public -o json | jq -r '.data["ca.crt"]' | base64 --decode >/tmp/ca.crt
-            rm -rf /tmp/elastic-ts.jks
+              echo -e "\nINFO: Creating secret for elastic search connector"
+              oc get secret -n $(params.namespace) $ELASTIC_CR_NAME-es-http-certs-public -o json | jq -r '.data["ca.crt"]' | base64 --decode >/tmp/ca.crt
+              rm -rf /tmp/elastic-ts.jks
 
-            TRUSTSTORE_PASSWORD=$(
-              LC_ALL=C tr -dc 'A-Za-z0-9' </dev/urandom | head -c 32
-              echo
-            )
-            keytool -import -file /tmp/ca.crt -alias elasticCA -keystore /tmp/elastic-ts.jks -storepass "$TRUSTSTORE_PASSWORD" -noprompt
-            BASE64_TS="$(base64 -w0 /tmp/elastic-ts.jks)"
+              TRUSTSTORE_PASSWORD=$(
+                LC_ALL=C tr -dc 'A-Za-z0-9' </dev/urandom | head -c 32
+                echo
+              )
+              keytool -import -file /tmp/ca.crt -alias elasticCA -keystore /tmp/elastic-ts.jks -storepass "$TRUSTSTORE_PASSWORD" -noprompt
+              BASE64_TS="$(base64 -w0 /tmp/elastic-ts.jks)"
 
-            SECRET_EXISTS=$(oc -n $(params.namespace) get secret eei-elastic-credential)
-            if [[ -z $SECRET_EXISTS ]]; then
               cat <<EOF | oc apply -f -
             apiVersion: v1
             kind: Secret
