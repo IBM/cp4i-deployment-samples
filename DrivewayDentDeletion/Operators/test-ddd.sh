@@ -133,7 +133,7 @@ function wait_and_trigger_pipeline() {
   echo -e "$INFO [INFO] The event listener pod:\n"
   oc get pod -n $NAMESPACE | grep el-$PIPELINE_TYPE-event-listener | grep 1/1 | grep Running
   echo -e "\n$INFO [INFO] The event listener pod is now in Running, going ahead to trigger the '$PIPELINE_TYPE' pipeline...\n"
-  curl $URL
+  curl -X POST $URL --header "Content-Type: application/json" --data '{"message":"Test run"}'
 
   divider
 
