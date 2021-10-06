@@ -49,10 +49,14 @@ spec:
             # Install JQ 1.6
             RUN wget -O jq https://github.com/stedolan/jq/releases/download/jq-1.6/jq-linux64 -O /usr/local/bin/jq && chmod +x /usr/local/bin/jq
 
-            RUN oc version ; jq --version
+            # Install python2
+            RUN apt update && apt install -y python2 && update-alternatives --install /usr/bin/python python /usr/bin/python2 1
 
+            # Check versions
+            RUN oc version ; kubectl version ; jq --version ; python --version
+
+            # Download samples repo
             WORKDIR /home
-
             RUN wget -c https://github.com/IBM/cp4i-deployment-samples/archive/refs/tags/$(params.version).tar.gz -O - | tar -xz ; mv cp4i-deployment-samples-$(params.version) cp4i-deployment-samples
 
     - name: catalog-sources
@@ -215,8 +219,9 @@ spec:
       params:
         - name: command
           value: |
-            # TODO Pass -t if $(params.namespace) == true
+            # TODO Pass -t if $(params.tracing) == true
             /home/cp4i-deployment-samples/products/bash/release-apic.sh -n $(params.namespace)
+      retries: 3
 
     - name: configure-apic
       taskRef:
@@ -264,6 +269,7 @@ spec:
         name: run-command
       runAfter:
         - od-op
+        - nav # Note OD won't install until Nav is ready anyway
       params:
         - name: command
           value: |
@@ -284,3 +290,31 @@ spec:
         - name: command
           value: |
             /home/cp4i-deployment-samples/EventEnabledInsurance/setup-elastic-search.sh -n $(params.namespace) -e $(params.namespace)
+
+    - name: eei
+      taskRef:
+        name: run-command
+      runAfter:
+        - ace-dashboard
+        - configure-apic
+        - es
+        - od
+        - psql
+        - elastic
+      params:
+        - name: command
+          value: |
+            /home/cp4i-deployment-samples/EventEnabledInsurance/prereqs.sh -n $(params.namespace) -b $(params.version) -e $(params.namespace) -p $(params.namespace) -f $(params.fileStorageClass) -g $(params.blockStorageClass) -o
+
+    - name: ddd
+      taskRef:
+        name: run-command
+      runAfter:
+          - ace-dashboard
+          - configure-apic
+          - od
+          - psql
+      params:
+        - name: command
+          value: |
+            /home/cp4i-deployment-samples/DrivewayDentDeletion/Operators/prereqs.sh -n $(params.namespace) -p $(params.namespace) -o

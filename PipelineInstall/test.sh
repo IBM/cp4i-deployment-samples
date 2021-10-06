@@ -43,11 +43,11 @@ else
 fi
 
 PIPELINE_RUN_NAME=cp4i-install
-oc delete pipelinerun ${PIPELINE_RUN_NAME}
+oc delete pipelinerun -n ${namespace} ${PIPELINE_RUN_NAME}
 
 
 echo -e "INFO: Waiting for upto 5 minutes for 'pipeline' service account to be available...\n"
-GET_PIPELINE_SERVICE_ACCOUNT=$(oc get sa  pipeline)
+GET_PIPELINE_SERVICE_ACCOUNT=$(oc get sa  pipeline -n ${namespace})
 RESULT_GET_PIPELINE_SERVICE_ACCOUNT=$(echo $?)
 time=0
 while [ "$RESULT_GET_PIPELINE_SERVICE_ACCOUNT" -ne "0" ]; do
@@ -57,16 +57,16 @@ while [ "$RESULT_GET_PIPELINE_SERVICE_ACCOUNT" -ne "0" ]; do
     exit 1
   fi
 
-  oc get sa pipeline
+  oc get sa pipeline -n ${namespace}
   echo -e "\nINFO: The 'pipeline' service account is not yet available, waiting for up to 5 minutes. Waited ${time} minute(s).\n"
   time=$((time + 1))
   sleep 60
-  GET_PIPELINE_SERVICE_ACCOUNT=$(oc get sa pipeline)
+  GET_PIPELINE_SERVICE_ACCOUNT=$(oc get sa pipeline -n ${namespace})
   RESULT_GET_PIPELINE_SERVICE_ACCOUNT=$(echo $?)
 done
 
 echo -e "\nINFO: 'pipeline' service account is now available\n"
-oc get sa pipeline
+oc get sa pipeline -n ${namespace}
 
 # TODO Need to make sure this project exists so can create Role/RoleBinding in it
 oc new-project ibm-common-services
@@ -300,6 +300,7 @@ cat <<EOF | oc apply -f -
 apiVersion: tekton.dev/v1beta1
 kind: PipelineRun
 metadata:
+  namespace: ${namespace}
   name: "${PIPELINE_RUN_NAME}"
   labels:
     app: cp4i-install
@@ -310,17 +311,17 @@ EOF
 
 pipelinerunSuccess="false"
 
-if ! tkn pipelinerun logs -f $PIPELINE_RUN_NAME; then
+if ! tkn pipelinerun logs -n ${namespace} -f $PIPELINE_RUN_NAME; then
   echo -e "\n$cross ERROR: Failed to get the pipelinerun logs successfully"
 fi
 
 echo -e "INFO: The pipeline run in the :\n"
-oc get pipelinerun $PIPELINE_RUN_NAME
+oc get pipelinerun -n ${namespace} $PIPELINE_RUN_NAME
 
 echo -e "\nINFO: The task runs :\n"
-oc get taskrun
+oc get taskrun -n ${namespace}
 
-if [[ "$(oc get pipelinerun $PIPELINE_RUN_NAME -o json | jq -r '.status.conditions[0].status')" == "True" ]]; then
+if [[ "$(oc get pipelinerun -n ${namespace} $PIPELINE_RUN_NAME -o json | jq -r '.status.conditions[0].status')" == "True" ]]; then
   pipelinerunSuccess="true"
 fi
 
