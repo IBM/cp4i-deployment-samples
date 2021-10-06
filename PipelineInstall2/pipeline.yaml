@@ -1,0 +1,286 @@
+apiVersion: tekton.dev/v1beta1
+kind: Pipeline
+metadata:
+  name: cp4i-install
+  labels:
+    app: cp4i-install
+spec:
+  params:
+    - name: namespace
+      type: string
+      description: The namespace into which to install
+      default: $(context.pipelineRun.namespace)
+    - name: tracing
+      type: string
+      description: Set to "true" to enable tracing
+      default: "false"
+    - name: fileStorageClass
+      type: string
+      description: The file storage class to use
+      default: "ibmc-file-gold-gid"
+    - name: blockStorageClass
+      type: string
+      description: The block storage class to use
+      default: "ibmc-block-gold"
+    - name: version
+      type: string
+      description: The version of CP4I. I.e. 2021.3.1
+      default: "2021.3.1"
+
+# TODO Pass owner ref in and set for all created objects
+# TODO Allow passing the licenses and version?
+  tasks:
+    - name: command-image
+      taskRef:
+        name: build-task-no-pvc-or-workspace
+      params:
+        - name: imagePath
+          value: image-registry.openshift-image-registry.svc:5000/$(params.namespace)/run-command:latest
+        - name: dockerfile
+          value: |
+            # Use the CLI image for the minimum version
+            FROM quay.io/openshift/origin-cli:4.6.0 as oc
+
+            FROM docker.io/library/openjdk:11 as jdk
+
+            # Copy oc/kubectl
+            COPY --from=oc /usr/bin/oc /usr/bin/kubectl /usr/local/bin
+
+            # Install JQ 1.6
+            RUN wget -O jq https://github.com/stedolan/jq/releases/download/jq-1.6/jq-linux64 -O /usr/local/bin/jq && chmod +x /usr/local/bin/jq
+
+            RUN oc version ; jq --version
+
+            WORKDIR /home
+
+            RUN wget -c https://github.com/IBM/cp4i-deployment-samples/archive/refs/tags/$(params.version).tar.gz -O - | tar -xz ; mv cp4i-deployment-samples-$(params.version) cp4i-deployment-samples
+
+    - name: catalog-sources
+      taskRef:
+        name: run-command
+      params:
+        - name: command
+          value: |
+            cat <<EOF | oc apply -f -
+            apiVersion: operators.coreos.com/v1alpha1
+            kind: CatalogSource
+            metadata:
+              name: ibm-operator-catalog
+              namespace: openshift-marketplace
+            spec:
+              displayName: ibm-operator-catalog
+              publisher: IBM Content
+              sourceType: grpc
+              image: icr.io/cpopen/ibm-operator-catalog:latest
+              updateStrategy:
+                registryPoll:
+                  interval: 45m
+            EOF
+    - name: operator-group
+      taskRef:
+        name: run-command
+      params:
+        - name: command
+          value: |
+            cat <<EOF | oc apply -f -
+            apiVersion: operators.coreos.com/v1
+            kind: OperatorGroup
+            metadata:
+              name: $(params.namespace)-og
+              namespace: $(params.namespace)
+            spec:
+              targetNamespaces:
+                - $(params.namespace)
+            EOF
+    - name: nav-op
+      taskRef:
+        name: install-operator
+      params:
+        - name: catalog-source
+          value: ibm-operator-catalog
+        - name: name
+          value: ibm-integration-platform-navigator
+        - name: channel
+          value: v5.1
+    - name: ace-op
+      taskRef:
+        name: install-operator
+      params:
+        - name: catalog-source
+          value: ibm-operator-catalog
+        - name: name
+          value: ibm-appconnect
+        - name: channel
+          value: v2.0
+    - name: apic-op
+      runAfter:
+        - nav-op
+      taskRef:
+        name: install-operator
+      params:
+        - name: catalog-source
+          value: ibm-operator-catalog
+        - name: name
+          value: ibm-apiconnect
+        - name: channel
+          value: v2.3
+    - name: ar-op
+      taskRef:
+        name: install-operator
+      params:
+        - name: catalog-source
+          value: ibm-operator-catalog
+        - name: name
+          value: ibm-integration-asset-repository
+        - name: channel
+          value: v1.3
+    - name: aspera-op
+      taskRef:
+        name: install-operator
+      params:
+        - name: catalog-source
+          value: ibm-operator-catalog
+        - name: name
+          value: aspera-hsts-operator
+        - name: channel
+          value: v1.3
+    - name: es-op
+      taskRef:
+        name: install-operator
+      params:
+        - name: catalog-source
+          value: ibm-operator-catalog
+        - name: name
+          value: ibm-eventstreams
+        - name: channel
+          value: v2.4
+    - name: mq-op
+      taskRef:
+        name: install-operator
+      params:
+        - name: catalog-source
+          value: ibm-operator-catalog
+        - name: name
+          value: ibm-mq
+        - name: channel
+          value: v1.6
+    - name: od-op
+      runAfter:
+        - nav-op
+      taskRef:
+        name: install-operator
+      params:
+        - name: catalog-source
+          value: ibm-operator-catalog
+        - name: name
+          value: ibm-integration-operations-dashboard
+        - name: channel
+          value: v2.4
+
+    - name: nav
+      taskRef:
+        name: run-command
+      runAfter:
+        - nav-op
+      params:
+        - name: command
+          value: |
+            /home/cp4i-deployment-samples/products/bash/release-navigator.sh -n $(params.namespace) -s $(params.fileStorageClass)
+
+    - name: ace-dashboard
+      taskRef:
+        name: run-command
+      runAfter:
+        - ace-op
+      params:
+        - name: command
+          value: |
+            /home/cp4i-deployment-samples/products/bash/release-ace-dashboard.sh -n $(params.namespace) -s $(params.fileStorageClass)
+
+    - name: ace-designer
+      taskRef:
+        name: run-command
+      runAfter:
+        - ace-op
+      params:
+        - name: command
+          value: |
+            /home/cp4i-deployment-samples/products/bash/release-ace-designer.sh -n $(params.namespace) -s $(params.blockStorageClass) -f $(params.fileStorageClass)
+
+    - name: apic
+      taskRef:
+        name: run-command
+      runAfter:
+        - apic-op
+      params:
+        - name: command
+          value: |
+            # TODO Pass -t if $(params.namespace) == true
+            /home/cp4i-deployment-samples/products/bash/release-apic.sh -n $(params.namespace)
+
+    - name: configure-apic
+      taskRef:
+        name: run-command
+      runAfter:
+        - apic
+      params:
+        - name: command
+          value: |
+            /home/cp4i-deployment-samples/products/bash/configure-apic-v10.sh -n $(params.namespace)
+
+    - name: ar
+      taskRef:
+        name: run-command
+      runAfter:
+        - ar-op
+        - nav # Note AR won't install until Nav is ready anyway
+      params:
+        - name: command
+          value: |
+            /home/cp4i-deployment-samples/products/bash/release-ar.sh -n $(params.namespace) -c $(params.blockStorageClass) -a $(params.fileStorageClass)
+
+    - name: configure-ar
+      taskRef:
+        name: run-command
+      runAfter:
+        - ar
+      params:
+        - name: command
+          value: |
+            /home/cp4i-deployment-samples/products/bash/ar_remote_create.sh -n $(params.namespace) -o
+
+    - name: es
+      taskRef:
+        name: run-command
+      runAfter:
+        - es-op
+      params:
+        - name: command
+          value: |
+            /home/cp4i-deployment-samples/products/bash/release-es.sh -n $(params.namespace)
+
+    - name: od
+      taskRef:
+        name: run-command
+      runAfter:
+        - od-op
+      params:
+        - name: command
+          value: |
+            /home/cp4i-deployment-samples/products/bash/release-tracing.sh -n $(params.namespace) -b $(params.blockStorageClass) -f $(params.fileStorageClass)
+
+    - name: psql
+      taskRef:
+        name: run-command
+      params:
+        - name: command
+          value: |
+            /home/cp4i-deployment-samples/products/bash/release-psql.sh -n $(params.namespace)
+
+    - name: elastic
+      taskRef:
+        name: run-command
+      params:
+        - name: command
+          value: |
+            /home/cp4i-deployment-samples/EventEnabledInsurance/setup-elastic-search.sh -n $(params.namespace) -e $(params.namespace)
