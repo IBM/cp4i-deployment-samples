@@ -68,6 +68,9 @@ done
 echo -e "\nINFO: 'pipeline' service account is now available\n"
 oc get sa pipeline
 
+# TODO Need to make sure this project exists so can create Role/RoleBinding in it
+oc new-project ibm-common-services
+
 # Give the pipeline sa permissions on catalogsources/processedtemplates/operatorgroups/secrets/routes
 cat <<EOF | oc apply -f -
 apiVersion: rbac.authorization.k8s.io/v1
