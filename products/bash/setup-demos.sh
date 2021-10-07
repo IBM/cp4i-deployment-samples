@@ -57,7 +57,6 @@ ADDON_OBJECT_FOR_STATUS='{"type":"", "installed":"", "readyToUse":""}'
 PRODUCT_OBJECT_FOR_STATUS='{"name":"","type":"", "namespace":"", "installed":"", "readyToUse":""}'
 DEFAULT_DEMO_VERSION="2020.3.1-1"
 DEMO_OBJECT_FOR_STATUS='{"name":"", "installed":"", "readyToUse":""}'
-SAMPLES_REPO_BRANCH="main"
 MISSING_PARAMS="false"
 MISSING_PREREQS="false"
 
@@ -378,7 +377,6 @@ $DEBUG && echo -e "[DEBUG] Extracting the required information from the input fi
 GENERAL=$(echo $JSON | jq -r .spec.general)
 BLOCK_STORAGE_CLASS=$(echo $GENERAL | jq -r '.storage.block | if has("class") then .class else "cp4i-block-performance" end')
 FILE_STORAGE_CLASS=$(echo $GENERAL | jq -r '.storage.file | if has("class") then .class else "ibmc-file-gold-gid" end')
-SAMPLES_REPO_BRANCH=$(echo $GENERAL | jq -r 'if has("samplesRepoBranch") then .samplesRepoBranch else "'$SAMPLES_REPO_BRANCH'" end')
 LICENSE=$(echo $JSON | jq -r .spec.license)
 LICENSE_ACCEPT=$(echo $LICENSE | jq -r 'if has("accept") then .accept else "false" end')
 DEMO_LICENSE=$(echo $LICENSE | jq -r 'if has("demo") then .demo else "L-RJON-BYRMYW" end')
@@ -393,6 +391,7 @@ REQUIRED_DEMOS_JSON=$(echo $JSON | jq -c '.spec | if has("demos") then .demos el
 REQUIRED_PRODUCTS_JSON=$(echo $JSON | jq -c '.spec | if has("products") then .products else {} end')
 REQUIRED_ADDONS_JSON=$(echo $JSON | jq -c '.spec | if has("addons") then .addons else {} end')
 DEMO_VERSION=$(echo $JSON | jq -r '.spec | if has("version") then .version else "'$DEFAULT_DEMO_VERSION'" end ')
+SAMPLES_REPO_BRANCH=$(echo $GENERAL | jq -r 'if has("samplesRepoBranch") then .samplesRepoBranch else "'$DEMO_VERSION'" end')
 # To use for un-installation
 ORIGINAL_STATUS=$(echo $JSON | jq -c .status)
 APIC_CONFIGURATION=$(echo $JSON | jq -c '.spec | if has("apic") then .apic else {} end')
