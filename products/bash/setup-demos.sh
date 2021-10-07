@@ -340,22 +340,6 @@ if [ $? -ne 0 ]; then
   MISSING_PREREQS="true"
 fi
 
-divider && echo -e "$INFO [INFO] Checking if 'ocp-pipeline' is already installed...\n"
-oc get serviceaccount pipeline
-if [ $? -ne 0 ]; then
-  echo -e "$INFO [INFO] 'ocp-pipeline' currently not installed, attempting to install...\n" 1>&2
-  $SCRIPT_DIR/install-ocp-pipeline.sh
-  if [ $? -eq 2 ]; then
-    echo -e "$CROSS [ERROR] 'ocp-pipeline' needs to be installed before running this script" 1>&2
-    MISSING_PREREQS="true"
-  fi
-fi
-
-if [[ "$MISSING_PREREQS" == "true" ]]; then
-  divider
-  exit 1
-fi
-
 #-------------------------------------------------------------------------------------------------------------------
 # Read in the input file and, if not already json, convert to json
 #-------------------------------------------------------------------------------------------------------------------
@@ -615,15 +599,23 @@ for EACH_ADDON in $(echo $REQUIRED_ADDONS_JSON | jq -r '. | keys[]'); do
     ;;
 
   ocpPipelines)
-    echo -e "$INFO [INFO] Installing OCP pipelines...\n"
-    if ! $SCRIPT_DIR/install-ocp-pipeline.sh; then
-      update_conditions "Failed to install OCP pipelines" "Releasing"
-      update_phase "Failed"
-      FAILED_INSTALL_ADDONS_LIST+=($EACH_ADDON)
-    else
+    echo -e "$INFO [INFO] Checking if 'ocp-pipeline' is already installed...\n"
+    oc get serviceaccount pipeline
+    if [ $? -ne 0 ]; then
+      echo -e "$INFO [INFO] 'ocp-pipeline' currently not installed, attempting to install...\n" 1>&2
+      $SCRIPT_DIR/install-ocp-pipeline.sh
+      if [ $? -eq 2 ]; then
+        echo -e "$CROSS [ERROR] 'ocp-pipeline' needs to be installed before running this script" 1>&2
+        update_conditions "Failed to install OCP pipelines" "Releasing"
+        update_phase "Failed"
+        divider
+        exit 1
+      fi
       echo -e "$TICK [SUCCESS] Successfully installed OCP pipelines"
-      update_addon_status "$EACH_ADDON" "true" "false"
-    fi # install-ocp-pipeline.sh
+    else
+      echo -e "$TICK [SUCCESS] OCP pipelines already installed"
+    fi
+    update_addon_status "$EACH_ADDON" "true" "false"
 
     divider && echo -e "$INFO [INFO] Configuring secrets and permissions related to ocp pipelines in the '$NAMESPACE' namespace\n"
     if ! $SCRIPT_DIR/configure-ocp-pipeline.sh -n "$NAMESPACE"; then
