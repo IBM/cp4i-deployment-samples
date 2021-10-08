@@ -1,6 +1,129 @@
 apiVersion: tekton.dev/v1beta1
 kind: Task
 metadata:
+  name: demos-build-git-source-image
+spec:
+  params:
+    - name: url
+      type: string
+      description: The URL for the forked repo
+      default: https://github.com/IBM/cp4i-deployment-samples.git
+    - name: revision
+      type: string
+      description: The branch/tag to pull from
+      default: 2021.3.1
+    - name: outputImagePath
+      type: string
+      description: The full path to push the image to
+      default: image-registry.openshift-image-registry.svc:5000/$(context.taskRun.namespace)/demos-git-source:latest
+  steps:
+    - name: build
+      image: quay.io/buildah/stable:latest
+      securityContext:
+        privileged: true
+      script: |
+        URL="$(params.url)"
+        URL="${URL%.*}/archive/$(params.revision).zip"
+        echo "URL=${URL}"
+        DIR_NAME=${$(params.url)##.*}
+        echo "DIR_NAME=${DIR_NAME}"
+
+        cat <<EOF > ./Dockerfile
+        FROM docker.io/alpine:latest as git
+        RUN mkdir -p /tmp/git-repo
+        WORKDIR /tmp/git-repo
+        RUN wget -q $URL
+        RUN unzip -o $(params.revision).zip
+
+        FROM scratch
+        COPY --from=git /tmp/git-repo/${DIR_NAME} /workspace/git-source
+        EOF
+
+        cat ./Dockerfile
+
+        buildah --storage-driver vfs bud --layers -f ./Dockerfile -t $(params.outputImagePath) ./
+        buildah --storage-driver vfs push --tls-verify=false $(params.outputImagePath)
+---
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: demos-build-buildah-image
+spec:
+  params:
+    - name: gitSourceImagePath
+      type: string
+      description: The full path to the previously built git source image
+      default: image-registry.openshift-image-registry.svc:5000/$(context.taskRun.namespace)/demos-git-source:latest
+    - name: outputImagePath
+      type: string
+      description: The full path to push the image to
+      default: image-registry.openshift-image-registry.svc:5000/$(context.taskRun.namespace)/demos-buildah:latest
+  steps:
+    - name: build
+      image: quay.io/buildah/stable:latest
+      securityContext:
+        privileged: true
+      script: |
+        cat <<EOF > ./Dockerfile
+        FROM $(params.gitSourceImagePath) as git-source
+
+        FROM quay.io/buildah/stable:latest
+        COPY --from=git-source /workspace/git-source /workspace/git-source
+        EOF
+
+        cat ./Dockerfile
+
+        buildah --storage-driver vfs bud -f ./Dockerfile -t $(params.outputImagePath) ./
+        buildah --storage-driver vfs push --tls-verify=false $(params.outputImagePath)
+---
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: demos-build-command-image
+spec:
+  params:
+    - name: gitSourceImagePath
+      type: string
+      description: The full path to the previously built git source image
+      default: image-registry.openshift-image-registry.svc:5000/$(context.taskRun.namespace)/demos-git-source:latest
+    - name: outputImagePath
+      type: string
+      description: The full path to push the image to
+      default: image-registry.openshift-image-registry.svc:5000/$(context.taskRun.namespace)/demos-command:latest
+  steps:
+    - name: build
+      image: quay.io/buildah/stable:latest
+      securityContext:
+        privileged: true
+      script: |
+        cat <<EOF > ./Dockerfile
+        # Use the CLI image for the minimum version
+        FROM quay.io/openshift/origin-cli:4.6.0 as oc
+        FROM $(params.gitSourceImagePath) as git-source
+
+        FROM docker.io/library/openjdk:11 as jdk
+
+        # Copy oc/kubectl
+        COPY --from=oc /usr/bin/oc /usr/bin/kubectl /usr/local/bin
+
+        # Install JQ 1.6
+        RUN wget -O jq https://github.com/stedolan/jq/releases/download/jq-1.6/jq-linux64 -O /usr/local/bin/jq && chmod +x /usr/local/bin/jq
+
+        # Install python2
+        RUN apt update && apt install -y python2 && update-alternatives --install /usr/bin/python python /usr/bin/python2 1
+
+        # Copy the samples repo
+        COPY --from=git-source /workspace/git-source /workspace/git-source
+        EOF
+
+        cat ./Dockerfile
+
+        buildah --storage-driver vfs bud -f ./Dockerfile -t $(params.outputImagePath) ./
+        buildah --storage-driver vfs push --tls-verify=false $(params.outputImagePath)
+---
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
   name: build-task
 spec:
   params:
@@ -19,11 +142,13 @@ spec:
     - name: pvc
       type: string
       description: The PVC to use for layers
-  workspaces:
-    - name: git-source
+    - name: buildahImagePath
+      type: string
+      description: The full path of the demos builah image
+      default: image-registry.openshift-image-registry.svc:5000/$(context.taskRun.namespace)/demos-buildah:latest
   steps:
     - name: build
-      image: quay.io/buildah/stable:latest
+      image: $(params.buildahImagePath)
       securityContext:
         privileged: true
       script: |
@@ -70,11 +195,13 @@ spec:
     - name: contextPath
       type: string
       description: The context to run the commands
-  workspaces:
-    - name: git-source
+    - name: buildahImagePath
+      type: string
+      description: The full path of the demos builah image
+      default: image-registry.openshift-image-registry.svc:5000/$(context.taskRun.namespace)/demos-buildah:latest
   steps:
     - name: build
-      image: quay.io/buildah/stable:latest
+      image: $(params.buildahImagePath)
       securityContext:
         privileged: true
       script: |
@@ -99,11 +226,13 @@ spec:
     - name: params
       type: string
       description: The parameters to pass to the script when calling
-  workspaces:
-    - name: git-source
+    - name: commandImagePath
+      type: string
+      description: The full path of the demos command image
+      default: image-registry.openshift-image-registry.svc:5000/$(context.taskRun.namespace)/demos-command:latest
   steps:
     - name: oc
-      image: quay.io/openshift/origin-cli:4.6.0
+      image: $(params.commandImagePath)
       script: "/workspace/git-source/$(params.script) $(params.params)"
 ---
 apiVersion: tekton.dev/v1beta1
@@ -131,9 +260,11 @@ spec:
       type: string
       description: Policy project configuration for ACE integration server
       default: ""
-  workspaces:
-    - name: git-source
+    - name: commandImagePath
+      type: string
+      description: The full path of the demos command image
+      default: image-registry.openshift-image-registry.svc:5000/$(context.taskRun.namespace)/demos-command:latest
   steps:
     - name: oc
-      image: quay.io/openshift/origin-cli:4.6.0
+      image: $(params.commandImagePath)
       script: "/workspace/git-source/products/bash/$(params.releaseScript) -n $(params.namespace) -r $(params.releaseName) -i image-registry.openshift-image-registry.svc:5000/$(params.namespace)/$(params.imageName):$(params.imageTag) {{TRACING}} $(params.acePolicyProjectParam)"
