@@ -369,10 +369,10 @@ FILE_STORAGE_CLASS=$(echo $GENERAL | jq -r '.storage.file | if has("class") then
 LICENSE=$(echo $JSON | jq -r .spec.license)
 LICENSE_ACCEPT=$(echo $LICENSE | jq -r 'if has("accept") then .accept else "false" end')
 DEMO_LICENSE=$(echo $LICENSE | jq -r 'if has("demo") then .demo else "L-RJON-BYRMYW" end')
-ACE_LICENSE=$(echo $LICENSE | jq -r 'if has("ace") then .ace else "L-APEH-BPUCJK" end')
-APIC_LICENSE=$(echo $LICENSE | jq -r 'if has("apic") then .apic else "L-RJON-BRSHKF" end')
-AR_LICENSE=$(echo $LICENSE | jq -r 'if has("ar") then .ar else "L-NCAN-BXWG76" end')
-MQ_LICENSE=$(echo $LICENSE | jq -r 'if has("mq") then .mq else "L-RJON-BN7PN3" end')
+ACE_LICENSE=$(echo $LICENSE | jq -r 'if has("ace") then .ace else "L-KSBM-C37J2R" end')
+APIC_LICENSE=$(echo $LICENSE | jq -r 'if has("apic") then .apic else "L-RJON-BZEP9N" end')
+AR_LICENSE=$(echo $LICENSE | jq -r 'if has("ar") then .ar else "L-NCAN-C3CJ8D" end')
+MQ_LICENSE=$(echo $LICENSE | jq -r 'if has("mq") then .mq else "L-RJON-BZFQU2" end')
 TRACING_LICENSE=$(echo $LICENSE | jq -r 'if has("tracing") then .tracing else "CP4I" end')
 NAMESPACE=$(echo $JSON | jq -r .metadata.namespace)
 NAME=$(echo $JSON | jq -r .metadata.name)
@@ -553,8 +553,8 @@ EOF
 echo "[DEBUG] Licenses configmap:"
 echo $(oc -n $NAMESPACE get configmap demo-licenses -oyaml)
 
-METADATA_NAME=$(oc get demo -n $NAMESPACE -o jsonpath='{.items[0].metadata.name}' 2> /dev/null)
-METADATA_UID=$(oc get demo -n $NAMESPACE $METADATA_NAME -o json | jq -r '.metadata.uid' 2> /dev/null)
+METADATA_NAME=$(oc get demo -n $NAMESPACE -o jsonpath='{.items[0].metadata.name}' 2>/dev/null)
+METADATA_UID=$(oc get demo -n $NAMESPACE $METADATA_NAME -o json | jq -r '.metadata.uid' 2>/dev/null)
 
 if [[ $METADATA_NAME && $METADATA_UID != '' ]]; then
   cat <<EOF | oc apply --namespace ${NAMESPACE} -f -
