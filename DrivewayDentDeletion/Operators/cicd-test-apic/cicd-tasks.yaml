@@ -1,57 +1,3 @@
-apiVersion: tekton.dev/v1beta1
-kind: Task
-metadata:
-  name: build-task
-spec:
-  params:
-    - name: imageTag
-      type: string
-      description: The image tag
-    - name: imageName
-      type: string
-      description: The image name
-    - name: dockerfile
-      type: string
-      description: The dockerfile
-    - name: contextPath
-      type: string
-      description: The context to run the commands
-    - name: pvc
-      type: string
-      description: The PVC to use for layers
-  workspaces:
-    - name: git-source
-  steps:
-    - name: build
-      image: quay.io/buildah/stable:latest
-      securityContext:
-        privileged: true
-      script: |
-        df -h /var/lib/containers
-        buildah --storage-driver vfs bud \
-          -f /workspace/git-source/DrivewayDentDeletion/Operators/Dockerfiles/$(params.dockerfile) \
-          -t image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}/$(params.imageName):$(params.imageTag) \
-          /workspace/git-source/DrivewayDentDeletion/$(params.contextPath)
-        buildah --storage-driver vfs push \
-          --tls-verify=false \
-          image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}/$(params.imageName):$(params.imageTag)
-        df -h /var/lib/containers
-      volumeMounts:
-        - mountPath: /var/lib/containers
-          name: varlibcontainers
-      resources:
-        requests:
-          memory: "4Gi"
-          cpu: "1"
-          ephemeral-storage: "5Gi"
-        limits:
-          ephemeral-storage: "5Gi"
-  volumes:
-    - name: varlibcontainers
-      persistentVolumeClaim:
-        claimName: $(params.pvc)
-
----
 # this task is to push the images that our tested to test namespace
 apiVersion: tekton.dev/v1beta1
 kind: Task
@@ -68,35 +14,15 @@ spec:
     - name: pvc
       type: string
       description: The PVC to use for layers
+    - name: commandImagePath
+      type: string
+      description: The full path of the demos command image
+      default: image-registry.openshift-image-registry.svc:5000/$(context.taskRun.namespace)/demos-command:latest
   steps:
     - name: pull-retag-push-to-test
-      image: quay.io/buildah/stable:latest
-      securityContext:
-        privileged: true
+      image: $(params.commandImagePath)
       script: |
-        df -h /var/lib/containers
-        buildah pull --tls-verify=false \
-          image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}/$(params.imageName):$(params.imageTag)
-        buildah tag \
-          image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}/$(params.imageName):$(params.imageTag) \
-          image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}/$(params.imageName):$(params.imageTag)-test
-        buildah push --tls-verify=false \
-          image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}/$(params.imageName):$(params.imageTag)-test
-        df -h /var/lib/containers
-      volumeMounts:
-        - mountPath: /var/lib/containers
-          name: varlibcontainers
-      resources:
-        requests:
-          memory: "4Gi"
-          cpu: "1"
-          ephemeral-storage: "5Gi"
-        limits:
-          ephemeral-storage: "5Gi"
-  volumes:
-    - name: varlibcontainers
-      persistentVolumeClaim:
-        claimName: $(params.pvc)
+        oc tag -n {{NAMESPACE}} $(params.imageName):$(params.imageTag) $(params.imageName):$(params.imageTag)-test
 
 ---
 apiVersion: tekton.dev/v1beta1
@@ -111,12 +37,14 @@ spec:
     - name: dddType
       type: string
       description: The ddd demo type
-  workspaces:
-    - name: git-source
+    - name: commandImagePath
+      type: string
+      description: The full path of the demos command image
+      default: image-registry.openshift-image-registry.svc:5000/$(context.taskRun.namespace)/demos-command:latest
   steps:
     - name: oc
-      image: quay.io/openshift/origin-cli:4.6.0
-      script: "/workspace/git-source/DrivewayDentDeletion/Operators/test-api-e2e.sh -n {{NAMESPACE}} -s $(params.suffix) -d $(params.dddType) -a"
+      image: $(params.commandImagePath)
+      script: "/image-workspace/git-source/DrivewayDentDeletion/Operators/test-api-e2e.sh -n {{NAMESPACE}} -s $(params.suffix) -d $(params.dddType)"
 
 ---
 apiVersion: tekton.dev/v1beta1
@@ -134,9 +62,15 @@ spec:
     - name: releaseScript
       type: string
       description: release name of script
-  workspaces:
-    - name: git-source
+    - name: commandImagePath
+      type: string
+      description: The full path of the demos command image
+      default: image-registry.openshift-image-registry.svc:5000/$(context.taskRun.namespace)/demos-command:latest
+    - name: commandImagePath
+      type: string
+      description: The full path of the demos command image
+      default: image-registry.openshift-image-registry.svc:5000/$(context.taskRun.namespace)/demos-command:latest
   steps:
     - name: oc
-      image: quay.io/openshift/origin-cli:4.6.0
-      script: "/workspace/git-source/products/bash/$(params.releaseScript) -n {{NAMESPACE}} -r $(params.releaseName) -e $(params.environment)"
+      image: $(params.commandImagePath)
+      script: "/image-workspace/git-source/products/bash/$(params.releaseScript) -n {{NAMESPACE}} -r $(params.releaseName) -e $(params.environment)"

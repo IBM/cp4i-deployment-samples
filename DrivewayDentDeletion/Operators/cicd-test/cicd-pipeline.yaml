@@ -7,46 +7,29 @@ spec:
     - name: imageTag
       type: string
       description: The image tag
-  workspaces:
-    - name: git-source
   tasks:
-    - name: clone-git-source
+    - name: build-git-source-image
       taskRef:
-        name: git-clone
-        kind: ClusterTask
-      params:
-        - name: url
-          value: "{{FORKED_REPO}}"
-        - name: subdirectory
-          value: ""
-        - name: deleteExisting
-          value: "true"
-        - name: revision
-          value: "{{BRANCH}}"
-      workspaces:
-        - name: output
-          workspace: git-source
+        name: demos-build-git-source-image
 
-    - name: fixup-dockerfiles
-      runAfter:
-        - clone-git-source
+    - name: build-buildah-image
       taskRef:
-        name: run-script
-      params:
-        - name: script
-          value: "products/bash/fixup-dockerfiles.sh"
-        - name: params
-          value: " -n {{NAMESPACE}}"
-      workspaces:
-        - name: git-source
-          workspace: git-source
+        name: demos-build-buildah-image
+      runAfter:
+        - build-git-source-image
+
+    - name: build-command-image
+      taskRef:
+        name: demos-build-command-image
+      runAfter:
+        - build-git-source-image
 
     # MQ build for dev
     - name: build-mq
-      runAfter:
-        - fixup-dockerfiles
       taskRef:
         name: build-task
+      runAfter:
+        - build-buildah-image
       params:
         - name: imageName
           value: "mq-ddd"
@@ -58,16 +41,14 @@ spec:
           value: ""
         - name: pvc
           value: "buildah-mq"
-      workspaces:
-        - name: git-source
-          workspace: git-source
 
     # MQ deploy for dev
     - name: deploy-wait-mq
-      runAfter:
-        - build-mq
       taskRef:
         name: deploy-task
+      runAfter:
+        - build-mq
+        - build-command-image
       params:
         - name: imageTag
           value: "latest"
@@ -79,16 +60,13 @@ spec:
           value: release-mq.sh
         - name: namespace
           value: "{{NAMESPACE}}"
-      workspaces:
-        - name: git-source
-          workspace: git-source
 
     # build all ace for dev
     - name: build-ace-int-server-ace-api
-      runAfter:
-        - fixup-dockerfiles
       taskRef:
         name: build-task
+      runAfter:
+        - build-buildah-image
       params:
         - name: imageTag
           value: "$(params.imageTag)"
@@ -100,15 +78,12 @@ spec:
           value: "Bar_files/ace-api"
         - name: pvc
           value: "buildah-ace-api"
-      workspaces:
-        - name: git-source
-          workspace: git-source
 
     - name: build-ace-int-server-ace-acme
-      runAfter:
-        - fixup-dockerfiles
       taskRef:
         name: build-task
+      runAfter:
+        - build-buildah-image
       params:
         - name: imageTag
           value: "$(params.imageTag)"
@@ -120,15 +95,12 @@ spec:
           value: "Bar_files/ace-acme"
         - name: pvc
           value: "buildah-ace-acme"
-      workspaces:
-        - name: git-source
-          workspace: git-source
 
     - name: build-ace-int-server-ace-bernie
-      runAfter:
-        - fixup-dockerfiles
       taskRef:
         name: build-task
+      runAfter:
+        - build-buildah-image
       params:
         - name: imageTag
           value: "$(params.imageTag)"
@@ -140,15 +112,12 @@ spec:
           value: "Bar_files/ace-bernie"
         - name: pvc
           value: "buildah-ace-bernie"
-      workspaces:
-        - name: git-source
-          workspace: git-source
 
     - name: build-ace-int-server-ace-chris
-      runAfter:
-        - fixup-dockerfiles
       taskRef:
         name: build-task
+      runAfter:
+        - build-buildah-image
       params:
         - name: imageTag
           value: "$(params.imageTag)"
@@ -160,16 +129,14 @@ spec:
           value: "Bar_files/ace-chris"
         - name: pvc
           value: "buildah-ace-chris"
-      workspaces:
-        - name: git-source
-          workspace: git-source
 
     # deploy all ace for dev
     - name: deploy-wait-ace-api
-      runAfter:
-        - build-ace-int-server-ace-api
       taskRef:
         name: deploy-task
+      runAfter:
+        - build-ace-int-server-ace-api
+        - build-command-image
       params:
         - name: imageTag
           value: "$(params.imageTag)"
@@ -183,15 +150,14 @@ spec:
           value: "{{NAMESPACE}}"
         - name: acePolicyProjectParam
           value: "-d policyproject-ddd-dev"
-      workspaces:
-        - name: git-source
-          workspace: git-source
+
 
     - name: deploy-wait-ace-bernie
-      runAfter:
-        - build-ace-int-server-ace-bernie
       taskRef:
         name: deploy-task
+      runAfter:
+        - build-ace-int-server-ace-bernie
+        - build-command-image
       params:
         - name: imageTag
           value: "$(params.imageTag)"
@@ -205,15 +171,13 @@ spec:
           value: "{{NAMESPACE}}"
         - name: acePolicyProjectParam
           value: "-d policyproject-ddd-dev"
-      workspaces:
-        - name: git-source
-          workspace: git-source
 
     - name: deploy-wait-ace-acme
-      runAfter:
-        - build-ace-int-server-ace-acme
       taskRef:
         name: deploy-task
+      runAfter:
+        - build-ace-int-server-ace-acme
+        - build-command-image
       params:
         - name: imageTag
           value: "$(params.imageTag)"
@@ -227,15 +191,13 @@ spec:
           value: "{{NAMESPACE}}"
         - name: acePolicyProjectParam
           value: "-d policyproject-ddd-dev"
-      workspaces:
-        - name: git-source
-          workspace: git-source
 
     - name: deploy-wait-ace-chris
-      runAfter:
-        - build-ace-int-server-ace-chris
       taskRef:
         name: deploy-task
+      runAfter:
+        - build-ace-int-server-ace-chris
+        - build-command-image
       params:
         - name: imageTag
           value: "$(params.imageTag)"
@@ -249,9 +211,6 @@ spec:
           value: "{{NAMESPACE}}"
         - name: acePolicyProjectParam
           value: "-d policyproject-ddd-dev"
-      workspaces:
-        - name: git-source
-          workspace: git-source
 
     # test end-to-end API in dev namespace
     - name: test-e2e-api-in-dev-namespace
@@ -261,6 +220,7 @@ spec:
         - deploy-wait-ace-api
         - deploy-wait-ace-acme
         - deploy-wait-ace-bernie
+        - build-command-image
       taskRef:
         name: api-test-e2e
       params:
@@ -268,9 +228,6 @@ spec:
           value: "ddd"
         - name: dddType
           value: "dev"
-      workspaces:
-        - name: git-source
-          workspace: git-source
 
     # push ace images for test
     - name: image-push-to-test-ace-chris
@@ -358,9 +315,6 @@ spec:
           value: release-mq.sh
         - name: namespace
           value: "{{NAMESPACE}}"
-      workspaces:
-        - name: git-source
-          workspace: git-source
 
     # deploy all ace api in test namespace
     - name: deploy-wait-ace-api-test
@@ -381,9 +335,6 @@ spec:
           value: "{{NAMESPACE}}"
         - name: acePolicyProjectParam
           value: "-d policyproject-ddd-test"
-      workspaces:
-        - name: git-source
-          workspace: git-source
 
     # deploy all ace bernie in test namespace
     - name: deploy-wait-ace-bernie-test
@@ -404,9 +355,6 @@ spec:
           value: "{{NAMESPACE}}"
         - name: acePolicyProjectParam
           value: "-d policyproject-ddd-test"
-      workspaces:
-        - name: git-source
-          workspace: git-source
 
     # deploy all ace acme in test namespace
     - name: deploy-wait-ace-acme-test
@@ -427,9 +375,6 @@ spec:
           value: "{{NAMESPACE}}"
         - name: acePolicyProjectParam
           value: "-d policyproject-ddd-test"
-      workspaces:
-        - name: git-source
-          workspace: git-source
 
     # deploy all ace chris in test namespace
     - name: deploy-wait-ace-chris-test
@@ -450,9 +395,6 @@ spec:
           value: "{{NAMESPACE}}"
         - name: acePolicyProjectParam
           value: "-d policyproject-ddd-test"
-      workspaces:
-        - name: git-source
-          workspace: git-source
 
     # test end-to-end API in test namespace
     - name: test-e2e-api-in-test-namespace
@@ -469,6 +411,3 @@ spec:
           value: "ddd"
         - name: dddType
           value: "test"
-      workspaces:
-        - name: git-source
-          workspace: git-source

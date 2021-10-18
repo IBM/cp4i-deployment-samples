@@ -15,21 +15,20 @@
 #   -n : <NAMESPACE> (string), Defaults to 'cp4i'
 #   -r : <REPO> (string), Defaults to 'https://github.com/IBM/cp4i-deployment-samples.git'
 #   -b : <BRANCH> (string), Defaults to 'main'
-#   -f : <DEFAULT_FILE_STORAGE> (string), Default to 'ibmc-file-gold-gid'
 #   -g : <DEFAULT_BLOCK_STORAGE> (string), Default to 'cp4i-block-performance'
 #
 #   With defaults values
 #     ./cicd-apply-test-apic-pipeline.sh
 #
 #   With overridden values
-#     ./cicd-apply-test-apic-pipeline.sh -n <NAMESPACE> -r <REPO> -b <BRANCH> -f <DEFAULT_FILE_STORAGE> -g <DEFAULT_BLOCK_STORAGE>
+#     ./cicd-apply-test-apic-pipeline.sh -n <NAMESPACE> -r <REPO> -b <BRANCH> -g <DEFAULT_BLOCK_STORAGE>
 
 function divider() {
   echo -e "\n-------------------------------------------------------------------------------------------------------------------\n"
 }
 
 function usage() {
-  echo "Usage: $0 -n <NAMESPACE> -r <REPO> -b <BRANCH> -f <DEFAULT_FILE_STORAGE> -g <DEFAULT_BLOCK_STORAGE>"
+  echo "Usage: $0 -n <NAMESPACE> -r <REPO> -b <BRANCH> -g <DEFAULT_BLOCK_STORAGE>"
   divider
   exit 1
 }
@@ -45,7 +44,6 @@ ALL_DONE="\xF0\x9F\x92\xAF"
 INFO="\xE2\x84\xB9"
 SUM=0
 MISSING_PARAMS="false"
-DEFAULT_FILE_STORAGE="ibmc-file-gold-gid"
 DEFAULT_BLOCK_STORAGE="cp4i-block-performance"
 
 while getopts "n:r:b:f:g:" opt; do
@@ -60,7 +58,7 @@ while getopts "n:r:b:f:g:" opt; do
     BRANCH="$OPTARG"
     ;;
   f)
-    DEFAULT_FILE_STORAGE="$OPTARG"
+    echo "-f ignored as file storage no longer needed"
     ;;
   g)
     DEFAULT_BLOCK_STORAGE="$OPTARG"
@@ -87,11 +85,6 @@ if [[ -z "${BRANCH// /}" ]]; then
   MISSING_PARAMS="true"
 fi
 
-if [[ -z "${DEFAULT_FILE_STORAGE// /}" ]]; then
-  echo -e "$CROSS [ERROR] File storage type for test apic pipeline of driveway dent deletion demo is empty. Please provide a value for '-f' parameter."
-  MISSING_PARAMS="true"
-fi
-
 if [[ -z "${DEFAULT_BLOCK_STORAGE// /}" ]]; then
   echo -e "$CROSS [ERROR] Block storage type for test apic pipeline of driveway dent deletion demo is empty. Please provide a value for '-g' parameter."
   MISSING_PARAMS="true"
@@ -109,7 +102,6 @@ echo -e "$INFO [INFO] Test Namespace for the test apic pipeline of the driveway 
 echo -e "$INFO [INFO] Branch name for the test apic pipeline of the driveway dent deletion demo: '$BRANCH'"
 echo -e "$INFO [INFO] Repository name for the test apic pipeline of the driveway dent deletion demo: '$REPO'"
 echo -e "$INFO [INFO] Block storage class for the test apic pipeline of the driveway dent deletion demo: '$DEFAULT_BLOCK_STORAGE'"
-echo -e "$INFO [INFO] File storage class for the test apic pipeline of the driveway dent deletion demo: '$DEFAULT_FILE_STORAGE'"
 
 divider
 
@@ -130,7 +122,6 @@ divider
 # apply pvc for buildah tasks
 echo -e "$INFO [INFO] Apply pvc for buildah tasks for the test apic pipeline of the driveway dent deletion demo\n"
 if cat $CURRENT_DIR/cicd-test-apic/cicd-pvc.yaml |
-  sed "s#{{DEFAULT_FILE_STORAGE}}#$DEFAULT_FILE_STORAGE#g;" |
   sed "s#{{DEFAULT_BLOCK_STORAGE}}#$DEFAULT_BLOCK_STORAGE#g;" |
   oc apply -n $NAMESPACE -f -; then
   echo -e "\n$TICK [SUCCESS] Successfully applied pvc in the '$NAMESPACE' namespace"

@@ -8,7 +8,3 @@ metadata:
 spec:
   pipelineRef:
     name: eei-build-pipeline
-  workspaces:
-    - name: git-source
-      persistentvolumeclaim:
-        claimName: git-workspace-eei

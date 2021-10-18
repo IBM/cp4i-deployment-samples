@@ -23,9 +23,10 @@ spec:
         privileged: true
       script: |
         URL="$(params.url)"
-        URL="${URL%.*}/archive/$(params.revision).zip"
+        URL="${URL%.*}"
+        DIR_NAME="$(basename $URL)-$(params.revision)"
+        URL="${URL}/archive/$(params.revision).zip"
         echo "URL=${URL}"
-        DIR_NAME=${$(params.url)##.*}
         echo "DIR_NAME=${DIR_NAME}"
 
         cat <<EOF > ./Dockerfile
@@ -34,9 +35,13 @@ spec:
         WORKDIR /tmp/git-repo
         RUN wget -q $URL
         RUN unzip -o $(params.revision).zip
+        RUN ls -ltr
+        RUN mv ${DIR_NAME} git-source
+        RUN ls -ltr /tmp/git-repo
+        RUN ls -ltr /tmp/git-repo/git-source
 
         FROM scratch
-        COPY --from=git /tmp/git-repo/${DIR_NAME} /workspace/git-source
+        COPY --from=git /tmp/git-repo/git-source /image-workspace/git-source
         EOF
 
         cat ./Dockerfile
@@ -68,7 +73,8 @@ spec:
         FROM $(params.gitSourceImagePath) as git-source
 
         FROM quay.io/buildah/stable:latest
-        COPY --from=git-source /workspace/git-source /workspace/git-source
+        COPY --from=git-source /image-workspace/git-source /image-workspace/git-source
+        RUN ls -ltr /image-workspace/git-source
         EOF
 
         cat ./Dockerfile
@@ -113,7 +119,8 @@ spec:
         RUN apt update && apt install -y python2 && update-alternatives --install /usr/bin/python python /usr/bin/python2 1
 
         # Copy the samples repo
-        COPY --from=git-source /workspace/git-source /workspace/git-source
+        COPY --from=git-source /image-workspace/git-source /image-workspace/git-source
+        RUN ls -ltr /image-workspace/git-source
         EOF
 
         cat ./Dockerfile
@@ -153,10 +160,13 @@ spec:
         privileged: true
       script: |
         df -h /var/lib/containers
+        ls -ltr /
+        ls -ltr /image-workspace
+        ls -ltr /image-workspace/git-source
         buildah --storage-driver vfs bud \
-          -f /workspace/git-source/DrivewayDentDeletion/Operators/Dockerfiles/$(params.dockerfile) \
+          -f /image-workspace/git-source/DrivewayDentDeletion/Operators/Dockerfiles/$(params.dockerfile) \
           -t image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}/$(params.imageName):$(params.imageTag) \
-          /workspace/git-source/DrivewayDentDeletion/$(params.contextPath)
+          /image-workspace/git-source/DrivewayDentDeletion/$(params.contextPath)
         buildah --storage-driver vfs push \
           --tls-verify=false \
           image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}/$(params.imageName):$(params.imageTag)
@@ -206,9 +216,9 @@ spec:
         privileged: true
       script: |
         buildah --storage-driver vfs bud \
-          -f /workspace/git-source/$(params.dockerfile) \
+          -f /image-workspace/git-source/$(params.dockerfile) \
           -t image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}/$(params.imageName):$(params.imageTag) \
-          /workspace/git-source/$(params.contextPath)
+          /image-workspace/git-source/$(params.contextPath)
         buildah --storage-driver vfs push \
           --tls-verify=false \
           image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}/$(params.imageName):$(params.imageTag)
@@ -233,7 +243,7 @@ spec:
   steps:
     - name: oc
       image: $(params.commandImagePath)
-      script: "/workspace/git-source/$(params.script) $(params.params)"
+      script: "/image-workspace/git-source/$(params.script) $(params.params)"
 ---
 apiVersion: tekton.dev/v1beta1
 kind: Task
@@ -267,4 +277,4 @@ spec:
   steps:
     - name: oc
       image: $(params.commandImagePath)
-      script: "/workspace/git-source/products/bash/$(params.releaseScript) -n $(params.namespace) -r $(params.releaseName) -i image-registry.openshift-image-registry.svc:5000/$(params.namespace)/$(params.imageName):$(params.imageTag) {{TRACING}} $(params.acePolicyProjectParam)"
+      script: "/image-workspace/git-source/products/bash/$(params.releaseScript) -n $(params.namespace) -r $(params.releaseName) -i image-registry.openshift-image-registry.svc:5000/$(params.namespace)/$(params.imageName):$(params.imageTag) {{TRACING}} $(params.acePolicyProjectParam)"

@@ -6,44 +6,27 @@ metadata:
     app: pipeline-eei
     demo: eei
 spec:
-  workspaces:
-    - name: git-source
   tasks:
-    - name: git-clone-eei
+    - name: build-git-source-image
       taskRef:
-        name: git-clone
-        kind: ClusterTask
-      params:
-        - name: url
-          value: "{{FORKED_REPO}}"
-        - name: subdirectory
-          value: ""
-        - name: deleteExisting
-          value: "true"
-        - name: revision
-          value: "{{BRANCH}}"
-      workspaces:
-        - name: output
-          workspace: git-source
+        name: demos-build-git-source-image
 
-    - name: fixup-dockerfiles
-      runAfter:
-        - git-clone-eei
+    - name: build-buildah-image
       taskRef:
-        name: run-script
-      params:
-        - name: script
-          value: "products/bash/fixup-dockerfiles.sh"
-        - name: params
-          value: " -n {{NAMESPACE}}"
-      workspaces:
-        - name: git-source
-          workspace: git-source
+        name: demos-build-buildah-image
+      runAfter:
+        - build-git-source-image
+
+    - name: build-command-image
+      taskRef:
+        name: demos-build-command-image
+      runAfter:
+        - build-git-source-image
 
     # build simulator app image
     - name: build-simulator-image
       runAfter:
-        - fixup-dockerfiles
+        - build-buildah-image
       taskRef:
         name: build-task-no-pvc
       params:
@@ -55,14 +38,12 @@ spec:
           value: "EventEnabledInsurance/QuoteLifecycleSimulator/Simulator.Dockerfile"
         - name: contextPath
           value: "EventEnabledInsurance/QuoteLifecycleSimulator"
-      workspaces:
-        - name: git-source
-          workspace: git-source
 
     # deploy simulator app image
     - name: deploy-simulator-app
       runAfter:
         - build-simulator-image
+        - build-command-image
       taskRef:
         name: run-script
       params:
@@ -70,14 +51,11 @@ spec:
           value: "EventEnabledInsurance/QuoteLifecycleSimulator/deploy.sh"
         - name: params
           value: " -n {{NAMESPACE}}"
-      workspaces:
-        - name: git-source
-          workspace: git-source
 
     # build projection claim app image
     - name: build-projection-claims-image
       runAfter:
-        - fixup-dockerfiles
+        - build-buildah-image
       taskRef:
         name: build-task-no-pvc
       params:
@@ -89,14 +67,12 @@ spec:
           value: "EventEnabledInsurance/ProjectionClaims/Dockerfile"
         - name: contextPath
           value: "EventEnabledInsurance/ProjectionClaims"
-      workspaces:
-        - name: git-source
-          workspace: git-source
 
     # deploy projection claim app image
     - name: deploy-projection-claims-app
       runAfter:
         - build-projection-claims-image
+        - build-command-image
       taskRef:
         name: run-script
       params:
@@ -104,14 +80,11 @@ spec:
           value: "EventEnabledInsurance/ProjectionClaims/deploy.sh"
         - name: params
           value: " -n {{NAMESPACE}}"
-      workspaces:
-        - name: git-source
-          workspace: git-source
 
     # build mq image
     - name: build-mq-image
       runAfter:
-        - fixup-dockerfiles
+        - build-buildah-image
       taskRef:
         name: build-task-no-pvc
       params:
@@ -123,14 +96,12 @@ spec:
           value: "EventEnabledInsurance/MQ/Dockerfile"
         - name: contextPath
           value: "EventEnabledInsurance/MQ"
-      workspaces:
-        - name: git-source
-          workspace: git-source
 
     # deploy mq image
     - name: deploy-mq
       runAfter:
         - build-mq-image
+        - build-command-image
       taskRef:
         name: run-script
       params:
@@ -138,14 +109,11 @@ spec:
           value: "products/bash/release-mq.sh"
         - name: params
           value: " -n {{NAMESPACE}} -r mq-eei -i image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}/mq-eei:latest -q eei"
-      workspaces:
-        - name: git-source
-          workspace: git-source
 
     # build ace rest
     - name: build-ace-rest
       runAfter:
-        - fixup-dockerfiles
+        - build-buildah-image
       taskRef:
         name: build-task
       params:
@@ -159,14 +127,11 @@ spec:
           value: "../EventEnabledInsurance/ACE/BarFiles"
         - name: pvc
           value: "buildah-ace-rest-eei"
-      workspaces:
-        - name: git-source
-          workspace: git-source
 
     # build ace db-writer
     - name: build-ace-db-writer
       runAfter:
-        - fixup-dockerfiles
+        - build-buildah-image
       taskRef:
         name: build-task
       params:
@@ -180,14 +145,12 @@ spec:
           value: "../EventEnabledInsurance/ACE/BarFiles"
         - name: pvc
           value: "buildah-ace-db-writer-eei"
-      workspaces:
-        - name: git-source
-          workspace: git-source
 
     # deploy ace rest
     - name: deploy-ace-rest
       runAfter:
         - build-ace-rest
+        - build-command-image
       taskRef:
         name: run-script
       params:
@@ -195,14 +158,12 @@ spec:
           value: "products/bash/release-ace-integration-server.sh"
         - name: params
           value: " -n '{{NAMESPACE}}' -r 'ace-rest-int-srv-eei' -i image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}/ace-rest-eei:latest -c {{CONFIGURATIONS}} -p 1"
-      workspaces:
-        - name: git-source
-          workspace: git-source
 
     # deploy ace db_writer
     - name: deploy-db-writer
       runAfter:
         - build-ace-db-writer
+        - build-command-image
       taskRef:
         name: run-script
       params:
@@ -210,13 +171,10 @@ spec:
           value: "products/bash/release-ace-integration-server.sh"
         - name: params
           value: " -n '{{NAMESPACE}}' -r 'ace-db-writer-int-srv-eei' -i image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}/ace-db-writer-eei:latest -c {{CONFIGURATIONS}} -p 1"
-      workspaces:
-        - name: git-source
-          workspace: git-source
 
     - name: push-to-apic
       runAfter:
-        - fixup-dockerfiles
+        - build-command-image
       taskRef:
         name: run-script
       params:
@@ -224,6 +182,3 @@ spec:
           value: "products/bash/pub-sub-apic.sh"
         - name: params
           value: " -n '{{NAMESPACE}}' -d eei -t https://ace-rest-int-srv-eei-is:7843 -p EventEnabledInsurance/apic/apic-product-eei.yaml -s EventEnabledInsurance/apic/apic-api-eei.yaml"
-      workspaces:
-        - name: git-source
-          workspace: git-source

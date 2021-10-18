@@ -12,10 +12,6 @@ spec:
         pipelineRef:
           name: test-apic-pipeline
         serviceAccountName: pipeline
-        workspaces:
-          - name: git-source
-            persistentvolumeclaim:
-              claimName: git-source-workspace
         params:
           - name: imageTag
             value: $(uid)
