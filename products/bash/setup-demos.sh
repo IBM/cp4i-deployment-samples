@@ -68,7 +68,7 @@ DRIVEWAY_DENT_DELETION_PRODUCTS_LIST=("aceDashboard" "apic" "tracing")
 DRIVEWAY_DENT_DELETION_ADDONS_LIST=("postgres" "ocpPipelines")
 # event insurance demo list
 EVENT_ENABLED_INSURANCE_PRODUCTS_LIST=("aceDashboard" "apic" "eventStreams" "tracing")
-EVENT_ENABLED_INSURANCE_ADDONS_LIST=("postgres" "elasticSearch" "ocpPipelines")
+EVENT_ENABLED_INSURANCE_ADDONS_LIST=("postgres" "ocpPipelines")
 # mapping assist demo list
 MAPPING_ASSIST_PRODUCTS_LIST=("aceDesigner")
 MAPPING_ASSIST_ADDONS_LIST=()
@@ -454,7 +454,6 @@ for DEMO in $(echo $REQUIRED_DEMOS_JSON | jq -r 'keys[]'); do
       '
     ADDONS_FOR_DEMO='
       postgres
-      elasticSearch
       ocpPipelines
       '
     ;;
@@ -589,18 +588,6 @@ for EACH_ADDON in $(echo $REQUIRED_ADDONS_JSON | jq -r '. | keys[]'); do
       echo -e "\n$TICK [SUCCESS] Successfully released PostgresSQL in the '$NAMESPACE' namespace"
       update_addon_status "$EACH_ADDON" "true" "true"
     fi # release-psql.sh
-    ;;
-
-  elasticSearch)
-    echo -e "$INFO [INFO] Setting up elastic search operator and elastic search instance in the '$NAMESPACE' namespace..."
-    if ! $SCRIPT_DIR/../../EventEnabledInsurance/setup-elastic-search.sh -n "$NAMESPACE" -e "$NAMESPACE"; then
-      update_conditions "Failed to install and configure elastic search in the '$NAMESPACE' namespace" "Releasing"
-      update_phase "Failed"
-      FAILED_INSTALL_ADDONS_LIST+=($EACH_ADDON)
-    else
-      echo -e "\n$TICK [INFO] Successfully installed and configured elastic search in the '$NAMESPACE' namespace"
-      update_addon_status "$EACH_ADDON" "true" "true"
-    fi # setup-elastic-search.sh
     ;;
 
   ocpPipelines)
