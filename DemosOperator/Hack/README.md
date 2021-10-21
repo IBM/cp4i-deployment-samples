@@ -98,7 +98,6 @@ spec:
   # demo will automatically enable required addons.
   addons:
     postgres: false
-    elasticSearch: false
     # Installs the pipelines operator cluster scoped
     ocpPipelines: false
 EOF
