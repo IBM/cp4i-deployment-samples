@@ -17,8 +17,6 @@ The script carries out the following:
   - Creates a PUBLICATION named `DB_EEI_QUOTES` for the `QUOTES` table. (The Debezium connector can do this, but would then require super user privileges)
   - Creates a replication user that has the replication role and access to the `QUOTES` table
   - Creates a secret with the replication username/password that can be used by the `KafkaConnector`
-- Installs Elasticsearch in the default `cp4i` project. The Elasticsearch CR is also setup to add a `subjectAltNames` so the self signed certificate can be used to access the service cross namespace.
-- Creates a secret to allow the Elasticsearch connector to connect to Elasticsearch. This secret includes credentials and also a truststore in jks format. The truststore includes the self-signed certificate created by Elasticsearch.
 
 # Set up a Kafka Connect environment
 Download the [example kafka-connect-s2i.yaml](kafkaconnect/kafka-connect-s2i.yaml). This is based on the one in
@@ -73,15 +71,12 @@ spec:
     config.providers.file.class: org.apache.kafka.common.config.provider.FileConfigProvider
   # This mounts secrets into the connector at /opt/kafka/external-configuration. These
   # secrets have been pre-created by the prereqs.sh script and configure access to the
-  # demo installs of Postgres and Elasticsearch.
+  # demo install of Postgres.
   externalConfiguration:
     volumes:
       - name: postgres-connector-config
         secret:
           secretName: eei-postgres-replication-credential
-      - name: elastic-connector-config
-        secret:
-          secretName: eei-elastic-credential
 # There is no need to add tls or authentication properties, `es-demos` has no security
 # setup.
 #  tls:
@@ -135,16 +130,14 @@ Status:
 ...
 ```
 
-# Add connectors to your Kafka Connect environment
-Add connectors for Postgres Debezium and Elasticsearch.
+# Add connector to your Kafka Connect environment
+Add connector for Postgres Debezium.
 - Navigate to the toolbox for the `es-demo` Event Streams runtime
 - Click `Add connectors to your Kafka Connect environment`
 - Click `View Catalog`.
 - Find and click the following connectors and the click `Get connector` to download:
   - PostgreSQL (Debezium)
-  - Elasticsearch
 - Extract the PostgreSQL (Debezium) tgz into a dir named `my-plugins`
-- Copy the Elasticsearch jar into the same `my-plugins` dir
 You should end up with a dir structure as follows:
 ![dir structure](./media/my-plugins-dir.png)
 
@@ -165,9 +158,6 @@ section:
 $ oc describe KafkaConnectS2I eei-cluster
 ...
 Connector Plugins:
-  Class:              com.ibm.eventstreams.connect.elasticsink.ElasticSinkConnector
-  Type:               sink
-  Version:            1.0.1
   Class:              io.debezium.connector.postgresql.PostgresConnector
   Type:               source
   Version:            1.2.0.Final
@@ -299,143 +289,6 @@ echo $(oc get route projection-claims-eei --template='https://{{.spec.host}}/get
 Stop the Projection Claims application using:
 ```
 oc scale deployment/projection-claims-eei --replicas=0
-```
-
-# Start Kafka Connect with the Elasticsearch connector
-
-Download the [example connector-elastic.yaml](kafkaconnect/connector-elastic.yaml). This is based on the one in
-the Event Streams toolbox, which can be accessed by:
-- Navigate to the toolbox for the `es-demo` Event Streams runtime
-- Click `Start Kafka Connect with your connectors`
-- Jump to the `Start a connector` section.
-- View the example connector.yaml
-
-The example includes comments describing each change, see the following:
-```yaml
-apiVersion: eventstreams.ibm.com/v1alpha1
-kind: KafkaConnector
-metadata:
-  name: eei-elastic
-  labels:
-    eventstreams.ibm.com/cluster: eei-cluster
-spec:
-  # This uses the Elasticsearch plugin from the KafkaConnectS2I
-  class: com.ibm.eventstreams.connect.elasticsink.ElasticSinkConnector
-  tasksMax: 1
-  config:
-    # Monitors the topic that is being populated by the postgres connector.
-    topics: sor.public.quotes
-    # The following credentials refer to the mounted secret and use the FileConfigProvider
-    # from the KafkaConnectS2I to extract properties from the properties file.
-    es.connection: "${file:/opt/kafka/external-configuration/elastic-connector-config/connector.properties:dbConnection}"
-    es.user.name: "${file:/opt/kafka/external-configuration/elastic-connector-config/connector.properties:dbUser}"
-    es.password: "${file:/opt/kafka/external-configuration/elastic-connector-config/connector.properties:dbPassword}"
-    # Use the default document/index builders
-    es.document.builder: com.ibm.eventstreams.connect.elasticsink.builders.JsonDocumentBuilder
-    es.index.builder: com.ibm.eventstreams.connect.elasticsink.builders.DefaultIndexBuilder
-    # Use the KeyIdentifierBuilder to do CDC, so the Elasticsearch index only includes
-    # the latest copy of all rows from the original data.
-    es.identifier.builder: com.ibm.eventstreams.connect.elasticsink.builders.KeyIdentifierBuilder
-    # Setup the truststore to trust the Elasticsearch self signed certificate. The Elasticsearch
-    # operator creates this certificate and the prereqs create a jks truststore from it and
-    # add it to a secret that gets mounted into the connector pod.
-    es.tls.truststore.location: /opt/kafka/external-configuration/elastic-connector-config/elastic-ts.jks
-    es.tls.truststore.password: "${file:/opt/kafka/external-configuration/elastic-connector-config/connector.properties:truststorePassword}"
-```
-
-Apply the yaml using:
-```
-oc apply -f connector-elastic.yaml
-```
-
-Find the connector pod and watch the logs:
-```
-CONNECTOR_POD=$(oc get pod -l eventstreams.ibm.com/cluster=eei-cluster --output=jsonpath={.items..metadata.name})
-echo "CONNECTOR_POD=${CONNECTOR_POD}"
-oc logs -f $CONNECTOR_POD
-```
-
-The following should appear in the logs:
-```
-2020-10-09 14:12:34,522 INFO Building documents using com.ibm.eventstreams.connect.elasticsink.builders.JsonDocumentBuilder (com.ibm.eventstreams.connect.elasticsink.builders.JsonDocumentBuilder) [task-thread-eei-elastic-0]
-2020-10-09 14:12:35,075 INFO Connection to Elasticsearch established (com.ibm.eventstreams.connect.elasticsink.ElasticWriter) [task-thread-eei-elastic-0]
-2020-10-09 14:12:35,076 INFO WorkerSinkTask{id=eei-elastic-0} Sink task finished initialization and start (org.apache.kafka.connect.runtime.WorkerSinkTask) [task-thread-eei-elastic-0]
-2020-10-09 14:12:38,853 INFO WorkerSinkTask{id=eei-elastic-0} Committing offsets asynchronously using sequence number 1: {sor.public.quotes-0=OffsetAndMetadata{offset=65, leaderEpoch=null, metadata=''}} (org.apache.kafka.connect.runtime.WorkerSinkTask) [task-thread-eei-elastic-0]
-```
-And now the connector is monitoring the `sor.public.quotes` topic and writing to the `sor.public.quotes` index in Elasticsearch.
-
-# Verify contents of Elasticsearch
-Port forward the Elasticsearch service to your localhost:
-```
-ELASTIC_NAMESPACE=cp4i
-oc port-forward -n ${ELASTIC_NAMESPACE} service/elasticsearch-eei-es-http 9200
-```
-
-In a separate terminal setup some env vars to allow curl to call Elasticsearch:
-```
-ELASTIC_NAMESPACE=cp4i
-ELASTIC_PASSWORD=$(oc get secret elasticsearch-eei-es-elastic-user -n $ELASTIC_NAMESPACE -o go-template='{{.data.elastic | base64decode}}')
-ELASTIC_USER="elastic"
-```
-
-Check that the `sor.public.quotes` index has been created using the command:
-```
-curl -u "${ELASTIC_USER}:${ELASTIC_PASSWORD}" -k 'https://localhost:9200/_cat/indices?v'
-```
-Which should return something like:
-```
-health status index             uuid                   pri rep docs.count docs.deleted store.size pri.store.size
-yellow open   sor.public.quotes fb59dXjURR6uCxRwoRpaIQ   1   1         18           47     39.7kb         39.7kb
-```
-
-Get the current state of the `sor.public.quotes` index into an env var named `JSON`:
-```
-JSON=$(curl -u "${ELASTIC_USER}:${ELASTIC_PASSWORD}" -k "https://localhost:9200/sor.public.quotes/_search" -H 'Content-Type: application/json' -d'{"query":{"match_all":{}}}')
-```
-
-Get the number of rows from the JSON using:
-```
-echo $JSON | jq .hits.total.value
-```
-
-Get the rows from the JSON using:
-```
-echo $JSON | jq '.hits.hits[]._source.after'
-```
-Which should return something like:
-```
-{
-  "quoteid": "22d3ae0a-3498-4207-ae99-b7fe584f6c1b",
-  "source": "Mobile",
-  "name": "Nella Beard",
-  "email": "NBeard@mail.com",
-  "age": 45,
-  "address": "8774 Inverness Dr., Janesville",
-  "usstate": "WI",
-  "licenseplate": "787-YWR",
-  "descriptionofdamage": "Wheel fell off",
-  "claimstatus": 2,
-  "claimcost": null
-}
-{
-  "quoteid": "12abfe16-0c41-42a4-9edb-201f79ef05c2",
-  "source": "Mobile",
-  "name": "Andy Rosales",
-  "email": "AndyR@mail.com",
-  "age": 77,
-  "address": "9783 Oxford St., Duluth",
-  "usstate": "GA",
-  "licenseplate": "GWL3149",
-  "descriptionofdamage": "Won't start",
-  "claimstatus": 3,
-  "claimcost": null
-}
-...
-```
-
-To delete the index:
-```
-curl -X DELETE -u "${ELASTIC_USER}:${ELASTIC_PASSWORD}" -k https://localhost:9200/sor.public.quotes
 ```
 
 # Working directly with the System Of Record database
