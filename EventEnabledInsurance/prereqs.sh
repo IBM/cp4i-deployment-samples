@@ -15,7 +15,7 @@
 #   -n : <NAMESPACE> (string), Defaults to 'cp4i'
 #   -r : <REPO> (string), Defaults to 'https://github.com/IBM/cp4i-deployment-samples.git'
 #   -b : <BRANCH> (string), Defaults to 'main'
-#   -e : <ELASTIC_NAMESPACE> (string), Namespace for elastic search , Defaults to 'elasticsearch'
+#   -e : (string), No longer used
 #   -p : <POSTGRES_NAMESPACE> (string), Namespace where postgres is setup, Defaults to the value of <NAMESPACE>
 #   -o : <OMIT_INITIAL_SETUP> (optional), Parameter to decide if initial setup is to be done or not, Defaults to false
 #   -f : <DEFAULT_FILE_STORAGE> (string), Default to 'ibmc-file-gold-gid'
@@ -25,14 +25,14 @@
 #     ./prereqs.sh
 #
 #   With overridden values
-#     ./prereqs.sh -n <NAMESPACE> -r <REPO> -b <BRANCH> -e <ELASTIC_NAMESPACE> -p <POSTGRES_NAMESPACE>  -f <DEFAULT_FILE_STORAGE> -g <DEFAULT_BLOCK_STORAGE> -o
+#     ./prereqs.sh -n <NAMESPACE> -r <REPO> -b <BRANCH> -p <POSTGRES_NAMESPACE>  -f <DEFAULT_FILE_STORAGE> -g <DEFAULT_BLOCK_STORAGE> -o
 
 function divider() {
   echo -e "\n-------------------------------------------------------------------------------------------------------------------\n"
 }
 
 function usage() {
-  echo "Usage: $0 -n <NAMESPACE> -r <REPO> -b <BRANCH> -e <ELASTIC_NAMESPACE> -p <POSTGRES_NAMESPACE>  -f <DEFAULT_FILE_STORAGE> -g <DEFAULT_BLOCK_STORAGE> [-o]"
+  echo "Usage: $0 -n <NAMESPACE> -r <REPO> -b <BRANCH> -p <POSTGRES_NAMESPACE>  -f <DEFAULT_FILE_STORAGE> -g <DEFAULT_BLOCK_STORAGE> [-o]"
   divider
   exit 1
 }
@@ -47,7 +47,6 @@ REPO="https://github.com/IBM/cp4i-deployment-samples.git"
 BRANCH="main"
 INFO="\xE2\x84\xB9"
 MISSING_PARAMS="false"
-ELASTIC_NAMESPACE=
 OMIT_INITIAL_SETUP=false
 DEFAULT_FILE_STORAGE="ibmc-file-gold-gid"
 DEFAULT_BLOCK_STORAGE="ibmc-block-gold"
@@ -64,7 +63,7 @@ while getopts "n:r:b:e:p:of:g:" opt; do
     BRANCH="$OPTARG"
     ;;
   e)
-    ELASTIC_NAMESPACE="$OPTARG"
+    echo "-e option deprecated"
     ;;
   p)
     POSTGRES_NAMESPACE="$OPTARG"
@@ -85,7 +84,6 @@ while getopts "n:r:b:e:p:of:g:" opt; do
 done
 
 POSTGRES_NAMESPACE=${POSTGRES_NAMESPACE:-$NAMESPACE}
-ELASTIC_NAMESPACE=${ELASTIC_NAMESPACE:-$NAMESPACE}
 
 if [[ -z "${NAMESPACE// /}" ]]; then
   echo -e "$CROSS [ERROR] Namespace for event enabled insurance demo is empty. Please provide a value for '-n' parameter."
@@ -99,11 +97,6 @@ fi
 
 if [[ -z "${BRANCH// /}" ]]; then
   echo -e "$CROSS [ERROR] Branch name for the repository for event enabled insurance demo is empty. Please provide a value for '-b' parameter."
-  MISSING_PARAMS="true"
-fi
-
-if [[ -z "${ELASTIC_NAMESPACE// /}" ]]; then
-  echo -e "$CROSS [ERROR] Namespace for elastic search for event enabled insurance demo is empty. Please provide a value for '-e' parameter."
   MISSING_PARAMS="true"
 fi
 
@@ -131,7 +124,6 @@ CURRENT_DIR=$(dirname $0)
 echo -e "$INFO [INFO] Current directory for the event enabled insurance demo: '$CURRENT_DIR'"
 echo -e "$INFO [INFO] Namespace for running event enabled insurance demo prereqs: '$NAMESPACE'"
 echo -e "$INFO [INFO] Namespace for postgres for the event enabled insurance demo: '$POSTGRES_NAMESPACE'"
-echo -e "$INFO [INFO] Namespace for elastic search for the event enabled insurance demo: '$ELASTIC_NAMESPACE'"
 echo -e "$INFO [INFO] Suffix for the postgres for the event enabled insurance demo: '$SUFFIX'"
 echo -e "$INFO [INFO] Samples repository for the event enabled insurance demo: '$REPO'"
 echo -e "$INFO [INFO] Samples repo branch for the event enabled insurance demo: '$BRANCH'"
@@ -361,16 +353,6 @@ done
 
 echo -e "\n$INFO [INFO] Cluster task 'git-clone' is now available\n"
 $TKN clustertask ls | grep git-clone
-
-divider
-
-echo -e "$INFO [INFO] Installing Elastic search operator and Elastic search instance..."
-if ! $CURRENT_DIR/setup-elastic-search.sh -n $NAMESPACE -e $ELASTIC_NAMESPACE; then
-  echo -e "\n$CROSS [ERROR] Failed to install elastic search in the '$ELASTIC_NAMESPACE' namespace and configure it in the '$NAMESPACE' namespace"
-  exit 1
-else
-  echo -e "\n$TICK [SUCCESS] Successfully installed elastic search in the '$ELASTIC_NAMESPACE' namespace and configured it in the '$NAMESPACE' namespace"
-fi #setup-elastic-search.sh
 
 divider
 

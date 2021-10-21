@@ -3,9 +3,6 @@ status:
     - type: postgres
       installed: true
       readyToUse: true
-    - type: elasticSearch
-      installed: true
-      readyToUse: true
     - type: ocpPipelines
       installed: true
       readyToUse: true
