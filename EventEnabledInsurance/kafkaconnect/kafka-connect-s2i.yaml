@@ -43,15 +43,12 @@ spec:
     config.providers.file.class: org.apache.kafka.common.config.provider.FileConfigProvider
   # This mounts secrets into the connector at /opt/kafka/external-configuration. These
   # secrets have been pre-created by the prereqs.sh script and configure access to the
-  # demo installs of Postgres and Elasticsearch.
+  # demo install of Postgres.
   externalConfiguration:
     volumes:
       - name: postgres-connector-config
         secret:
           secretName: eei-postgres-replication-credential
-      - name: elastic-connector-config
-        secret:
-          secretName: eei-elastic-credential
 # There is no need to add tls or authentication properties, `es-demos` has no security
 # setup.
 #  tls:
