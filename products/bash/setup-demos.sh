@@ -68,7 +68,7 @@ DRIVEWAY_DENT_DELETION_PRODUCTS_LIST=("aceDashboard" "apic" "tracing")
 DRIVEWAY_DENT_DELETION_ADDONS_LIST=("postgres" "ocpPipelines")
 # event insurance demo list
 EVENT_ENABLED_INSURANCE_PRODUCTS_LIST=("aceDashboard" "apic" "eventStreams" "tracing")
-EVENT_ENABLED_INSURANCE_ADDONS_LIST=("postgres" "elasticSearch" "ocpPipelines")
+EVENT_ENABLED_INSURANCE_ADDONS_LIST=("postgres" "ocpPipelines")
 # mapping assist demo list
 MAPPING_ASSIST_PRODUCTS_LIST=("aceDesigner")
 MAPPING_ASSIST_ADDONS_LIST=()
@@ -369,10 +369,10 @@ FILE_STORAGE_CLASS=$(echo $GENERAL | jq -r '.storage.file | if has("class") then
 LICENSE=$(echo $JSON | jq -r .spec.license)
 LICENSE_ACCEPT=$(echo $LICENSE | jq -r 'if has("accept") then .accept else "false" end')
 DEMO_LICENSE=$(echo $LICENSE | jq -r 'if has("demo") then .demo else "L-RJON-BYRMYW" end')
-ACE_LICENSE=$(echo $LICENSE | jq -r 'if has("ace") then .ace else "L-APEH-BPUCJK" end')
-APIC_LICENSE=$(echo $LICENSE | jq -r 'if has("apic") then .apic else "L-RJON-BRSHKF" end')
+ACE_LICENSE=$(echo $LICENSE | jq -r 'if has("ace") then .ace else "L-APEH-BY5CY7" end')
+APIC_LICENSE=$(echo $LICENSE | jq -r 'if has("apic") then .apic else "L-RJON-BXWP45" end')
 AR_LICENSE=$(echo $LICENSE | jq -r 'if has("ar") then .ar else "L-NCAN-BXWG76" end')
-MQ_LICENSE=$(echo $LICENSE | jq -r 'if has("mq") then .mq else "L-RJON-BN7PN3" end')
+MQ_LICENSE=$(echo $LICENSE | jq -r 'if has("mq") then .mq else "L-RJON-BXUPZ2" end')
 TRACING_LICENSE=$(echo $LICENSE | jq -r 'if has("tracing") then .tracing else "CP4I" end')
 NAMESPACE=$(echo $JSON | jq -r .metadata.namespace)
 NAME=$(echo $JSON | jq -r .metadata.name)
@@ -454,7 +454,6 @@ for DEMO in $(echo $REQUIRED_DEMOS_JSON | jq -r 'keys[]'); do
       '
     ADDONS_FOR_DEMO='
       postgres
-      elasticSearch
       ocpPipelines
       '
     ;;
@@ -589,18 +588,6 @@ for EACH_ADDON in $(echo $REQUIRED_ADDONS_JSON | jq -r '. | keys[]'); do
       echo -e "\n$TICK [SUCCESS] Successfully released PostgresSQL in the '$NAMESPACE' namespace"
       update_addon_status "$EACH_ADDON" "true" "true"
     fi # release-psql.sh
-    ;;
-
-  elasticSearch)
-    echo -e "$INFO [INFO] Setting up elastic search operator and elastic search instance in the '$NAMESPACE' namespace..."
-    if ! $SCRIPT_DIR/../../EventEnabledInsurance/setup-elastic-search.sh -n "$NAMESPACE" -e "$NAMESPACE"; then
-      update_conditions "Failed to install and configure elastic search in the '$NAMESPACE' namespace" "Releasing"
-      update_phase "Failed"
-      FAILED_INSTALL_ADDONS_LIST+=($EACH_ADDON)
-    else
-      echo -e "\n$TICK [INFO] Successfully installed and configured elastic search in the '$NAMESPACE' namespace"
-      update_addon_status "$EACH_ADDON" "true" "true"
-    fi # setup-elastic-search.sh
     ;;
 
   ocpPipelines)

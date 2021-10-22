@@ -51,15 +51,11 @@ spec:
   # demo will automatically enable required addons.
   addons:
     postgres: false
-    elasticSearch: false
     # Installs the pipelines operator cluster scoped
     ocpPipelines: false
 status:
   addons:
     - type: postgres
-      installed: true
-      readyToUse: true
-    - type: elasticSearch
       installed: true
       readyToUse: true
     - type: ocpPipelines
