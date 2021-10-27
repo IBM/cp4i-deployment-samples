@@ -17,19 +17,20 @@
 #   -b : <BRANCH> (string), Defaults to 'main'
 #   -f : <DEFAULT_FILE_STORAGE> (string), Default to 'ibmc-file-gold-gid'
 #   -g : <DEFAULT_BLOCK_STORAGE> (string), Default to 'cp4i-block-performance'
+#   -a : <>, default to 'false'
 #
 #   With defaults values
 #     ./cicd-apply-test-apic-pipeline.sh
 #
 #   With overridden values
-#     ./cicd-apply-test-apic-pipeline.sh -n <NAMESPACE> -r <REPO> -b <BRANCH> -f <DEFAULT_FILE_STORAGE> -g <DEFAULT_BLOCK_STORAGE>
+#     ./cicd-apply-test-apic-pipeline.sh -n <NAMESPACE> -r <REPO> -b <BRANCH> -f <DEFAULT_FILE_STORAGE> -g <DEFAULT_BLOCK_STORAGE> -a <HA_ENABLED>
 
 function divider() {
   echo -e "\n-------------------------------------------------------------------------------------------------------------------\n"
 }
 
 function usage() {
-  echo "Usage: $0 -n <NAMESPACE> -r <REPO> -b <BRANCH> -f <DEFAULT_FILE_STORAGE> -g <DEFAULT_BLOCK_STORAGE>"
+  echo "Usage: $0 -n <NAMESPACE> -r <REPO> -b <BRANCH> -f <DEFAULT_FILE_STORAGE> -g <DEFAULT_BLOCK_STORAGE> -a <HA_ENABLED>"
   divider
   exit 1
 }
@@ -47,8 +48,9 @@ SUM=0
 MISSING_PARAMS="false"
 DEFAULT_FILE_STORAGE="ibmc-file-gold-gid"
 DEFAULT_BLOCK_STORAGE="cp4i-block-performance"
+HA_ENABLED="false"
 
-while getopts "n:r:b:f:g:" opt; do
+while getopts "n:r:b:f:g:a:" opt; do
   case ${opt} in
   n)
     NAMESPACE="$OPTARG"
@@ -64,6 +66,9 @@ while getopts "n:r:b:f:g:" opt; do
     ;;
   g)
     DEFAULT_BLOCK_STORAGE="$OPTARG"
+    ;;
+  a)
+    HA_ENABLED="$OPTARG"
     ;;
   \?)
     usage
@@ -94,6 +99,11 @@ fi
 
 if [[ -z "${DEFAULT_BLOCK_STORAGE// /}" ]]; then
   echo -e "$CROSS [ERROR] Block storage type for test apic pipeline of driveway dent deletion demo is empty. Please provide a value for '-g' parameter."
+  MISSING_PARAMS="true"
+fi
+
+if [[ -z "${HA_ENABLED// /}" ]]; then
+  echo -e "$CROSS [ERROR] HA_ENABLED parameter for test apic pipeline of driveway dent deletion demo is empty. Please provide a value for '-a' parameter."
   MISSING_PARAMS="true"
 fi
 
@@ -162,6 +172,7 @@ TRACING="-t -z $NAMESPACE"
 if cat $CURRENT_DIR/cicd-test-apic/cicd-tasks.yaml |
   sed "s#{{NAMESPACE}}#$NAMESPACE#g;" |
   sed "s#{{TRACING}}#$TRACING#g;" |
+  sed "s#{{HA_ENABLED}}#$HA_ENABLED#g;" |
   oc apply -f -; then
   echo -e "\n$TICK [SUCCESS] Successfully applied tekton tasks in the '$NAMESPACE' namespace for the test apic pipeline of the driveway dent deletion demo"
 else
