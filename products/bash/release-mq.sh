@@ -19,6 +19,7 @@
 #   -q : <qm_name> (string), Defaults to "QUICKSTART"
 #   -z : <tracing_namespace> (string), Defaults to "namespace"
 #   -t : <tracing_enabled> (boolean), optional flag to enable tracing, Defaults to false
+#   -a : <HA_ENABLED>, default to false
 #
 # USAGE:
 #   With defaults values
@@ -35,6 +36,7 @@ qm_name="QUICKSTART"
 tracing_namespace=""
 tracing_enabled="false"
 CURRENT_DIR=$(dirname $0)
+HA_ENABLED="false"
 
 function divider() {
   echo -e "\n-------------------------------------------------------------------------------------------------------------------\n"
@@ -65,6 +67,9 @@ while getopts "n:r:i:q:z:t" opt; do
     ;;
   t)
     tracing_enabled=true
+    ;;
+  a)
+    HA_ENABLED=true
     ;;
   \?)
     usage
@@ -132,43 +137,91 @@ if [[ $? == 0 ]]; then
 fi
 
 if [ -z $image_name ]; then
-  cat <<EOF | oc apply -f -
-apiVersion: mq.ibm.com/v1beta1
-kind: QueueManager
-metadata:
-  name: ${release_name}
-  namespace: ${namespace}
-  $(if [[ ! -z ${METADATA_UID} && ! -z ${METADATA_NAME} ]]; then
-    echo "ownerReferences:
-    - apiVersion: integration.ibm.com/v1beta1
-      kind: Demo
-      name: ${METADATA_NAME}
-      uid: ${METADATA_UID}"
-  fi)
-spec:
-  license:
-    accept: true
-    license: $(getMQLicense $namespace)
-    use: NonProduction
-  queueManager:
-    name: ${qm_name}
-    storage:
-      queueManager:
-        type: ephemeral
-  template:
-    pod:
-      containers:
-        - env:
-            - name: MQSNOAUT
-              value: 'yes'
-          name: qmgr
-  version: 9.2.3.0-r1
-  web:
-    enabled: true
-  tracing:
-    enabled: ${tracing_enabled}
-    namespace: ${tracing_namespace}
+
+  if [ "$HA_ENABLED" == "false" ]; then
+    cat <<EOF | oc apply -f -
+  apiVersion: mq.ibm.com/v1beta1
+  kind: QueueManager
+  metadata:
+    name: ${release_name}
+    namespace: ${namespace}
+    $(if [[ ! -z ${METADATA_UID} && ! -z ${METADATA_NAME} ]]; then
+      echo "ownerReferences:
+      - apiVersion: integration.ibm.com/v1beta1
+        kind: Demo
+        name: ${METADATA_NAME}
+        uid: ${METADATA_UID}"
+    fi)
+  spec:
+    license:
+      accept: true
+      license: $(getMQLicense $namespace)
+      use: NonProduction
+    queueManager:
+      name: ${qm_name}
+      storage:
+        queueManager:
+          type: ephemeral
+    template:
+      pod:
+        containers:
+          - env:
+              - name: MQSNOAUT
+                value: 'yes'
+            name: qmgr
+    version: 9.2.3.0-r1
+    web:
+      enabled: true
+    tracing:
+      enabled: ${tracing_enabled}
+      namespace: ${tracing_namespace}
 EOF
+
+  else
+
+    cat <<EOF | oc apply -f -
+  apiVersion: mq.ibm.com/v1beta1
+  kind: QueueManager
+  metadata:
+    name: ${release_name}
+    namespace: ${namespace}
+    $(if [[ ! -z ${METADATA_UID} && ! -z ${METADATA_NAME} ]]; then
+      echo "ownerReferences:
+      - apiVersion: integration.ibm.com/v1beta1
+        kind: Demo
+        name: ${METADATA_NAME}
+        uid: ${METADATA_UID}"
+    fi)
+  spec:
+    license:
+      accept: true
+      license: $(getMQLicense $namespace)
+      use: NonProduction
+    queueManager:
+      name: ${qm_name}
+      availability:
+        type: NativeHA
+      storage:
+        defaultClass: ibmc-block-gold
+        queueManager:
+          type: persistent-claim
+    template:
+      pod:
+        containers:
+          - env:
+              - name: MQSNOAUT
+                value: 'yes'
+            name: qmgr
+    version: 9.2.3.0-r1
+    web:
+      enabled: true
+    tracing:
+      enabled: ${tracing_enabled}
+      namespace: ${tracing_namespace}
+EOF
+
+  fi
+
   if [[ "$?" != "0" ]]; then
     echo -e "$cross [ERROR] Failed to apply QueueManager CR"
     exit 1
@@ -237,6 +290,7 @@ EOF
 
   divider
 
+if [ "$HA_ENABLED" == "false" ]; then
   cat <<EOF | oc apply -f -
 apiVersion: mq.ibm.com/v1beta1
 kind: QueueManager
@@ -295,6 +349,71 @@ spec:
     enabled: ${tracing_enabled}
     namespace: ${tracing_namespace}
 EOF
+  else
+
+    cat <<EOF | oc apply -f -
+  apiVersion: mq.ibm.com/v1beta1
+  kind: QueueManager
+  metadata:
+    name: ${release_name}
+    namespace: ${namespace}
+    $(if [[ ! -z ${METADATA_UID} && ! -z ${METADATA_NAME} ]]; then
+      echo "ownerReferences:
+      - apiVersion: integration.ibm.com/v1beta1
+        kind: Demo
+        name: ${METADATA_NAME}
+        uid: ${METADATA_UID}"
+    fi)
+  spec:
+    license:
+      accept: true
+      license: $(getMQLicense $namespace)
+      use: NonProduction
+    pki:
+      keys:
+        - name: default
+          secret:
+            items:
+              - tls.key
+              - tls.crt
+            secretName: mqcert
+      trust:
+        - name: app
+          secret:
+            items:
+              - app.crt
+            secretName: mqcert
+    queueManager:
+      image: ${image_name}
+      imagePullPolicy: Always
+      name: ${qm_name}
+      availability:
+        type: NativeHA
+      storage:
+        defaultClass: ibmc-block-gold
+        queueManager:
+          type: persistent-claim
+      ini:
+        - configMap:
+            items:
+              - example.ini
+            name: mtlsmqsc
+    template:
+      pod:
+        containers:
+          - env:
+              - name: MQS_PERMIT_UNKNOWN_ID
+                value: 'true'
+            name: qmgr
+    version: 9.2.3.0-r1
+    web:
+      enabled: true
+    tracing:
+      enabled: ${tracing_enabled}
+      namespace: ${tracing_namespace}
+EOF
+  fi
+
   if [[ "$?" != "0" ]]; then
     echo -e "$cross [ERROR] Failed to apply QueueManager CR"
     exit 1
