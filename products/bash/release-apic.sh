@@ -31,6 +31,7 @@ function usage() {
 namespace="cp4i"
 release_name="ademo"
 tracing="false"
+ha_enabled="false"
 production="false"
 CURRENT_DIR=$(dirname $0)
 
@@ -48,6 +49,9 @@ while getopts "n:r:tp" opt; do
   p)
     production="true"
     ;;
+  a)
+    ha_enabled=true
+    ;;
   \?)
     usage
     exit
@@ -55,7 +59,12 @@ while getopts "n:r:tp" opt; do
   esac
 done
 
-profile="n1xc10.m48"
+if [[ "$ha_enabled" == "true" ]]; then
+  profile="n3xc14.m48"
+else
+  profile="n1xc10.m48"
+fi
+
 license_use="nonproduction"
 source $CURRENT_DIR/license-helper.sh
 echo "[DEBUG] APIC license: $(getAPICLicense $namespace)"
