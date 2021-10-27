@@ -172,7 +172,6 @@ TRACING="-t -z $NAMESPACE"
 if cat $CURRENT_DIR/cicd-test-apic/cicd-tasks.yaml |
   sed "s#{{NAMESPACE}}#$NAMESPACE#g;" |
   sed "s#{{TRACING}}#$TRACING#g;" |
-  sed "s#{{HA_ENABLED}}#$HA_ENABLED#g;" |
   oc apply -f -; then
   echo -e "\n$TICK [SUCCESS] Successfully applied tekton tasks in the '$NAMESPACE' namespace for the test apic pipeline of the driveway dent deletion demo"
 else
@@ -188,6 +187,7 @@ if cat $CURRENT_DIR/cicd-test-apic/cicd-pipeline.yaml |
   sed "s#{{NAMESPACE}}#$NAMESPACE#g;" |
   sed "s#{{FORKED_REPO}}#$REPO#g;" |
   sed "s#{{BRANCH}}#$BRANCH#g;" |
+  sed "s#{{HA_ENABLED}}#$HA_ENABLED#g;" |
   oc apply -f -; then
   echo -e "\n$TICK [SUCCESS] Successfully applied the pipeline to run tasks to build, deploy, test e2e in '$NAMESPACE' namespace for the test apic pipeline of the driveway dent deletion demo"
 else
