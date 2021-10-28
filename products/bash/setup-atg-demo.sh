@@ -91,7 +91,7 @@ spec:
 ---
 EOF
 
-# https://apiconnect-jenkins.swg-devops.com/job/velox-integration/job/apiconnect-operator/job/v10.0/1787/
+# https://apiconnect-jenkins.swg-devops.com/job/velox-integration/job/apiconnect-operator/job/v10.0/1805/
 cat <<EOF | oc apply -f -
 apiVersion: operators.coreos.com/v1alpha1
 kind: CatalogSource
@@ -114,7 +114,7 @@ metadata:
   namespace: openshift-marketplace
 spec:
   displayName: IBM APIConnect catalog
-  image: ibmcom/ibm-apiconnect-catalog@sha256:15943cad83816c34e6df4218ee9fe7d710b082a652c61158a0066b1362d7922e
+  image: ibmcom/ibm-apiconnect-catalog@sha256:7140d2d8547b71876b6609ac22d8754687a5a195e3ec64c4f6eb6c7630fea49a
   publisher: IBM
   sourceType: grpc
   updateStrategy:
