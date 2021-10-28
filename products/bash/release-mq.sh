@@ -26,7 +26,7 @@
 #     ./release-mq.sh
 #
 #   Overriding the namespace and release-name
-#     ./release-mq.sh -n cp4i -r mq-demo -i image-registry.openshift-image-registry.svc:5000/cp4i/mq-ddd -q mq-qm
+#     ./release-mq.sh -n cp4i -r mq-demo -i image-registry.openshift-image-registry.svc:5000/cp4i/mq-ddd -q mq-qm  -a {HA_ENABLED}
 
 tick="\xE2\x9C\x85"
 cross="\xE2\x9D\x8C"
