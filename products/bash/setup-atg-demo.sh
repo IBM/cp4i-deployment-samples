@@ -382,6 +382,8 @@ spec:
     security: oauth-proxy
 EOF
 
+# TODO Wait for Jaeger?
+
 echo "Install Bookshop server"
 ${SCRIPT_DIR}/../../TestgenBookshopAPI/service/scripts/deploy.sh -n ${namespace}
 
@@ -424,137 +426,8 @@ spec:
         jaeger-bookshop-query-api.${namespace}.svc:16685
 EOF
 
-echo "TODO Wait for APIC to be ready"
-
-echo "APIC Setup"
-echo '- Create "atg-org" organization'
-echo '- Create "atg-cat" catalog'
-echo "- TODO Publish the bookshop API"
-echo "- TODO Setup a user for APIC Analytics"
-
-# namespace=dan
-# namespace=cp4i
-# release_name=ademo
-
-admin_idp=admin/default-idp-1
-admin_password=$(oc get secret -n $namespace ${release_name}-mgmt-admin-pass -o json | jq -r .data.password | base64 --decode)
-
-provider_user_registry=api-manager-lur
-provider_idp=provider/default-idp-2
-
-provider_username=atg-test
-provider_email=atg@test.com
-provider_password=Password02
-provider_firstname=atg
-provider_lastname=test
-
-porg=atg-org
-porg_title="API Test Generation Provider Organization"
-
-catalog=atg-cat
-catalog_title="API Test Generation Catalog"
-
-management=$(oc get route -n $namespace ${release_name}-mgmt-platform-api -o jsonpath="{.spec.host}")
-echo "management=${management}"
-
-echo Authenticate as the admin user
-response=`curl -X POST https://${management}/api/token \
-               -s -k -H "Content-Type: application/json" -H "Accept: application/json" \
-               -d "{ \"realm\": \"${admin_idp}\",
-                     \"username\": \"admin\",
-                     \"password\": \"${admin_password}\",
-                     \"client_id\": \"599b7aef-8841-4ee2-88a0-84d49c4d6ff2\",
-                     \"client_secret\": \"0ea28423-e73b-47d4-b40e-ddb45c48bb0c\",
-                     \"grant_type\": \"password\" }"`
-echo ${response} | jq .
-export token=`echo ${response} | jq -r '.access_token'`
-
-
-echo Create the Provider Organization Owner
-response=`curl https://${management}/api/user-registries/admin/${provider_user_registry}/users \
-               -s -k -H "Content-Type: application/json" -H "Accept: application/json" \
-               -H "Authorization: Bearer ${token}" \
-               -d "{ \"username\": \"${provider_username}\",
-                     \"password\": \"${provider_password}\",
-                     \"email\": \"${provider_email}\",
-                     \"first_name\": \"${provider_firstname}\",
-                     \"last_name\": \"${provider_lastname}\" }"`
-echo ${response} | jq .
-export owner_url=`echo ${response} | jq -r '.url' | sed "s/\/integration\/apis\/$namespace\/$release_name//"`
-echo "owner_url=${owner_url}"
-
-
-echo Create the Provider Organization
-response=`curl https://${management}/api/cloud/orgs \
-               -s -k -H "Content-Type: application/json" -H "Accept: application/json" \
-               -H "Authorization: Bearer ${token}" \
-               -d "{ \"name\": \"${porg}\",
-                     \"title\": \"${porg_title}\",
-                     \"org_type\": \"provider\",
-                     \"owner_url\": \"${owner_url}\" }"`
-echo ${response} | jq .
-export porg_url=`echo ${response} | jq -r '.url' | sed "s/\/integration\/apis\/$namespace\/$release_name//"`
-echo "porg_url=${porg_url}"
-
-
-echo Get the Provider Organization Owner
-response=`curl -X GET ${owner_url} \
-               -s -k -H "Accept: application/json" \
-               -H "Authorization: Bearer ${token}"`
-echo ${response} | jq .
-
-
-echo Get the Provider Organization
-response=`curl -X GET ${porg_url} \
-               -s -k -H "Accept: application/json" \
-               -H "Authorization: Bearer ${token}"`
-echo ${response} | jq .
-
-
-echo Authenticate as the Provider Organization Owner
-response=`curl -X POST https://${management}/api/token \
-               -s -k -H "Content-Type: application/json" -H "Accept: application/json" \
-               -d "{ \"realm\": \"${provider_idp}\",
-                     \"username\": \"${provider_username}\",
-                     \"password\": \"${provider_password}\",
-                     \"client_id\": \"599b7aef-8841-4ee2-88a0-84d49c4d6ff2\",
-                     \"client_secret\": \"0ea28423-e73b-47d4-b40e-ddb45c48bb0c\",
-                     \"grant_type\": \"password\" }"`
-echo ${response} | jq .
-export provider_token=`echo ${response} | jq -r '.access_token'`
-echo "provider_token=${provider_token}"
-
-
-echo Create the Prod Catalog
-response=`curl -X POST ${porg_url}/catalogs \
-               -s -k -H "Content-Type: application/json" -H "Accept: application/json" \
-               -H "Authorization: Bearer ${provider_token}" \
-               -d "{ \"name\": \"${catalog}\",
-                     \"title\": \"${catalog_title}\" }"`
-echo ${response} | jq .
-export catalog_url=`echo ${response} | jq -r '.url' | sed "s/\/integration\/apis\/$namespace\/$release_name//"`
-echo "catalog_url=${catalog_url}"
-
-
-
-# TODO Change org owner to cs admin user?
-
-
-#
-# echo Delete the Provider Organization
-# response=`curl -X DELETE ${porg_url} \
-#                -s -k -H "Accept: application/json" \
-#                -H "Authorization: Bearer ${token}"`
-# echo ${response} | jq .
-#
-# echo Delete the Provider Organization Owner
-# response=`curl -X DELETE ${owner_url} \
-#                -s -k -H "Accept: application/json" \
-#                -H "Authorization: Bearer ${token}"`
-# echo ${response} | jq .
-#
-
-
+echo "Setup APIC for ATG"
+$SCRIPT_DIR/configure-apic-atg.sh -n ${namespace} -r ${release_name}
 
 echo "TODO Create some traces"
 

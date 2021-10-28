@@ -1,0 +1,44 @@
+product: 1.0.0
+info:
+  title: Bookshop API auto product
+  name: bookshop-api-auto-product
+  version: '1.0'
+apis:
+  Bookshop API:
+    name: 'bookshop-api:1.0'
+gateways:
+  - datapower-api-gateway
+visibility:
+  view:
+    enabled: true
+    type: public
+    tags: []
+    orgs: []
+  subscribe:
+    enabled: true
+    type: authenticated
+    tags: []
+    orgs: []
+plans:
+  default:
+    title: Default Plan
+    description: Default Plan
+    approval: false
+    rate-limit:
+      value: 100/hour
+      hard-limit: false
+    graphql:
+      per-query-policy:
+        maximum-nesting: 10
+        maximum-resolve-complexity: 10
+        maximum-type-complexity: 100
+      rate-limits:
+        default-graphql-rate-limit:
+          resolve-complexity:
+            value: 10000/hour
+            hard-limit: true
+          type-complexity:
+            value: 100000/hour
+            hard-limit: true
+    apis:
+      Bookshop API: {}
