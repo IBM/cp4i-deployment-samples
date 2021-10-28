@@ -127,6 +127,10 @@ spec:
     - name: namespace
       type: string
       description: release namespace
+    - name: haEnabled
+      type: string
+      description: HA mode enabled (true/false) for CP4I components
+      default: "false"
     - name: acePolicyProjectParam
       type: string
       description: Policy project configuration for ACE integration server
@@ -136,4 +140,4 @@ spec:
   steps:
     - name: oc
       image: quay.io/openshift/origin-cli:4.6.0
-      script: "/workspace/git-source/products/bash/$(params.releaseScript) -n $(params.namespace) -r $(params.releaseName) -i image-registry.openshift-image-registry.svc:5000/$(params.namespace)/$(params.imageName):$(params.imageTag) {{TRACING}} $(params.acePolicyProjectParam)"
+      script: "/workspace/git-source/products/bash/$(params.releaseScript) -n $(params.namespace) -r $(params.releaseName) -a $(params.haEnabled) -i image-registry.openshift-image-registry.svc:5000/$(params.namespace)/$(params.imageName):$(params.imageTag) {{TRACING}} $(params.acePolicyProjectParam)"
