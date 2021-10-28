@@ -48,7 +48,7 @@ function usage() {
   exit 1
 }
 
-while getopts "n:r:i:q:z:t" opt; do
+while getopts "n:r:i:q:z:a:t" opt; do
   case ${opt} in
   n)
     namespace="$OPTARG"
