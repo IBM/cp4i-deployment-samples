@@ -143,7 +143,7 @@ spec:
   license:
     accept: true
     license: $(getACELicense $namespace)
-    use: $(license_use)
+    use: ${license_use}
   pod:
    containers:
      runtime:
