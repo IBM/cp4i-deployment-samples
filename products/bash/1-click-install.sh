@@ -418,7 +418,7 @@ fi
 
 divider
 
-if $CURRENT_DIR/setup-atg-demo.sh -n "$DEPLOY_OPERATOR_NAMESPACE"; then
+if $CURRENT_DIR/setup-atg-demo.sh -n "$JOB_NAMESPACE"; then
   echo -e "$TICK [SUCCESS] Successfully setup ATG demo in the '$JOB_NAMESPACE' namespace"
 else
   echo -e "\n$CROSS [ERROR] Failed to setup ATG demo in the '$JOB_NAMESPACE' namespace"
