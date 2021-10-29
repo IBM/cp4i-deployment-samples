@@ -398,22 +398,6 @@ spec:
           restartPolicy: OnFailure
 EOF
 
-echo "Call the bookshop a few times to create some initial traces"
-date
-docker run -it --rm icr.io/integration/bookshop-api/client --url $api_endpoint --no-verify --count 5 -v
-echo "Pausing for 15 seconds..."
-sleep 15
-date
-docker run -it --rm icr.io/integration/bookshop-api/client --url $api_endpoint --no-verify --count 5 -v
-echo "Pausing for 15 seconds..."
-sleep 15
-date
-docker run -it --rm icr.io/integration/bookshop-api/client --url $api_endpoint --no-verify --count 5 -v
-echo "Pausing for 15 seconds..."
-sleep 15
-date
-docker run -it --rm icr.io/integration/bookshop-api/client --url $api_endpoint --no-verify --count 5 -v
-
 echo "porg_url=${porg_url}"
 echo "owner_url=${owner_url}"
 

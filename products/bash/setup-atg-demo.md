@@ -21,7 +21,6 @@ The setup-atg-demo.sh script does the following:
   - Adds the CS admin user to the org as an administrator
   - Creates the "atg-cat" catalog
   - Publishes the bookshop API
-  - Runs the bookshop client to create some initial traces
   - Creates a CRON job to run the bookshop client that will add 25 traces per minute
 
 # How to use
