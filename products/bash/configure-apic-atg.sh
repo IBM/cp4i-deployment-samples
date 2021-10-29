@@ -306,26 +306,6 @@ response=`curl -X POST ${porg_url}/members \
 echo ${response} | jq .
 
 
-# # TODO What if the atg-test user is already a member? Especially with the wrong role?
-# echo Add the atg-test user to the list of members
-# member_json='{
-#   "name": "'${atg_test_username}'",
-#   "user": {
-#     "identity_provider": "'${atg_test_idp}'",
-#     "url": "https://'${management}'/api/user-registries/admin/'${atg_test_user_registry}'/users/'${atg_test_username}'"
-#   },
-#   "role_urls": [
-#     "'${developer_role_url}'"
-#   ]
-# }'
-# member_json=$(echo $member_json | jq -c .)
-# response=`curl -X POST ${porg_url}/members \
-#                -s -k -H "Content-Type: application/json" -H "Accept: application/json" \
-#                -H "Authorization: Bearer ${provider_token}" \
-#                -d ''$member_json''`
-# echo ${response} | jq .
-
-
 # echo Get the Provider Organization Members
 # response=`curl -X GET ${porg_url}/members \
 #                -s -k -H "Accept: application/json" \
@@ -368,6 +348,66 @@ response=`curl -X GET ${configured_gateway_url} \
 echo "${response}" | jq .
 api_endpoint=`echo ${response} | jq -r '.catalog_base'`
 echo "api_endpoint=${api_endpoint}"
+
+
+echo "Check if the ${atg_test_username} user already exists"
+response=`curl https://${management}/api/user-registries/admin/${provider_user_registry}/users/${atg_test_username} \
+               -s -k -H "Content-Type: application/json" -H "Accept: application/json" \
+               -H "Authorization: Bearer ${admin_token}"`
+echo ${response} | jq .
+user_url=`echo ${response} | jq -r '.url' | sed "s/\/integration\/apis\/$namespace\/$release_name//"`
+echo "user_url=${user_url}"
+if [[ "${user_url}" != "null" ]]; then
+  echo "Deleting the ${atg_test_username} user"
+  response=`curl -X DELETE ${user_url} \
+                 -s -k -H "Content-Type: application/json" -H "Accept: application/json" \
+                 -H "Authorization: Bearer ${admin_token}"`
+  echo ${response} | jq .
+fi
+
+
+member_invitation_json='{
+  "type": "member_invitation",
+  "api_version": "2.0.0",
+  "name": "'${atg_test_username}'-invitation",
+  "title": "'${atg_test_username}'-invitation",
+  "scope": "org",
+  "email": "'${atg_test_email}'",
+  "org_type": "provider",
+  "role_urls": [
+    "'${developer_role_url}'"
+  ]
+}'
+member_invitation_json=$(echo $member_invitation_json | jq -c .)
+response=`curl -X POST ${porg_url}/member-invitations \
+               -s -k -H "Content-Type: application/json" -H "Accept: application/json" \
+               -H "Authorization: Bearer ${provider_token}" \
+               -d ''$member_invitation_json''`
+echo ${response} | jq .
+
+cmOrgMgrUrl=$(echo $response | jq -r '.url' | sed "s/\/integration\/apis\/$namespace\/$release_name//")
+cmOrgMgrLink=$(echo $response | jq -r '.activation_link')
+echo "cmOrgMgr activation_link:  $cmOrgMgrLink"
+cmOrgMgrToken=$(echo $cmOrgMgrLink | awk -F awk -F "activation=" '{print $2}')
+cmOrgMgtAccess=$(echo $cmOrgMgrToken | base64 --decode)
+
+member_invitation_accept_json='{
+  "realm": "'${provider_idp}'",
+  "username": "'${atg_test_username}'",
+  "email": "'${atg_test_email}'",
+  "first_name":"'$atg_test_firstname'",
+  "last_name":"'$atg_test_lastname'",
+  "password":"'$atg_test_password'"
+}'
+member_invitation_accept_json=$(echo $member_invitation_accept_json | jq -c .)
+response=`curl -X POST $cmOrgMgrUrl/register \
+               -s -k -H "Content-Type: application/json" -H "Accept: application/json" \
+               -H "Authorization: Bearer ${cmOrgMgtAccess}" \
+               -H "X-IBM-Client-Id:599b7aef-8841-4ee2-88a0-84d49c4d6ff2" \
+               -H "X-IBM-Client-Secret:0ea28423-e73b-47d4-b40e-ddb45c48bb0c" \
+               -d ''$member_invitation_accept_json''`
+echo ${response} | jq .
+
 
 echo "Creating a CronJob that calls the bookshop every minute"
 cat <<EOF | oc apply -f -
