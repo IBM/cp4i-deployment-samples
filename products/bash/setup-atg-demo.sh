@@ -359,7 +359,7 @@ metadata:
 spec:
   license:
     accept: true
-    license: Q4-license
+    license: L-RJON-C7QG3S
   mqDashboard: true
   replicas: 1
   version: 2021.4.1
