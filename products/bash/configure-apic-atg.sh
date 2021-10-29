@@ -114,11 +114,19 @@ admin_password=$(oc get secret -n $namespace ${release_name}-mgmt-admin-pass -o 
 
 provider_user_registry=api-manager-lur
 provider_idp=provider/default-idp-2
-provider_username=atg-test
-provider_email=atg@test.com
-provider_password=Password02
-provider_firstname=atg
-provider_lastname=test
+provider_username=cp4i-admin
+provider_email=${PORG_ADMIN_EMAIL:-"cp4i-admin@apiconnect.net"} # update to recipient of portal site creation email
+provider_password=engageibmAPI1
+provider_firstname=CP4I
+provider_lastname=Administrator
+
+atg_test_user_registry=api-manager-lur
+atg_test_idp=provider/default-idp-2
+atg_test_username=atg-test
+atg_test_email=atg@test.com
+atg_test_password=Password02
+atg_test_firstname=atg
+atg_test_lastname=test
 
 porg=atg-org
 porg_title="API Test Generation Provider Organization"
@@ -184,9 +192,31 @@ if [[ "${owner_url}" == "null" ]]; then
                        \"first_name\": \"${provider_firstname}\",
                        \"last_name\": \"${provider_lastname}\" }"`
   echo ${response} | jq .
-  export owner_url=`echo ${response} | jq -r '.url' | sed "s/\/integration\/apis\/$namespace\/$release_name//"`
+  owner_url=`echo ${response} | jq -r '.url' | sed "s/\/integration\/apis\/$namespace\/$release_name//"`
 fi
 echo "owner_url=${owner_url}"
+
+
+# echo "Checking if the user named ${atg_test_username} already exists"
+# response=`curl GET https://${management}/api/user-registries/admin/${atg_test_user_registry}/users/${atg_test_username} \
+#                -s -k -H "Content-Type: application/json" -H "Accept: application/json" \
+#                -H "Authorization: Bearer ${admin_token}"`
+# echo ${response} | jq .
+# atg_test_user_url=`echo ${response} | jq -r '.url' | sed "s/\/integration\/apis\/$namespace\/$release_name//"`
+# if [[ "${atg_test_user_url}" == "null" ]]; then
+#   echo Create the test user
+#   response=`curl https://${management}/api/user-registries/admin/${atg_test_user_registry}/users \
+#                  -s -k -H "Content-Type: application/json" -H "Accept: application/json" \
+#                  -H "Authorization: Bearer ${admin_token}" \
+#                  -d "{ \"username\": \"${atg_test_username}\",
+#                        \"password\": \"${atg_test_password}\",
+#                        \"email\": \"${atg_test_email}\",
+#                        \"first_name\": \"${atg_test_firstname}\",
+#                        \"last_name\": \"${atg_test_lastname}\" }"`
+#   echo ${response} | jq .
+#   atg_test_user_url=`echo ${response} | jq -r '.url' | sed "s/\/integration\/apis\/$namespace\/$release_name//"`
+# fi
+# echo "atg_test_user_url=${atg_test_user_url}"
 
 
 echo "Checking if the provider org named ${porg} already exists"
@@ -252,6 +282,8 @@ response=`curl -X GET ${porg_url}/roles \
 echo ${response} | jq .
 administrator_role_url=$(echo ${response} | jq -r '.results[]|select(.name=="administrator")|.url')
 echo "administrator_role_url=${administrator_role_url}"
+developer_role_url=$(echo ${response} | jq -r '.results[]|select(.name=="developer")|.url')
+echo "developer_role_url=${developer_role_url}"
 
 
 # TODO What if the CS admin user is already a member? Especially with the wrong role?
@@ -272,6 +304,26 @@ response=`curl -X POST ${porg_url}/members \
                -H "Authorization: Bearer ${provider_token}" \
                -d ''$member_json''`
 echo ${response} | jq .
+
+
+# # TODO What if the atg-test user is already a member? Especially with the wrong role?
+# echo Add the atg-test user to the list of members
+# member_json='{
+#   "name": "'${atg_test_username}'",
+#   "user": {
+#     "identity_provider": "'${atg_test_idp}'",
+#     "url": "https://'${management}'/api/user-registries/admin/'${atg_test_user_registry}'/users/'${atg_test_username}'"
+#   },
+#   "role_urls": [
+#     "'${developer_role_url}'"
+#   ]
+# }'
+# member_json=$(echo $member_json | jq -c .)
+# response=`curl -X POST ${porg_url}/members \
+#                -s -k -H "Content-Type: application/json" -H "Accept: application/json" \
+#                -H "Authorization: Bearer ${provider_token}" \
+#                -d ''$member_json''`
+# echo ${response} | jq .
 
 
 # echo Get the Provider Organization Members
