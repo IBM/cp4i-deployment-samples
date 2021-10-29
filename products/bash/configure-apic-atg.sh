@@ -103,7 +103,7 @@ echo '- Create "atg-org" organization'
 echo "- Add the CS admin user to the org as an administrator"
 echo '- Create "atg-cat" catalog'
 echo "- Publish the bookshop API"
-echo "- TODO Setup a user for APIC Analytics"
+echo "- Setup a user for APIC Analytics"
 
 # namespace=dan
 # namespace=cp4i
@@ -195,28 +195,6 @@ if [[ "${owner_url}" == "null" ]]; then
   owner_url=`echo ${response} | jq -r '.url' | sed "s/\/integration\/apis\/$namespace\/$release_name//"`
 fi
 echo "owner_url=${owner_url}"
-
-
-# echo "Checking if the user named ${atg_test_username} already exists"
-# response=`curl GET https://${management}/api/user-registries/admin/${atg_test_user_registry}/users/${atg_test_username} \
-#                -s -k -H "Content-Type: application/json" -H "Accept: application/json" \
-#                -H "Authorization: Bearer ${admin_token}"`
-# echo ${response} | jq .
-# atg_test_user_url=`echo ${response} | jq -r '.url' | sed "s/\/integration\/apis\/$namespace\/$release_name//"`
-# if [[ "${atg_test_user_url}" == "null" ]]; then
-#   echo Create the test user
-#   response=`curl https://${management}/api/user-registries/admin/${atg_test_user_registry}/users \
-#                  -s -k -H "Content-Type: application/json" -H "Accept: application/json" \
-#                  -H "Authorization: Bearer ${admin_token}" \
-#                  -d "{ \"username\": \"${atg_test_username}\",
-#                        \"password\": \"${atg_test_password}\",
-#                        \"email\": \"${atg_test_email}\",
-#                        \"first_name\": \"${atg_test_firstname}\",
-#                        \"last_name\": \"${atg_test_lastname}\" }"`
-#   echo ${response} | jq .
-#   atg_test_user_url=`echo ${response} | jq -r '.url' | sed "s/\/integration\/apis\/$namespace\/$release_name//"`
-# fi
-# echo "atg_test_user_url=${atg_test_user_url}"
 
 
 echo "Checking if the provider org named ${porg} already exists"
@@ -357,57 +335,50 @@ response=`curl https://${management}/api/user-registries/admin/${provider_user_r
 echo ${response} | jq .
 user_url=`echo ${response} | jq -r '.url' | sed "s/\/integration\/apis\/$namespace\/$release_name//"`
 echo "user_url=${user_url}"
-if [[ "${user_url}" != "null" ]]; then
-  echo "Deleting the ${atg_test_username} user"
-  response=`curl -X DELETE ${user_url} \
+# TODO This assumes if the user exists it must be a member of the org. Could check if it's a member and if not then delete the user and re-invite.
+if [[ "${user_url}" == "null" ]]; then
+  member_invitation_json='{
+    "type": "member_invitation",
+    "api_version": "2.0.0",
+    "name": "'${atg_test_username}'-invitation",
+    "title": "'${atg_test_username}'-invitation",
+    "scope": "org",
+    "email": "'${atg_test_email}'",
+    "org_type": "provider",
+    "role_urls": [
+      "'${developer_role_url}'"
+    ]
+  }'
+  member_invitation_json=$(echo $member_invitation_json | jq -c .)
+  response=`curl -X POST ${porg_url}/member-invitations \
                  -s -k -H "Content-Type: application/json" -H "Accept: application/json" \
-                 -H "Authorization: Bearer ${admin_token}"`
+                 -H "Authorization: Bearer ${provider_token}" \
+                 -d ''$member_invitation_json''`
+  echo ${response} | jq .
+
+  cmOrgMgrUrl=$(echo $response | jq -r '.url' | sed "s/\/integration\/apis\/$namespace\/$release_name//")
+  cmOrgMgrLink=$(echo $response | jq -r '.activation_link')
+  echo "cmOrgMgr activation_link:  $cmOrgMgrLink"
+  cmOrgMgrToken=$(echo $cmOrgMgrLink | awk -F awk -F "activation=" '{print $2}')
+  cmOrgMgtAccess=$(echo $cmOrgMgrToken | base64 --decode)
+
+  member_invitation_accept_json='{
+    "realm": "'${provider_idp}'",
+    "username": "'${atg_test_username}'",
+    "email": "'${atg_test_email}'",
+    "first_name":"'$atg_test_firstname'",
+    "last_name":"'$atg_test_lastname'",
+    "password":"'$atg_test_password'"
+  }'
+  member_invitation_accept_json=$(echo $member_invitation_accept_json | jq -c .)
+  response=`curl -X POST $cmOrgMgrUrl/register \
+                 -s -k -H "Content-Type: application/json" -H "Accept: application/json" \
+                 -H "Authorization: Bearer ${cmOrgMgtAccess}" \
+                 -H "X-IBM-Client-Id:599b7aef-8841-4ee2-88a0-84d49c4d6ff2" \
+                 -H "X-IBM-Client-Secret:0ea28423-e73b-47d4-b40e-ddb45c48bb0c" \
+                 -d ''$member_invitation_accept_json''`
   echo ${response} | jq .
 fi
-
-
-member_invitation_json='{
-  "type": "member_invitation",
-  "api_version": "2.0.0",
-  "name": "'${atg_test_username}'-invitation",
-  "title": "'${atg_test_username}'-invitation",
-  "scope": "org",
-  "email": "'${atg_test_email}'",
-  "org_type": "provider",
-  "role_urls": [
-    "'${developer_role_url}'"
-  ]
-}'
-member_invitation_json=$(echo $member_invitation_json | jq -c .)
-response=`curl -X POST ${porg_url}/member-invitations \
-               -s -k -H "Content-Type: application/json" -H "Accept: application/json" \
-               -H "Authorization: Bearer ${provider_token}" \
-               -d ''$member_invitation_json''`
-echo ${response} | jq .
-
-cmOrgMgrUrl=$(echo $response | jq -r '.url' | sed "s/\/integration\/apis\/$namespace\/$release_name//")
-cmOrgMgrLink=$(echo $response | jq -r '.activation_link')
-echo "cmOrgMgr activation_link:  $cmOrgMgrLink"
-cmOrgMgrToken=$(echo $cmOrgMgrLink | awk -F awk -F "activation=" '{print $2}')
-cmOrgMgtAccess=$(echo $cmOrgMgrToken | base64 --decode)
-
-member_invitation_accept_json='{
-  "realm": "'${provider_idp}'",
-  "username": "'${atg_test_username}'",
-  "email": "'${atg_test_email}'",
-  "first_name":"'$atg_test_firstname'",
-  "last_name":"'$atg_test_lastname'",
-  "password":"'$atg_test_password'"
-}'
-member_invitation_accept_json=$(echo $member_invitation_accept_json | jq -c .)
-response=`curl -X POST $cmOrgMgrUrl/register \
-               -s -k -H "Content-Type: application/json" -H "Accept: application/json" \
-               -H "Authorization: Bearer ${cmOrgMgtAccess}" \
-               -H "X-IBM-Client-Id:599b7aef-8841-4ee2-88a0-84d49c4d6ff2" \
-               -H "X-IBM-Client-Secret:0ea28423-e73b-47d4-b40e-ddb45c48bb0c" \
-               -d ''$member_invitation_accept_json''`
-echo ${response} | jq .
-
 
 echo "Creating a CronJob that calls the bookshop every minute"
 cat <<EOF | oc apply -f -
@@ -448,4 +419,31 @@ echo "- APIC is running"
 echo "- Bookshop is running, and works via APIC"
 echo "- There are traces in Jaeger"
 
-echo "TODO Output settings to be used in ATG"
+echo ""
+echo "Settings to use in ATM project"
+echo ""
+echo "Jaeger"
+echo "======"
+echo "Service in test: apiconnect"
+echo "Service in production: apiconnect"
+echo "Time range: - -"
+echo "Results limit: 1500"
+echo ""
+echo "Data Service"
+echo "============"
+echo "Endpoint: https://${release_name}-mgmt-api-testgen-data.${namespace}.svc:3000"
+echo "API key: dummy"
+echo "TLS certificate: oc get secret -n ${namespace} ${release_name}-mgmt-server -o json | jq -r '.data[\"ca.crt\"]' | base64 --decode > ca.crt"
+echo ""
+echo "API Management"
+echo "=============="
+echo "Provider organization: ${porg}"
+echo "Catalog: ${catalog}"
+echo "Analytics service: analytics-service"
+echo "Username: ${atg_test_username}"
+echo "Password: ${atg_test_password}"
+echo "Realm: ${atg_test_idp}"
+echo "OpenAPI document: bookshop swagger"
+echo ""
+echo "Navigator: https://$(oc get route -n ${namespace} ${namespace}-navigator-pn -o json | jq -r .spec.host)"
+echo "Jaeger: https://$(oc get route -n ${namespace} jaeger-bookshop -o json | jq -r .spec.host)"

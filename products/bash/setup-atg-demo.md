@@ -20,8 +20,10 @@ The setup-atg-demo.sh script does the following:
   - Creates the "atg-org" organization
   - Adds the CS admin user to the org as an administrator
   - Creates the "atg-cat" catalog
+  - Invites the "atg-test" user to the org
   - Publishes the bookshop API
   - Creates a CRON job to run the bookshop client that will add 25 traces per minute
+  - Outputs settings required to run ATG
 
 # How to use
 ## Create a cluster
@@ -39,7 +41,3 @@ Using a private 1-click catalog install using this branch (`test-atg`)
 Clone this repo/branch and run the `setup-atg-demo.sh` script. It defaults to the `cp4i` namespace,
 override with `-n <namespace>`. To override the catalog sources use `-a <apic catalog source image>`
 and `-d <datapower catalog source image>`.
-
-## Further manual steps required
-- Create an APIC user with developer role to use with Analytics
-- Work out the settings to use to create the ATG project
