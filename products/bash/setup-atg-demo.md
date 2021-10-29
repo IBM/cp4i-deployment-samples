@@ -1,5 +1,6 @@
 # Overview
 The setup-atg-demo.sh script does the following:
+- Create the project/namespace
 - Creates catalog sources for:
   - IAF/CS
   - Navigator
@@ -17,7 +18,7 @@ The setup-atg-demo.sh script does the following:
   - Waits for APIC to be ready
   - Enables the api-manager-lur provider
   - Creates the "atg-org" organization
-  - Add the CS admin user to the org as an administrator
+  - Adds the CS admin user to the org as an administrator
   - Creates the "atg-cat" catalog
   - Publishes the bookshop API
   - Runs the bookshop client to create some initial traces
@@ -36,8 +37,9 @@ The setup-atg-demo.sh script does the following:
 Using a private 1-click catalog install using this branch (`test-atg`)
 
 ### Manually
-- Create a project/namespace
-- Clone this repo/branch and run the `setup-atg-demo.sh` script. It defaults to the `cp4i` namespace, override with `-n <namespace>`
+Clone this repo/branch and run the `setup-atg-demo.sh` script. It defaults to the `cp4i` namespace,
+override with `-n <namespace>`. To override the catalog sources use `-a <apic catalog source image>`
+and `-d <datapower catalog source image>`.
 
 ## Further manual steps required
 - Create an APIC user with developer role to use with Analytics

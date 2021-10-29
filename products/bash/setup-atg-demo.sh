@@ -8,12 +8,16 @@
 # Contract with IBM Corp.
 #******************************************************************************
 
+# https://apiconnect-jenkins.swg-devops.com/job/velox-integration/job/apiconnect-operator/job/v10.0/1832/
+DP_CATALOG_SOURCE=ibmcom/datapower-operator-catalog@sha256:6063756ea93ea46ca93824578f6860d40fe1433df2bb869b5740904728da8021
+APIC_CATALOG_SOURCE=ibmcom/ibm-apiconnect-catalog@sha256:5a88392e16aa953ff54520f3e560f16e1bdd48185c36ef519aaa8c1bd40af39b
+
 function divider() {
   echo -e "\n-------------------------------------------------------------------------------------------------------------------\n"
 }
 
 function usage() {
-  echo "Usage: $0  -n <namespace>"
+  echo "Usage: $0 [-a <APIC catalog source image>] [-d <DataPower catalog source image>] [-n <namespace>]"
   divider
   exit 1
 }
@@ -22,8 +26,14 @@ namespace=cp4i
 SCRIPT_DIR=$(dirname $0)
 release_name=ademo
 
-while getopts "n:o:p:q:r:s:t:u:v:w:x:y" opt; do
+while getopts "a:d:n:" opt; do
   case ${opt} in
+  a)
+    APIC_CATALOG_SOURCE="$OPTARG"
+    ;;
+  d)
+    DP_CATALOG_SOURCE="$OPTARG"
+    ;;
   n)
     namespace="$OPTARG"
     ;;
@@ -91,7 +101,6 @@ spec:
 ---
 EOF
 
-# https://apiconnect-jenkins.swg-devops.com/job/velox-integration/job/apiconnect-operator/job/v10.0/1832/
 cat <<EOF | oc apply -f -
 apiVersion: operators.coreos.com/v1alpha1
 kind: CatalogSource
@@ -100,7 +109,7 @@ metadata:
   namespace: openshift-marketplace
 spec:
   sourceType: grpc
-  image: ibmcom/datapower-operator-catalog@sha256:6063756ea93ea46ca93824578f6860d40fe1433df2bb869b5740904728da8021
+  image: ${DP_CATALOG_SOURCE}
   displayName: DataPower
   publisher: IBM
   updateStrategy:
@@ -114,7 +123,7 @@ metadata:
   namespace: openshift-marketplace
 spec:
   displayName: IBM APIConnect catalog
-  image: ibmcom/ibm-apiconnect-catalog@sha256:5a88392e16aa953ff54520f3e560f16e1bdd48185c36ef519aaa8c1bd40af39b
+  image: ${APIC_CATALOG_SOURCE}
   publisher: IBM
   sourceType: grpc
   updateStrategy:
@@ -303,8 +312,13 @@ JAEGER_CATALOG=redhat-operators
 JAEGER_NAME=jaeger-product
 JAEGER_CHANNEL=stable
 
-echo "Setup the OperatorGroup for ${namespace} namespace"
-cat <<EOF | oc apply -f -
+if ! oc get namespace ${namespace}; then
+  oc create namespace ${namespace}
+fi
+
+if [[ "$(oc get operatorgroup -n ${namespace} -o json | jq -r '.items | length')" == "0" ]]; then
+  echo "Setup the OperatorGroup for ${namespace} namespace"
+  cat <<EOF | oc apply -f -
 apiVersion: operators.coreos.com/v1
 kind: OperatorGroup
 metadata:
@@ -314,6 +328,7 @@ spec:
   targetNamespaces:
     - ${namespace}
 EOF
+fi
 
 if ! oc get namespace openshift-operators-redhat; then
   oc create namespace openshift-operators-redhat
@@ -330,19 +345,20 @@ metadata:
 EOF
 fi
 
+echo "INFO: Apply the Navigator subscription"
 create_subscription ${namespace} ${NAVIGATOR_CATALOG} "${NAVIGATOR_NAME}" "$NAVIGATOR_CHANNEL"
-
-if [[ "${EXTRA_SAFE_BUT_SLOW}" != "false" ]]; then
-  echo "INFO: Wait for platform navigator before applying the APIC/Tracing subscriptions"
-  wait_for_subscription ${namespace} ${NAVIGATOR_CATALOG} "${NAVIGATOR_NAME}" "$NAVIGATOR_CHANNEL"
-fi
-
-echo "INFO: Apply the APIC/Tracing subscriptions"
-create_subscription ${namespace} ${APIC_CATALOG} "${APIC_NAME}" "${APIC_CHANNEL}"
 
 echo "Apply subscriptions for Elastic Search/Jaeger"
 create_subscription ${ELASTIC_NAMESPACE} ${ELASTIC_CATALOG} "${ELASTIC_NAME}" "${ELASTIC_CHANNEL}"
 create_subscription ${JAEGER_NAMESPACE} ${JAEGER_CATALOG} "${JAEGER_NAME}" "${JAEGER_CHANNEL}"
+
+if [[ "${EXTRA_SAFE_BUT_SLOW}" != "false" ]]; then
+  echo "INFO: Wait for Navigator before applying the APIC subscription"
+  wait_for_subscription ${namespace} ${NAVIGATOR_CATALOG} "${NAVIGATOR_NAME}" "$NAVIGATOR_CHANNEL"
+fi
+
+echo "INFO: Apply the APIC subscription"
+create_subscription ${namespace} ${APIC_CATALOG} "${APIC_NAME}" "${APIC_CHANNEL}"
 
 echo "INFO: Wait for all subscriptions to succeed"
 wait_for_all_subscriptions ${namespace}
@@ -428,14 +444,3 @@ EOF
 
 echo "Setup APIC for ATG"
 $SCRIPT_DIR/configure-apic-atg.sh -n ${namespace} -r ${release_name}
-
-echo "TODO Create some traces"
-
-echo "TODO Some sort of status check, that:"
-echo "- Jaeger is running"
-echo "- Nav is running"
-echo "- APIC is running"
-echo "- Bookshop is running, and works via APIC"
-echo "- There are traces in Jaeger"
-
-echo "TODO Output settings to be used in ATG"
