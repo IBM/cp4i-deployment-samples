@@ -367,7 +367,7 @@ spec:
         - name: namespace
           value: "{{NAMESPACE}}"
         - name: haEnabled
-          value: "{{HA_ENABLED}}"          
+          value: "-a {{HA_ENABLED}}"          
       workspaces:
         - name: git-source
           workspace: git-source
