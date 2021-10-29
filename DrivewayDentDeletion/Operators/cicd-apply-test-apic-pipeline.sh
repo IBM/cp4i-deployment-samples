@@ -17,7 +17,7 @@
 #   -b : <BRANCH> (string), Defaults to 'main'
 #   -f : <DEFAULT_FILE_STORAGE> (string), Default to 'ibmc-file-gold-gid'
 #   -g : <DEFAULT_BLOCK_STORAGE> (string), Default to 'cp4i-block-performance'
-#   -a : <>, default to 'false'
+#   -a : <HA_ENABLED>, default to 'false'
 #
 #   With defaults values
 #     ./cicd-apply-test-apic-pipeline.sh

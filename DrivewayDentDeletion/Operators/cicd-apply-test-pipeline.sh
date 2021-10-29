@@ -17,12 +17,13 @@
 #   -b : <BRANCH> (string), Defaults to 'main'
 #   -f : <DEFAULT_FILE_STORAGE> (string), Default to 'ibmc-file-gold-gid'
 #   -g : <DEFAULT_BLOCK_STORAGE> (string), Default to 'cp4i-block-performance'
+#   -a : <HA_ENABLED>, default to 'false'
 #
 #   With defaults values
 #     ./cicd-apply-test-pipeline.sh
 #
 #   With overridden values
-#     ./cicd-apply-test-pipeline.sh -n <NAMESPACE> -r <REPO> -b <BRANCH> -f <DEFAULT_FILE_STORAGE> -g <DEFAULT_BLOCK_STORAGE>
+#     ./cicd-apply-test-pipeline.sh -n <NAMESPACE> -r <REPO> -b <BRANCH> -f <DEFAULT_FILE_STORAGE> -g <DEFAULT_BLOCK_STORAGE> -a <HA_ENABLED>
 
 function divider() {
   echo -e "\n-------------------------------------------------------------------------------------------------------------------\n"
@@ -47,8 +48,9 @@ SUM=0
 MISSING_PARAMS="false"
 DEFAULT_FILE_STORAGE="ibmc-file-gold-gid"
 DEFAULT_BLOCK_STORAGE="cp4i-block-performance"
+HA_ENABLED="false"
 
-while getopts "n:r:b:f:g:" opt; do
+while getopts "n:r:b:f:g:a:" opt; do
   case ${opt} in
   n)
     NAMESPACE="$OPTARG"
@@ -64,6 +66,9 @@ while getopts "n:r:b:f:g:" opt; do
     ;;
   g)
     DEFAULT_BLOCK_STORAGE="$OPTARG"
+    ;;
+  a)
+    HA_ENABLED="$OPTARG"
     ;;
   \?)
     usage
@@ -94,6 +99,11 @@ fi
 
 if [[ -z "${DEFAULT_BLOCK_STORAGE// /}" ]]; then
   echo -e "$CROSS [ERROR] Block storage type for test pipeline of driveway dent deletion demo is empty. Please provide a value for '-g' parameter."
+  MISSING_PARAMS="true"
+fi
+
+if [[ -z "${HA_ENABLED// /}" ]]; then
+  echo -e "$CROSS [ERROR] HA_ENABLED parameter for test pipeline of driveway dent deletion demo is empty. Please provide a value for '-a' parameter."
   MISSING_PARAMS="true"
 fi
 
@@ -175,6 +185,7 @@ if cat $CURRENT_DIR/cicd-test/cicd-pipeline.yaml |
   sed "s#{{NAMESPACE}}#$NAMESPACE#g;" |
   sed "s#{{FORKED_REPO}}#$REPO#g;" |
   sed "s#{{BRANCH}}#$BRANCH#g;" |
+  sed "s#{{HA_ENABLED}}#$HA_ENABLED#g;" |
   oc apply -f -; then
   echo -e "\n$TICK [SUCCESS] Successfully applied the pipeline to run tasks to build, deploy, test e2e in '$NAMESPACE' namespace"
 else
