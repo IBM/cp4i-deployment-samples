@@ -538,6 +538,7 @@ definitions:
         type: string
         format: uuid
         readOnly: true
+        description: The unique identifier of the book
       author_id:
         type: string
         format: uuid
@@ -617,6 +618,7 @@ definitions:
         items:
           type: string
           format: uuid
+          description: The unique identifier of a book to be ordered
         minItems: 1
       quantity:
         type: integer
