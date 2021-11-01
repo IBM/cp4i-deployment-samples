@@ -10,7 +10,7 @@
 
 # https://apiconnect-jenkins.swg-devops.com/job/velox-integration/job/apiconnect-operator/job/v10.0/1854/
 DP_CATALOG_SOURCE=ibmcom/datapower-operator-catalog@sha256:415837045b389c2be97711dee3d1d862d2b24685f57058ba474847f36661d4e7
-APIC_CATALOG_SOURCE=ibmcom/ibm-apiconnect-catalog@sha256:7a199f0f9f6440347e3614ff6c746b22f06e5f3f3fa3e57add31523960a48de3
+APIC_CATALOG_SOURCE=ibmcom/ibm-apiconnect-catalog@sha256:1925f5b12442540818beefe41405c9624f13135a56da07bd8cbdb5b14b5c8114
 
 function divider() {
   echo -e "\n-------------------------------------------------------------------------------------------------------------------\n"
