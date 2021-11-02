@@ -38,6 +38,7 @@
 #   -w : <testDrivewayDentDeletionDemoE2E> (string), If testing the Driveway dent deletion demo E2E. Defaults to 'false'
 #   -x : <CLUSTER_TYPE> (string), Defines the cluster type for 1-click installation. Defaults to 'roks'
 #   -y : <CLUSTER_SCOPED> (string) (optional), If the operator and platform navigator install should cluster scoped or not. Defaults to 'false'
+#   -z : <HA_ENABLED> (string), if cluster in single-zone is highly available. Defaults to 'false'
 #
 # USAGE:
 #   With defaults values
@@ -71,6 +72,7 @@ mappingAssistDemo=false
 weatherChatbotDemo=false
 CLUSTER_TYPE="roks"
 CLUSTER_SCOPED="false"
+HA_ENABLED="false"
 
 while getopts "a:b:c:d:e:f:g:h:j:k:l:m:n:o:p:q:r:s:t:u:v:w:x:y" opt; do
   case ${opt} in
@@ -145,6 +147,9 @@ while getopts "a:b:c:d:e:f:g:h:j:k:l:m:n:o:p:q:r:s:t:u:v:w:x:y" opt; do
     ;;
   y)
     CLUSTER_SCOPED="true"
+    ;;
+  z)
+    HA_ENABLED="$OPTARG"
     ;;
   \?)
     usage
@@ -227,6 +232,11 @@ fi
 
 if [[ -z "${CLUSTER_TYPE// /}" ]]; then
   echo -e "$INFO [INFO] 1-click cluster type parameter is empty. Please provide a value for '-x' parameter."
+  MISSING_PARAMS="true"
+fi
+
+if [[ -z "${HA_ENABLED// /}" ]]; then
+  echo -e "$INFO [INFO] HA_ENABLED parameter is empty. Please provide a value for '-z' parameter."
   MISSING_PARAMS="true"
 fi
 
@@ -518,7 +528,7 @@ if [[ "$demoPreparation" == "true" || "$drivewayDentDeletionDemo" == "true" || "
 
   if [[ ("$demoPreparation" == "true" || "$drivewayDentDeletionDemo" == "true") && ("$testDrivewayDentDeletionDemoE2E" == "true") ]]; then
     echo -e "$INFO [INFO] Running an automated test for the driveway dent deletion demo in the '$JOB_NAMESPACE' namespace..."
-    if ! $CURRENT_DIR/../../DrivewayDentDeletion/Operators/test-ddd.sh -n "$JOB_NAMESPACE" -b "$demoDeploymentBranch" -f "$DEFAULT_FILE_STORAGE" -g "$DEFAULT_BLOCK_STORAGE"; then
+    if ! $CURRENT_DIR/../../DrivewayDentDeletion/Operators/test-ddd.sh -n "$JOB_NAMESPACE" -b "$demoDeploymentBranch" -f "$DEFAULT_FILE_STORAGE" -g "$DEFAULT_BLOCK_STORAGE" -a "$HA_ENABLED"; then
       echo -e "$CROSS [ERROR] Failed to run automated test for driveway dent deletion demo in the '$JOB_NAMESPACE' namespace"
       divider
       exit 1

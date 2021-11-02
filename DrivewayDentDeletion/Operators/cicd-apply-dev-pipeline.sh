@@ -118,6 +118,7 @@ echo -e "$INFO [INFO] Branch name for the dev pipeline of the driveway dent dele
 echo -e "$INFO [INFO] Repository name for the dev pipeline of the driveway dent deletion demo: '$REPO'"
 echo -e "$INFO [INFO] Block storage class for the dev pipeline of the driveway dent deletion demo: '$DEFAULT_BLOCK_STORAGE'"
 echo -e "$INFO [INFO] File storage class for the dev pipeline of the driveway dent deletion demo: '$DEFAULT_FILE_STORAGE'"
+echo -e "$INFO [INFO] HA is enabled for the dev pipeline of the driveway dent deletion demo: '$HA_ENABLED'"
 
 divider
 

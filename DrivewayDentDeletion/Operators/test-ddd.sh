@@ -18,13 +18,14 @@
 #   -b : <BRANCH> (string), Defaults to 'main'
 #   -f : <DEFAULT_FILE_STORAGE> (string), Default to 'ibmc-file-gold-gid'
 #   -g : <DEFAULT_BLOCK_STORAGE> (string), Default to 'cp4i-block-performance'
+#   -a : <HA_ENABLED> (string), Default to 'false'
 #
 # USAGE:
 #   With defaults values
 #     ./test-ddd.sh
 #
 #   Overriding the default parameters
-#     ./test-ddd.sh -n <NAMESPACE> -r <REPO> -b <BRANCH> -f <DEFAULT_FILE_STORAGE> -g <DEFAULT_BLOCK_STORAGE>
+#     ./test-ddd.sh -n <NAMESPACE> -r <REPO> -b <BRANCH> -f <DEFAULT_FILE_STORAGE> -g <DEFAULT_BLOCK_STORAGE> -a <HA_ENABLED>
 #
 
 function divider() {
@@ -50,8 +51,9 @@ TKN_INSTALLED=false
 JQ_INSTALLED=false
 DEFAULT_FILE_STORAGE="ibmc-file-gold-gid"
 DEFAULT_BLOCK_STORAGE="cp4i-block-performance"
+HA_ENABLED="false"
 
-while getopts "n:r:b:f:g:" opt; do
+while getopts "n:r:b:f:g:a:" opt; do
   case ${opt} in
   n)
     NAMESPACE="$OPTARG"
@@ -67,6 +69,9 @@ while getopts "n:r:b:f:g:" opt; do
     ;;
   g)
     DEFAULT_BLOCK_STORAGE="$OPTARG"
+    ;;
+  a)
+    HA_ENABLED="$OPTARG"
     ;;
   \?)
     usage
@@ -96,6 +101,11 @@ fi
 
 if [[ -z "${DEFAULT_BLOCK_STORAGE// /}" ]]; then
   echo -e "$CROSS [ERROR] Driveway Dent deletion block storage type is empty. Please provide a value for '-g' parameter."
+  MISSING_PARAMS="true"
+fi
+
+if [[ -z "${HA_ENABLED// /}" ]]; then
+  echo -e "$CROSS [ERROR] Driveway Dent deletion HA_ENABLED param is empty. Please provide a value for '-a' parameter."
   MISSING_PARAMS="true"
 fi
 
@@ -187,6 +197,7 @@ echo -e "$INFO Driveway Dent deletion testing repository: $FORKED_REPO"
 echo -e "$INFO Driveway Dent deletion testing branch: $BRANCH"
 echo -e "$INFO Driveway Dent deletion testing block storage class: '$DEFAULT_BLOCK_STORAGE'"
 echo -e "$INFO Driveway Dent deletion testing file storage class: '$DEFAULT_FILE_STORAGE'"
+echo -e "$INFO Driveway Dent deletion testing with HA enabled: '$HA_ENABLED'"
 divider
 
 oc project $NAMESPACE
@@ -266,7 +277,7 @@ divider
 # -------------------------------------------- DEV PIPELINE RUN -----------------------------------------------------------
 
 echo -e "$INFO [INFO] Applying the dev pipeline resources...\n"
-if ! $CURRENT_DIR/cicd-apply-dev-pipeline.sh -n "$NAMESPACE" -r "$FORKED_REPO" -b "$BRANCH" -f "$DEFAULT_FILE_STORAGE" -g "$DEFAULT_BLOCK_STORAGE"; then
+if ! $CURRENT_DIR/cicd-apply-dev-pipeline.sh -n "$NAMESPACE" -r "$FORKED_REPO" -b "$BRANCH" -f "$DEFAULT_FILE_STORAGE" -g "$DEFAULT_BLOCK_STORAGE" -a "$HA_ENABLED"; then
   echo -e "$CROSS [ERROR] Could not apply the dev pipeline resources."
   exit 1
 fi
@@ -278,7 +289,7 @@ run_continuous_load_script "$NAMESPACE" "false" "dev" "dev"
 # -------------------------------------------- TEST PIPELINE RUN ----------------------------------------------------------
 
 echo -e "$INFO [INFO] Applying the test pipeline resources...\n"
-if ! $CURRENT_DIR/cicd-apply-test-pipeline.sh -n "$NAMESPACE" -r "$FORKED_REPO" -b "$BRANCH" -f "$DEFAULT_FILE_STORAGE" -g "$DEFAULT_BLOCK_STORAGE"; then
+if ! $CURRENT_DIR/cicd-apply-test-pipeline.sh -n "$NAMESPACE" -r "$FORKED_REPO" -b "$BRANCH" -f "$DEFAULT_FILE_STORAGE" -g "$DEFAULT_BLOCK_STORAGE" -a "$HA_ENABLED"; then
   echo -e "$CROSS [ERROR] Could not apply the test pipeline resources."
   exit 1
 fi
@@ -292,7 +303,7 @@ run_continuous_load_script "$NAMESPACE" "false" "test" "test"
 # -------------------------------------------- TEST APIC PIPELINE RUN -----------------------------------------------------
 
 echo -e "$INFO [INFO] Applying the test apic pipeline resources...\n"
-if ! $CURRENT_DIR/cicd-apply-test-apic-pipeline.sh -n "$NAMESPACE" -r "$FORKED_REPO" -b "$BRANCH" -f "$DEFAULT_FILE_STORAGE" -g "$DEFAULT_BLOCK_STORAGE"; then
+if ! $CURRENT_DIR/cicd-apply-test-apic-pipeline.sh -n "$NAMESPACE" -r "$FORKED_REPO" -b "$BRANCH" -f "$DEFAULT_FILE_STORAGE" -g "$DEFAULT_BLOCK_STORAGE" -a "$HA_ENABLED"; then
   echo -e "$CROSS [ERROR] Could not apply the test apic pipeline resources."
   exit 1
 fi

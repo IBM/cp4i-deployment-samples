@@ -120,6 +120,7 @@ echo -e "$INFO [INFO] Branch name for the test apic pipeline of the driveway den
 echo -e "$INFO [INFO] Repository name for the test apic pipeline of the driveway dent deletion demo: '$REPO'"
 echo -e "$INFO [INFO] Block storage class for the test apic pipeline of the driveway dent deletion demo: '$DEFAULT_BLOCK_STORAGE'"
 echo -e "$INFO [INFO] File storage class for the test apic pipeline of the driveway dent deletion demo: '$DEFAULT_FILE_STORAGE'"
+echo -e "$INFO [INFO] HA is enabled for the test apic pipeline of the driveway dent deletion demo: '$HA_ENABLED'"
 
 divider
 
