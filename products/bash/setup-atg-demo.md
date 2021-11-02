@@ -26,12 +26,8 @@ The setup-atg-demo.sh script does the following:
   - Outputs settings required to run ATG
 
 # How to use
-## Create a cluster
-### ROKS
+## Create a ROKS cluster
 1) Use automation to create a medium ROKS cluster with ICSP and no CS/IAF.
-### Fyre
-1) Use automation to create a medium Fyre cluster with ICSP and no CS/IAF.
-2) Use automation to install CEPHFS/NFS on the cluster
 
 ## Install the ATG demo
 ### Via 1-click
