@@ -56,7 +56,7 @@ done
 set -e
 
 echo "Waiting for APIC installation to complete..."
-for i in $(seq 1 120); do
+for i in $(seq 1 720); do
   APIC_STATUS=$(kubectl get apiconnectcluster.apiconnect.ibm.com -n $namespace ${release_name} -o jsonpath='{.status.phase}')
   if [ "$APIC_STATUS" == "Ready" ]; then
     printf "$tick"
@@ -64,9 +64,9 @@ for i in $(seq 1 120); do
     break
   else
     echo "Waiting for APIC install to complete (Attempt $i of 120). Status: $APIC_STATUS"
-    kubectl get apic,pods,pvc -n $namespace
+    kubectl get apic,pods,pvc -n $namespace -l app.kubernetes.io/managed-by=ibm-apiconnect -l app.kubernetes.io/part-of=${release_name}
     echo "Checking again in one minute..."
-    sleep 60
+    sleep 10
   fi
 done
 
@@ -76,7 +76,7 @@ if [ "$APIC_STATUS" != "Ready" ]; then
   exit 1
 fi
 
-for i in $(seq 1 60); do
+for i in $(seq 1 360); do
   PORTAL_WWW_POD=$(oc get pods -n $namespace | grep -m1 "${release_name}-ptl.*www" | awk '{print $1}')
   if [ -z "$PORTAL_WWW_POD" ]; then
     echo "Not got portal pod yet"
@@ -92,11 +92,11 @@ for i in $(seq 1 60); do
   fi
 
   echo "Waiting, checking again in one minute... (Attempt $i of 60)"
-  sleep 60
+  sleep 10
 done
 
 echo "Pod listing for information"
-kubectl get pod -n $namespace
+kubectl get pod -n $namespace -l app.kubernetes.io/managed-by=ibm-apiconnect -l app.kubernetes.io/part-of=${release_name}
 
 echo "APIC Setup"
 echo "- Enable the api-manager-lur provider"
