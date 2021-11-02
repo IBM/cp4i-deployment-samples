@@ -245,7 +245,7 @@ response=`curl -X POST https://${management}/api/token \
                      \"grant_type\": \"password\" }"`
 $DEBUG && echo "[DEBUG] $(echo ${response} | jq .)"
 export provider_token=`echo ${response} | jq -r '.access_token'`
-echo "provider_token=${provider_token}"
+$DEBUG && echo "[DEBUG] $(echo "provider_token=${provider_token}")"
 
 
 # echo Get the Provider Organization Members
