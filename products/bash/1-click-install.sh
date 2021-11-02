@@ -377,7 +377,7 @@ parameters:
     "[1000-1999]Gi:[10000-20000]"
     "[2000-2999]Gi:[20000-40000]"
     "[3000-12000]Gi:[24000-48000]"
-  type: Endurance
+  type: Performance
 provisioner: ibm.io/ibmc-file
 reclaimPolicy: Delete
 volumeBindingMode: Immediate
