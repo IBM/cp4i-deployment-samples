@@ -32,6 +32,7 @@ namespace="cp4i"
 release_name="ademo"
 tick="\xE2\x9C\x85"
 cross="\xE2\x9D\x8C"
+DEBUG=false
 
 function usage() {
   echo "Usage: $0 -n <NAMESPACE> -r <RELEASE_NAME>"
@@ -146,7 +147,7 @@ response=`curl -X POST https://${management}/api/token \
                      \"client_id\": \"599b7aef-8841-4ee2-88a0-84d49c4d6ff2\",
                      \"client_secret\": \"0ea28423-e73b-47d4-b40e-ddb45c48bb0c\",
                      \"grant_type\": \"password\" }"`
-echo ${response} | jq .
+$DEBUG && echo "[DEBUG]$(echo ${response} | jq .)"
 export admin_token=`echo ${response} | jq -r '.access_token'`
 
 
@@ -154,7 +155,7 @@ echo Get the Admin Organization User Registries
 response=`curl -X GET https://${management}/api/orgs/admin/user-registries \
                -s -k -H "Accept: application/json" \
                -H "Authorization: Bearer ${admin_token}"`
-echo ${response} | jq .
+$DEBUG && echo "[DEBUG] $(echo ${response} | jq .)"
 api_manager_lur_url=$(echo ${response} | jq -r '.results[]|select(.name=="api-manager-lur")|.url')
 echo "api_manager_lur_url=${api_manager_lur_url}"
 
@@ -163,7 +164,7 @@ echo Get the Cloud Scope User Registries Setting
 response=`curl -X GET https://${management}/api/cloud/settings/user-registries \
                -s -k -H "Accept: application/json" \
                -H "Authorization: Bearer ${admin_token}"`
-echo ${response} | jq .
+$DEBUG && echo"[DEBUG] $(echo ${response} | jq .)"
 
 
 echo Add the api-manager-lur to the list of providers
@@ -172,14 +173,14 @@ response=`curl -X PUT https://${management}/api/cloud/settings/user-registries \
                -s -k -H "Content-Type: application/json" -H "Accept: application/json" \
                -H "Authorization: Bearer ${admin_token}" \
                -d ''${new_registry_settings}''`
-echo ${response} | jq .
+$DEBUG && echo "[DEBUG] $(echo ${response} | jq .)"
 
 
 echo "Checking if the user named ${provider_username} already exists"
 response=`curl GET https://${management}/api/user-registries/admin/${provider_user_registry}/users/${provider_username} \
                -s -k -H "Content-Type: application/json" -H "Accept: application/json" \
                -H "Authorization: Bearer ${admin_token}"`
-echo ${response} | jq .
+$DEBUG && echo "[DEBUG] $(echo ${response} | jq .)"
 owner_url=`echo ${response} | jq -r '.url' | sed "s/\/integration\/apis\/$namespace\/$release_name//"`
 if [[ "${owner_url}" == "null" ]]; then
   echo Create the Provider Organization Owner
@@ -191,7 +192,7 @@ if [[ "${owner_url}" == "null" ]]; then
                        \"email\": \"${provider_email}\",
                        \"first_name\": \"${provider_firstname}\",
                        \"last_name\": \"${provider_lastname}\" }"`
-  echo ${response} | jq .
+  $DEBUG && echo "[DEBUG] $(echo ${response} | jq .)"
   owner_url=`echo ${response} | jq -r '.url' | sed "s/\/integration\/apis\/$namespace\/$release_name//"`
 fi
 echo "owner_url=${owner_url}"
@@ -201,7 +202,7 @@ echo "Checking if the provider org named ${porg} already exists"
 response=`curl GET https://${management}/api/orgs/${porg} \
                -s -k -H "Content-Type: application/json" -H "Accept: application/json" \
                -H "Authorization: Bearer ${admin_token}"`
-echo ${response} | jq .
+$DEBUG && echo "[DEBUG] $(echo ${response} | jq .)"
 porg_url=`echo ${response} | jq -r '.url' | sed "s/\/integration\/apis\/$namespace\/$release_name//"`
 if [[ "${porg_url}" == "null" ]]; then
   echo Create the Provider Organization
@@ -212,7 +213,7 @@ if [[ "${porg_url}" == "null" ]]; then
                        \"title\": \"${porg_title}\",
                        \"org_type\": \"provider\",
                        \"owner_url\": \"${owner_url}\" }"`
-  echo ${response} | jq .
+  $DEBUG && echo "[DEBUG] $(echo ${response} | jq .)"
   porg_url=`echo ${response} | jq -r '.url' | sed "s/\/integration\/apis\/$namespace\/$release_name//"`
 fi
 echo "porg_url=${porg_url}"
@@ -241,7 +242,7 @@ response=`curl -X POST https://${management}/api/token \
                      \"client_id\": \"599b7aef-8841-4ee2-88a0-84d49c4d6ff2\",
                      \"client_secret\": \"0ea28423-e73b-47d4-b40e-ddb45c48bb0c\",
                      \"grant_type\": \"password\" }"`
-echo ${response} | jq .
+$DEBUG && echo "[DEBUG] $(echo ${response} | jq .)"
 export provider_token=`echo ${response} | jq -r '.access_token'`
 echo "provider_token=${provider_token}"
 
@@ -257,7 +258,7 @@ echo Get the Provider Organization Roles
 response=`curl -X GET ${porg_url}/roles \
                -s -k -H "Accept: application/json" \
                -H "Authorization: Bearer ${provider_token}"`
-echo ${response} | jq .
+$DEBUG && echo "[DEBUG] $(echo ${response} | jq .)"
 administrator_role_url=$(echo ${response} | jq -r '.results[]|select(.name=="administrator")|.url')
 echo "administrator_role_url=${administrator_role_url}"
 developer_role_url=$(echo ${response} | jq -r '.results[]|select(.name=="developer")|.url')
@@ -281,7 +282,7 @@ response=`curl -X POST ${porg_url}/members \
                -s -k -H "Content-Type: application/json" -H "Accept: application/json" \
                -H "Authorization: Bearer ${provider_token}" \
                -d ''$member_json''`
-echo ${response} | jq .
+$DEBUG && echo "[DEBUG] $(echo ${response} | jq .)"
 
 
 # echo Get the Provider Organization Members
@@ -295,7 +296,7 @@ echo "Checking if the catalog named ${catalog} already exists"
 response=`curl -X GET https://${management}/api/catalogs/${porg}/${catalog} \
                -s -k -H "Content-Type: application/json" -H "Accept: application/json" \
                -H "Authorization: Bearer ${provider_token}"`
-echo ${response} | jq .
+$DEBUG && echo "[DEBUG] $(echo ${response} | jq .)"
 catalog_url=`echo ${response} | jq -r '.url' | sed "s/\/integration\/apis\/$namespace\/$release_name//"`
 if [[ "${catalog_url}" == "null" ]]; then
   echo Create the Catalog
@@ -304,7 +305,7 @@ if [[ "${catalog_url}" == "null" ]]; then
                  -H "Authorization: Bearer ${provider_token}" \
                  -d "{ \"name\": \"${catalog}\",
                        \"title\": \"${catalog_title}\" }"`
-  echo ${response} | jq .
+  $DEBUG && echo "[DEBUG] $(echo ${response} | jq .)"
   catalog_url=`echo ${response} | jq -r '.url' | sed "s/\/integration\/apis\/$namespace\/$release_name//"`
 fi
 echo "catalog_url=${catalog_url}"
@@ -317,13 +318,13 @@ response=`curl -X POST ${catalog_url}/publish \
                -H "content-type: multipart/form-data" \
                -F "openapi=@$SCRIPT_DIR/../../TestgenBookshopAPI/bookshop-v1.0.yaml;type=application/yaml" \
                -F "product=@$SCRIPT_DIR/../../TestgenBookshopAPI/bookshop-product.yaml;type=application/yaml"`
-echo ${response} | jq .
+$DEBUG && echo "[DEBUG] $(echo ${response} | jq .)"
 configured_gateway_url=`echo ${response} | jq -r '.gateway_service_urls[0]' | sed "s/\/integration\/apis\/$namespace\/$release_name//"`
 
 response=`curl -X GET ${configured_gateway_url} \
                -s -k -H "Accept: application/json" \
                -H "Authorization: Bearer ${provider_token}"`
-echo "${response}" | jq .
+$DEBUG && echo "[DEBUG] $(echo "${response}" | jq .)"
 api_endpoint=`echo ${response} | jq -r '.catalog_base'`
 echo "api_endpoint=${api_endpoint}"
 
@@ -332,7 +333,7 @@ echo "Check if the ${atg_test_username} user already exists"
 response=`curl https://${management}/api/user-registries/admin/${provider_user_registry}/users/${atg_test_username} \
                -s -k -H "Content-Type: application/json" -H "Accept: application/json" \
                -H "Authorization: Bearer ${admin_token}"`
-echo ${response} | jq .
+$DEBUG && echo "[DEBUG] $(echo ${response} | jq .)"
 user_url=`echo ${response} | jq -r '.url' | sed "s/\/integration\/apis\/$namespace\/$release_name//"`
 echo "user_url=${user_url}"
 # TODO This assumes if the user exists it must be a member of the org. Could check if it's a member and if not then delete the user and re-invite.
@@ -354,11 +355,11 @@ if [[ "${user_url}" == "null" ]]; then
                  -s -k -H "Content-Type: application/json" -H "Accept: application/json" \
                  -H "Authorization: Bearer ${provider_token}" \
                  -d ''$member_invitation_json''`
-  echo ${response} | jq .
+  $DEBUG && echo "[DEBUG] $(echo ${response} | jq .)"
 
   cmOrgMgrUrl=$(echo $response | jq -r '.url' | sed "s/\/integration\/apis\/$namespace\/$release_name//")
   cmOrgMgrLink=$(echo $response | jq -r '.activation_link')
-  echo "cmOrgMgr activation_link:  $cmOrgMgrLink"
+  $DEBUG && echo "[DEBUG] $(echo "cmOrgMgr activation_link:  $cmOrgMgrLink")"
   cmOrgMgrToken=$(echo $cmOrgMgrLink | awk -F awk -F "activation=" '{print $2}')
   cmOrgMgtAccess=$(echo $cmOrgMgrToken | base64 --decode)
 
@@ -377,7 +378,7 @@ if [[ "${user_url}" == "null" ]]; then
                  -H "X-IBM-Client-Id:599b7aef-8841-4ee2-88a0-84d49c4d6ff2" \
                  -H "X-IBM-Client-Secret:0ea28423-e73b-47d4-b40e-ddb45c48bb0c" \
                  -d ''$member_invitation_accept_json''`
-  echo ${response} | jq .
+  $DEBUG && echo "[DEBUG] $(echo ${response} | jq .)"
 fi
 
 echo "Creating a CronJob that calls the bookshop every minute"
@@ -419,31 +420,31 @@ echo "- APIC is running"
 echo "- Bookshop is running, and works via APIC"
 echo "- There are traces in Jaeger"
 
-echo ""
-echo "Settings to use in ATM project"
-echo ""
-echo "Jaeger"
-echo "======"
-echo "Service in test: apiconnect"
-echo "Service in production: apiconnect"
-echo "Time range: - -"
-echo "Results limit: 1500"
-echo ""
-echo "Data Service"
-echo "============"
-echo "Endpoint: https://${release_name}-mgmt-api-testgen-data.${namespace}.svc:3000"
-echo "API key: dummy"
-echo "TLS certificate: oc get secret -n ${namespace} ${release_name}-mgmt-server -o json | jq -r '.data[\"ca.crt\"]' | base64 --decode > ca.crt"
-echo ""
-echo "API Management"
-echo "=============="
-echo "Provider organization: ${porg}"
-echo "Catalog: ${catalog}"
-echo "Analytics service: analytics-service"
-echo "Username: ${atg_test_username}"
-echo "Password: ${atg_test_password}"
-echo "Realm: ${atg_test_idp}"
-echo "OpenAPI document: bookshop swagger"
-echo ""
-echo "Navigator: https://$(oc get route -n ${namespace} ${namespace}-navigator-pn -o json | jq -r .spec.host)"
-echo "Jaeger: https://$(oc get route -n ${namespace} jaeger-bookshop -o json | jq -r .spec.host)"
+echo "
+Settings to use in ATM project
+
+Jaeger
+======
+Service in test: apiconnect
+Service in production: apiconnect
+Time range: - -
+Results limit: 1500
+
+Data Service
+============
+Endpoint: https://${release_name}-mgmt-api-testgen-data.${namespace}.svc:3000
+API key: dummy
+TLS certificate: oc get secret -n ${namespace} ${release_name}-mgmt-server -o json | jq -r '.data[\"ca.crt\"]' | base64 --decode > ca.crt
+
+API Management
+==============
+Provider organization: ${porg}
+Catalog: ${catalog}
+Analytics service: analytics-service
+Username: ${atg_test_username}
+Password: ${atg_test_password}
+Realm: ${atg_test_idp}
+OpenAPI document: bookshop swagger
+
+Navigator: https://$(oc get route -n ${namespace} ${namespace}-navigator-pn -o json | jq -r .spec.host)
+Jaeger: https://$(oc get route -n ${namespace} jaeger-bookshop -o json | jq -r .spec.host)"
