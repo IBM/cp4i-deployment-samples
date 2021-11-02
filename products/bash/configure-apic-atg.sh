@@ -64,7 +64,8 @@ for i in $(seq 1 720); do
     break
   else
     echo "Waiting for APIC install to complete (Attempt $i of 120). Status: $APIC_STATUS"
-    kubectl get apic,pods,pvc -n $namespace -l app.kubernetes.io/managed-by=ibm-apiconnect -l app.kubernetes.io/part-of=${release_name}
+    kubectl get apic -n $namespace
+    kubectl get pods,pvc -n $namespace -l app.kubernetes.io/managed-by=ibm-apiconnect -l app.kubernetes.io/part-of=${release_name}
     echo "Checking again in one minute..."
     sleep 10
   fi
