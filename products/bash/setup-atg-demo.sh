@@ -17,7 +17,7 @@ function divider() {
 }
 
 function usage() {
-  echo "Usage: $0 [-a <APIC catalog source image>] [-d <DataPower catalog source image>] [-n <namespace>]"
+  echo "Usage: $0 [-a <APIC catalog source image>] [-d <DataPower catalog source image>] [-n <namespace>] [-f <file storage class>]"
   divider
   exit 1
 }
@@ -25,14 +25,18 @@ function usage() {
 namespace=cp4i
 SCRIPT_DIR=$(dirname $0)
 release_name=ademo
+DEFAULT_FILE_STORAGE="ibmc-file-gold-gid"
 
-while getopts "a:d:n:" opt; do
+while getopts "a:d:n:f:" opt; do
   case ${opt} in
   a)
     APIC_CATALOG_SOURCE="$OPTARG"
     ;;
   d)
     DP_CATALOG_SOURCE="$OPTARG"
+    ;;
+  f)
+    DEFAULT_FILE_STORAGE="$OPTARG"
     ;;
   n)
     namespace="$OPTARG"
@@ -380,7 +384,7 @@ spec:
   replicas: 1
   version: 2021.4.1
   storage:
-    class: $(oc get sc -o json | jq -r '.items[].metadata.name | select( . == "ibmc-file-gold-gid" or . == "rook-cephfs" or . == "managed-nfs-storage" )')
+    class: ${DEFAULT_FILE_STORAGE}
 EOF
 
 echo "Install Jaeger"

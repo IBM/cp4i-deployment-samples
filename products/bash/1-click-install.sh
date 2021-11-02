@@ -152,6 +152,9 @@ while getopts "a:b:c:d:e:f:g:h:j:k:l:m:n:o:p:q:r:s:t:u:v:w:x:y" opt; do
   esac
 done
 
+# TODO for testing override to always use the fast storage class
+useFastStorageClass=true
+
 # Set seconds to zero to calculate time taken for overall the 1-click experience
 SECONDS=0
 
@@ -328,8 +331,8 @@ fi
 divider
 
 if echo $CLUSTER_TYPE | grep -iqF roks; then
-  # This storage class improves the pvc performance for small PVCs
-  echo -e "$INFO [INFO] Creating new cp4i-block-performance storage class\n"
+  # These storage classes improve the pvc performance for small PVCs
+  echo -e "$INFO [INFO] Creating new cp4i-block-performance/cp4i-file-performance storage class\n"
   cat <<EOF | oc apply -f -
 apiVersion: storage.k8s.io/v1
 kind: StorageClass
@@ -353,6 +356,31 @@ parameters:
   type: "Performance"
 reclaimPolicy: Delete
 volumeBindingMode: Immediate
+---
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: cp4i-file-performance
+  labels:
+    addonmanager.kubernetes.io/mode: EnsureExists
+    kubernetes.io/cluster-service: "true"
+parameters:
+  billingType: hourly
+  classVersion: "2"
+  gidAllocate: "true"
+  sizeIOPSRange: |-
+    "[1-39]Gi:[1000]"
+    "[40-79]Gi:[2000]"
+    "[80-99]Gi:[4000]"
+    "[100-499]Gi:[5000-6000]"
+    "[500-999]Gi:[5000-10000]"
+    "[1000-1999]Gi:[10000-20000]"
+    "[2000-2999]Gi:[20000-40000]"
+    "[3000-12000]Gi:[24000-48000]"
+  type: Endurance
+provisioner: ibm.io/ibmc-file
+reclaimPolicy: Delete
+volumeBindingMode: Immediate
 EOF
 
   defaultStorageClass=$(oc get sc -o json | jq -r '.items[].metadata | select(.annotations["storageclass.kubernetes.io/is-default-class"] == "true") | .name')
@@ -369,6 +397,7 @@ EOF
     oc patch storageclass cp4i-block-performance -p '{"metadata": {"annotations":{"storageclass.kubernetes.io/is-default-class":"true"}}}'
 
     DEFAULT_BLOCK_STORAGE="cp4i-block-performance"
+    DEFAULT_FILE_STORAGE="cp4i-file-performance"
   fi
   divider
 fi
@@ -418,7 +447,7 @@ fi
 
 divider
 
-if $CURRENT_DIR/setup-atg-demo.sh -n "$JOB_NAMESPACE"; then
+if $CURRENT_DIR/setup-atg-demo.sh -n "$JOB_NAMESPACE" -f ${DEFAULT_FILE_STORAGE}; then
   echo -e "$TICK [SUCCESS] Successfully setup ATG demo in the '$JOB_NAMESPACE' namespace"
 else
   echo -e "\n$CROSS [ERROR] Failed to setup ATG demo in the '$JOB_NAMESPACE' namespace"
