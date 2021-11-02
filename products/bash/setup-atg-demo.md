@@ -22,7 +22,7 @@ The setup-atg-demo.sh script does the following:
   - Creates the "atg-cat" catalog
   - Invites the "atg-test" user to the org
   - Publishes the bookshop API
-  - Creates a CRON job to run the bookshop client that will add 25 traces per minute
+  - Creates a CRON job to run the bookshop client that will add 5 traces per minute
   - Outputs settings required to run ATG
 
 # How to use
