@@ -77,7 +77,7 @@ while getopts "c:d:i:n:p:r:tz:a:" opt; do
     tracing_namespace="$OPTARG"
     ;;
   a)
-    HA_ENABLED=true
+    HA_ENABLED="$OPTARG"
     ;;
   \?)
     usage
@@ -294,4 +294,25 @@ echo $GOT_SERVICE
 if [[ "$GOT_SERVICE" == "false" ]]; then
   echo -e "[ERROR] ${CROSS} ace api integration server service doesn't exist"
   exit 1
+fi
+
+if [ "$HA_ENABLED" == "true" ]; then
+  GOT_ROUTE=false
+  for i in $(seq 1 30); do
+    if oc get route ${is_release_name}-https -n ${namespace}; then
+      GOT_ROUTE=true
+      echo "Adding roundrobin annotation to routes to provide load balancing in HA enabled mode."
+      oc annotate route ${is_release_name}-https "haproxy.router.openshift.io/balance"='roundrobin' || echo "Roundrobin Annotation failed"
+      break
+    else
+      echo "Waiting for ace api route named '${is_release_name}-https' (Attempt $i of 30)."
+      echo "Checking again in 10 seconds..."
+      sleep 10
+    fi
+  done
+  echo $GOT_ROUTE
+  if [[ "$GOT_ROUTE" == "false" ]]; then
+    echo -e "[ERROR] ${CROSS} ace api integration server route doesn't exist"
+    exit 1
+  fi
 fi
