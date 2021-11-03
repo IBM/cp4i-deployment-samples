@@ -297,6 +297,10 @@ if [[ "$GOT_SERVICE" == "false" ]]; then
 fi
 
 if [ "$HA_ENABLED" == "true" ]; then
+  oc annotate route ${is_release_name}-https "haproxy.router.openshift.io/balance"='roundrobin' || echo "Roundrobin Annotation failed"
+fi
+
+if [ "$HA_ENABLED" == "true" ]; then
   GOT_ROUTE=false
   for i in $(seq 1 30); do
     if oc get route ${is_release_name}-https -n ${namespace}; then
