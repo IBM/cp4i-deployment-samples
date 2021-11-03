@@ -23,7 +23,7 @@
 #     ./release-apic.sh
 #
 #   Overriding the namespace and release-name
-#     ./release-apic.sh -n cp4i-prod -r prod
+#     ./release-apic.sh -n cp4i-prod -r prod -a false
 
 function usage() {
   echo "Usage: $0 -n <namespace> -r <release-name> [-t]"
@@ -51,7 +51,7 @@ while getopts "a:n:r:tp" opt; do
     production="true"
     ;;
   a)
-    ha_enabled=true
+    ha_enabled="$OPTARG"
     ;;
   \?)
     usage

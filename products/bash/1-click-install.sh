@@ -45,7 +45,7 @@
 #     ./1-click-install.sh -p <csDefaultAdminPassword> -s <DOCKER_REGISTRY_PASS>
 #
 #   Overriding the params
-#     ./1-click-install.sh -a <eventEnabledInsuranceDemo> -b <demoDeploymentBranch> -c <DEFAULT_FILE_STORAGE> -d <demoPreparation> -e <demoAPICEmailAddress> -f <drivewayDentDeletionDemo> -g <DEFAULT_BLOCK_STORAGE> -h <demoAPICMailServerHost> -j <tempERKey> -k <tempRepo> -l <DOCKER_REGISTRY_USER> -m <demoAPICMailServerUsername> -n <JOB_NAMESPACE> -o <demoAPICMailServerPort> -p <csDefaultAdminPassword> -q <demoAPICMailServerPassword> -r <navReplicaCount> -s <DOCKER_REGISTRY_PASS> -t <ENVIRONMENT> -u <csDefaultAdminUser> -v <useFastStorageClass> -w <testDrivewayDentDeletionDemoE2E> -x <CLUSTER_TYPE> -y
+#     ./1-click-install.sh -a <eventEnabledInsuranceDemo> -b <demoDeploymentBranch> -c <DEFAULT_FILE_STORAGE> -d <demoPreparation> -e <demoAPICEmailAddress> -f <drivewayDentDeletionDemo> -g <DEFAULT_BLOCK_STORAGE> -h <demoAPICMailServerHost> -j <tempERKey> -k <tempRepo> -l <DOCKER_REGISTRY_USER> -m <demoAPICMailServerUsername> -n <JOB_NAMESPACE> -o <demoAPICMailServerPort> -p <csDefaultAdminPassword> -q <demoAPICMailServerPassword> -r <navReplicaCount> -s <DOCKER_REGISTRY_PASS> -t <ENVIRONMENT> -u <csDefaultAdminUser> -v <useFastStorageClass> -w <testDrivewayDentDeletionDemoE2E> -x <CLUSTER_TYPE> -y -z <HA_ENABLED>
 
 function divider() {
   echo -e "\n-------------------------------------------------------------------------------------------------------------------\n"

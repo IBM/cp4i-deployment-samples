@@ -69,7 +69,7 @@ while getopts "n:r:i:q:z:a:t" opt; do
     tracing_enabled=true
     ;;
   a)
-    HA_ENABLED=true
+    HA_ENABLED="$OPTARG"
     ;;
   \?)
     usage
