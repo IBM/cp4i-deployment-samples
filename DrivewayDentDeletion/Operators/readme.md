@@ -29,7 +29,7 @@ These steps will need to be documented in the demo docs:
   oc project $NAMESPACE
   export BRANCH=<BRANCH for required version of CP4I>
   export FORKED_REPO=https://github.com/IBM/cp4i-deployment-samples.git
-  export HA_ENABLED=<true/false depending whether HA will be enabled or not for ACE and APIC, default to false>
+  export HA_ENABLED=<true/false depending whether HA will be enabled or not for ACE, MQ and APIC, default to false>
   ./cicd-apply-dev-pipeline.sh -n $NAMESPACE -r $FORKED_REPO -b $BRANCH -a $HA_ENABLED
   ```
 - The above script `cicd-apply-dev-pipeline.sh` will create a dev pipeline in the `<NAMESPACE>` namespace and will print the route to add to the webhook in the forked github repo.
@@ -40,7 +40,7 @@ These steps will need to be documented in the demo docs:
   oc project $NAMESPACE
   export BRANCH=<BRANCH for required version of CP4I>
   export FORKED_REPO=https://github.com/IBM/cp4i-deployment-samples.git
-  export HA_ENABLED=<true/false depending whether HA will be enabled or not for ACE and APIC, default to false>
+  export HA_ENABLED=<true/false depending whether HA will be enabled or not for ACE, MQ and APIC, default to false>
   ./cicd-apply-test-pipeline.sh -n $NAMESPACE -r $FORKED_REPO -b $BRANCH -a $HA_ENABLED
   ```
 - The above script `cicd-apply-test-pipeline.sh` will create a dev and test pipeline in the `<NAMESPACE>` namespace and will print the route to add to the webhook in the forked github repo. (This will be the same route as above, but updated to point to a service for the test pipeline in the dev namespace).
@@ -50,7 +50,7 @@ These steps will need to be documented in the demo docs:
   oc project $NAMESPACE
   export BRANCH=<BRANCH for required version of CP4I>
   export FORKED_REPO=https://github.com/IBM/cp4i-deployment-samples.git
-  export HA_ENABLED=<true/false depending whether HA will be enabled or not for ACE and APIC, default to false>
+  export HA_ENABLED=<true/false depending whether HA will be enabled or not for ACE, MQ and APIC, default to false>
   ./cicd-apply-test-apic-pipeline.sh -n $NAMESPACE -r $FORKED_REPO -b $BRANCH -a $HA_ENABLED
   ```
 - The above script `cicd-apply-test-apic-pipeline.sh` will create a dev and test pipeline with added feature of APIC in the `<NAMESPACE>` namespace and will print the route to add to the webhook in the forked github repo.(This will be the same route as above, but updated to point to a service for the test pipeline in the dev namespace).The pipeline uses the APIC instance already installed on the cluster.
