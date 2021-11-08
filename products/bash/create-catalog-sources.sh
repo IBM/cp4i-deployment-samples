@@ -252,8 +252,8 @@ metadata:
   name: ibm-operator-catalog
   namespace: openshift-marketplace
 spec:
-  displayName: ibm-operator-catalog
-  publisher: IBM Content
+  displayName: IBM Operator Catalog
+  publisher: IBM
   sourceType: grpc
   image: icr.io/cpopen/ibm-operator-catalog:latest
   updateStrategy:
