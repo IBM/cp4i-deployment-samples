@@ -8,8 +8,8 @@
 # Contract with IBM Corp.
 #******************************************************************************
 
-# https://apiconnect-jenkins.swg-devops.com/job/velox-integration/job/apiconnect-operator/job/v10.0/1928/
-DP_CATALOG_SOURCE=ibmcom/datapower-operator-catalog@sha256:415837045b389c2be97711dee3d1d862d2b24685f57058ba474847f36661d4e7
+# https://apiconnect-jenkins.swg-devops.com/job/velox-integration/job/apiconnect-operator/job/v10.0/1958/
+DP_CATALOG_SOURCE=ibmcom/ibm-apiconnect-catalog@sha256:b55861d2521b7a4b793da32b5343542ac9b6fdd5842d22a8aac355c88254ed7f
 APIC_CATALOG_SOURCE=ibmcom/ibm-apiconnect-catalog@sha256:33b024538dd5eea5ffe2a2ea32acf184d5b38d0473a6b533092e3641fbdf6d98
 
 function divider() {
