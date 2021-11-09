@@ -172,6 +172,7 @@ if cat $CURRENT_DIR/cicd-dev/cicd-pipeline.yaml |
   sed "s#{{FORKED_REPO}}#$REPO#g;" |
   sed "s#{{BRANCH}}#$BRANCH#g;" |
   sed "s#{{HA_ENABLED}}#$HA_ENABLED#g;" |
+  sed "s#{{DEFAULT_BLOCK_STORAGE}}#$DEFAULT_BLOCK_STORAGE#g;" |
   oc apply -f -; then
   echo -e "\n$TICK [SUCCESS] Successfully applied the pipeline to run tasks to build and deploy to '$NAMESPACE' namespace for the dev pipeline of the driveway dent deletion demo"
 else

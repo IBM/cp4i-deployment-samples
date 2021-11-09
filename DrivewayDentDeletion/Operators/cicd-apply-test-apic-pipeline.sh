@@ -189,6 +189,7 @@ if cat $CURRENT_DIR/cicd-test-apic/cicd-pipeline.yaml |
   sed "s#{{FORKED_REPO}}#$REPO#g;" |
   sed "s#{{BRANCH}}#$BRANCH#g;" |
   sed "s#{{HA_ENABLED}}#$HA_ENABLED#g;" |
+  sed "s#{{DEFAULT_BLOCK_STORAGE}}#$DEFAULT_BLOCK_STORAGE#g;" |
   oc apply -f -; then
   echo -e "\n$TICK [SUCCESS] Successfully applied the pipeline to run tasks to build, deploy, test e2e in '$NAMESPACE' namespace for the test apic pipeline of the driveway dent deletion demo"
 else

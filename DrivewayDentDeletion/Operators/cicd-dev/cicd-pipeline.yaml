@@ -80,7 +80,7 @@ spec:
         - name: namespace
           value: "{{NAMESPACE}}"
         - name: haEnabled
-          value: "-a {{HA_ENABLED}}"
+          value: "-a {{HA_ENABLED}} -b {{DEFAULT_BLOCK_STORAGE}}"
       workspaces:
         - name: git-source
           workspace: git-source
