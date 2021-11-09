@@ -9,8 +9,8 @@
 #******************************************************************************
 
 # https://apiconnect-jenkins.swg-devops.com/job/velox-integration/job/apiconnect-operator/job/v10.0/1958/
-DP_CATALOG_SOURCE=ibmcom/ibm-apiconnect-catalog@sha256:b55861d2521b7a4b793da32b5343542ac9b6fdd5842d22a8aac355c88254ed7f
-APIC_CATALOG_SOURCE=ibmcom/ibm-apiconnect-catalog@sha256:33b024538dd5eea5ffe2a2ea32acf184d5b38d0473a6b533092e3641fbdf6d98
+DP_CATALOG_SOURCE=ibmcom/datapower-operator-catalog@sha256:9533f4c837923cd894168759abf7d027c89664b992193affe5977bc1b7390cd6
+APIC_CATALOG_SOURCE=ibmcom/ibm-apiconnect-catalog@sha256:b55861d2521b7a4b793da32b5343542ac9b6fdd5842d22a8aac355c88254ed7f
 
 function divider() {
   echo -e "\n-------------------------------------------------------------------------------------------------------------------\n"
@@ -58,7 +58,8 @@ spec:
   displayName: IBMCS Operators
   publisher: IBM
   sourceType: grpc
-  image: docker.io/ibmcom/ibm-common-service-catalog:latest
+  # image: docker.io/ibmcom/ibm-common-service-catalog:latest
+  image: hyc-cloud-private-daily-docker-local.artifactory.swg-devops.com/ibmcom/ibm-common-service-catalog:latest-validated
   updateStrategy:
     registryPoll:
       interval: 45m
