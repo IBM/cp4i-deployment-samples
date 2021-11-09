@@ -37,6 +37,7 @@
 # ↡ publish product to catalog
 
 CURRENT_DIR=$(dirname $0)
+source ${CURRENT_DIR}/generate-apic-password.sh
 
 TICK="\xE2\x9C\x85"
 CROSS="\xE2\x9D\x8C"
@@ -53,7 +54,7 @@ TARGET_URL=""
 PRODUCT_YAML_TEMPLATE="DrivewayDentDeletion/Operators/apic-resources/apic-product-ddd.yaml"
 SWAGGER_YAML_TEMPLATE="DrivewayDentDeletion/Operators/apic-resources/apic-api-ddd.yaml"
 # TODO
-DEBUG=true
+DEBUG=false
 
 function usage() {
   echo "Usage: $0 -e <ENVIRONMENT> -n <MAIN_NAMESPACE> -r <RELEASE> -d <DEMO_NAME> -t <TARGET_URL> -p <PRODUCT_YAML_TEMPLATE> -s <SWAGGER_YAML_TEMPLATE>"
@@ -312,10 +313,7 @@ $DEBUG && echo "[DEBUG] User registry url: ${USER_REGISTRY_URL}"
 echo -e "[INFO] ${TICK} Got configured catalog user registry url for ${ORG}-catalog"
 
 CORG_OWNER_USERNAME="${ORG}-corg-admin"
-CORG_OWNER_PASSWORD=$(
-  LC_ALL=C tr -dc 'A-Za-z0-9' </dev/urandom | head -c 16
-  echo
-)
+CORG_OWNER_PASSWORD=$(generateAPICPassword)
 $DEBUG && echo "[DEBUG] username: $CORG_OWNER_USERNAME"
 $DEBUG && echo "[DEBUG] password: ${CORG_OWNER_PASSWORD}"
 # Create consumer org owner
