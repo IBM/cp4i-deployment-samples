@@ -19,7 +19,7 @@
 #   -q : <qm_name> (string), Defaults to "QUICKSTART"
 #   -z : <tracing_namespace> (string), Defaults to "namespace"
 #   -t : <tracing_enabled> (boolean), optional flag to enable tracing, Defaults to false
-#   -a : <HA_ENABLED>, default to false
+#   -a : <HA_ENABLED>, default to true
 #
 # USAGE:
 #   With defaults values
@@ -36,7 +36,7 @@ qm_name="QUICKSTART"
 tracing_namespace=""
 tracing_enabled="false"
 CURRENT_DIR=$(dirname $0)
-HA_ENABLED="false"
+HA_ENABLED="true"
 
 function divider() {
   echo -e "\n-------------------------------------------------------------------------------------------------------------------\n"

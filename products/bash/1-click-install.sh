@@ -38,7 +38,7 @@
 #   -w : <testDrivewayDentDeletionDemoE2E> (string), If testing the Driveway dent deletion demo E2E. Defaults to 'false'
 #   -x : <CLUSTER_TYPE> (string), Defines the cluster type for 1-click installation. Defaults to 'roks'
 #   -y : <CLUSTER_SCOPED> (string) (optional), If the operator and platform navigator install should cluster scoped or not. Defaults to 'false'
-#   -z : <HA_ENABLED> (string), if cluster in single-zone is highly available. Defaults to 'false'
+#   -z : <HA_ENABLED> (string), if cluster in single-zone is highly available. Defaults to 'true'
 #
 # USAGE:
 #   With defaults values
@@ -72,7 +72,7 @@ mappingAssistDemo=false
 weatherChatbotDemo=false
 CLUSTER_TYPE="roks"
 CLUSTER_SCOPED="false"
-HA_ENABLED="false"
+HA_ENABLED="true"
 
 while getopts "a:b:c:d:e:f:g:h:j:k:l:m:n:o:p:q:r:s:t:u:v:w:x:z:y" opt; do
   case ${opt} in

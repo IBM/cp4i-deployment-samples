@@ -16,7 +16,7 @@
 #   -n : <namespace> (string), Defaults to "cp4i"
 #   -r : <release-name> (string), Defaults to "ademo"
 #   -t : optional flag to enable tracing
-#   -a : <ha_enabled>, default to "false"
+#   -a : <ha_enabled>, default to "true"
 #
 # USAGE:
 #   With defaults values
@@ -32,7 +32,7 @@ function usage() {
 namespace="cp4i"
 release_name="ademo"
 tracing="false"
-ha_enabled="false"
+ha_enabled="true"
 production="false"
 CURRENT_DIR=$(dirname $0)
 

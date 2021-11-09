@@ -18,7 +18,7 @@
 #   -b : <BRANCH> (string), Defaults to 'main'
 #   -f : <DEFAULT_FILE_STORAGE> (string), Default to 'ibmc-file-gold-gid'
 #   -g : <DEFAULT_BLOCK_STORAGE> (string), Default to 'cp4i-block-performance'
-#   -a : <HA_ENABLED> (string), Default to 'false'
+#   -a : <HA_ENABLED> (string), Default to 'true'
 #
 # USAGE:
 #   With defaults values
@@ -51,7 +51,7 @@ TKN_INSTALLED=false
 JQ_INSTALLED=false
 DEFAULT_FILE_STORAGE="ibmc-file-gold-gid"
 DEFAULT_BLOCK_STORAGE="cp4i-block-performance"
-HA_ENABLED="false"
+HA_ENABLED="true"
 
 while getopts "n:r:b:f:g:a:" opt; do
   case ${opt} in

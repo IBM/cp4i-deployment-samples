@@ -18,7 +18,7 @@
 #   -r : <is_release_name> (string), Defaults to "ace-is"
 #   -t : <tracing_enabled> (boolean), optional flag to enable tracing, Defaults to false
 #   -z : <tracing_namespace> (string), Defaults to "-n namespace"
-#   -a : <HA_ENABLED>, default to false
+#   -a : <HA_ENABLED>, default to true
 #
 # USAGE:
 #   With defaults values
@@ -38,7 +38,7 @@ CURRENT_DIR=$(dirname $0)
 POLICY_PROJECT_TYPE="policyproject-ddd-dev"
 ace_replicas="2"
 license_use="CloudPakForIntegrationNonProduction"
-HA_ENABLED="false"
+HA_ENABLED="true"
 
 function divider() {
   echo -e "\n-------------------------------------------------------------------------------------------------------------------\n"

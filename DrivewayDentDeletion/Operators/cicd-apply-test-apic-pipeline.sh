@@ -17,7 +17,7 @@
 #   -b : <BRANCH> (string), Defaults to 'main'
 #   -f : <DEFAULT_FILE_STORAGE> (string), Default to 'ibmc-file-gold-gid'
 #   -g : <DEFAULT_BLOCK_STORAGE> (string), Default to 'cp4i-block-performance'
-#   -a : <HA_ENABLED>, default to 'false'
+#   -a : <HA_ENABLED>, default to 'true'
 #
 #   With defaults values
 #     ./cicd-apply-test-apic-pipeline.sh
@@ -48,7 +48,7 @@ SUM=0
 MISSING_PARAMS="false"
 DEFAULT_FILE_STORAGE="ibmc-file-gold-gid"
 DEFAULT_BLOCK_STORAGE="cp4i-block-performance"
-HA_ENABLED="false"
+HA_ENABLED="true"
 
 while getopts "n:r:b:f:g:a:" opt; do
   case ${opt} in
