@@ -194,8 +194,6 @@ ${qmStorageAvailability}
     enabled: ${tracing_enabled}
     namespace: ${tracing_namespace}
 EOF
-  fi
-
   if [[ "$?" != "0" ]]; then
     echo -e "$cross [ERROR] Failed to apply QueueManager CR"
     exit 1
