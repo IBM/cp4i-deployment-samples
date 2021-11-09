@@ -16,13 +16,14 @@
 #   -n : <namespace> (string), Defaults to "cp4i"
 #   -r : <release-name> (string), Defaults to "ademo"
 #   -t : optional flag to enable tracing
+#   -a : <ha_enabled>, default to "true"
 #
 # USAGE:
 #   With defaults values
 #     ./release-apic.sh
 #
 #   Overriding the namespace and release-name
-#     ./release-apic.sh -n cp4i-prod -r prod
+#     ./release-apic.sh -n cp4i-prod -r prod -a false
 
 function usage() {
   echo "Usage: $0 -n <namespace> -r <release-name> [-t]"
@@ -31,10 +32,11 @@ function usage() {
 namespace="cp4i"
 release_name="ademo"
 tracing="false"
+ha_enabled="true"
 production="false"
 CURRENT_DIR=$(dirname $0)
 
-while getopts "n:r:tp" opt; do
+while getopts "a:n:r:tp" opt; do
   case ${opt} in
   n)
     namespace="$OPTARG"
@@ -48,6 +50,9 @@ while getopts "n:r:tp" opt; do
   p)
     production="true"
     ;;
+  a)
+    ha_enabled="$OPTARG"
+    ;;
   \?)
     usage
     exit
@@ -55,7 +60,12 @@ while getopts "n:r:tp" opt; do
   esac
 done
 
-profile="n1xc10.m48"
+if [[ "$ha_enabled" == "true" ]]; then
+  profile="n3xc14.m48"
+else
+  profile="n1xc10.m48"
+fi
+
 license_use="nonproduction"
 source $CURRENT_DIR/license-helper.sh
 echo "[DEBUG] APIC license: $(getAPICLicense $namespace)"

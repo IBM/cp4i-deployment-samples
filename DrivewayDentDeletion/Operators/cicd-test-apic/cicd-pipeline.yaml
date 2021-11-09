@@ -79,6 +79,8 @@ spec:
           value: release-mq.sh
         - name: namespace
           value: "{{NAMESPACE}}"
+        - name: haEnabled
+          value: "-a {{HA_ENABLED}}"
       workspaces:
         - name: git-source
           workspace: git-source
@@ -181,6 +183,8 @@ spec:
           value: release-ace-integration-server.sh
         - name: namespace
           value: "{{NAMESPACE}}"
+        - name: haEnabled
+          value: "-a {{HA_ENABLED}}"
         - name: acePolicyProjectParam
           value: "-d policyproject-ddd-dev"
       workspaces:
@@ -203,6 +207,8 @@ spec:
           value: release-ace-integration-server.sh
         - name: namespace
           value: "{{NAMESPACE}}"
+        - name: haEnabled
+          value: "-a {{HA_ENABLED}}"
         - name: acePolicyProjectParam
           value: "-d policyproject-ddd-dev"
       workspaces:
@@ -225,6 +231,8 @@ spec:
           value: release-ace-integration-server.sh
         - name: namespace
           value: "{{NAMESPACE}}"
+        - name: haEnabled
+          value: "-a {{HA_ENABLED}}"
         - name: acePolicyProjectParam
           value: "-d policyproject-ddd-dev"
       workspaces:
@@ -247,6 +255,8 @@ spec:
           value: release-ace-integration-server.sh
         - name: namespace
           value: "{{NAMESPACE}}"
+        - name: haEnabled
+          value: "-a {{HA_ENABLED}}"
         - name: acePolicyProjectParam
           value: "-d policyproject-ddd-dev"
       workspaces:
@@ -356,6 +366,8 @@ spec:
           value: release-mq.sh
         - name: namespace
           value: "{{NAMESPACE}}"
+        - name: haEnabled
+          value: "-a {{HA_ENABLED}}"          
       workspaces:
         - name: git-source
           workspace: git-source
@@ -377,6 +389,8 @@ spec:
           value: release-ace-integration-server.sh
         - name: namespace
           value: "{{NAMESPACE}}"
+        - name: haEnabled
+          value: "-a {{HA_ENABLED}}"
         - name: acePolicyProjectParam
           value: "-d policyproject-ddd-test"
       workspaces:
@@ -400,6 +414,8 @@ spec:
           value: release-ace-integration-server.sh
         - name: namespace
           value: "{{NAMESPACE}}"
+        - name: haEnabled
+          value: "-a {{HA_ENABLED}}"
         - name: acePolicyProjectParam
           value: "-d policyproject-ddd-test"
       workspaces:
@@ -423,6 +439,8 @@ spec:
           value: release-ace-integration-server.sh
         - name: namespace
           value: "{{NAMESPACE}}"
+        - name: haEnabled
+          value: "-a {{HA_ENABLED}}"
         - name: acePolicyProjectParam
           value: "-d policyproject-ddd-test"
       workspaces:
@@ -446,6 +464,8 @@ spec:
           value: release-ace-integration-server.sh
         - name: namespace
           value: "{{NAMESPACE}}"
+        - name: haEnabled
+          value: "-a {{HA_ENABLED}}"
         - name: acePolicyProjectParam
           value: "-d policyproject-ddd-test"
       workspaces:
