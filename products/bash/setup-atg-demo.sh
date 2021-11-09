@@ -206,11 +206,13 @@ function wait_for_all_subscriptions() {
   time=0
   wait_time=5
   until [[ "$all_succeeded" == "true" ]]; do
-    all_succeeded="true"
     subscriptions_succeeded=""
     subscriptions_waiting=""
 
     rows=$(oc get subscription -n ${NAMESPACE} -o json | jq -r '.items[] | { name: .metadata.name, csv: .status.currentCSV } | @base64')
+    if [[ "$rows" != "" ]]; then
+      all_succeeded="true"
+    fi
     for row in $rows; do
       _jq() {
         echo ${row} | base64 --decode | jq -r ${1}
