@@ -19,7 +19,7 @@
 #   -q : <qm_name> (string), Defaults to "QUICKSTART"
 #   -z : <tracing_namespace> (string), Defaults to "namespace"
 #   -t : <tracing_enabled> (boolean), optional flag to enable tracing, Defaults to false
-#   -a : <HA_ENABLED>, default to true
+#   -a : <HA_ENABLED>, default to false
 #   -b : <block-storage-class> (string), Default to "ibmc-block-gold"
 #
 # USAGE:
@@ -37,7 +37,7 @@ qm_name="QUICKSTART"
 tracing_namespace=""
 tracing_enabled="false"
 CURRENT_DIR=$(dirname $0)
-HA_ENABLED="true"
+HA_ENABLED="false"
 block_storage="ibmc-block-gold"
 
 function divider() {
@@ -381,3 +381,4 @@ EOF
     divider
   done
 fi
+``
