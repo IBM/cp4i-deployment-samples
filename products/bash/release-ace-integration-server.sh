@@ -89,7 +89,7 @@ if [ "$HA_ENABLED" == "true" ]; then
   ace_replicas="3"
   license_use="AppConnectEnterpriseProduction"
 else
-  ace_replicas="2"
+  ace_replicas="1"
   license_use="CloudPakForIntegrationNonProduction"
 fi
 
