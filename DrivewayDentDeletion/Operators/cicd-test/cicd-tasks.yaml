@@ -16,33 +16,9 @@ spec:
       description: The PVC to use for layers
   steps:
     - name: pull-retag-push-to-test
-      image: quay.io/buildah/stable:latest
-      securityContext:
-        privileged: true
+      image: quay.io/openshift/origin-cli:4.6.0
       script: |
-        df -h /var/lib/containers
-        buildah pull --tls-verify=false \
-          image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}/$(params.imageName):$(params.imageTag)
-        buildah tag \
-          image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}/$(params.imageName):$(params.imageTag) \
-          image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}/$(params.imageName):$(params.imageTag)-test
-        buildah push --tls-verify=false \
-          image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}/$(params.imageName):$(params.imageTag)-test
-        df -h /var/lib/containers
-      volumeMounts:
-        - mountPath: /var/lib/containers
-          name: varlibcontainers
-      resources:
-        requests:
-          memory: "4Gi"
-          cpu: "1"
-          ephemeral-storage: "5Gi"
-        limits:
-          ephemeral-storage: "5Gi"
-  volumes:
-    - name: varlibcontainers
-      persistentVolumeClaim:
-        claimName: $(params.pvc)
+        oc tag -n {{NAMESPACE}} $(params.imageName):$(params.imageTag) $(params.imageName):$(params.imageTag)-test
 
 ---
 apiVersion: tekton.dev/v1beta1
