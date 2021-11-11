@@ -16,7 +16,6 @@
 #   -n : <namespace> (string), Defaults to "cp4i"
 #   -r : <release-name> (string), Defaults to "ademo"
 #   -t : optional flag to enable tracing
-#   -a : <ha_enabled>, default to "true"
 #
 # USAGE:
 #   With defaults values
@@ -29,10 +28,11 @@ function usage() {
   echo "Usage: $0 -n <namespace> -r <release-name> [-t]"
 }
 
+tick="\xE2\x9C\x85"
+cross="\xE2\x9D\x8C"
 namespace="cp4i"
 release_name="ademo"
 tracing="false"
-ha_enabled="true"
 production="false"
 CURRENT_DIR=$(dirname $0)
 
@@ -49,9 +49,6 @@ while getopts "a:n:r:tp" opt; do
     ;;
   p)
     production="true"
-    ;;
-  a)
-    ha_enabled="$OPTARG"
     ;;
   \?)
     usage
@@ -111,20 +108,3 @@ spec:
     testAndMonitor:
       enabled: true
 EOF
-
-if [[ "$ha_enabled" == "true" && "$production" == "false" ]]; then
-  # Wait for the GatewayCluster to get created
-  for i in $(seq 1 720); do
-    oc get -n $namespace GatewayCluster/${release_name}-gw
-    if [[ $? == 0 ]]; then
-      printf "$tick"
-      echo "[OK] GatewayCluster/${release_name}-gw"
-      break
-    else
-      echo "Waiting for GatewayCluster/${release_name}-gw to be created (Attempt $i of 720)."
-      echo "Checking again in 10 seconds..."
-      sleep 10
-    fi
-  done
-  oc patch -n ${namespace} GatewayCluster/${release_name}-gw --patch '{"spec":{"profile":"n3xc4.m8"}}' --type=merge
-fi
