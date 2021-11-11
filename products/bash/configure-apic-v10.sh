@@ -399,18 +399,18 @@ ACE_CLIENT_SECRET=$(echo $ACE_CREDENTIALS | jq -r .client_secret | base64 --deco
 if [[ "$ha_enabled" == "true" ]]; then
   # Wait for the GatewayCluster to get created
   for i in $(seq 1 720); do
-    oc get -n $namespace GatewayCluster/${release_name}-gw
+    oc get -n $NAMESPACE GatewayCluster/${RELEASE_NAME}-gw
     if [[ $? == 0 ]]; then
       printf "$tick"
-      echo "[OK] GatewayCluster/${release_name}-gw"
+      echo "[OK] GatewayCluster/${RELEASE_NAME}-gw"
       break
     else
-      echo "Waiting for GatewayCluster/${release_name}-gw to be created (Attempt $i of 720)."
+      echo "Waiting for GatewayCluster/${RELEASE_NAME}-gw to be created (Attempt $i of 720)."
       echo "Checking again in 10 seconds..."
       sleep 10
     fi
   done
-  oc patch -n ${namespace} GatewayCluster/${release_name}-gw --patch '{"spec":{"profile":"n3xc4.m8"}}' --type=merge
+  oc patch -n ${NAMESPACE} GatewayCluster/${RELEASE_NAME}-gw --patch '{"spec":{"profile":"n3xc4.m8"}}' --type=merge
 fi
 
 
