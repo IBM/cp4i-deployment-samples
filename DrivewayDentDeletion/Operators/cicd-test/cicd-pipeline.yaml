@@ -72,6 +72,7 @@ spec:
         - name: script
           value: "products/bash/release-mq.sh"
         - name: params
+          # For Dev deploy with tracing enabled and no HA
           value: " -n {{NAMESPACE}} -a false -b {{DEFAULT_BLOCK_STORAGE}} -r mq-ddd-qm-dev -i image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}/mq-ddd:latest {{TRACING}}"
       workspaces:
         - name: git-source
@@ -168,6 +169,7 @@ spec:
         - name: script
           value: "products/bash/release-ace-integration-server.sh"
         - name: params
+          # For Dev deploy with tracing enabled and no HA
           value: "-n {{NAMESPACE}} -a false -r ddd-dev-ace-api -i image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}/ddd-ace-api:$(params.imageTag) {{TRACING}} -d policyproject-ddd-dev"
       workspaces:
         - name: git-source
@@ -182,6 +184,7 @@ spec:
         - name: script
           value: "products/bash/release-ace-integration-server.sh"
         - name: params
+          # For Dev deploy with tracing enabled and no HA
           value: "-n {{NAMESPACE}} -a false -r ddd-dev-ace-bernie -i image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}/ddd-ace-bernie:$(params.imageTag) {{TRACING}} -d policyproject-ddd-dev"
       workspaces:
         - name: git-source
@@ -196,6 +199,7 @@ spec:
         - name: script
           value: "products/bash/release-ace-integration-server.sh"
         - name: params
+          # For Dev deploy with tracing enabled and no HA
           value: "-n {{NAMESPACE}} -a false -r ddd-dev-ace-acme -i image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}/ddd-ace-acme:$(params.imageTag) {{TRACING}} -d policyproject-ddd-dev"
       workspaces:
         - name: git-source
@@ -210,6 +214,7 @@ spec:
         - name: script
           value: "products/bash/release-ace-integration-server.sh"
         - name: params
+          # For Dev deploy with tracing enabled and no HA
           value: "-n {{NAMESPACE}} -a false -r ddd-dev-ace-chris -i image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}/ddd-ace-chris:$(params.imageTag) {{TRACING}} -d policyproject-ddd-dev"
       workspaces:
         - name: git-source
@@ -313,6 +318,7 @@ spec:
         - name: script
           value: "products/bash/release-mq.sh"
         - name: params
+          # For Test deploy with tracing disabled and HA
           value: "-n {{NAMESPACE}} -a {{HA_ENABLED}} -b {{DEFAULT_BLOCK_STORAGE}} -r mq-ddd-qm-test -i image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}/mq-ddd:latest-test"
       workspaces:
         - name: git-source
@@ -328,6 +334,7 @@ spec:
         - name: script
           value: "products/bash/release-ace-integration-server.sh"
         - name: params
+          # For Test deploy with tracing disabled and HA
           value: "-n {{NAMESPACE}} -a {{HA_ENABLED}} -r ddd-test-ace-api -i image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}/ddd-ace-api:$(params.imageTag)-test -d policyproject-ddd-test"
       workspaces:
         - name: git-source
@@ -343,6 +350,7 @@ spec:
         - name: script
           value: "products/bash/release-ace-integration-server.sh"
         - name: params
+          # For Test deploy with tracing disabled and HA
           value: "-n {{NAMESPACE}} -a {{HA_ENABLED}} -r ddd-test-ace-bernie -i image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}/ddd-ace-bernie:$(params.imageTag)-test -d policyproject-ddd-test"
       workspaces:
         - name: git-source
@@ -358,6 +366,7 @@ spec:
         - name: script
           value: "products/bash/release-ace-integration-server.sh"
         - name: params
+          # For Test deploy with tracing disabled and HA
           value: "-n {{NAMESPACE}} -a {{HA_ENABLED}} -r ddd-test-ace-acme -i image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}/ddd-ace-acme:$(params.imageTag)-test -d policyproject-ddd-test"
       workspaces:
         - name: git-source
@@ -373,6 +382,7 @@ spec:
         - name: script
           value: "products/bash/release-ace-integration-server.sh"
         - name: params
+          # For Test deploy with tracing disabled and HA
           value: "-n {{NAMESPACE}} -a {{HA_ENABLED}} -r ddd-dev-ace-chris -i image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}/ddd-ace-chris:$(params.imageTag)-test -d policyproject-ddd-test"
       workspaces:
         - name: git-source
