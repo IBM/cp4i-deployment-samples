@@ -16,7 +16,6 @@
 #   -n : <namespace> (string), Defaults to "cp4i"
 #   -r : <release-name> (string), Defaults to "ademo"
 #   -t : optional flag to enable tracing
-#   -a : <ha_enabled>, default to "true"
 #
 # USAGE:
 #   With defaults values
@@ -29,10 +28,11 @@ function usage() {
   echo "Usage: $0 -n <namespace> -r <release-name> [-t]"
 }
 
+tick="\xE2\x9C\x85"
+cross="\xE2\x9D\x8C"
 namespace="cp4i"
 release_name="ademo"
 tracing="false"
-ha_enabled="true"
 production="false"
 CURRENT_DIR=$(dirname $0)
 
@@ -50,21 +50,12 @@ while getopts "a:n:r:tp" opt; do
   p)
     production="true"
     ;;
-  a)
-    ha_enabled="$OPTARG"
-    ;;
   \?)
     usage
     exit
     ;;
   esac
 done
-
-if [[ "$ha_enabled" == "true" ]]; then
-  profile="n3xc14.m48"
-else
-  profile="n1xc10.m48"
-fi
 
 license_use="nonproduction"
 source $CURRENT_DIR/license-helper.sh
@@ -74,6 +65,8 @@ if [[ "$production" == "true" ]]; then
   echo "Production Mode Enabled"
   profile="n12xc4.m12"
   license_use="production"
+else
+  profile="n1xc10.m48"
 fi
 
 json=$(oc get configmap -n $namespace operator-info -o json 2>/dev/null)

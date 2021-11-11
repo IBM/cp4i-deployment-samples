@@ -9,7 +9,7 @@
 #******************************************************************************
 
 #******************************************************************************
-# PLEASE NOTE: The configure-apic-v10.sh is for Demos only and not recommended for use anywhere else. 
+# PLEASE NOTE: The configure-apic-v10.sh is for Demos only and not recommended for use anywhere else.
 # The script uses unsupported internal features that are NOT suitable for production usecases.
 #
 # PREREQUISITES:
@@ -18,6 +18,7 @@
 # PARAMETERS:
 #   -n : <NAMESPACE> (string), Defaults to "cp4i"
 #   -r : <RELEASE_NAME> (string), Defaults to "ademo"
+#   -a : <ha_enabled>, default to "true"
 #
 # USAGE:
 #   With default values
@@ -28,6 +29,7 @@
 
 CURRENT_DIR=$(dirname $0)
 
+ha_enabled="true"
 NAMESPACE="cp4i"
 RELEASE_NAME="ademo"
 ORG_NAME="main-demo"
@@ -58,6 +60,9 @@ function handle_res() {
 
 while getopts "n:r:" opt; do
   case ${opt} in
+  a)
+    ha_enabled="$OPTARG"
+    ;;
   n)
     NAMESPACE="$OPTARG"
     ;;
@@ -390,6 +395,24 @@ API_MANAGER_USER=$(echo $PROVIDER_CREDENTIALS | jq -r .username | base64 --decod
 API_MANAGER_PASS=$(echo $PROVIDER_CREDENTIALS | jq -r .password | base64 --decode)
 ACE_CLIENT_ID=$(echo $ACE_CREDENTIALS | jq -r .client_id | base64 --decode)
 ACE_CLIENT_SECRET=$(echo $ACE_CREDENTIALS | jq -r .client_secret | base64 --decode)
+
+if [[ "$ha_enabled" == "true" ]]; then
+  # Wait for the GatewayCluster to get created
+  for i in $(seq 1 720); do
+    oc get -n $namespace GatewayCluster/${release_name}-gw
+    if [[ $? == 0 ]]; then
+      printf "$tick"
+      echo "[OK] GatewayCluster/${release_name}-gw"
+      break
+    else
+      echo "Waiting for GatewayCluster/${release_name}-gw to be created (Attempt $i of 720)."
+      echo "Checking again in 10 seconds..."
+      sleep 10
+    fi
+  done
+  oc patch -n ${namespace} GatewayCluster/${release_name}-gw --patch '{"spec":{"profile":"n3xc4.m8"}}' --type=merge
+fi
+
 
 printf "$tick"
 echo "
