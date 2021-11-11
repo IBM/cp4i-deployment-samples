@@ -60,12 +60,6 @@ while getopts "a:n:r:tp" opt; do
   esac
 done
 
-if [[ "$ha_enabled" == "true" ]]; then
-  profile="n3xc14.m48"
-else
-  profile="n1xc10.m48"
-fi
-
 license_use="nonproduction"
 source $CURRENT_DIR/license-helper.sh
 echo "[DEBUG] APIC license: $(getAPICLicense $namespace)"
@@ -115,3 +109,20 @@ spec:
     testAndMonitor:
       enabled: true
 EOF
+
+if [[ "$ha_enabled" == "true" && "$production" == "false" ]]; then
+  # Wait for the GatewayCluster to get created
+  for i in $(seq 1 720); do
+    oc get -n $namespace GatewayCluster/${release_name}-gw
+    if [[ $? == 0 ]]; then
+      printf "$tick"
+      echo "[OK] GatewayCluster/${release_name}-gw"
+      break
+    else
+      echo "Waiting for GatewayCluster/${release_name}-gw to be created (Attempt $i of 720)."
+      echo "Checking again in 10 seconds..."
+      sleep 10
+    fi
+  done
+  oc patch -n ${namespace} GatewayCluster/${release_name}-gw --patch '{"spec":{"profile":"n3xc4.m8"}}' --type=merge
+fi
