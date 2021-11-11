@@ -68,6 +68,8 @@ if [[ "$production" == "true" ]]; then
   echo "Production Mode Enabled"
   profile="n12xc4.m12"
   license_use="production"
+else
+  profile="n1xc10.m48"
 fi
 
 json=$(oc get configmap -n $namespace operator-info -o json 2>/dev/null)
