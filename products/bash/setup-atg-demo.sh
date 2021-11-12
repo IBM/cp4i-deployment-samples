@@ -8,9 +8,9 @@
 # Contract with IBM Corp.
 #******************************************************************************
 
-# https://apiconnect-jenkins.swg-devops.com/job/velox-integration/job/apiconnect-operator/job/v10.0/2003/
+# https://apiconnect-jenkins.swg-devops.com/job/velox-integration/job/apiconnect-operator/job/v10.0/2043/
 DP_CATALOG_SOURCE=ibmcom/datapower-operator-catalog@sha256:381c3a7274d36d41177a81a0e5f05a16ec9d0232b1f3773a88a6a0398c938ce3
-APIC_CATALOG_SOURCE=ibmcom/ibm-apiconnect-catalog@sha256:27c7bf93555ae3234baafe231e6f70f1c3a89adcb96eacd11e44b8e1d4c0d77c
+APIC_CATALOG_SOURCE=ibmcom/ibm-apiconnect-catalog@sha256:ea6eed495583f9523c9812a0e5b2f30cc61fa3e32ea60178e63473c117c89171
 
 function divider() {
   echo -e "\n-------------------------------------------------------------------------------------------------------------------\n"
