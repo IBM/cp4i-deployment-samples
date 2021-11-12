@@ -165,7 +165,7 @@ echo Get the Cloud Scope User Registries Setting
 response=`curl -X GET https://${management}/api/cloud/settings/user-registries \
                -s -k -H "Accept: application/json" \
                -H "Authorization: Bearer ${admin_token}"`
-$DEBUG && echo"[DEBUG] $(echo ${response} | jq .)"
+$DEBUG && echo "[DEBUG] $(echo ${response} | jq .)"
 
 
 echo Add the api-manager-lur to the list of providers
