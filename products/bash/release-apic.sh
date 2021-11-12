@@ -36,7 +36,7 @@ tracing="false"
 production="false"
 CURRENT_DIR=$(dirname $0)
 
-while getopts "a:n:r:tp" opt; do
+while getopts "n:r:tp" opt; do
   case ${opt} in
   n)
     namespace="$OPTARG"
