@@ -18,13 +18,14 @@
 #   -r : <is_release_name> (string), Defaults to "ace-is"
 #   -t : <tracing_enabled> (boolean), optional flag to enable tracing, Defaults to false
 #   -z : <tracing_namespace> (string), Defaults to "-n namespace"
+#   -a : <HA_ENABLED>, default to false
 #
 # USAGE:
 #   With defaults values
 #     ./release-ace-integration-server.sh
 #
 #   Overriding the namespace and release-name
-#     ./release-ace-integration-server -d policyproject-ddd-test -n cp4i -r cp4i-bernie-ace
+#     ./release-ace-integration-server -d policyproject-ddd-test -n cp4i -r cp4i-bernie-ace -a {HA_ENABLED}
 
 tick="\xE2\x9C\x85"
 cross="\xE2\x9D\x8C"
@@ -36,6 +37,8 @@ tracing_namespace=""
 CURRENT_DIR=$(dirname $0)
 POLICY_PROJECT_TYPE="policyproject-ddd-dev"
 ace_replicas="2"
+license_use="CloudPakForIntegrationNonProduction"
+HA_ENABLED="false"
 
 function divider() {
   echo -e "\n-------------------------------------------------------------------------------------------------------------------\n"
@@ -47,7 +50,7 @@ function usage() {
   exit 1
 }
 
-while getopts "c:d:i:n:p:r:tz:" opt; do
+while getopts "c:d:i:n:p:r:tz:a:" opt; do
   case ${opt} in
   c)
     ace_policy_names="$OPTARG"
@@ -73,11 +76,22 @@ while getopts "c:d:i:n:p:r:tz:" opt; do
   z)
     tracing_namespace="$OPTARG"
     ;;
+  a)
+    HA_ENABLED="$OPTARG"
+    ;;
   \?)
     usage
     ;;
   esac
 done
+
+if [ "$HA_ENABLED" == "true" ]; then
+  ace_replicas="3"
+  license_use="AppConnectEnterpriseProduction"
+else
+  ace_replicas="1"
+  license_use="CloudPakForIntegrationNonProduction"
+fi
 
 source $CURRENT_DIR/license-helper.sh
 echo "[DEBUG] ACE license: $(getACELicense $namespace)"
@@ -129,7 +143,7 @@ spec:
   license:
     accept: true
     license: $(getACELicense $namespace)
-    use: CloudPakForIntegrationNonProduction
+    use: ${license_use}
   pod:
    containers:
      runtime:
@@ -280,4 +294,26 @@ echo $GOT_SERVICE
 if [[ "$GOT_SERVICE" == "false" ]]; then
   echo -e "[ERROR] ${CROSS} ace api integration server service doesn't exist"
   exit 1
+fi
+
+GOT_ROUTE=false
+for i in $(seq 1 30); do
+  if oc get route ${is_release_name}-https -n ${namespace}; then
+    GOT_ROUTE=true
+    break
+  else
+    echo "Waiting for ace api route named '${is_release_name}-https' (Attempt $i of 30)."
+    echo "Checking again in 10 seconds..."
+    sleep 10
+  fi
+done
+echo $GOT_ROUTE
+if [[ "$GOT_ROUTE" == "false" ]]; then
+  echo -e "[ERROR] ${CROSS} ace api integration server route doesn't exist"
+  exit 1
+fi
+
+if [ "$HA_ENABLED" == "true" ]; then
+  echo "Adding roundrobin annotation to route to provide load balancing in HA enabled mode."
+  oc annotate route ${is_release_name}-https -n ${namespace} "haproxy.router.openshift.io/balance"='roundrobin' || echo "Annotating failed"
 fi

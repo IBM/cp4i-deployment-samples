@@ -22,12 +22,14 @@
 #     ./release-apic.sh
 #
 #   Overriding the namespace and release-name
-#     ./release-apic.sh -n cp4i-prod -r prod
+#     ./release-apic.sh -n cp4i-prod -r prod -a false
 
 function usage() {
   echo "Usage: $0 -n <namespace> -r <release-name> [-t]"
 }
 
+tick="\xE2\x9C\x85"
+cross="\xE2\x9D\x8C"
 namespace="cp4i"
 release_name="ademo"
 tracing="false"
@@ -55,7 +57,6 @@ while getopts "n:r:tp" opt; do
   esac
 done
 
-profile="n1xc10.m48"
 license_use="nonproduction"
 source $CURRENT_DIR/license-helper.sh
 echo "[DEBUG] APIC license: $(getAPICLicense $namespace)"
@@ -64,6 +65,8 @@ if [[ "$production" == "true" ]]; then
   echo "Production Mode Enabled"
   profile="n12xc4.m12"
   license_use="production"
+else
+  profile="n1xc10.m48"
 fi
 
 json=$(oc get configmap -n $namespace operator-info -o json 2>/dev/null)

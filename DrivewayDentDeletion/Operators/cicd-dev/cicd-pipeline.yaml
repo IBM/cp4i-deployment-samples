@@ -67,18 +67,13 @@ spec:
       runAfter:
         - build-mq
       taskRef:
-        name: deploy-task
+        name: run-script
       params:
-        - name: imageTag
-          value: "latest"
-        - name: imageName
-          value: "mq-ddd"
-        - name: releaseName
-          value: "mq-ddd-qm-dev"
-        - name: releaseScript
-          value: release-mq.sh
-        - name: namespace
-          value: "{{NAMESPACE}}"
+        - name: script
+          value: "products/bash/release-mq.sh"
+        - name: params
+          # For Dev deploy with tracing enabled and no HA
+          value: " -n {{NAMESPACE}} -a false -b {{DEFAULT_BLOCK_STORAGE}} -r mq-ddd-qm-dev -i image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}/mq-ddd:latest {{TRACING}}"
       workspaces:
         - name: git-source
           workspace: git-source
@@ -169,20 +164,13 @@ spec:
       runAfter:
         - build-ace-int-server-ace-api
       taskRef:
-        name: deploy-task
+        name: run-script
       params:
-        - name: imageTag
-          value: "$(params.imageTag)"
-        - name: imageName
-          value: "ddd-ace-api"
-        - name: releaseName
-          value: "ddd-dev-ace-api"
-        - name: releaseScript
-          value: release-ace-integration-server.sh
-        - name: namespace
-          value: "{{NAMESPACE}}"
-        - name: acePolicyProjectParam
-          value: "-d policyproject-ddd-dev"
+        - name: script
+          value: "products/bash/release-ace-integration-server.sh"
+        - name: params
+          # For Dev deploy with tracing enabled and no HA
+          value: "-n {{NAMESPACE}} -a false -r ddd-dev-ace-api -i image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}/ddd-ace-api:$(params.imageTag) {{TRACING}} -d policyproject-ddd-dev"
       workspaces:
         - name: git-source
           workspace: git-source
@@ -191,20 +179,13 @@ spec:
       runAfter:
         - build-ace-int-server-ace-bernie
       taskRef:
-        name: deploy-task
+        name: run-script
       params:
-        - name: imageTag
-          value: "$(params.imageTag)"
-        - name: imageName
-          value: "ddd-ace-bernie"
-        - name: releaseName
-          value: "ddd-dev-ace-bernie"
-        - name: releaseScript
-          value: release-ace-integration-server.sh
-        - name: namespace
-          value: "{{NAMESPACE}}"
-        - name: acePolicyProjectParam
-          value: "-d policyproject-ddd-dev"
+        - name: script
+          value: "products/bash/release-ace-integration-server.sh"
+        - name: params
+          # For Dev deploy with tracing enabled and no HA
+          value: "-n {{NAMESPACE}} -a false -r ddd-dev-ace-bernie -i image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}/ddd-ace-bernie:$(params.imageTag) {{TRACING}} -d policyproject-ddd-dev"
       workspaces:
         - name: git-source
           workspace: git-source
@@ -213,20 +194,13 @@ spec:
       runAfter:
         - build-ace-int-server-ace-acme
       taskRef:
-        name: deploy-task
+        name: run-script
       params:
-        - name: imageTag
-          value: "$(params.imageTag)"
-        - name: imageName
-          value: "ddd-ace-acme"
-        - name: releaseName
-          value: "ddd-dev-ace-acme"
-        - name: releaseScript
-          value: release-ace-integration-server.sh
-        - name: namespace
-          value: "{{NAMESPACE}}"
-        - name: acePolicyProjectParam
-          value: "-d policyproject-ddd-dev"
+        - name: script
+          value: "products/bash/release-ace-integration-server.sh"
+        - name: params
+          # For Dev deploy with tracing enabled and no HA
+          value: "-n {{NAMESPACE}} -a false -r ddd-dev-ace-acme -i image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}/ddd-ace-acme:$(params.imageTag) {{TRACING}} -d policyproject-ddd-dev"
       workspaces:
         - name: git-source
           workspace: git-source
@@ -235,20 +209,13 @@ spec:
       runAfter:
         - build-ace-int-server-ace-chris
       taskRef:
-        name: deploy-task
+        name: run-script
       params:
-        - name: imageTag
-          value: "$(params.imageTag)"
-        - name: imageName
-          value: "ddd-ace-chris"
-        - name: releaseName
-          value: "ddd-dev-ace-chris"
-        - name: releaseScript
-          value: release-ace-integration-server.sh
-        - name: namespace
-          value: "{{NAMESPACE}}"
-        - name: acePolicyProjectParam
-          value: "-d policyproject-ddd-dev"
+        - name: script
+          value: "products/bash/release-ace-integration-server.sh"
+        - name: params
+          # For Dev deploy with tracing enabled and no HA
+          value: "-n {{NAMESPACE}} -a false -r ddd-dev-ace-chris -i image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}/ddd-ace-chris:$(params.imageTag) {{TRACING}} -d policyproject-ddd-dev"
       workspaces:
         - name: git-source
           workspace: git-source

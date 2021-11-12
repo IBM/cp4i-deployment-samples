@@ -17,12 +17,13 @@
 #   -b : <BRANCH> (string), Defaults to 'main'
 #   -f : <DEFAULT_FILE_STORAGE> (string), Default to 'ibmc-file-gold-gid'
 #   -g : <DEFAULT_BLOCK_STORAGE> (string), Default to 'cp4i-block-performance'
+#   -a : <HA_ENABLED>, default to 'true'
 #
 #   With defaults values
 #     ./cicd-apply-test-pipeline.sh
 #
 #   With overridden values
-#     ./cicd-apply-test-pipeline.sh -n <NAMESPACE> -r <REPO> -b <BRANCH> -f <DEFAULT_FILE_STORAGE> -g <DEFAULT_BLOCK_STORAGE>
+#     ./cicd-apply-test-pipeline.sh -n <NAMESPACE> -r <REPO> -b <BRANCH> -f <DEFAULT_FILE_STORAGE> -g <DEFAULT_BLOCK_STORAGE> -a <HA_ENABLED>
 
 function divider() {
   echo -e "\n-------------------------------------------------------------------------------------------------------------------\n"
@@ -47,8 +48,9 @@ SUM=0
 MISSING_PARAMS="false"
 DEFAULT_FILE_STORAGE="ibmc-file-gold-gid"
 DEFAULT_BLOCK_STORAGE="cp4i-block-performance"
+HA_ENABLED="true"
 
-while getopts "n:r:b:f:g:" opt; do
+while getopts "n:r:b:f:g:a:" opt; do
   case ${opt} in
   n)
     NAMESPACE="$OPTARG"
@@ -64,6 +66,9 @@ while getopts "n:r:b:f:g:" opt; do
     ;;
   g)
     DEFAULT_BLOCK_STORAGE="$OPTARG"
+    ;;
+  a)
+    HA_ENABLED="$OPTARG"
     ;;
   \?)
     usage
@@ -97,6 +102,11 @@ if [[ -z "${DEFAULT_BLOCK_STORAGE// /}" ]]; then
   MISSING_PARAMS="true"
 fi
 
+if [[ -z "${HA_ENABLED// /}" ]]; then
+  echo -e "$CROSS [ERROR] HA_ENABLED parameter for test pipeline of driveway dent deletion demo is empty. Please provide a value for '-a' parameter."
+  MISSING_PARAMS="true"
+fi
+
 if [[ "$MISSING_PARAMS" == "true" ]]; then
   divider
   usage
@@ -110,6 +120,7 @@ echo -e "$INFO [INFO] Branch name for the test pipeline of the driveway dent del
 echo -e "$INFO [INFO] Repository name for the test pipeline of the driveway dent deletion demo: '$REPO'"
 echo -e "$INFO [INFO] Block storage class for the test pipeline of the driveway dent deletion demo: '$DEFAULT_BLOCK_STORAGE'"
 echo -e "$INFO [INFO] File storage class for the test pipeline of the driveway dent deletion demo: '$DEFAULT_FILE_STORAGE'"
+echo -e "$INFO [INFO] HA is enabled for the test pipeline of the driveway dent deletion demo: '$HA_ENABLED'"
 
 divider
 
@@ -175,6 +186,8 @@ if cat $CURRENT_DIR/cicd-test/cicd-pipeline.yaml |
   sed "s#{{NAMESPACE}}#$NAMESPACE#g;" |
   sed "s#{{FORKED_REPO}}#$REPO#g;" |
   sed "s#{{BRANCH}}#$BRANCH#g;" |
+  sed "s#{{HA_ENABLED}}#$HA_ENABLED#g;" |
+  sed "s#{{DEFAULT_BLOCK_STORAGE}}#$DEFAULT_BLOCK_STORAGE#g;" |
   oc apply -f -; then
   echo -e "\n$TICK [SUCCESS] Successfully applied the pipeline to run tasks to build, deploy, test e2e in '$NAMESPACE' namespace"
 else

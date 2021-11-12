@@ -19,13 +19,15 @@
 #   -q : <qm_name> (string), Defaults to "QUICKSTART"
 #   -z : <tracing_namespace> (string), Defaults to "namespace"
 #   -t : <tracing_enabled> (boolean), optional flag to enable tracing, Defaults to false
+#   -a : <HA_ENABLED>, default to false
+#   -b : <block-storage-class> (string), Default to "ibmc-block-gold"
 #
 # USAGE:
 #   With defaults values
 #     ./release-mq.sh
 #
 #   Overriding the namespace and release-name
-#     ./release-mq.sh -n cp4i -r mq-demo -i image-registry.openshift-image-registry.svc:5000/cp4i/mq-ddd -q mq-qm
+#     ./release-mq.sh -n cp4i -r mq-demo -i image-registry.openshift-image-registry.svc:5000/cp4i/mq-ddd -q mq-qm  -a {HA_ENABLED}
 
 tick="\xE2\x9C\x85"
 cross="\xE2\x9D\x8C"
@@ -35,6 +37,8 @@ qm_name="QUICKSTART"
 tracing_namespace=""
 tracing_enabled="false"
 CURRENT_DIR=$(dirname $0)
+HA_ENABLED="false"
+block_storage="ibmc-block-gold"
 
 function divider() {
   echo -e "\n-------------------------------------------------------------------------------------------------------------------\n"
@@ -46,8 +50,11 @@ function usage() {
   exit 1
 }
 
-while getopts "n:r:i:q:z:t" opt; do
+while getopts "b:n:r:i:q:z:a:t" opt; do
   case ${opt} in
+  b)
+    block_storage="$OPTARG"
+    ;;
   n)
     namespace="$OPTARG"
     ;;
@@ -65,6 +72,9 @@ while getopts "n:r:i:q:z:t" opt; do
     ;;
   t)
     tracing_enabled=true
+    ;;
+  a)
+    HA_ENABLED="$OPTARG"
     ;;
   \?)
     usage
@@ -131,6 +141,23 @@ if [[ $? == 0 ]]; then
   METADATA_UID=$(echo $json | tr '\r\n' ' ' | $JQ -r '.data.METADATA_UID')
 fi
 
+if [ "$HA_ENABLED" == "false" ]; then
+  qmStorageAvailability="
+    storage:
+      queueManager:
+        type: ephemeral
+  "
+else
+  qmStorageAvailability="
+    availability:
+      type: NativeHA
+    storage:
+      defaultClass: ${block_storage}
+      queueManager:
+        type: persistent-claim
+  "
+fi
+
 if [ -z $image_name ]; then
   cat <<EOF | oc apply -f -
 apiVersion: mq.ibm.com/v1beta1
@@ -152,9 +179,7 @@ spec:
     use: NonProduction
   queueManager:
     name: ${qm_name}
-    storage:
-      queueManager:
-        type: ephemeral
+${qmStorageAvailability}
   template:
     pod:
       containers:
@@ -273,9 +298,7 @@ spec:
     image: ${image_name}
     imagePullPolicy: Always
     name: ${qm_name}
-    storage:
-      queueManager:
-        type: ephemeral
+${qmStorageAvailability}
     ini:
       - configMap:
           items:
