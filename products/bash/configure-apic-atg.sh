@@ -32,7 +32,7 @@ namespace="cp4i"
 release_name="ademo"
 tick="\xE2\x9C\x85"
 cross="\xE2\x9D\x8C"
-DEBUG=false
+DEBUG=true
 
 function usage() {
   echo "Usage: $0 -n <NAMESPACE> -r <RELEASE_NAME>"
