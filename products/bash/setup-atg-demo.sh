@@ -8,9 +8,9 @@
 # Contract with IBM Corp.
 #******************************************************************************
 
-# https://apiconnect-jenkins.swg-devops.com/job/velox-integration/job/apiconnect-operator/job/v10.0/2014/
-DP_CATALOG_SOURCE=ibmcom/datapower-operator-catalog@sha256:381c3a7274d36d41177a81a0e5f05a16ec9d0232b1f3773a88a6a0398c938ce3
-APIC_CATALOG_SOURCE=ibmcom/ibm-apiconnect-catalog@sha256:18e014e769a0bf7c343e22747b6043f7b43882615eed115f077bc8bcd6499369
+# https://apiconnect-jenkins.swg-devops.com/job/velox-integration/job/apiconnect-operator/job/v10.0/2076/
+DP_CATALOG_SOURCE=ibmcom/datapower-operator-catalog@sha256:90c9e68e1ec4d28d270e1ddaf5f0d92334fb03461e94ce589eb01c0327bd14f8
+APIC_CATALOG_SOURCE=ibmcom/ibm-apiconnect-catalog@sha256:78a7b3a5e03c4fe29c0d260d7796b30a90ac2a8668b3b9cca5d4be82e81481ef
 
 function divider() {
   echo -e "\n-------------------------------------------------------------------------------------------------------------------\n"
@@ -447,6 +447,11 @@ spec:
       aiEnabled: true
       jaegerEndpoint: >-
         jaeger-bookshop-query-api.${namespace}.svc:16685
+  template:
+  - containers:
+    - image: apic-dev-docker-local.artifactory.swg-devops.com/apic-cloud/apic-configurator/pr-71:PR-9dd02730c940f4a35ab3c90f82bdd6906fb97b24-3.amd64
+      name: configurator
+    name: configurator
 EOF
 
 echo "Setup APIC for ATG"
