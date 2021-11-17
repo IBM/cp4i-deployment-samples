@@ -406,7 +406,7 @@ spec:
               - "$api_endpoint"
               - "--no-verify"
               - "--count"
-              - "5"
+              - "100"
               - "-v"
           restartPolicy: OnFailure
 EOF
