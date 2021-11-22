@@ -381,7 +381,7 @@ spec:
           value: "products/bash/release-ace-integration-server.sh"
         - name: params
           # For Test deploy with tracing disabled and HA
-          value: "-n {{NAMESPACE}} -a {{HA_ENABLED}} -r ddd-dev-ace-chris -i image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}/ddd-ace-chris:$(params.imageTag)-test -d policyproject-ddd-test"
+          value: "-n {{NAMESPACE}} -a {{HA_ENABLED}} -r ddd-test-ace-chris -i image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}/ddd-ace-chris:$(params.imageTag)-test -d policyproject-ddd-test"
       workspaces:
         - name: git-source
           workspace: git-source

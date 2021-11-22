@@ -410,7 +410,7 @@ if [[ "$ha_enabled" == "true" ]]; then
       sleep 10
     fi
   done
-  oc patch -n ${NAMESPACE} GatewayCluster/${RELEASE_NAME}-gw --patch '{"spec":{"profile":"n3xc4.m8"}}' --type=merge
+  oc patch -n ${NAMESPACE} GatewayCluster/${RELEASE_NAME}-gw --patch '{"spec":{"profile":"n3xc4.m8","replicaCount":3}}' --type=merge
 fi
 
 
