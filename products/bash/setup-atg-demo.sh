@@ -9,8 +9,11 @@
 #******************************************************************************
 
 # https://apiconnect-jenkins.swg-devops.com/job/velox-integration/job/apiconnect-operator/job/v10.0/2142/
-DP_CATALOG_SOURCE=ibmcom/datapower-operator-catalog@sha256:93250c651db0b6e96c1f2c74fbf69804f71368f6d7909fd2842ea45a8fa0e3c8
-APIC_CATALOG_SOURCE=ibmcom/ibm-apiconnect-catalog@sha256:f4e8046428eacc5ea83ba9d73e3a78ab2faf1f7318982e09e15cdbae74bcce42
+#DP_CATALOG_SOURCE=ibmcom/datapower-operator-catalog@sha256:93250c651db0b6e96c1f2c74fbf69804f71368f6d7909fd2842ea45a8fa0e3c8
+#APIC_CATALOG_SOURCE=ibmcom/ibm-apiconnect-catalog@sha256:f4e8046428eacc5ea83ba9d73e3a78ab2faf1f7318982e09e15cdbae74bcce42
+
+DP_CATALOG_SOURCE=cp.stg.icr.io/cp/datapower-operator-catalog:latest-cd
+APIC_CATALOG_SOURCE=cp.stg.icr.io/cp/ibm-apiconnect-catalog:latest-cd
 
 function divider() {
   echo -e "\n-------------------------------------------------------------------------------------------------------------------\n"
