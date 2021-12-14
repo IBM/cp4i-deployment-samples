@@ -64,10 +64,10 @@ metadata:
 spec:
   license:
     accept: true
-    license: L-RJON-C5CSNH
+    license: L-RJON-C7QG3S
   mqDashboard: true
   replicas: ${replicas}
-  version: 2021.3.1
+  version: 2021.4.1
   storage:
     class: ${storage}
 EOF
