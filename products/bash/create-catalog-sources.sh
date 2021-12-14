@@ -44,7 +44,7 @@ done
 
 echo -e "$INFO [INFO] Applying catalogsources\n"
 if [[ "${USE_PRERELEASE_CATALOGS}" == "true" ]]; then
-  echo -e "$INFO [INFO] Using the Q3 pre-release catalog sources as specified at https://ibm.box.com/s/nmzp13h9dctd3ikexxo233py92w6z91k"
+  echo -e "$INFO [INFO] Using the Q4 pre-release catalog sources as specified at https://ibm.ent.box.com/notes/881484983929"
   cat <<EOF | oc apply -f -
 ---
 apiVersion: operators.coreos.com/v1alpha1
@@ -110,7 +110,7 @@ metadata:
  namespace: openshift-marketplace
 spec:
  displayName: MQ Operators
- image: icr.io/cpopen/ibm-mq-operator-catalog@sha256:94642ded53b9fa318dbb5700f3ae647799d47e4c361067afb36430c587691b02
+ image: cp.stg.icr.io/cp/ibm-mq-operator-catalog@sha256:bd686e3aee196ce92ba34356afcc95e95c0121679784ae91e8ed342df437eed0
  publisher: IBM
  sourceType: grpc
  updateStrategy:
@@ -138,7 +138,7 @@ metadata:
   namespace: openshift-marketplace
 spec:
   displayName: APIC Operators
-  image: docker.io/ibmcom/ibm-apiconnect-catalog@sha256:98a0cb600be842718b7377c5d270b7d0a27afaf52be448ef682e5e76d0c15278
+  image: cp.stg.icr.io/cp/ibm-apiconnect-catalog:latest-cd
   publisher: IBM
   sourceType: grpc
   updateStrategy:
@@ -152,7 +152,7 @@ metadata:
   namespace: openshift-marketplace
 spec:
   sourceType: grpc
-  image: icr.io/cpopen/ibm-ai-wmltraining-operator-catalog@sha256:4e88b9f2df60be6af156d188657763dfa4cbe074c40ea85ba82858796e3cd6a3
+  image: icr.io/cpopen/ibm-ai-wmltraining-operator-catalog@sha256@sha256:4e88b9f2df60be6af156d188657763dfa4cbe074c40ea85ba82858796e3cd6a3
   updateStrategy:
     registryPoll:
       interval: 45m
@@ -192,7 +192,7 @@ metadata:
   namespace: openshift-marketplace
 spec:
   displayName: Aspera Operators
-  image: cp.stg.icr.io/cp/icp4i/aspera/aspera-hsts-catalog@sha256:a10701d595b179d38ffc0ea16b0c89c1def78bd4c20276f7570f9bdeee5de917
+  image: cp.stg.icr.io/cp/icp4i/aspera/aspera-hsts-catalog@sha256:1b6e1e5437c427815eeb483f0db010aff7e27983cbe4a35a368919e3d339a925
   publisher: IBM
   sourceType: grpc
   updateStrategy:
@@ -220,7 +220,7 @@ metadata:
   namespace: openshift-marketplace
 spec:
   displayName: OD Operators
-  image: cp.stg.icr.io/cp/ibm-integration-operations-dashboard-catalog:2.4.0-2021-09-10-0845-d238b3ef@sha256:34054f6688ce05a29a66707296c736e31f662364f758058a2542ce41cfc5e40d
+  image: icr.io/cpopen/ibm-integration-operations-dashboard-catalog:2.5.0-2021-11-12-0957-0c2dac20@sha256:4b01abb219dddc2808895d4e15f0de9b33f546cce5cfb6281e6dda0f5c34bb41
   publisher: IBM
   sourceType: grpc
   updateStrategy:

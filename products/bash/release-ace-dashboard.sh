@@ -107,8 +107,8 @@ spec:
       control-ui:
         resources:
           limits:
-            cpu: 250m
-            memory: 250Mi
+            cpu: 500m
+            memory: 512Mi
           requests:
             cpu: 50m
             memory: 125Mi
@@ -118,5 +118,5 @@ spec:
     size: 5Gi
     type: persistent-claim
   useCommonServices: true
-  version: '12.0.1.0-r4'
+  version: '12.0.2.0-r3'
 EOF

@@ -75,18 +75,19 @@ metadata:
       uid: ${METADATA_UID}"
   fi)
 spec:
-  version: 10.4.0
-  license:
-    accept: true
-    use: CloudPakForIntegrationProduction
   adminApi: {}
   adminUI: {}
   apicurioRegistry: {}
   collector: {}
+  license:
+    accept: true
+    use: CloudPakForIntegrationProduction
+  requestIbmServices:
+    iam: true
+    monitoring: true
   restProducer: {}
   strimziOverrides:
     kafka:
-      replicas: 3
       authorization:
         type: runas
       config:
@@ -107,17 +108,19 @@ spec:
           authentication:
             type: tls
       metrics: {}
+      replicas: 3
       storage:
         class: ${storageClass}
         size: 4Gi
         type: persistent-claim
     zookeeper:
-      replicas: 3
       metrics: {}
+      replicas: 3
       storage:
         class: ${storageClass}
         size: 2Gi
         type: persistent-claim
+  version: 10.5.0
 EOF
 else
   cat <<EOF | oc apply -f -
@@ -134,13 +137,15 @@ metadata:
       uid: ${METADATA_UID}"
   fi)
 spec:
-  version: 10.4.0
-  license:
-    accept: true
-    use: CloudPakForIntegrationNonProduction
   adminApi: {}
   adminUI: {}
   collector: {}
+  license:
+    accept: true
+    use: CloudPakForIntegrationNonProduction
+  requestIbmServices:
+    iam: false
+    monitoring: false
   restProducer: {}
   schemaRegistry:
     storage:
@@ -149,7 +154,6 @@ spec:
     internalTls: NONE
   strimziOverrides:
     kafka:
-      replicas: 3
       config:
         inter.broker.protocol.version: '2.8'
         interceptor.class.names: com.ibm.eventstreams.interceptors.metrics.ProducerMetricsInterceptor
@@ -160,13 +164,15 @@ spec:
       listeners:
         plain: {}
       metrics: {}
+      replicas: 3
       storage:
         type: ephemeral
     zookeeper:
-      replicas: 3
       metrics: {}
+      replicas: 3
       storage:
         type: ephemeral
+  version: 10.5.0
 EOF
 
 fi

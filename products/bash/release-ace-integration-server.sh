@@ -140,6 +140,7 @@ spec:
   adminServerSecure: true
   configurations: $ace_policy_names
   designerFlowsOperationMode: disabled
+  enableMetrics: true
   license:
     accept: true
     license: $(getACELicense $namespace)
@@ -151,7 +152,7 @@ spec:
        resources:
          limits:
            cpu: 300m
-           memory: 300Mi
+           memory: 350Mi
          requests:
            cpu: 300m
            memory: 300Mi
@@ -161,7 +162,7 @@ spec:
   service:
     endpointType: https
   useCommonServices: true
-  version: '12.0.1.0-r4'
+  version: '12.0.2.0-r3'
   tracing:
     enabled: ${tracing_enabled}
     namespace: ${tracing_namespace}
