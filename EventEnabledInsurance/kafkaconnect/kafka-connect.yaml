@@ -8,7 +8,7 @@ spec:
   replicas: 1
 
   # Use the latest version of kafka
-  version: 3.0.0
+  version: 2.8.0
 
   # The `es-demo` Event Streams runtime is setup with no external access. This is the
   # service name of the demo bootstrap server and can only be used within the cluster.
