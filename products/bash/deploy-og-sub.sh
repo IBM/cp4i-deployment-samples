@@ -306,8 +306,7 @@ create_subscription ${namespace} ${NAVIGATOR_CATALOG} "${NAVIGATOR_NAME}" "$NAVI
 echo "INFO: Applying subscriptions for aspera, ace, event streams, mq, and asset repo"
 create_subscription ${namespace} ${ASPERA_CATALOG} "${ASPERA_NAME}" "${ASPERA_CHANNEL}"
 create_subscription ${namespace} ${ACE_CATALOG} "${ACE_NAME}" "${ACE_CHANNEL}"
-# TODO Re-enable this once released
-#create_subscription ${namespace} ${ES_CATALOG} "${ES_NAME}" "${ES_CHANNEL}"
+create_subscription ${namespace} ${ES_CATALOG} "${ES_NAME}" "${ES_CHANNEL}"
 create_subscription ${namespace} ${MQ_CATALOG} "${MQ_NAME}" "${MQ_CHANNEL}"
 create_subscription ${namespace} ${AR_CATALOG} "${AR_NAME}" "${AR_CHANNEL}"
 
@@ -322,8 +321,7 @@ if [[ "${EXTRA_SAFE_BUT_SLOW}" == "false" ]]; then
 fi
 
 echo "INFO: Apply the APIC/Tracing subscriptions"
-# TODO Re-enable this once released
-#create_subscription ${namespace} ${APIC_CATALOG} "${APIC_NAME}" "${APIC_CHANNEL}"
+create_subscription ${namespace} ${APIC_CATALOG} "${APIC_NAME}" "${APIC_CHANNEL}"
 create_subscription ${namespace} ${OD_CATALOG} "${OD_NAME}" "${OD_CHANNEL}"
 
 echo "INFO: Wait for all subscriptions to succeed"
