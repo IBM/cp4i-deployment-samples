@@ -142,7 +142,7 @@ spec:
       class: "${file_storage}"
     tracingVolume:
       class: "${block_storage}"
-  version: 2021.4.1-0
+  version: 2021.4.1
 EOF
 fi
 
