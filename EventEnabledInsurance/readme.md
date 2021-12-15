@@ -36,7 +36,7 @@ spec:
   replicas: 1
 
   # Use the latest version of kafka
-  version: 2.8.0
+  version: 3.0.0
 
   # The `es-demo` Event Streams runtime is setup with no external access. This is the
   # service name of the demo bootstrap server and can only be used within the cluster.
@@ -215,10 +215,10 @@ Status:
     Version:            1.2.0.Final
     Class:              org.apache.kafka.connect.file.FileStreamSinkConnector
     Type:               sink
-    Version:            2.8.0
+    Version:            3.0.0
     Class:              org.apache.kafka.connect.file.FileStreamSourceConnector
     Type:               source
-    Version:            2.8.0
+    Version:            3.0.0
     Class:              org.apache.kafka.connect.mirror.MirrorCheckpointConnector
     Type:               source
     Version:            1
