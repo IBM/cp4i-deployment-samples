@@ -163,3 +163,24 @@ for i in $(seq 1 400); do
     sleep 15
   fi
 done
+
+cat <<EOF | oc apply -f -
+apiVersion: integration.ibm.com/v1beta2
+kind: OperationsDashboardServiceBinding
+metadata:
+  name: ${release_name}
+  namespace: ${namespace}
+  $(if [[ ! -z ${METADATA_UID} && ! -z ${METADATA_NAME} ]]; then
+  echo "ownerReferences:
+    - apiVersion: integration.ibm.com/v1beta1
+      kind: Demo
+      name: ${METADATA_NAME}
+      uid: ${METADATA_UID}"
+fi)
+spec:
+  odNamespace: "${namespace}"
+  odInstanceName: "${release_name}"
+  sourceInstanceName: "demo-tracing"
+  sourcePodName: "demo-tracing"
+  sourceSecretName: "icp4i-od-store-cred"
+EOF
