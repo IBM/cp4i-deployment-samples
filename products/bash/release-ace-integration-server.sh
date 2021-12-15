@@ -296,25 +296,3 @@ if [[ "$GOT_SERVICE" == "false" ]]; then
   echo -e "[ERROR] ${CROSS} ace api integration server service doesn't exist"
   exit 1
 fi
-
-GOT_ROUTE=false
-for i in $(seq 1 30); do
-  if oc get route ${is_release_name}-https -n ${namespace}; then
-    GOT_ROUTE=true
-    break
-  else
-    echo "Waiting for ace api route named '${is_release_name}-https' (Attempt $i of 30)."
-    echo "Checking again in 10 seconds..."
-    sleep 10
-  fi
-done
-echo $GOT_ROUTE
-if [[ "$GOT_ROUTE" == "false" ]]; then
-  echo -e "[ERROR] ${CROSS} ace api integration server route doesn't exist"
-  exit 1
-fi
-
-if [ "$HA_ENABLED" == "true" ]; then
-  echo "Adding roundrobin annotation to route to provide load balancing in HA enabled mode."
-  oc annotate route ${is_release_name}-https -n ${namespace} "haproxy.router.openshift.io/balance"='roundrobin' || echo "Annotating failed"
-fi
