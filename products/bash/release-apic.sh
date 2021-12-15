@@ -93,18 +93,18 @@ metadata:
     app.kubernetes.io/managed-by: ibm-apiconnect
     app.kubernetes.io/name: apiconnect-production
 spec:
-  version: 10.0.4
-  license:
-    accept: true
-    use: ${license_use}
-    license: $(getAPICLicense $namespace)
-  profile: ${profile}
   gateway:
     openTracing:
       enabled: ${tracing}
       odTracingNamespace: ${namespace}
     replicaCount: 1
+  license:
+    accept: true
+    use: ${license_use}
+    license: $(getAPICLicense $namespace)
   management:
     testAndMonitor:
       enabled: true
+  profile: ${profile}
+  version: 10.0.4.0
 EOF
