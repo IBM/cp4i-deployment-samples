@@ -187,7 +187,7 @@ ${qmStorageAvailability}
             - name: MQSNOAUT
               value: 'yes'
           name: qmgr
-  version: 9.2.4
+  version: 9.2.4.0-r1
   web:
     enabled: true
   tracing:
