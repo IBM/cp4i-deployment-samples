@@ -118,5 +118,5 @@ spec:
     size: 5Gi
     type: persistent-claim
   useCommonServices: true
-  version: '12.0.2.0-r3'
+  version: '12.0.2'
 EOF

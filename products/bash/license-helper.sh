@@ -17,7 +17,7 @@
 #*******************************************************************************
 
 LICENSES_CM="demo-licenses"
-DEFAULT_ACE="L-APEH-C49KZH"
+DEFAULT_ACE="L-KSBM-C87FU2"
 DEFAULT_APIC="L-RJON-BZEP9N"
 DEFAULT_AR="L-NCAN-C3CJ8D"
 DEFAULT_DEMO="L-RJON-BYRMYW"
