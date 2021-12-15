@@ -45,10 +45,6 @@ done
 
 TICK="\xE2\x9C\x85"
 CROSS="\xE2\x9D\x8C"
-
-echo -e "$CROSS [ERROR] 2021.4.1 demos not yet supported $CROSS"
-exit 1
-
 ALL_DONE="\xF0\x9F\x92\xAF"
 INFO="\xE2\x84\xB9"
 SCRIPT_DIR=$(dirname $0)
