@@ -102,7 +102,7 @@ else
   echo -e "\nThe secret 'cp4i-demo-apic-smtp-secret' does not exist in the namespace '$NAMESPACE', continuing configuring APIC with default SMTP values..."
 fi
 
-CONFIGURATOR_IMAGE=${CONFIGURATOR_IMAGE:-"${REPO}/cp/apic/ibm-apiconnect-apiconnect-master@sha256:d6892c49d138b892dd932b8713b3e80450ec7bdee25a07c6bcbbaf94719e0075"}
+CONFIGURATOR_IMAGE=${CONFIGURATOR_IMAGE:-"${REPO}/cp/apic/ibm-apiconnect-apiconnect-master@sha256:a6254b82e97705d4cbe735cf4e883ade92f66e15d71adc0c0297b4ca1cbbc4fc"}
 MAIL_SERVER_HOST=${MAIL_SERVER_HOST:-"smtp.mailtrap.io"}
 MAIL_SERVER_PORT=${MAIL_SERVER_PORT:-"2525"}
 MAIL_SERVER_USERNAME=${MAIL_SERVER_USERNAME:-"<your-username>"}
@@ -117,7 +117,7 @@ for i in $(seq 1 120); do
     break
   else
     echo "Waiting for APIC install to complete (Attempt $i of 120). Status: $APIC_STATUS"
-    oc get apiconnectcluster,managementcluster,portalcluster,gatewaycluster,pods,pvc -n $NAMESPACE
+    oc get pods,pvc,apiconnectcluster,managementcluster,portalcluster,gatewaycluster -n $NAMESPACE
     echo "Checking again in one minute..."
     sleep 60
   fi
