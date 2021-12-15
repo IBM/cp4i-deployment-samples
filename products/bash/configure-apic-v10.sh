@@ -117,7 +117,7 @@ for i in $(seq 1 120); do
     break
   else
     echo "Waiting for APIC install to complete (Attempt $i of 120). Status: $APIC_STATUS"
-    kubectl get apic,pods,pvc -n $NAMESPACE
+    oc get apiconnectcluster,managementcluster,portalcluster,gatewaycluster,pods,pvc -n $NAMESPACE
     echo "Checking again in one minute..."
     sleep 60
   fi
