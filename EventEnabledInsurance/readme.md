@@ -36,7 +36,7 @@ spec:
   replicas: 1
 
   # Use the latest version of kafka
-  version: 2.8.0
+  version: 2.8.1
 
   # The `es-demo` Event Streams runtime is setup with no external access. This is the
   # service name of the demo bootstrap server and can only be used within the cluster.
@@ -55,7 +55,7 @@ spec:
           productName: IBM Event Streams for Non Production
 
           # Use the latest version of Eventstreams
-          productVersion: 10.4.0
+          productVersion: 10.5.0
 
           productMetric: VIRTUAL_PROCESSOR_CORE
           productChargedContainers: eei-cluster-connect
@@ -63,7 +63,7 @@ spec:
           cloudpakName: IBM Cloud Pak for Integration
 
           # Use the latest version of Eventstreams
-          cloudpakVersion: 2021.3.1
+          cloudpakVersion: 2021.4.1
 
           productCloudpakRatio: "2:1"
   config:
@@ -206,7 +206,7 @@ $ oc describe KafkaConnect eei-cluster
 ...
 Status:
   Conditions:
-    Last Transition Time:  2021-09-21T14:01:30.377178311Z
+    Last Transition Time:  2021-12-16T10:45:32.247201449Z
     Status:                True
     Type:                  Ready
   Connector Plugins:
@@ -215,10 +215,10 @@ Status:
     Version:            1.2.0.Final
     Class:              org.apache.kafka.connect.file.FileStreamSinkConnector
     Type:               sink
-    Version:            2.8.0
+    Version:            2.8.1
     Class:              org.apache.kafka.connect.file.FileStreamSourceConnector
     Type:               source
-    Version:            2.8.0
+    Version:            2.8.1
     Class:              org.apache.kafka.connect.mirror.MirrorCheckpointConnector
     Type:               source
     Version:            1
@@ -229,7 +229,7 @@ Status:
     Type:               source
     Version:            1
   Label Selector:       eventstreams.ibm.com/kind=KafkaConnect,eventstreams.ibm.com/name=eei-cluster-connect,eventstreams.ibm.com/cluster=eei-cluster
-  Observed Generation:  1
+  Observed Generation:  2
   Replicas:             1
   URL:                  http://eei-cluster-connect-api.dan.svc:8083
 ```
