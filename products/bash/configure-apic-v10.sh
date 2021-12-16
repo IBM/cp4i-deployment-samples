@@ -117,7 +117,7 @@ for i in $(seq 1 120); do
     break
   else
     echo "Waiting for APIC install to complete (Attempt $i of 120). Status: $APIC_STATUS"
-    kubectl get apic,pods,pvc -n $NAMESPACE
+    oc get apiconnectcluster,managementcluster,portalcluster,gatewaycluster,pods,pvc -n $NAMESPACE
     echo "Checking again in one minute..."
     sleep 60
   fi
@@ -160,6 +160,9 @@ CMC_UI_EP=$(oc get route -n $NAMESPACE ${RELEASE_NAME}-mgmt-admin -o jsonpath='{
 C_API_EP=$(oc get route -n $NAMESPACE ${RELEASE_NAME}-mgmt-consumer-api -o jsonpath='{.spec.host}')
 API_EP=$(oc get route -n $NAMESPACE ${RELEASE_NAME}-mgmt-platform-api -o jsonpath='{.spec.host}')
 PTL_WEB_EP=$(oc get route -n $NAMESPACE ${RELEASE_NAME}-ptl-portal-web -o jsonpath='{.spec.host}')
+
+echo "Delete old job if it exists"
+oc delete job -n $NAMESPACE ${RELEASE_NAME}-apic-configurator-post-install || true
 
 # create the k8s resources
 echo "Applying manifests"

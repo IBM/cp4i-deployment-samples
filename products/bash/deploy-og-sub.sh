@@ -88,8 +88,7 @@ ACE_NAME=ibm-appconnect
 ACE_CHANNEL=v3.0
 APIC_CATALOG=ibm-operator-catalog
 APIC_NAME=ibm-apiconnect
-# TODO Expect this to be v2.4 once released
-APIC_CHANNEL=v2.3
+APIC_CHANNEL=v2.4
 AR_CATALOG=ibm-operator-catalog
 AR_NAME=ibm-integration-asset-repository
 AR_CHANNEL=v1.4
@@ -101,11 +100,10 @@ DEMOS_NAME=ibm-integration-demos-operator
 DEMOS_CHANNEL=v1.0
 DP_CATALOG=ibm-operator-catalog
 DP_NAME=datapower-operator
-DP_CHANNEL=v1.4
+DP_CHANNEL=v1.6
 ES_CATALOG=ibm-operator-catalog
 ES_NAME=ibm-eventstreams
-# TODO Expect this to be v2.5 once released
-ES_CHANNEL=v2.4
+ES_CHANNEL=v2.5
 MQ_CATALOG=ibm-operator-catalog
 MQ_NAME=ibm-mq
 MQ_CHANNEL=v1.7

@@ -91,15 +91,16 @@ spec:
   designerMappingAssist:
     enabled: true
     incrementalLearning:
+      schedule: "Every 15 days"
       useIncrementalLearning: true
       storage:
-        class: ${file_storage}
         type: persistent-claim
+        class: ${file_storage}
   license:
     accept: true
     license: $(getACELicense $namespace)
     use: CloudPakForIntegrationNonProduction
   replicas: 1
   useCommonServices: true
-  version: '12.0.1.0-r4'
+  version: '12.0.2'
 EOF

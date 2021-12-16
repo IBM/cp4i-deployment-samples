@@ -45,10 +45,6 @@ done
 
 TICK="\xE2\x9C\x85"
 CROSS="\xE2\x9D\x8C"
-
-echo -e "$CROSS [ERROR] 2021.4.1 demos not yet supported $CROSS"
-exit 1
-
 ALL_DONE="\xF0\x9F\x92\xAF"
 INFO="\xE2\x84\xB9"
 SCRIPT_DIR=$(dirname $0)
@@ -373,10 +369,10 @@ FILE_STORAGE_CLASS=$(echo $GENERAL | jq -r '.storage.file | if has("class") then
 LICENSE=$(echo $JSON | jq -r .spec.license)
 LICENSE_ACCEPT=$(echo $LICENSE | jq -r 'if has("accept") then .accept else "false" end')
 DEMO_LICENSE=$(echo $LICENSE | jq -r 'if has("demo") then .demo else "L-RJON-BYRMYW" end')
-ACE_LICENSE=$(echo $LICENSE | jq -r 'if has("ace") then .ace else "L-APEH-C49KZH" end')
-APIC_LICENSE=$(echo $LICENSE | jq -r 'if has("apic") then .apic else "L-RJON-BZEP9N" end')
-AR_LICENSE=$(echo $LICENSE | jq -r 'if has("ar") then .ar else "L-NCAN-C3CJ8D" end')
-MQ_LICENSE=$(echo $LICENSE | jq -r 'if has("mq") then .mq else "L-RJON-BZFQU2" end')
+ACE_LICENSE=$(echo $LICENSE | jq -r 'if has("ace") then .ace else "L-KSBM-C87FU2" end')
+APIC_LICENSE=$(echo $LICENSE | jq -r 'if has("apic") then .apic else "L-RJON-C7QFWS" end')
+AR_LICENSE=$(echo $LICENSE | jq -r 'if has("ar") then .ar else "L-PNAA-C68928" end')
+MQ_LICENSE=$(echo $LICENSE | jq -r 'if has("mq") then .mq else "L-RJON-C7QG3S" end')
 TRACING_LICENSE=$(echo $LICENSE | jq -r 'if has("tracing") then .tracing else "CP4I" end')
 NAMESPACE=$(echo $JSON | jq -r .metadata.namespace)
 NAME=$(echo $JSON | jq -r .metadata.name)

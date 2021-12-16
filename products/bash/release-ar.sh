@@ -88,5 +88,5 @@ spec:
       class: ${assetDataVolume}
     couchVolume:
       class: ${couchVolume}
-  version: 2021.2.1-1
+  version: 2021.4.1-1
 EOF
