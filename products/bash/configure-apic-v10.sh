@@ -161,6 +161,9 @@ C_API_EP=$(oc get route -n $NAMESPACE ${RELEASE_NAME}-mgmt-consumer-api -o jsonp
 API_EP=$(oc get route -n $NAMESPACE ${RELEASE_NAME}-mgmt-platform-api -o jsonpath='{.spec.host}')
 PTL_WEB_EP=$(oc get route -n $NAMESPACE ${RELEASE_NAME}-ptl-portal-web -o jsonpath='{.spec.host}')
 
+echo "Delete old job if it exists"
+oc delete job -n $NAMESPACE ${RELEASE_NAME}-apic-configurator-post-install || true
+
 # create the k8s resources
 echo "Applying manifests"
 cat <<EOF | oc apply -f -
