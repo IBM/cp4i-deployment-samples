@@ -162,7 +162,7 @@ spec:
   service:
     endpointType: https
   useCommonServices: true
-  version: '12.0.2.0-r3'
+  version: '12.0.2.0-r2'
   tracing:
     enabled: ${tracing_enabled}
     namespace: ${tracing_namespace}
