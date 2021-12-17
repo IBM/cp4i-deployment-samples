@@ -260,9 +260,11 @@ if [[ "$drivewayDentDeletionDemo" == "true" ]]; then
   drivewayDentDeletionDemo=true
 fi
 
-if [[ "$eventEnabledInsuranceDemo" == "true" ]]; then
-  eventEnabledInsuranceDemo=true
-fi
+# TODO Disable EEI
+# if [[ "$eventEnabledInsuranceDemo" == "true" ]]; then
+#   eventEnabledInsuranceDemo=true
+# fi
+eventEnabledInsuranceDemo=false
 
 if [[ "$CLUSTER_SCOPED" == "true" ]]; then
   DEPLOY_OPERATOR_NAMESPACE="openshift-operators"
