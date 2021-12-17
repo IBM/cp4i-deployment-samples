@@ -322,8 +322,7 @@ if [[ "${EXTRA_SAFE_BUT_SLOW}" == "false" ]]; then
 fi
 
 echo "INFO: Apply the APIC/Tracing subscriptions"
-# TODO Re-enable this once released
-#create_subscription ${namespace} ${APIC_CATALOG} "${APIC_NAME}" "${APIC_CHANNEL}"
+create_subscription ${namespace} ${APIC_CATALOG} "${APIC_NAME}" "${APIC_CHANNEL}"
 create_subscription ${namespace} ${OD_CATALOG} "${OD_NAME}" "${OD_CHANNEL}"
 
 echo "INFO: Wait for all subscriptions to succeed"
