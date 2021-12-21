@@ -102,9 +102,6 @@ spec:
     accept: true
     use: ${license_use}
     license: $(getAPICLicense $namespace)
-  management:
-    testAndMonitor:
-      enabled: true
   profile: ${profile}
   version: 10.0.4.0
 EOF
