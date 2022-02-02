@@ -161,274 +161,344 @@ C_API_EP=$(oc get route -n $NAMESPACE ${RELEASE_NAME}-mgmt-consumer-api -o jsonp
 API_EP=$(oc get route -n $NAMESPACE ${RELEASE_NAME}-mgmt-platform-api -o jsonpath='{.spec.host}')
 PTL_WEB_EP=$(oc get route -n $NAMESPACE ${RELEASE_NAME}-ptl-portal-web -o jsonpath='{.spec.host}')
 
-echo "Delete old job if it exists"
-oc delete job -n $NAMESPACE ${RELEASE_NAME}-apic-configurator-post-install || true
+echo "APIC Setup"
+echo "- Enable the api-manager-lur provider"
+echo '- Create "atg-org" organization'
+echo "- Add the CS admin user to the org as an administrator"
+echo '- Create "atg-cat" catalog'
+echo "- Publish the bookshop API"
+echo "- Setup a user for APIC Analytics"
 
-# create the k8s resources
-echo "Applying manifests"
-cat <<EOF | oc apply -f -
-apiVersion: v1
-kind: ServiceAccount
-metadata:
-  namespace: ${NAMESPACE}
-  name: ${RELEASE_NAME}-apic-configurator-post-install-sa
-imagePullSecrets:
-- name: ibm-entitlement-key
----
-apiVersion: rbac.authorization.k8s.io/v1
-kind: Role
-metadata:
-  namespace: ${NAMESPACE}
-  name: ${RELEASE_NAME}-apic-configurator-post-install-role
-rules:
-- apiGroups:
-  - ""
-  resources:
-  - secrets
-  verbs:
-  - get
-  - list
-  - create
----
-kind: RoleBinding
-apiVersion: rbac.authorization.k8s.io/v1
-metadata:
-  namespace: ${NAMESPACE}
-  name: ${RELEASE_NAME}-apic-configurator-post-install-rolebinding
-subjects:
-- kind: ServiceAccount
-  name: ${RELEASE_NAME}-apic-configurator-post-install-sa
-  namespace: ${NAMESPACE}
-roleRef:
-  apiGroup: rbac.authorization.k8s.io
-  kind: Role
-  name: ${RELEASE_NAME}-apic-configurator-post-install-role
----
-apiVersion: v1
-kind: Secret
-metadata:
-  namespace: ${NAMESPACE}
-  name: ${RELEASE_NAME}-default-mail-server-creds
-type: Opaque
-stringData:
-  default-mail-server-creds.yaml: |-
-    mail_servers:
-      - name: default-mail-server
-        credentials:
-          username: "${MAIL_SERVER_USERNAME}"
-          password: "${MAIL_SERVER_PASSWORD}"
----
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  namespace: ${NAMESPACE}
-  name: ${RELEASE_NAME}-configurator-base
-data:
-  configurator-base.yaml: |-
-    logger:
-      level: trace
-    namespace: ${NAMESPACE}
-    api_endpoint: https://${API_EP}
-    credentials:
-      admin:
-        secret_name: cloud-manager-service-creds
-        registration:
-          name: 'cloud-manager'
-          title: 'Cloud Manager'
-          client_type: 'ibm_cloud'
-          client_id: 'cloud-manager'
-          state: 'enabled'
-          scopes:
-            - 'cloud:view'
-            - 'cloud:manage'
-            - 'provider-org:view'
-            - 'provider-org:manage'
-            - 'org:view'
-            - 'org:manage'
-            - 'my:view'
-        username: admin
-        password: "${CLOUD_MANAGER_PASS}"
-      provider:
-        secret_name: ${PROVIDER_SECRET_NAME}
-    registry_settings:
-      admin_user_registry_urls:
-      - https://${API_EP}/api/user-registries/admin/cloud-manager-lur
-      - https://${API_EP}/api/user-registries/admin/common-services
-      provider_user_registry_urls:
-      - https://${API_EP}/api/user-registries/admin/api-manager-lur
-      - https://${API_EP}/api/user-registries/admin/common-services
-    registrations:
-      - registration:
-          name: 'ace-v11'
-          client_type: 'toolkit'
-          client_id: 'ace-v11'
-          client_secret: 'myclientid123'
-        secret_name: ${ACE_REGISTRATION_SECRET_NAME}
-    mail_servers:
-      - title: "Default Mail Server"
-        name: default-mail-server
-        host: "${MAIL_SERVER_HOST}"
-        port: ${MAIL_SERVER_PORT}
-        # tls_client_profile_url: https://${API_EP}/api/orgs/admin/tls-client-profiles/tls-client-profile-default
-    users:
-      # cloud_manager:
-      api-manager-lur:
-        - user:
-            username: cp4i-admin
-            # configurator will generate a password if it is omitted
-            password: "engageibmAPI1"
-            first_name: CP4I
-            last_name: Administrator
-            email: ${PORG_ADMIN_EMAIL}
-            # email: cp4i-admin@apiconnect.net
-          secret_name: ${PROVIDER_SECRET_NAME}
-    orgs:
-      - org:
-          name: ${ORG_NAME}
-          title: Org for Demo use (${ORG_NAME})
-          org_type: provider
-          owner_url: https://${API_EP}/api/user-registries/admin/api-manager-lur/users/cp4i-admin
-        members:
-          - name: cs-admin
-            user:
-              identity_provider: common-services
-              url: https://${API_EP}/api/user-registries/admin/common-services/users/admin
-            role_urls:
-              - https://${API_EP}/api/orgs/${ORG_NAME}/roles/administrator
-        catalogs:
-          - catalog:
-              name: ${CATALOG_NAME}
-              title: Catalog for Demo use (${CATALOG_NAME})
-            settings:
-              portal:
-                type: drupal
-                endpoint: https://${PTL_WEB_EP}/${ORG_NAME}/${CATALOG_NAME}
-                portal_service_url: https://${API_EP}/api/orgs/${ORG_NAME}/portal-services/portal-service
-      - org:
-          name: ${ORG_NAME_DDD}
-          title: Org for Demo use (${ORG_NAME_DDD})
-          org_type: provider
-          owner_url: https://${API_EP}/api/user-registries/admin/api-manager-lur/users/cp4i-admin
-        members:
-          - name: cs-admin
-            user:
-              identity_provider: common-services
-              url: https://${API_EP}/api/user-registries/admin/common-services/users/admin
-            role_urls:
-              - https://${API_EP}/api/orgs/${ORG_NAME_DDD}/roles/administrator
-        catalogs:
-          - catalog:
-              name: ${CATALOG_NAME_DDD}
-              title: Catalog for Demo use (${CATALOG_NAME_DDD})
-            settings:
-              portal:
-                type: drupal
-                endpoint: https://${PTL_WEB_EP}/${ORG_NAME_DDD}/${CATALOG_NAME_DDD}
-                portal_service_url: https://${API_EP}/api/orgs/${ORG_NAME_DDD}/portal-services/portal-service
-    services: []
-    mail_settings:
-      mail_server_url: https://${API_EP}/api/orgs/admin/mail-servers/default-mail-server
-      email_sender:
-        name: "APIC Administrator"
-        address: admin@apiconnect.net
-    cloud_settings: {}
----
-apiVersion: batch/v1
-kind: Job
-metadata:
-  labels:
-    app: apic-configurator-post-install
-  namespace: ${NAMESPACE}
-  name: ${RELEASE_NAME}-apic-configurator-post-install
-spec:
-  backoffLimit: 1
-  template:
-    metadata:
-      labels:
-        app: apic-configurator-post-install
-    spec:
-      serviceAccountName: ${RELEASE_NAME}-apic-configurator-post-install-sa
-      restartPolicy: Never
-      containers:
-        - name: configurator
-          image: ${CONFIGURATOR_IMAGE}
-          volumeMounts:
-            - name: configs
-              mountPath: /app/configs
-      volumes:
-        - name: configs
-          projected:
-            sources:
-            - configMap:
-                name: ${RELEASE_NAME}-configurator-base
-                items:
-                  - key: configurator-base.yaml
-                    path: overrides/configurator-base.yaml
-            - secret:
-                name: ${RELEASE_NAME}-default-mail-server-creds
-                items:
-                  - key: default-mail-server-creds.yaml
-                    path: overrides/default-mail-server-creds.yaml
-EOF
+admin_idp=admin/default-idp-1
+admin_password=$(oc get secret -n $namespace ${release_name}-mgmt-admin-pass -o json | jq -r .data.password | base64 --decode)
 
-# wait for the job to complete
-echo "Waiting for configurator job to complete"
-kubectl wait --for=condition=complete --timeout=12000s -n $NAMESPACE job/${RELEASE_NAME}-apic-configurator-post-install
+provider_user_registry=api-manager-lur
+provider_idp=provider/default-idp-2
+provider_username=cp4i-admin
+provider_email=${PORG_ADMIN_EMAIL:-"cp4i-admin@apiconnect.net"} # update to recipient of portal site creation email
+provider_password=engageibmAPI1
+provider_firstname=CP4I
+provider_lastname=Administrator
 
-# pull together any necessary info from in-cluster resources
-PROVIDER_CREDENTIALS=$(kubectl get secret $PROVIDER_SECRET_NAME -n $NAMESPACE -o json | jq .data)
-ACE_CREDENTIALS=$(kubectl get secret $ACE_REGISTRATION_SECRET_NAME -n $NAMESPACE -o json | jq .data)
+atg_test_user_registry=api-manager-lur
+atg_test_idp=provider/default-idp-2
+atg_test_username=atg-test
+atg_test_email=atg@test.com
+atg_test_password=Password02
+atg_test_firstname=atg
+atg_test_lastname=test
 
-for i in $(seq 1 60); do
-  PORTAL_WWW_POD=$(kubectl get pods -n $NAMESPACE | grep -m1 "${RELEASE_NAME}-ptl.*www" | awk '{print $1}')
-  PORTAL_SITE_UUID=$(kubectl exec -n $NAMESPACE -it $PORTAL_WWW_POD -c admin -- /opt/ibm/bin/list_sites | awk '{print $1}')
-  PORTAL_SITE_RESET_URL=$(kubectl exec -n $NAMESPACE -it $PORTAL_WWW_POD -c admin -- /opt/ibm/bin/site_login_link $PORTAL_SITE_UUID | tail -1)
-  if [[ "$PORTAL_SITE_RESET_URL" =~ "https://$PTL_WEB_EP" ]]; then
-    printf "$tick"
-    echo "[OK] Got the portal_site_password_reset_link"
-    break
-  else
-    echo "Waiting for the portal_site_password_reset_link to be available (Attempt $i of 60)."
-    echo "Checking again in one minute..."
-    sleep 60
-  fi
-done
+porg=atg-org
+porg_title="API Test Generation Provider Organization"
 
-API_MANAGER_USER=$(echo $PROVIDER_CREDENTIALS | jq -r .username | base64 --decode)
-API_MANAGER_PASS=$(echo $PROVIDER_CREDENTIALS | jq -r .password | base64 --decode)
-ACE_CLIENT_ID=$(echo $ACE_CREDENTIALS | jq -r .client_id | base64 --decode)
-ACE_CLIENT_SECRET=$(echo $ACE_CREDENTIALS | jq -r .client_secret | base64 --decode)
+catalog=atg-cat
+catalog_title="API Test Generation Catalog"
 
-if [[ "$ha_enabled" == "true" ]]; then
-  # Wait for the GatewayCluster to get created
-  for i in $(seq 1 720); do
-    oc get -n $NAMESPACE GatewayCluster/${RELEASE_NAME}-gw
-    if [[ $? == 0 ]]; then
-      printf "$tick"
-      echo "[OK] GatewayCluster/${RELEASE_NAME}-gw"
-      break
-    else
-      echo "Waiting for GatewayCluster/${RELEASE_NAME}-gw to be created (Attempt $i of 720)."
-      echo "Checking again in 10 seconds..."
-      sleep 10
-    fi
-  done
-  oc patch -n ${NAMESPACE} GatewayCluster/${RELEASE_NAME}-gw --patch '{"spec":{"profile":"n3xc4.m8","replicaCount":3}}' --type=merge
-fi
+management=$(oc get route -n $namespace ${release_name}-mgmt-platform-api -o jsonpath="{.spec.host}")
+echo "management=${management}"
+
+echo Authenticate as the admin user
+response=`curl -X POST https://${management}/api/token \
+               -s -k -H "Content-Type: application/json" -H "Accept: application/json" \
+               -d "{ \"realm\": \"${admin_idp}\",
+                     \"username\": \"admin\",
+                     \"password\": \"${admin_password}\",
+                     \"client_id\": \"599b7aef-8841-4ee2-88a0-84d49c4d6ff2\",
+                     \"client_secret\": \"0ea28423-e73b-47d4-b40e-ddb45c48bb0c\",
+                     \"grant_type\": \"password\" }"`
+$DEBUG && echo "[DEBUG]$(echo ${response} | jq .)"
+export admin_token=`echo ${response} | jq -r '.access_token'`
+
+echo Get the Admin Organization User Registries
+response=`curl -X GET https://${management}/api/orgs/admin/user-registries \
+               -s -k -H "Accept: application/json" \
+               -H "Authorization: Bearer ${admin_token}"`
+$DEBUG && echo "[DEBUG] $(echo ${response} | jq .)"
+api_manager_lur_url=$(echo ${response} | jq -r '.results[]|select(.name=="api-manager-lur")|.url')
+echo "api_manager_lur_url=${api_manager_lur_url}"
+
+echo Get the Cloud Scope User Registries Setting
+response=`curl -X GET https://${management}/api/cloud/settings/user-registries \
+               -s -k -H "Accept: application/json" \
+               -H "Authorization: Bearer ${admin_token}"`
+$DEBUG && echo "[DEBUG] $(echo ${response} | jq .)"
+
+echo Add the api-manager-lur to the list of providers
+new_registry_settings=$(echo ${response} | jq -c ".provider_user_registry_urls += [\"${api_manager_lur_url}\"]")
+response=`curl -X PUT https://${management}/api/cloud/settings/user-registries \
+               -s -k -H "Content-Type: application/json" -H "Accept: application/json" \
+               -H "Authorization: Bearer ${admin_token}" \
+               -d ''${new_registry_settings}''`
+$DEBUG && echo "[DEBUG] $(echo ${response} | jq .)"
+
+# echo "Delete old job if it exists"
+# oc delete job -n $NAMESPACE ${RELEASE_NAME}-apic-configurator-post-install || true
+
+# # create the k8s resources
+# echo "Applying manifests"
+# cat <<EOF | oc apply -f -
+# apiVersion: v1
+# kind: ServiceAccount
+# metadata:
+#   namespace: ${NAMESPACE}
+#   name: ${RELEASE_NAME}-apic-configurator-post-install-sa
+# imagePullSecrets:
+# - name: ibm-entitlement-key
+# ---
+# apiVersion: rbac.authorization.k8s.io/v1
+# kind: Role
+# metadata:
+#   namespace: ${NAMESPACE}
+#   name: ${RELEASE_NAME}-apic-configurator-post-install-role
+# rules:
+# - apiGroups:
+#   - ""
+#   resources:
+#   - secrets
+#   verbs:
+#   - get
+#   - list
+#   - create
+# ---
+# kind: RoleBinding
+# apiVersion: rbac.authorization.k8s.io/v1
+# metadata:
+#   namespace: ${NAMESPACE}
+#   name: ${RELEASE_NAME}-apic-configurator-post-install-rolebinding
+# subjects:
+# - kind: ServiceAccount
+#   name: ${RELEASE_NAME}-apic-configurator-post-install-sa
+#   namespace: ${NAMESPACE}
+# roleRef:
+#   apiGroup: rbac.authorization.k8s.io
+#   kind: Role
+#   name: ${RELEASE_NAME}-apic-configurator-post-install-role
+# ---
+# apiVersion: v1
+# kind: Secret
+# metadata:
+#   namespace: ${NAMESPACE}
+#   name: ${RELEASE_NAME}-default-mail-server-creds
+# type: Opaque
+# stringData:
+#   default-mail-server-creds.yaml: |-
+#     mail_servers:
+#       - name: default-mail-server
+#         credentials:
+#           username: "${MAIL_SERVER_USERNAME}"
+#           password: "${MAIL_SERVER_PASSWORD}"
+# ---
+# apiVersion: v1
+# kind: ConfigMap
+# metadata:
+#   namespace: ${NAMESPACE}
+#   name: ${RELEASE_NAME}-configurator-base
+# data:
+#   configurator-base.yaml: |-
+#     logger:
+#       level: trace
+#     namespace: ${NAMESPACE}
+#     api_endpoint: https://${API_EP}
+#     credentials:
+#       admin:
+#         secret_name: cloud-manager-service-creds
+#         registration:
+#           name: 'cloud-manager'
+#           title: 'Cloud Manager'
+#           client_type: 'ibm_cloud'
+#           client_id: 'cloud-manager'
+#           state: 'enabled'
+#           scopes:
+#             - 'cloud:view'
+#             - 'cloud:manage'
+#             - 'provider-org:view'
+#             - 'provider-org:manage'
+#             - 'org:view'
+#             - 'org:manage'
+#             - 'my:view'
+#         username: admin
+#         password: "${CLOUD_MANAGER_PASS}"
+#       provider:
+#         secret_name: ${PROVIDER_SECRET_NAME}
+#     registry_settings:
+#       admin_user_registry_urls:
+#       - https://${API_EP}/api/user-registries/admin/cloud-manager-lur
+#       - https://${API_EP}/api/user-registries/admin/common-services
+#       provider_user_registry_urls:
+#       - https://${API_EP}/api/user-registries/admin/api-manager-lur
+#       - https://${API_EP}/api/user-registries/admin/common-services
+#     registrations:
+#       - registration:
+#           name: 'ace-v11'
+#           client_type: 'toolkit'
+#           client_id: 'ace-v11'
+#           client_secret: 'myclientid123'
+#         secret_name: ${ACE_REGISTRATION_SECRET_NAME}
+#     mail_servers:
+#       - title: "Default Mail Server"
+#         name: default-mail-server
+#         host: "${MAIL_SERVER_HOST}"
+#         port: ${MAIL_SERVER_PORT}
+#         # tls_client_profile_url: https://${API_EP}/api/orgs/admin/tls-client-profiles/tls-client-profile-default
+#     users:
+#       # cloud_manager:
+#       api-manager-lur:
+#         - user:
+#             username: cp4i-admin
+#             # configurator will generate a password if it is omitted
+#             password: "engageibmAPI1"
+#             first_name: CP4I
+#             last_name: Administrator
+#             email: ${PORG_ADMIN_EMAIL}
+#             # email: cp4i-admin@apiconnect.net
+#           secret_name: ${PROVIDER_SECRET_NAME}
+#     orgs:
+#       - org:
+#           name: ${ORG_NAME}
+#           title: Org for Demo use (${ORG_NAME})
+#           org_type: provider
+#           owner_url: https://${API_EP}/api/user-registries/admin/api-manager-lur/users/cp4i-admin
+#         members:
+#           - name: cs-admin
+#             user:
+#               identity_provider: common-services
+#               url: https://${API_EP}/api/user-registries/admin/common-services/users/admin
+#             role_urls:
+#               - https://${API_EP}/api/orgs/${ORG_NAME}/roles/administrator
+#         catalogs:
+#           - catalog:
+#               name: ${CATALOG_NAME}
+#               title: Catalog for Demo use (${CATALOG_NAME})
+#             settings:
+#               portal:
+#                 type: drupal
+#                 endpoint: https://${PTL_WEB_EP}/${ORG_NAME}/${CATALOG_NAME}
+#                 portal_service_url: https://${API_EP}/api/orgs/${ORG_NAME}/portal-services/portal-service
+#       - org:
+#           name: ${ORG_NAME_DDD}
+#           title: Org for Demo use (${ORG_NAME_DDD})
+#           org_type: provider
+#           owner_url: https://${API_EP}/api/user-registries/admin/api-manager-lur/users/cp4i-admin
+#         members:
+#           - name: cs-admin
+#             user:
+#               identity_provider: common-services
+#               url: https://${API_EP}/api/user-registries/admin/common-services/users/admin
+#             role_urls:
+#               - https://${API_EP}/api/orgs/${ORG_NAME_DDD}/roles/administrator
+#         catalogs:
+#           - catalog:
+#               name: ${CATALOG_NAME_DDD}
+#               title: Catalog for Demo use (${CATALOG_NAME_DDD})
+#             settings:
+#               portal:
+#                 type: drupal
+#                 endpoint: https://${PTL_WEB_EP}/${ORG_NAME_DDD}/${CATALOG_NAME_DDD}
+#                 portal_service_url: https://${API_EP}/api/orgs/${ORG_NAME_DDD}/portal-services/portal-service
+#     services: []
+#     mail_settings:
+#       mail_server_url: https://${API_EP}/api/orgs/admin/mail-servers/default-mail-server
+#       email_sender:
+#         name: "APIC Administrator"
+#         address: admin@apiconnect.net
+#     cloud_settings: {}
+# ---
+# apiVersion: batch/v1
+# kind: Job
+# metadata:
+#   labels:
+#     app: apic-configurator-post-install
+#   namespace: ${NAMESPACE}
+#   name: ${RELEASE_NAME}-apic-configurator-post-install
+# spec:
+#   backoffLimit: 1
+#   template:
+#     metadata:
+#       labels:
+#         app: apic-configurator-post-install
+#     spec:
+#       serviceAccountName: ${RELEASE_NAME}-apic-configurator-post-install-sa
+#       restartPolicy: Never
+#       containers:
+#         - name: configurator
+#           image: ${CONFIGURATOR_IMAGE}
+#           volumeMounts:
+#             - name: configs
+#               mountPath: /app/configs
+#       volumes:
+#         - name: configs
+#           projected:
+#             sources:
+#             - configMap:
+#                 name: ${RELEASE_NAME}-configurator-base
+#                 items:
+#                   - key: configurator-base.yaml
+#                     path: overrides/configurator-base.yaml
+#             - secret:
+#                 name: ${RELEASE_NAME}-default-mail-server-creds
+#                 items:
+#                   - key: default-mail-server-creds.yaml
+#                     path: overrides/default-mail-server-creds.yaml
+# EOF
+
+# # wait for the job to complete
+# echo "Waiting for configurator job to complete"
+# kubectl wait --for=condition=complete --timeout=12000s -n $NAMESPACE job/${RELEASE_NAME}-apic-configurator-post-install
+
+# # pull together any necessary info from in-cluster resources
+# PROVIDER_CREDENTIALS=$(kubectl get secret $PROVIDER_SECRET_NAME -n $NAMESPACE -o json | jq .data)
+# ACE_CREDENTIALS=$(kubectl get secret $ACE_REGISTRATION_SECRET_NAME -n $NAMESPACE -o json | jq .data)
+
+# for i in $(seq 1 60); do
+#   PORTAL_WWW_POD=$(kubectl get pods -n $NAMESPACE | grep -m1 "${RELEASE_NAME}-ptl.*www" | awk '{print $1}')
+#   PORTAL_SITE_UUID=$(kubectl exec -n $NAMESPACE -it $PORTAL_WWW_POD -c admin -- /opt/ibm/bin/list_sites | awk '{print $1}')
+#   PORTAL_SITE_RESET_URL=$(kubectl exec -n $NAMESPACE -it $PORTAL_WWW_POD -c admin -- /opt/ibm/bin/site_login_link $PORTAL_SITE_UUID | tail -1)
+#   if [[ "$PORTAL_SITE_RESET_URL" =~ "https://$PTL_WEB_EP" ]]; then
+#     printf "$tick"
+#     echo "[OK] Got the portal_site_password_reset_link"
+#     break
+#   else
+#     echo "Waiting for the portal_site_password_reset_link to be available (Attempt $i of 60)."
+#     echo "Checking again in one minute..."
+#     sleep 60
+#   fi
+# done
+
+# API_MANAGER_USER=$(echo $PROVIDER_CREDENTIALS | jq -r .username | base64 --decode)
+# API_MANAGER_PASS=$(echo $PROVIDER_CREDENTIALS | jq -r .password | base64 --decode)
+# ACE_CLIENT_ID=$(echo $ACE_CREDENTIALS | jq -r .client_id | base64 --decode)
+# ACE_CLIENT_SECRET=$(echo $ACE_CREDENTIALS | jq -r .client_secret | base64 --decode)
+
+# if [[ "$ha_enabled" == "true" ]]; then
+#   # Wait for the GatewayCluster to get created
+#   for i in $(seq 1 720); do
+#     oc get -n $NAMESPACE GatewayCluster/${RELEASE_NAME}-gw
+#     if [[ $? == 0 ]]; then
+#       printf "$tick"
+#       echo "[OK] GatewayCluster/${RELEASE_NAME}-gw"
+#       break
+#     else
+#       echo "Waiting for GatewayCluster/${RELEASE_NAME}-gw to be created (Attempt $i of 720)."
+#       echo "Checking again in 10 seconds..."
+#       sleep 10
+#     fi
+#   done
+#   oc patch -n ${NAMESPACE} GatewayCluster/${RELEASE_NAME}-gw --patch '{"spec":{"profile":"n3xc4.m8","replicaCount":3}}' --type=merge
+# fi
 
 
-printf "$tick"
-echo "
-********** Configuration **********
-api_manager_ui: https://$APIM_UI_EP/manager
-cloud_manager_ui: https://$CMC_UI_EP/admin
-platform_api: https://$API_EP/api
-consumer_api: https://$C_API_EP/consumer-api
-provider_credentials (api manager):
-  username: ${API_MANAGER_USER}
-  password: ${API_MANAGER_PASS}
-portal_site_password_reset_link: $PORTAL_SITE_RESET_URL
-ace_registration:
-  client_id: ${ACE_CLIENT_ID}
-  client_secret: ${ACE_CLIENT_SECRET}
-"
+# printf "$tick"
+# echo "
+# ********** Configuration **********
+# api_manager_ui: https://$APIM_UI_EP/manager
+# cloud_manager_ui: https://$CMC_UI_EP/admin
+# platform_api: https://$API_EP/api
+# consumer_api: https://$C_API_EP/consumer-api
+# provider_credentials (api manager):
+#   username: ${API_MANAGER_USER}
+#   password: ${API_MANAGER_PASS}
+# portal_site_password_reset_link: $PORTAL_SITE_RESET_URL
+# ace_registration:
+#   client_id: ${ACE_CLIENT_ID}
+#   client_secret: ${ACE_CLIENT_SECRET}
+# "
