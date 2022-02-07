@@ -22,36 +22,70 @@ The script carries out the following:
 # User steps
 These steps will need to be documented in the demo docs:
 - Fork/clone the repo
-- Run the script to create the dev pipeline, configured to use the forked repo. Set
-`FORKED_REPO` to the URL for your repo,  `<NAMESPACE>` to the namespace of 1-click install in which you want the pipeline to run, BRANCH to `2020.3.1`, or `2021.1.1` for 2021.1.1.
-  ```
+- Run the script to create the dev pipeline, configured to use the forked repo.
+  ```bash
+  # The namespace of your cp4i installation
   export NAMESPACE=<NAMESPACE>
-  oc project $NAMESPACE
-  export BRANCH=<BRANCH for required version of CP4I>
+
+  # Branch/tag for required version of CP4I
+  export BRANCH=2021.4.1
+
+  # The URL for your forked repo
   export FORKED_REPO=https://github.com/IBM/cp4i-deployment-samples.git
-  export HA_ENABLED=<true/false depending whether HA will be enabled or not for ACE, MQ and APIC, default to true>
-  ./cicd-apply-dev-pipeline.sh -n $NAMESPACE -r $FORKED_REPO -b $BRANCH -a $HA_ENABLED
+
+  # Set to true to enable High Availability (HA) for ACE, MQ and APIC
+  export HA_ENABLED=false
+
+  # Default to storage classes appropriate for 1-click on ROKS
+  export DEFAULT_FILE_STORAGE=ibmc-file-gold-gid
+  export DEFAULT_BLOCK_STORAGE=cp4i-block-performance
+
+  oc project $NAMESPACE
+  ./cicd-apply-dev-pipeline.sh -n $NAMESPACE -r $FORKED_REPO -b $BRANCH -a $HA_ENABLED -f $DEFAULT_FILE_STORAGE -g $DEFAULT_BLOCK_STORAGE
   ```
 - The above script `cicd-apply-dev-pipeline.sh` will create a dev pipeline in the `<NAMESPACE>` namespace and will print the route to add to the webhook in the forked github repo.
-- Run the script to create the test pipeline, configured to use the forked repo. Set
-`FORKED_REPO` to the URL for your repo and change the `<NAMESPACE>` to the namespace of 1-click install in which you want the pipeline to run.
-  ```
+- Run the script to create the test pipeline, configured to use the forked repo.
+  ```bash
+  # The namespace of your cp4i installation
   export NAMESPACE=<NAMESPACE>
-  oc project $NAMESPACE
-  export BRANCH=<BRANCH for required version of CP4I>
+
+  # Branch/tag for required version of CP4I
+  export BRANCH=2021.4.1
+
+  # The URL for your forked repo
   export FORKED_REPO=https://github.com/IBM/cp4i-deployment-samples.git
-  export HA_ENABLED=<true/false depending whether HA will be enabled or not for ACE, MQ and APIC, default to true>
-  ./cicd-apply-test-pipeline.sh -n $NAMESPACE -r $FORKED_REPO -b $BRANCH -a $HA_ENABLED
+
+  # Set to true to enable High Availability (HA) for ACE, MQ and APIC
+  export HA_ENABLED=false
+
+  # Default to storage classes appropriate for 1-click on ROKS
+  export DEFAULT_FILE_STORAGE=ibmc-file-gold-gid
+  export DEFAULT_BLOCK_STORAGE=cp4i-block-performance
+
+  oc project $NAMESPACE
+  ./cicd-apply-test-pipeline.sh -n $NAMESPACE -r $FORKED_REPO -b $BRANCH -a $HA_ENABLED -f $DEFAULT_FILE_STORAGE -g $DEFAULT_BLOCK_STORAGE
   ```
 - The above script `cicd-apply-test-pipeline.sh` will create a dev and test pipeline in the `<NAMESPACE>` namespace and will print the route to add to the webhook in the forked github repo. (This will be the same route as above, but updated to point to a service for the test pipeline in the dev namespace).
 
-  ```
+  ```bash
+  # The namespace of your cp4i installation
   export NAMESPACE=<NAMESPACE>
-  oc project $NAMESPACE
-  export BRANCH=<BRANCH for required version of CP4I>
+
+  # Branch/tag for required version of CP4I
+  export BRANCH=2021.4.1
+
+  # The URL for your forked repo
   export FORKED_REPO=https://github.com/IBM/cp4i-deployment-samples.git
-  export HA_ENABLED=<true/false depending whether HA will be enabled or not for ACE, MQ and APIC, default to true>
-  ./cicd-apply-test-apic-pipeline.sh -n $NAMESPACE -r $FORKED_REPO -b $BRANCH -a $HA_ENABLED
+
+  # Set to true to enable High Availability (HA) for ACE, MQ and APIC
+  export HA_ENABLED=false
+
+  # Default to storage classes appropriate for 1-click on ROKS
+  export DEFAULT_FILE_STORAGE=ibmc-file-gold-gid
+  export DEFAULT_BLOCK_STORAGE=cp4i-block-performance
+
+  oc project $NAMESPACE
+  ./cicd-apply-test-apic-pipeline.sh -n $NAMESPACE -r $FORKED_REPO -b $BRANCH -a $HA_ENABLED  -f $DEFAULT_FILE_STORAGE -g $DEFAULT_BLOCK_STORAGE
   ```
 - The above script `cicd-apply-test-apic-pipeline.sh` will create a dev and test pipeline with added feature of APIC in the `<NAMESPACE>` namespace and will print the route to add to the webhook in the forked github repo.(This will be the same route as above, but updated to point to a service for the test pipeline in the dev namespace).The pipeline uses the APIC instance already installed on the cluster.
 
