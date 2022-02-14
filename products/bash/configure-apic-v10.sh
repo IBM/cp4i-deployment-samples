@@ -259,7 +259,7 @@ response=`curl GET https://${management}/api/orgs/${MAIN_PORG} \
                -s -k -H "Content-Type: application/json" -H "Accept: application/json" \
                -H "Authorization: Bearer ${admin_token}"`
 $DEBUG && echo "[DEBUG] $(echo ${response} | jq .)"
-porg_url=`echo ${response} | jq -r '.url' | sed "s/\/integration\/apis\/$NAMESPACE\/$RELEASE_NAME//"`
+main_porg_url=`echo ${response} | jq -r '.url' | sed "s/\/integration\/apis\/$NAMESPACE\/$RELEASE_NAME//"`
 if [[ "${porg_url}" == "null" ]]; then
   echo Create the Provider Organization
   response=`curl https://${management}/api/cloud/orgs \
@@ -270,16 +270,16 @@ if [[ "${porg_url}" == "null" ]]; then
                        \"org_type\": \"provider\",
                        \"owner_url\": \"${owner_url}\" }"`
   $DEBUG && echo "[DEBUG] $(echo ${response} | jq .)"
-  porg_url=`echo ${response} | jq -r '.url' | sed "s/\/integration\/apis\/$NAMESPACE\/$RELEASE_NAME//"`
+  main_porg_url=`echo ${response} | jq -r '.url' | sed "s/\/integration\/apis\/$NAMESPACE\/$RELEASE_NAME//"`
 fi
-echo "porg_url=${porg_url}"
+echo "main_porg_url=${main_porg_url}"
 
 echo "Checking if the provider org named ${TEST_PORG} already exists"
 response=`curl GET https://${management}/api/orgs/${TEST_PORG} \
                -s -k -H "Content-Type: application/json" -H "Accept: application/json" \
                -H "Authorization: Bearer ${admin_token}"`
 $DEBUG && echo "[DEBUG] $(echo ${response} | jq .)"
-porg_url=`echo ${response} | jq -r '.url' | sed "s/\/integration\/apis\/$NAMESPACE\/$RELEASE_NAME//"`
+test_porg_url=`echo ${response} | jq -r '.url' | sed "s/\/integration\/apis\/$NAMESPACE\/$RELEASE_NAME//"`
 if [[ "${porg_url}" == "null" ]]; then
   echo Create the Provider Organization
   response=`curl https://${management}/api/cloud/orgs \
@@ -290,9 +290,80 @@ if [[ "${porg_url}" == "null" ]]; then
                        \"org_type\": \"provider\",
                        \"owner_url\": \"${owner_url}\" }"`
   $DEBUG && echo "[DEBUG] $(echo ${response} | jq .)"
-  porg_url=`echo ${response} | jq -r '.url' | sed "s/\/integration\/apis\/$NAMESPACE\/$RELEASE_NAME//"`
+  test_porg_url=`echo ${response} | jq -r '.url' | sed "s/\/integration\/apis\/$NAMESPACE\/$RELEASE_NAME//"`
 fi
-echo "porg_url=${porg_url}"
+echo "test_porg_url=${test_porg_url}"
+
+echo "Checking if the mail server (${MAIN_PORG}) has already been configured"
+response=`curl GET https://${management}/api/orgs/${MAIN_ORG}/mail-servers/default-mail-server \
+               -s -k -H "Content-Type: application/json" -H "Accept: application/json" \
+               -H "Authorization: Bearer ${admin_token}"`
+$DEBUG && echo "[DEBUG] $(echo ${response} | jq .)"
+mail_server_url=`echo ${response} | jq -r '.url'`
+if [[ "${mail_server_url}" == "null" ]]; then
+  echo Configuring the default mail server
+  response=`curl https://${management}/api/orgs/${MAIN_ORG}/mail-servers \
+                 -s -k -H "Content-Type: application/json" -H "Accept: application/json" \
+                 -H "Authorization: Bearer ${admin_token}" \
+                 -d "{ \"title\": \"Default Mail Server\",
+                       \"name\": \"default-mail-server\",
+                       \"host\": \"${MAIL_SERVER_HOST}\",
+                       \"port\": \"${MAIL_SERVER_PORT}\" }",
+                       \"credentials\": {
+                         \"username\": \"${MAIL_SERVER_USERNAME}\",
+                         \"password\": \"${MAIL_SERVER_PASSWORD}\"
+                       }`
+  $DEBUG && echo "[DEBUG] $(echo ${response} | jq .)"
+  mail_server_url=`echo ${response} | jq -r '.url'`
+fi
+
+echo "Checking if the mail server (${TEST_PORG}) has already been configured"
+response=`curl GET https://${management}/api/orgs/${TEST_ORG}/mail-servers/default-mail-server \
+               -s -k -H "Content-Type: application/json" -H "Accept: application/json" \
+               -H "Authorization: Bearer ${admin_token}"`
+$DEBUG && echo "[DEBUG] $(echo ${response} | jq .)"
+mail_server_url=`echo ${response} | jq -r '.url'`
+if [[ "${mail_server_url}" == "null" ]]; then
+  echo Configuring the default mail server
+  response=`curl https://${management}/api/orgs/${TEST_ORG}/mail-servers \
+                 -s -k -H "Content-Type: application/json" -H "Accept: application/json" \
+                 -H "Authorization: Bearer ${admin_token}" \
+                 -d "{ \"title\": \"Default Mail Server\",
+                       \"name\": \"default-mail-server\",
+                       \"host\": \"${MAIL_SERVER_HOST}\",
+                       \"port\": \"${MAIL_SERVER_PORT}\" }",
+                       \"credentials\": {
+                         \"username\": \"${MAIL_SERVER_USERNAME}\",
+                         \"password\": \"${MAIL_SERVER_PASSWORD}\"
+                       }`
+  $DEBUG && echo "[DEBUG] $(echo ${response} | jq .)"
+  mail_server_url=`echo ${response} | jq -r '.url'`
+fi
+
+echo "Checking if the ace toolkit regisration has been created"
+response=`curl GET https://${management}/api/cloud/registrations/ace-v11 \
+               -s -k -H "Content-Type: application/json" -H "Accept: application/json" \
+               -H "Authorization: Bearer ${admin_token}"`
+$DEBUG && echo "[DEBUG] $(echo ${response} | jq .)"
+mail_server_url=`echo ${response} | jq -r '.url'`
+if [[ "${mail_server_url}" == "null" ]]; then
+  echo Configuring the default mail server
+  response=`curl https://${management}/api/orgs/${TEST_ORG}/mail-servers \
+                 -s -k -H "Content-Type: application/json" -H "Accept: application/json" \
+                 -H "Authorization: Bearer ${admin_token}" \
+                 -d "{ \"title\": \"Default Mail Server\",
+                       \"name\": \"default-mail-server\",
+                       \"host\": \"${MAIL_SERVER_HOST}\",
+                       \"port\": \"${MAIL_SERVER_PORT}\" }",
+                       \"credentials\": {
+                         \"username\": \"${MAIL_SERVER_USERNAME}\",
+                         \"password\": \"${MAIL_SERVER_PASSWORD}\"
+                       }`
+  $DEBUG && echo "[DEBUG] $(echo ${response} | jq .)"
+  mail_server_url=`echo ${response} | jq -r '.url'`
+fi
+
+# to-do write api request for ace registration https://apic-api.apiconnect.ibmcloud.com/v10/#/IBMAPIConnectPlatformCloudManagementAPI_200/operation/%2Fcloud%2Fregistrations/post
 
 # echo "Delete old job if it exists"
 # oc delete job -n $NAMESPACE ${RELEASE_NAME}-apic-configurator-post-install || true
@@ -508,60 +579,59 @@ echo "porg_url=${porg_url}"
 # echo "Waiting for configurator job to complete"
 # kubectl wait --for=condition=complete --timeout=12000s -n $NAMESPACE job/${RELEASE_NAME}-apic-configurator-post-install
 
-# # pull together any necessary info from in-cluster resources
-# PROVIDER_CREDENTIALS=$(kubectl get secret $PROVIDER_SECRET_NAME -n $NAMESPACE -o json | jq .data)
-# ACE_CREDENTIALS=$(kubectl get secret $ACE_REGISTRATION_SECRET_NAME -n $NAMESPACE -o json | jq .data)
+# pull together any necessary info from in-cluster resources
+PROVIDER_CREDENTIALS=$(kubectl get secret $PROVIDER_SECRET_NAME -n $NAMESPACE -o json | jq .data)
+ACE_CREDENTIALS=$(kubectl get secret $ACE_REGISTRATION_SECRET_NAME -n $NAMESPACE -o json | jq .data)
 
-# for i in $(seq 1 60); do
-#   PORTAL_WWW_POD=$(kubectl get pods -n $NAMESPACE | grep -m1 "${RELEASE_NAME}-ptl.*www" | awk '{print $1}')
-#   PORTAL_SITE_UUID=$(kubectl exec -n $NAMESPACE -it $PORTAL_WWW_POD -c admin -- /opt/ibm/bin/list_sites | awk '{print $1}')
-#   PORTAL_SITE_RESET_URL=$(kubectl exec -n $NAMESPACE -it $PORTAL_WWW_POD -c admin -- /opt/ibm/bin/site_login_link $PORTAL_SITE_UUID | tail -1)
-#   if [[ "$PORTAL_SITE_RESET_URL" =~ "https://$PTL_WEB_EP" ]]; then
-#     printf "$tick"
-#     echo "[OK] Got the portal_site_password_reset_link"
-#     break
-#   else
-#     echo "Waiting for the portal_site_password_reset_link to be available (Attempt $i of 60)."
-#     echo "Checking again in one minute..."
-#     sleep 60
-#   fi
-# done
+for i in $(seq 1 60); do
+  PORTAL_WWW_POD=$(kubectl get pods -n $NAMESPACE | grep -m1 "${RELEASE_NAME}-ptl.*www" | awk '{print $1}')
+  PORTAL_SITE_UUID=$(kubectl exec -n $NAMESPACE -it $PORTAL_WWW_POD -c admin -- /opt/ibm/bin/list_sites | awk '{print $1}')
+  PORTAL_SITE_RESET_URL=$(kubectl exec -n $NAMESPACE -it $PORTAL_WWW_POD -c admin -- /opt/ibm/bin/site_login_link $PORTAL_SITE_UUID | tail -1)
+  if [[ "$PORTAL_SITE_RESET_URL" =~ "https://$PTL_WEB_EP" ]]; then
+    printf "$tick"
+    echo "[OK] Got the portal_site_password_reset_link"
+    break
+  else
+    echo "Waiting for the portal_site_password_reset_link to be available (Attempt $i of 60)."
+    echo "Checking again in one minute..."
+    sleep 60
+  fi
+done
 
-# API_MANAGER_USER=$(echo $PROVIDER_CREDENTIALS | jq -r .username | base64 --decode)
-# API_MANAGER_PASS=$(echo $PROVIDER_CREDENTIALS | jq -r .password | base64 --decode)
-# ACE_CLIENT_ID=$(echo $ACE_CREDENTIALS | jq -r .client_id | base64 --decode)
-# ACE_CLIENT_SECRET=$(echo $ACE_CREDENTIALS | jq -r .client_secret | base64 --decode)
+API_MANAGER_USER=$(echo $PROVIDER_CREDENTIALS | jq -r .username | base64 --decode)
+API_MANAGER_PASS=$(echo $PROVIDER_CREDENTIALS | jq -r .password | base64 --decode)
+ACE_CLIENT_ID=$(echo $ACE_CREDENTIALS | jq -r .client_id | base64 --decode)
+ACE_CLIENT_SECRET=$(echo $ACE_CREDENTIALS | jq -r .client_secret | base64 --decode)
 
-# if [[ "$ha_enabled" == "true" ]]; then
-#   # Wait for the GatewayCluster to get created
-#   for i in $(seq 1 720); do
-#     oc get -n $NAMESPACE GatewayCluster/${RELEASE_NAME}-gw
-#     if [[ $? == 0 ]]; then
-#       printf "$tick"
-#       echo "[OK] GatewayCluster/${RELEASE_NAME}-gw"
-#       break
-#     else
-#       echo "Waiting for GatewayCluster/${RELEASE_NAME}-gw to be created (Attempt $i of 720)."
-#       echo "Checking again in 10 seconds..."
-#       sleep 10
-#     fi
-#   done
-#   oc patch -n ${NAMESPACE} GatewayCluster/${RELEASE_NAME}-gw --patch '{"spec":{"profile":"n3xc4.m8","replicaCount":3}}' --type=merge
-# fi
+if [[ "$ha_enabled" == "true" ]]; then
+  # Wait for the GatewayCluster to get created
+  for i in $(seq 1 720); do
+    oc get -n $NAMESPACE GatewayCluster/${RELEASE_NAME}-gw
+    if [[ $? == 0 ]]; then
+      printf "$tick"
+      echo "[OK] GatewayCluster/${RELEASE_NAME}-gw"
+      break
+    else
+      echo "Waiting for GatewayCluster/${RELEASE_NAME}-gw to be created (Attempt $i of 720)."
+      echo "Checking again in 10 seconds..."
+      sleep 10
+    fi
+  done
+  oc patch -n ${NAMESPACE} GatewayCluster/${RELEASE_NAME}-gw --patch '{"spec":{"profile":"n3xc4.m8","replicaCount":3}}' --type=merge
+fi
 
-
-# printf "$tick"
-# echo "
-# ********** Configuration **********
-# api_manager_ui: https://$APIM_UI_EP/manager
-# cloud_manager_ui: https://$CMC_UI_EP/admin
-# platform_api: https://$API_EP/api
-# consumer_api: https://$C_API_EP/consumer-api
-# provider_credentials (api manager):
-#   username: ${API_MANAGER_USER}
-#   password: ${API_MANAGER_PASS}
-# portal_site_password_reset_link: $PORTAL_SITE_RESET_URL
-# ace_registration:
-#   client_id: ${ACE_CLIENT_ID}
-#   client_secret: ${ACE_CLIENT_SECRET}
-# "
+printf "$tick"
+echo "
+********** Configuration **********
+api_manager_ui: https://$APIM_UI_EP/manager
+cloud_manager_ui: https://$CMC_UI_EP/admin
+platform_api: https://$API_EP/api
+consumer_api: https://$C_API_EP/consumer-api
+provider_credentials (api manager):
+  username: ${API_MANAGER_USER}
+  password: ${API_MANAGER_PASS}
+portal_site_password_reset_link: $PORTAL_SITE_RESET_URL
+ace_registration:
+  client_id: ${ACE_CLIENT_ID}
+  client_secret: ${ACE_CLIENT_SECRET}
+"
