@@ -170,7 +170,7 @@ echo "- Publish the bookshop API"
 echo "- Setup a user for APIC Analytics"
 
 admin_idp=admin/default-idp-1
-admin_password=$(oc get secret -n $namespace ${release_name}-mgmt-admin-pass -o json | jq -r .data.password | base64 --decode)
+admin_password=$(oc get secret -n $NAMESPACE ${RELEASE_NAME}-mgmt-admin-pass -o json | jq -r .data.password | base64 --decode)
 
 provider_user_registry=api-manager-lur
 provider_idp=provider/default-idp-2
@@ -188,13 +188,15 @@ atg_test_password=Password02
 atg_test_firstname=atg
 atg_test_lastname=test
 
-porg=atg-org
-porg_title="API Test Generation Provider Organization"
+MAIN_PORG="main-ademo"
+MAIN_PORG_TITLE="Org for Demo use (${MAIN_PORG})"
+TEST_PORG="ddd-demo-test"
+TEST_PORG_TITLE="Org for Demo use (${TEST_PORG})"
 
 catalog=atg-cat
 catalog_title="API Test Generation Catalog"
 
-management=$(oc get route -n $namespace ${release_name}-mgmt-platform-api -o jsonpath="{.spec.host}")
+management=$(oc get route -n $NAMESPACE ${RELEASE_NAME}-mgmt-platform-api -o jsonpath="{.spec.host}")
 echo "management=${management}"
 
 echo Authenticate as the admin user
@@ -230,6 +232,67 @@ response=`curl -X PUT https://${management}/api/cloud/settings/user-registries \
                -H "Authorization: Bearer ${admin_token}" \
                -d ''${new_registry_settings}''`
 $DEBUG && echo "[DEBUG] $(echo ${response} | jq .)"
+
+echo "Checking if the user named ${provider_username} already exists"
+response=`curl GET https://${management}/api/user-registries/admin/${provider_user_registry}/users/${provider_username} \
+               -s -k -H "Content-Type: application/json" -H "Accept: application/json" \
+               -H "Authorization: Bearer ${admin_token}"`
+$DEBUG && echo "[DEBUG] $(echo ${response} | jq .)"
+owner_url=`echo ${response} | jq -r '.url' | sed "s/\/integration\/apis\/$NAMESPACE\/$RELEASE_NAME//"`
+if [[ "${owner_url}" == "null" ]]; then
+  echo Create the Provider Organization Owner
+  response=`curl https://${management}/api/user-registries/admin/${provider_user_registry}/users \
+                 -s -k -H "Content-Type: application/json" -H "Accept: application/json" \
+                 -H "Authorization: Bearer ${admin_token}" \
+                 -d "{ \"username\": \"${provider_username}\",
+                       \"password\": \"${provider_password}\",
+                       \"email\": \"${provider_email}\",
+                       \"first_name\": \"${provider_firstname}\",
+                       \"last_name\": \"${provider_lastname}\" }"`
+  $DEBUG && echo "[DEBUG] $(echo ${response} | jq .)"
+  owner_url=`echo ${response} | jq -r '.url' | sed "s/\/integration\/apis\/$NAMESPACE\/$RELEASE_NAME//"`
+fi
+echo "owner_url=${owner_url}"
+
+echo "Checking if the provider org named ${MAIN_PORG} already exists"
+response=`curl GET https://${management}/api/orgs/${MAIN_PORG} \
+               -s -k -H "Content-Type: application/json" -H "Accept: application/json" \
+               -H "Authorization: Bearer ${admin_token}"`
+$DEBUG && echo "[DEBUG] $(echo ${response} | jq .)"
+porg_url=`echo ${response} | jq -r '.url' | sed "s/\/integration\/apis\/$NAMESPACE\/$RELEASE_NAME//"`
+if [[ "${porg_url}" == "null" ]]; then
+  echo Create the Provider Organization
+  response=`curl https://${management}/api/cloud/orgs \
+                 -s -k -H "Content-Type: application/json" -H "Accept: application/json" \
+                 -H "Authorization: Bearer ${admin_token}" \
+                 -d "{ \"name\": \"${MAIN_PORG}\",
+                       \"title\": \"${MAIN_PORG_TITLE}\",
+                       \"org_type\": \"provider\",
+                       \"owner_url\": \"${owner_url}\" }"`
+  $DEBUG && echo "[DEBUG] $(echo ${response} | jq .)"
+  porg_url=`echo ${response} | jq -r '.url' | sed "s/\/integration\/apis\/$NAMESPACE\/$RELEASE_NAME//"`
+fi
+echo "porg_url=${porg_url}"
+
+echo "Checking if the provider org named ${TEST_PORG} already exists"
+response=`curl GET https://${management}/api/orgs/${TEST_PORG} \
+               -s -k -H "Content-Type: application/json" -H "Accept: application/json" \
+               -H "Authorization: Bearer ${admin_token}"`
+$DEBUG && echo "[DEBUG] $(echo ${response} | jq .)"
+porg_url=`echo ${response} | jq -r '.url' | sed "s/\/integration\/apis\/$NAMESPACE\/$RELEASE_NAME//"`
+if [[ "${porg_url}" == "null" ]]; then
+  echo Create the Provider Organization
+  response=`curl https://${management}/api/cloud/orgs \
+                 -s -k -H "Content-Type: application/json" -H "Accept: application/json" \
+                 -H "Authorization: Bearer ${admin_token}" \
+                 -d "{ \"name\": \"${TEST_PORG}\",
+                       \"title\": \"${TEST_PORG_TITLE}\",
+                       \"org_type\": \"provider\",
+                       \"owner_url\": \"${owner_url}\" }"`
+  $DEBUG && echo "[DEBUG] $(echo ${response} | jq .)"
+  porg_url=`echo ${response} | jq -r '.url' | sed "s/\/integration\/apis\/$NAMESPACE\/$RELEASE_NAME//"`
+fi
+echo "porg_url=${porg_url}"
 
 # echo "Delete old job if it exists"
 # oc delete job -n $NAMESPACE ${RELEASE_NAME}-apic-configurator-post-install || true
