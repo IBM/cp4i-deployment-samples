@@ -345,24 +345,27 @@ response=`curl GET https://${management}/api/cloud/registrations/ace-v11 \
                -s -k -H "Content-Type: application/json" -H "Accept: application/json" \
                -H "Authorization: Bearer ${admin_token}"`
 $DEBUG && echo "[DEBUG] $(echo ${response} | jq .)"
-mail_server_url=`echo ${response} | jq -r '.url'`
-if [[ "${mail_server_url}" == "null" ]]; then
-  echo Configuring the default mail server
-  response=`curl https://${management}/api/orgs/${TEST_ORG}/mail-servers \
+ace_registration=`echo ${response} | jq -r '.url'`
+if [[ "${ace_registration}" == "null" ]]; then
+  echo Registering ace
+  response=`curl POST https://${management}/api/cloud/registrations \
                  -s -k -H "Content-Type: application/json" -H "Accept: application/json" \
                  -H "Authorization: Bearer ${admin_token}" \
-                 -d "{ \"title\": \"Default Mail Server\",
-                       \"name\": \"default-mail-server\",
-                       \"host\": \"${MAIL_SERVER_HOST}\",
-                       \"port\": \"${MAIL_SERVER_PORT}\" }",
-                       \"credentials\": {
-                         \"username\": \"${MAIL_SERVER_USERNAME}\",
-                         \"password\": \"${MAIL_SERVER_PASSWORD}\"
+                 -d "{ \"title\": \"${ACE_REGISTRATION_SECRET_NAME}\",
+                       \"name\": \"ace-v11\",
+                       \"client_type\": \"toolkit\",
+                       \"client_id\": \"ace-v11\" }",
+                       \"client_secret\": \"myclientid123\",
                        }`
   $DEBUG && echo "[DEBUG] $(echo ${response} | jq .)"
-  mail_server_url=`echo ${response} | jq -r '.url'`
+  ace_registration=`echo ${response} | jq -r '.url'`
 fi
 
+#           name: 'ace-v11'
+#           client_type: 'toolkit'
+#           client_id: 'ace-v11'
+#           client_secret: 'myclientid123'
+#         secret_name: ${ACE_REGISTRATION_SECRET_NAME}
 # to-do write api request for ace registration https://apic-api.apiconnect.ibmcloud.com/v10/#/IBMAPIConnectPlatformCloudManagementAPI_200/operation/%2Fcloud%2Fregistrations/post
 
 # echo "Delete old job if it exists"
