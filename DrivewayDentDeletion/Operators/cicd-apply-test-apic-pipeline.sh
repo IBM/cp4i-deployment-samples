@@ -124,6 +124,22 @@ echo -e "$INFO [INFO] HA is enabled for the test apic pipeline of the driveway d
 
 divider
 
+if ! oc get storageclass $DEFAULT_BLOCK_STORAGE; then
+  echo -e "$CROSS [ERROR] The block storage class (-g) of \"$DEFAULT_BLOCK_STORAGE\" could not be found:"
+  oc get storageclasses
+  exit 1
+fi
+
+if ! oc get storageclass $DEFAULT_FILE_STORAGE; then
+  echo -e "$CROSS [ERROR] The file storage class (-f) of \"$DEFAULT_FILE_STORAGE\" could not be found:"
+  oc get storageclasses
+  exit 1
+fi
+
+echo -e "$TICK [SUCCESS] Storage classes \"$DEFAULT_BLOCK_STORAGE\" and \"$DEFAULT_FILE_STORAGE\" both exist"
+
+divider
+
 if ! oc project $NAMESPACE >/dev/null 2>&1; then
   echo -e "$CROSS [ERROR] The dev and the test namespace '$NAMESPACE' does not exist"
   exit 1

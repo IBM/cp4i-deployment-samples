@@ -46,6 +46,7 @@ all_done="\xF0\x9F\x92\xAF"
 info="\xE2\x84\xB9"
 missingParams="false"
 namespace="cp4i"
+MAX_OCP_VERSION=4.8
 
 while getopts "p:r:u:d:n:" opt; do
   case ${opt} in
@@ -226,6 +227,18 @@ if ! [[ "$csDefaultAdminPassword" =~ $csDefaultAdminPasswordRegex ]]; then
 fi
 if [[ "${passwordOK}" = "true" ]]; then
   echo -e "$tick INFO: Common Services admin password ok"
+fi
+
+OCP_VERSION=$(oc version -o json | jq -r '.openshiftVersion')
+OCP_MAJOR_VERSION=$(echo $OCP_VERSION | cut -f1 -d'.')
+OCP_MINOR_VERSION=$(echo $OCP_VERSION | cut -f2 -d'.')
+MAX_OCP_MAJOR_VERSION=$(echo $MAX_OCP_VERSION | cut -f1 -d'.')
+MAX_OCP_MINOR_VERSION=$(echo $MAX_OCP_VERSION | cut -f2 -d'.')
+if [ "$OCP_MAJOR_VERSION" -gt "$MAX_OCP_MAJOR_VERSION" ] || ([ "$OCP_MAJOR_VERSION" -eq "$MAX_OCP_MAJOR_VERSION" ] && [ "$OCP_MINOR_VERSION" -gt "$MAX_OCP_MINOR_VERSION" ]); then
+  echo -e "$cross ERROR: The Openshift version (${OCP_VERSION}) of the cluster is too high, ${MAX_OCP_VERSION} is the maximum currently supported"
+  check=1
+else
+  echo -e "$tick INFO: The Openshift version (${OCP_VERSION}) is supported. Maximum version is ${MAX_OCP_VERSION}"
 fi
 
 divider
