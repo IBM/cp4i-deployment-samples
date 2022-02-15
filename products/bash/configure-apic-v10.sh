@@ -259,8 +259,8 @@ response=`curl GET https://${management}/api/orgs/${MAIN_PORG} \
                -s -k -H "Content-Type: application/json" -H "Accept: application/json" \
                -H "Authorization: Bearer ${admin_token}"`
 $DEBUG && echo "[DEBUG] $(echo ${response} | jq .)"
-main_porg_url=`echo ${response} | jq -r '.url' | sed "s/\/integration\/apis\/$NAMESPACE\/$RELEASE_NAME//"`
-if [[ "${porg_url}" == "null" ]]; then
+main_porg_url=`echo ${response} | jq -r '.status'`
+if [[ "${porg_url}" != "404" ]]; then
   echo Create the Provider Organization
   response=`curl https://${management}/api/cloud/orgs \
                  -s -k -H "Content-Type: application/json" -H "Accept: application/json" \
@@ -279,8 +279,8 @@ response=`curl GET https://${management}/api/orgs/${TEST_PORG} \
                -s -k -H "Content-Type: application/json" -H "Accept: application/json" \
                -H "Authorization: Bearer ${admin_token}"`
 $DEBUG && echo "[DEBUG] $(echo ${response} | jq .)"
-test_porg_url=`echo ${response} | jq -r '.url' | sed "s/\/integration\/apis\/$NAMESPACE\/$RELEASE_NAME//"`
-if [[ "${porg_url}" == "null" ]]; then
+test_porg_url=`echo ${response} | jq -r '.status'`
+if [[ "${porg_url}" != "404" ]]; then
   echo Create the Provider Organization
   response=`curl https://${management}/api/cloud/orgs \
                  -s -k -H "Content-Type: application/json" -H "Accept: application/json" \
@@ -299,8 +299,8 @@ response=`curl GET https://${management}/api/orgs/${MAIN_ORG}/mail-servers/defau
                -s -k -H "Content-Type: application/json" -H "Accept: application/json" \
                -H "Authorization: Bearer ${admin_token}"`
 $DEBUG && echo "[DEBUG] $(echo ${response} | jq .)"
-mail_server_url=`echo ${response} | jq -r '.url'`
-if [[ "${mail_server_url}" == "null" ]]; then
+mail_server_url=`echo ${response} | jq -r '.status'`
+if [[ "${mail_server_url}" != "404" ]]; then
   echo Configuring the default mail server
   response=`curl https://${management}/api/orgs/${MAIN_ORG}/mail-servers \
                  -s -k -H "Content-Type: application/json" -H "Accept: application/json" \
@@ -312,7 +312,8 @@ if [[ "${mail_server_url}" == "null" ]]; then
                        \"credentials\": {
                          \"username\": \"${MAIL_SERVER_USERNAME}\",
                          \"password\": \"${MAIL_SERVER_PASSWORD}\"
-                       }`
+                        }
+                      }"`
   $DEBUG && echo "[DEBUG] $(echo ${response} | jq .)"
   mail_server_url=`echo ${response} | jq -r '.url'`
 fi
@@ -322,8 +323,8 @@ response=`curl GET https://${management}/api/orgs/${TEST_ORG}/mail-servers/defau
                -s -k -H "Content-Type: application/json" -H "Accept: application/json" \
                -H "Authorization: Bearer ${admin_token}"`
 $DEBUG && echo "[DEBUG] $(echo ${response} | jq .)"
-mail_server_url=`echo ${response} | jq -r '.url'`
-if [[ "${mail_server_url}" == "null" ]]; then
+mail_server_url=`echo ${response} | jq -r '.status'`
+if [[ "${mail_server_url}" != "404" ]]; then
   echo Configuring the default mail server
   response=`curl https://${management}/api/orgs/${TEST_ORG}/mail-servers \
                  -s -k -H "Content-Type: application/json" -H "Accept: application/json" \
@@ -335,7 +336,8 @@ if [[ "${mail_server_url}" == "null" ]]; then
                        \"credentials\": {
                          \"username\": \"${MAIL_SERVER_USERNAME}\",
                          \"password\": \"${MAIL_SERVER_PASSWORD}\"
-                       }`
+                        }
+                      }"`
   $DEBUG && echo "[DEBUG] $(echo ${response} | jq .)"
   mail_server_url=`echo ${response} | jq -r '.url'`
 fi
@@ -345,8 +347,8 @@ response=`curl GET https://${management}/api/cloud/registrations/ace-v11 \
                -s -k -H "Content-Type: application/json" -H "Accept: application/json" \
                -H "Authorization: Bearer ${admin_token}"`
 $DEBUG && echo "[DEBUG] $(echo ${response} | jq .)"
-ace_registration=`echo ${response} | jq -r '.url'`
-if [[ "${ace_registration}" == "null" ]]; then
+ace_registration=`echo ${response} | jq -r '.status'`
+if [[ "${ace_registration}" != "404" ]]; then
   echo Registering ace
   response=`curl POST https://${management}/api/cloud/registrations \
                  -s -k -H "Content-Type: application/json" -H "Accept: application/json" \
@@ -355,8 +357,9 @@ if [[ "${ace_registration}" == "null" ]]; then
                        \"name\": \"ace-v11\",
                        \"client_type\": \"toolkit\",
                        \"client_id\": \"ace-v11\" }",
-                       \"client_secret\": \"myclientid123\",
-                       }`
+                       \"client_secret\": \"myclientid123\"
+                      }
+                    }"`
   $DEBUG && echo "[DEBUG] $(echo ${response} | jq .)"
   ace_registration=`echo ${response} | jq -r '.url'`
 fi
