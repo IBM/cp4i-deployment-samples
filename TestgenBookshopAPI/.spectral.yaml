@@ -1,0 +1,6 @@
+extends: spectral:oas
+rules:
+  # no contact information
+  info-contact: off
+  # no host information
+  oas2-api-host: off
