@@ -3,6 +3,8 @@ info:
   title: Bookshop API
   x-ibm-name: bookshop-api
   version: '1.0'
+  description: |
+    Simulates an online bookshop to provide an example subject for AI-driven test generation in Cloud Pak for Integration.
 schemes:
   - https
   - http
@@ -196,7 +198,8 @@ paths:
     post:
       tags:
       - Customers
-      summary: Add a new customer
+      description: |
+        Add a new customer
       operationId: add_customer
       parameters:
       - in: body
@@ -216,7 +219,7 @@ paths:
           schema:
             $ref: '#/definitions/Customer'
         '400':
-          description: '#/responses/BadRequest'
+          $ref: '#/responses/BadRequest'
         '401':
           $ref: '#/responses/Unauthorized'
         '403':
@@ -246,7 +249,7 @@ paths:
         '403':
           $ref: '#/responses/Forbidden'
         '404':
-          description: '#/responses/CustomerNotFound'
+          $ref: '#/responses/CustomerNotFound'
     get:
       tags:
       - Customers
@@ -324,7 +327,7 @@ paths:
         description: order
         required: true
         schema:
-          $ref: '#/definitions/OrderDetail'
+          $ref: '#/definitions/NewOrder'
       responses:
         '201':
           description: Created new order for given customer
@@ -406,7 +409,7 @@ paths:
         '403':
           $ref: '#/responses/Forbidden'
         '404':
-          description: '#/responses/OrderNotFound'
+          $ref: '#/responses/OrderNotFound'
     put:
       tags:
         - Orders
@@ -523,63 +526,82 @@ paths:
           $ref: '#/responses/Unauthorized'
         '403':
           $ref: '#/responses/Forbidden'
+
 definitions:
-  NewBook:
-    type: object
-    allOf:
-      - $ref: '#/definitions/BookDetail'
-    additionalProperties: false
   Book:
     type: object
-    allOf:
-      - $ref: '#/definitions/BookDetail'
     properties:
       book_id:
-        type: string
-        format: uuid
-        readOnly: true
-        description: The unique identifier of the book
+        $ref: '#/definitions/BookId'
       author_id:
-        type: string
-        format: uuid
-        readOnly: true
+        $ref: '#/definitions/AuthorId'
       category:
-        $ref: '#/definitions/BookCategory'
-        readOnly: true
+        $ref: '#/definitions/Category'
+      title:
+        $ref: '#/definitions/Title'
+      author:
+        $ref: '#/definitions/AuthorName'
+      publisher:
+        $ref: '#/definitions/Publisher'
+      date:
+        $ref: '#/definitions/PublicationDate'
+      format:
+        $ref: '#/definitions/PublicationFormat'
+      isbn:
+        $ref: '#/definitions/ISBN'
+      synopsis:
+        $ref: '#/definitions/Synopsis'
+      language:
+        $ref: '#/definitions/Language'
+    required:
+      - book_id
+      - author_id
+      - category
+      - title
+      - author
+      - publisher
+      - date
+      - format
+      - isbn
+      - language
     additionalProperties: false
-  BookDetail:
+  NewBook:
     type: object
     properties:
       title:
-        type: string
+        $ref: '#/definitions/Title'
       author:
-        type: string
+        $ref: '#/definitions/AuthorName'
       publisher:
-        type: string
+        $ref: '#/definitions/Publisher'
       date:
-        type: string
-        format: date
-      isbn:
-        type: string
+        $ref: '#/definitions/PublicationDate'
       format:
-        type: string
-        enum:
-          - hardback
-          - paperback
-          - digital
+        $ref: '#/definitions/PublicationFormat'
+      isbn:
+        $ref: '#/definitions/ISBN'
       synopsis:
-        type: string
+        $ref: '#/definitions/Synopsis'
       language:
-        type: string
+        $ref: '#/definitions/Language'
     required:
       - title
       - author
       - publisher
       - date
-      - isbn
       - format
+      - isbn
       - language
-  BookCategory:
+    additionalProperties: false
+  AuthorId:
+    type: string
+    format: uuid
+  AuthorName:
+    type: string
+  BookId:
+    type: string
+    format: uuid
+  Category:
     type: string
     enum:
       - biography
@@ -590,98 +612,165 @@ definitions:
       - history
       - science
       - social
-  NewOrder:
-    type: object
-    allOf:
-      - $ref: '#/definitions/OrderDetail'
-    additionalProperties: false
-  Order:
-    type: object
-    allOf:
-      - $ref: '#/definitions/OrderDetail'
-    properties:
-      order_id:
-        type: string
-        format: uuid
-        readOnly: true
-        description: The unique identifier of this order
-    additionalProperties: false
-  OrderDetail:
-    type: object
-    properties:
-      customer_id:
-        type: string
-        format: uuid
-        description: The unique identifier of the Customer who place this order
-      book_ids:
-        type: array
-        items:
-          type: string
-          format: uuid
-          description: The unique identifier of a book to be ordered
-        minItems: 1
-      quantity:
-        type: integer
-        minimum: 1
-      ship_date:
-        type: string
-        format: date-time
-      status:
-        type: string
-        description: Order Status
-        enum:
-        - placed
-        - approved
-        - delivered
-      complete:
-        type: boolean
-        default: false
-    required:
-      - customer_id
-      - book_ids
-      - quantity
-  NewCustomer:
-    type: object
-    allOf:
-      - $ref: '#/definitions/CustomerDetail'
-    additionalProperties: false
+  ISBN:
+    type: string
+  Language:
+    type: string
+  PublicationDate:
+    type: string
+    format: date
+  PublicationFormat:
+    type: string
+    enum:
+      - hardback
+      - paperback
+      - digital
+  Publisher:
+    type: string
+  Synopsis:
+    type: string
+  Title:
+    type: string
+
   Customer:
     type: object
-    allOf:
-      - $ref: '#/definitions/CustomerDetail'
     properties:
       customer_id:
-        type: string
-        format: uuid
-        readOnly: true
-        description: The unique identifier of this customer
+        $ref: '#/definitions/CustomerId'
+      username:
+        $ref: '#/definitions/UserName'
+      first_name:
+        $ref: '#/definitions/CustomerFirstName'
+      last_name:
+        $ref: '#/definitions/CustomerLastName'
+      email:
+        $ref: '#/definitions/CustomerEmail'
+      password:
+        $ref: '#/definitions/Password'
+      phone:
+        $ref: '#/definitions/CustomerPhone'
+    required:
+      - customer_id
+      - username
+      - first_name
+      - last_name
+      - email
+      - password
     additionalProperties: false
-  CustomerDetail:
+  NewCustomer:
     type: object
     properties:
       username:
-        type: string
+        $ref: '#/definitions/UserName'
       first_name:
-        type: string
+        $ref: '#/definitions/CustomerFirstName'
       last_name:
-        type: string
+        $ref: '#/definitions/CustomerLastName'
       email:
-        type: string
+        $ref: '#/definitions/CustomerEmail'
       password:
-        type: string
+        $ref: '#/definitions/Password'
       phone:
-        type: string
+        $ref: '#/definitions/CustomerPhone'
     required:
       - username
       - first_name
       - last_name
       - email
       - password
+    additionalProperties: false
+  CustomerEmail:
+    type: string
+  CustomerFirstName:
+    type: string
+  CustomerId:
+    description: The unique identifier of a Customer
+    type: string
+    format: uuid
+  CustomerLastName:
+    type: string
+  CustomerPhone:
+    type: string
+  Password:
+    type: string
+  UserName:
+    type: string
+
+  Order:
+    type: object
+    properties:
+      order_id:
+        $ref: '#/definitions/OrderId'
+      customer_id:
+        $ref: '#/definitions/CustomerId'
+      book_ids:
+        type: array
+        items:
+          $ref: '#/definitions/BookId'
+        minItems: 1
+      quantity:
+        $ref: '#/definitions/OrderQuantity'
+      ship_date:
+        $ref: '#/definitions/ShipDate'
+      status:
+        $ref: '#/definitions/OrderStatus'
+      complete:
+        $ref: '#/definitions/OrderCompleted'
+    required:
+      - order_id
+      - customer_id
+      - book_ids
+      - quantity
+    additionalProperties: false
+  NewOrder:
+    type: object
+    properties:
+      customer_id:
+        $ref: '#/definitions/CustomerId'
+      book_ids:
+        type: array
+        items:
+          $ref: '#/definitions/BookId'
+        minItems: 1
+      quantity:
+        $ref: '#/definitions/OrderQuantity'
+      ship_date:
+        $ref: '#/definitions/ShipDate'
+      status:
+        $ref: '#/definitions/OrderStatus'
+      complete:
+        $ref: '#/definitions/OrderCompleted'
+    required:
+      - customer_id
+      - book_ids
+      - quantity
+    additionalProperties: false
+  OrderCompleted:
+    type: boolean
+    default: false
+  OrderId:
+    description: The unique identifier of an order
+    type: string
+    format: uuid
+  OrderQuantity:
+    type: integer
+    minimum: 1
+  OrderStatus:
+    type: string
+    description: Order Status
+    enum:
+    - placed
+    - approved
+    - delivered
+  ShipDate:
+    type: string
+    format: date-time
+
   AuthorSearch:
     type: object
     properties:
       author:
-        type: string
+        $ref: '#/definitions/AuthorName'
     required:
       - author
   AuthorSearchResult:
@@ -690,39 +779,43 @@ definitions:
       type: object
       properties:
         author_name:
-          type: string
+          $ref: '#/definitions/AuthorName'
         author_id:
-          type: string
-          format: uuid
+          $ref: '#/definitions/AuthorId'
       required:
         - author_id
   CategorySearch:
     type: object
     properties:
       title:
-        type: string
+        $ref: '#/definitions/Title'
       synopsis:
-        type: string
+        $ref: '#/definitions/Synopsis'
     required:
       - title
   CategorySearchResult:
     type: array
     items:
-      $ref: '#/definitions/BookCategory'
+      $ref: '#/definitions/Category'
   ServiceUsage:
     type: object
     properties:
       service:
-        type: string
-        enum:
-          - author
-          - category
+        $ref: '#/definitions/ServiceType'
       usage:
-        type: integer
-        readOnly: true
+        $ref: '#/definitions/Usage'
     required:
       - service
     additionalProperties: false
+  ServiceType:
+    type: string
+    enum:
+      - author
+      - category
+  Usage:
+    type: integer
+    minimum: 0
+
   Error:
     type: object
     description: |
@@ -771,6 +864,7 @@ definitions:
       - type
       - name
     additionalProperties: false
+
 responses:
   BadRequest:
     description: |
@@ -805,3 +899,9 @@ responses:
       The requested order could not be located
     schema:
       $ref: '#/definitions/Error'
+
+tags:
+  - name: Books
+  - name: Customers
+  - name: Orders
+  - name: Services
