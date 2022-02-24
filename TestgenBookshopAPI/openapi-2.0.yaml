@@ -599,6 +599,7 @@ definitions:
   AuthorName:
     type: string
   BookId:
+    description: The unique identifier of a book
     type: string
     format: uuid
   Category:
@@ -684,7 +685,7 @@ definitions:
   CustomerFirstName:
     type: string
   CustomerId:
-    description: The unique identifier of a Customer
+    description: The unique identifier of a customer
     type: string
     format: uuid
   CustomerLastName:
