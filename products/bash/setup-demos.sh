@@ -61,7 +61,8 @@ MISSING_PARAMS="false"
 MISSING_PREREQS="false"
 
 # cognitive car repair demo list
-COGNITIVE_CAR_REPAIR_PRODUCTS_LIST=("aceDashboard" "aceDesigner" "apic" "assetRepo" "tracing")
+# 20220311 - remove tracing
+COGNITIVE_CAR_REPAIR_PRODUCTS_LIST=("aceDashboard" "aceDesigner" "apic" "assetRepo")
 COGNITIVE_CAR_REPAIR_ADDONS_LIST=()
 # driveway dent deletion demo list
 DRIVEWAY_DENT_DELETION_PRODUCTS_LIST=("aceDashboard" "apic" "tracing")
@@ -387,6 +388,7 @@ APIC_CONFIGURATION=$(echo $JSON | jq -c '.spec | if has("apic") then .apic else 
 divider
 echo -e "$INFO Block storage class: '$BLOCK_STORAGE_CLASS'"
 echo -e "$INFO File storage class: '$FILE_STORAGE_CLASS'"
+echo -e "$INFO --debug 20220311--"
 echo -e "$INFO Samples repo branch: '$SAMPLES_REPO_BRANCH'"
 echo -e "$INFO Demo version: '$DEMO_VERSION'"
 echo -e "$INFO Namespace: '$NAMESPACE'" && divider
