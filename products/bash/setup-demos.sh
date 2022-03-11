@@ -61,7 +61,8 @@ MISSING_PARAMS="false"
 MISSING_PREREQS="false"
 
 # cognitive car repair demo list
-COGNITIVE_CAR_REPAIR_PRODUCTS_LIST=("aceDashboard" "aceDesigner" "apic" "assetRepo" "tracing")
+# 20220311 - remove tracing
+COGNITIVE_CAR_REPAIR_PRODUCTS_LIST=("aceDashboard" "aceDesigner" "apic" "assetRepo")
 COGNITIVE_CAR_REPAIR_ADDONS_LIST=()
 # driveway dent deletion demo list
 DRIVEWAY_DENT_DELETION_PRODUCTS_LIST=("aceDashboard" "apic" "tracing")
