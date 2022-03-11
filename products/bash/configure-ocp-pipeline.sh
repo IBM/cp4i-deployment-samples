@@ -112,7 +112,7 @@ oc adm policy add-scc-to-group privileged system:serviceaccounts:$namespace
 echo "INFO: Creating 'image-bot' service account to create a secret to push to the openshift local registry"
 export DOCKER_REGISTRY="image-registry.openshift-image-registry.svc:5000"
 export username=image-bot
-kubectl -n ${namespace} create serviceaccount image-bot
+oc -n ${namespace} create serviceaccount image-bot
 export password="$(oc -n ${namespace} serviceaccounts get-token image-bot)"
 echo -e "\nINFO: Adding permission for '$namespace' to write images to openshift local registry in the '$namespace'"
 oc -n ${namespace} policy add-role-to-user registry-editor system:serviceaccount:${namespace}:image-bot
