@@ -29,7 +29,8 @@
 
 CURRENT_DIR=$(dirname $0)
 
-ha_enabled="true"
+# 20220311 - disable HA
+ha_enabled="false"
 NAMESPACE="cp4i"
 RELEASE_NAME="ademo"
 ORG_NAME="main-demo"
