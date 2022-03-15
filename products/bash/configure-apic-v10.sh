@@ -371,9 +371,14 @@ spec:
                     path: overrides/default-mail-server-creds.yaml
 EOF
 
+echo "Giving the job a little time to start"
+sleep 30
+
 # wait for the job to complete
 echo "Waiting for configurator job to complete"
 oc wait --for=condition=complete --timeout=12000s -n $NAMESPACE job/${RELEASE_NAME}-apic-configurator-post-install
+
+echo "Complete"
 
 # pull together any necessary info from in-cluster resources
 PROVIDER_CREDENTIALS=$(oc get secret $PROVIDER_SECRET_NAME -n $NAMESPACE -o json | jq .data)
