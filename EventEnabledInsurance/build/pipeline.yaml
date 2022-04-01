@@ -10,6 +10,7 @@ spec:
     - name: git-source
   tasks:
     - name: git-clone-eei
+      retries: 2
       taskRef:
         name: git-clone
         kind: ClusterTask
@@ -27,6 +28,7 @@ spec:
           workspace: git-source
 
     - name: fixup-dockerfiles
+      retries: 2
       runAfter:
         - git-clone-eei
       taskRef:
@@ -42,6 +44,7 @@ spec:
 
     # build simulator app image
     - name: build-simulator-image
+      retries: 2
       runAfter:
         - fixup-dockerfiles
       taskRef:
@@ -61,6 +64,7 @@ spec:
 
     # deploy simulator app image
     - name: deploy-simulator-app
+      retries: 2
       runAfter:
         - build-simulator-image
       taskRef:
@@ -76,6 +80,7 @@ spec:
 
     # build projection claim app image
     - name: build-projection-claims-image
+      retries: 2
       runAfter:
         - fixup-dockerfiles
       taskRef:
@@ -95,6 +100,7 @@ spec:
 
     # deploy projection claim app image
     - name: deploy-projection-claims-app
+      retries: 2
       runAfter:
         - build-projection-claims-image
       taskRef:
@@ -110,6 +116,7 @@ spec:
 
     # build mq image
     - name: build-mq-image
+      retries: 2
       runAfter:
         - fixup-dockerfiles
       taskRef:
@@ -129,6 +136,7 @@ spec:
 
     # deploy mq image
     - name: deploy-mq
+      retries: 2
       runAfter:
         - build-mq-image
       taskRef:
@@ -144,6 +152,7 @@ spec:
 
     # build ace rest
     - name: build-ace-rest
+      retries: 2
       runAfter:
         - fixup-dockerfiles
       taskRef:
@@ -165,6 +174,7 @@ spec:
 
     # build ace db-writer
     - name: build-ace-db-writer
+      retries: 2
       runAfter:
         - fixup-dockerfiles
       taskRef:
@@ -186,6 +196,7 @@ spec:
 
     # deploy ace rest
     - name: deploy-ace-rest
+      retries: 2
       runAfter:
         - build-ace-rest
       taskRef:
@@ -201,6 +212,7 @@ spec:
 
     # deploy ace db_writer
     - name: deploy-db-writer
+      retries: 2
       runAfter:
         - build-ace-db-writer
       taskRef:
@@ -215,6 +227,7 @@ spec:
           workspace: git-source
 
     - name: push-to-apic
+      retries: 2
       runAfter:
         - fixup-dockerfiles
       taskRef:
