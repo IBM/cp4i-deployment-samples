@@ -123,7 +123,7 @@ for i in $(seq 1 60); do
 done
 
 echo "Pod listing for information"
-oc get pod -n $namespace -l app.kubernetes.io/managed-by=ibm-apiconnect -l app.kubernetes.io/part-of=${release_name}
+oc get pod -n $NAMESPACE -l app.kubernetes.io/managed-by=ibm-apiconnect -l app.kubernetes.io/part-of=${RELEASE_NAME}
 
 # obtain endpoint info from APIC v10 routes
 APIM_UI_EP=$(oc get route -n $NAMESPACE ${RELEASE_NAME}-mgmt-api-manager -o jsonpath='{.spec.host}')
@@ -211,14 +211,27 @@ if [[ "${owner_url}" == "null" ]]; then
 fi
 echo "owner_url=${owner_url}"
 
+echo Authenticate as the Provider Organization Owner
+response=`curl -X POST https://${management}/api/token \
+               -s -k -H "Content-Type: application/json" -H "Accept: application/json" \
+               -d "{ \"realm\": \"${provider_idp}\",
+                     \"username\": \"${provider_username}\",
+                     \"password\": \"${provider_password}\",
+                     \"client_id\": \"599b7aef-8841-4ee2-88a0-84d49c4d6ff2\",
+                     \"client_secret\": \"0ea28423-e73b-47d4-b40e-ddb45c48bb0c\",
+                     \"grant_type\": \"password\" }"`
+$DEBUG && echo "[DEBUG] $(echo ${response} | jq .)"
+export provider_token=`echo ${response} | jq -r '.access_token'`
+$DEBUG && echo "[DEBUG] $(echo "provider_token=${provider_token}")"
+
 echo "Checking if the provider org named ${MAIN_PORG} already exists"
 response=`curl GET https://${management}/api/orgs/${MAIN_PORG} \
                -s -k -H "Content-Type: application/json" -H "Accept: application/json" \
                -H "Authorization: Bearer ${admin_token}"`
 $DEBUG && echo "[DEBUG] $(echo ${response} | jq .)"
-main_porg_url=`echo ${response} | jq -r '.url' | sed "s/\/integration\/apis\/$namespace\/$release_name//"`
+main_porg_url=`echo ${response} | jq -r '.url' | sed "s/\/integration\/apis\/$NAMESPACE\/$RELEASE_NAME//"`
 if [[ "${main_porg_url}" == "null" ]]; then
-  echo Create the Provider Organization
+  echo Create the ${MAIN_PORG} Provider Organization
   response=`curl https://${management}/api/cloud/orgs \
                  -s -k -H "Content-Type: application/json" -H "Accept: application/json" \
                  -H "Authorization: Bearer ${admin_token}" \
@@ -236,9 +249,9 @@ response=`curl GET https://${management}/api/orgs/${TEST_PORG} \
                -s -k -H "Content-Type: application/json" -H "Accept: application/json" \
                -H "Authorization: Bearer ${admin_token}"`
 $DEBUG && echo "[DEBUG] $(echo ${response} | jq .)"
-test_porg_url=`echo ${response} | jq -r '.url' | sed "s/\/integration\/apis\/$namespace\/$release_name//"`
+test_porg_url=`echo ${response} | jq -r '.url' | sed "s/\/integration\/apis\/$NAMESPACE\/$RELEASE_NAME//"`
 if [[ "${test_porg_url}" == "null" ]]; then
-  echo Create the Provider Organization
+  echo Create the ${TEST_PORG} Provider Organization
   response=`curl https://${management}/api/cloud/orgs \
                  -s -k -H "Content-Type: application/json" -H "Accept: application/json" \
                  -H "Authorization: Bearer ${admin_token}" \
@@ -257,20 +270,21 @@ response=`curl GET https://${management}/api/orgs/${MAIN_ORG}/mail-servers/defau
                -H "Authorization: Bearer ${admin_token}"`
 $DEBUG && echo "[DEBUG] $(echo ${response} | jq .)"
 if [[ "$(echo ${response} | jq -r '.status')" == "404" ]]; then
-  echo Configuring the default mail server
+  echo "Configuring the default mail server for ${MAIN_ORG}"
   response=`curl https://${management}/api/orgs/${MAIN_ORG}/mail-servers \
                  -s -k -H "Content-Type: application/json" -H "Accept: application/json" \
                  -H "Authorization: Bearer ${admin_token}" \
                  -d "{ \"title\": \"Default Mail Server\",
                        \"name\": \"default-mail-server\",
                        \"host\": \"${MAIL_SERVER_HOST}\",
-                       \"port\": \"${MAIL_SERVER_PORT}\" }",
+                       \"port\": \"${MAIL_SERVER_PORT}\" }\",
                        \"credentials\": {
                          \"username\": \"${MAIL_SERVER_USERNAME}\",
                          \"password\": \"${MAIL_SERVER_PASSWORD}\"
                         }
                       }"`
   $DEBUG && echo "[DEBUG] $(echo ${response} | jq .)"
+  # TODO Error checking!
 fi
 
 echo "Checking if the mail server (${TEST_PORG}) has already been configured"
@@ -279,20 +293,21 @@ response=`curl GET https://${management}/api/orgs/${TEST_ORG}/mail-servers/defau
                -H "Authorization: Bearer ${admin_token}"`
 $DEBUG && echo "[DEBUG] $(echo ${response} | jq .)"
 if [[ "$(echo ${response} | jq -r '.status')" == "404" ]]; then
-  echo Configuring the default mail server
+  echo "Configuring the default mail server for ${TEST_ORG}"
   response=`curl https://${management}/api/orgs/${TEST_ORG}/mail-servers \
                  -s -k -H "Content-Type: application/json" -H "Accept: application/json" \
                  -H "Authorization: Bearer ${admin_token}" \
                  -d "{ \"title\": \"Default Mail Server\",
                        \"name\": \"default-mail-server\",
                        \"host\": \"${MAIL_SERVER_HOST}\",
-                       \"port\": \"${MAIL_SERVER_PORT}\" }",
+                       \"port\": \"${MAIL_SERVER_PORT}\" }\",
                        \"credentials\": {
                          \"username\": \"${MAIL_SERVER_USERNAME}\",
                          \"password\": \"${MAIL_SERVER_PASSWORD}\"
                         }
                       }"`
   $DEBUG && echo "[DEBUG] $(echo ${response} | jq .)"
+  # TODO Error checking!
 fi
 
 echo "Checking if the ace toolkit regisration has been created"
@@ -309,10 +324,9 @@ if [[ "${ace_registration}" == "404" ]]; then
                  -d "{ \"title\": \"${ACE_REGISTRATION_SECRET_NAME}\",
                        \"name\": \"ace-v11\",
                        \"client_type\": \"toolkit\",
-                       \"client_id\": \"ace-v11\" }",
+                       \"client_id\": \"ace-v11\" }\",
                        \"client_secret\": \"myclientid123\"
-                      }
-                    }"`
+                     }"`
   $DEBUG && echo "[DEBUG] $(echo ${response} | jq .)"
   ace_registration=`echo ${response} | jq -r '.url'`
 fi
@@ -321,6 +335,30 @@ fi
 # See: https://github.com/IBM/cp4i-deployment-samples/blob/test-atg/products/bash/configure-apic-atg.sh#L269-L286
 
 # TODO Create catalog for:
+
+
+echo "Checking if the catalog named ${MAIN_CATALOG} already exists"
+response=`curl -X GET https://${management}/api/catalogs/${MAIN_PORG}/${MAIN_CATALOG} \
+               -s -k -H "Content-Type: application/json" -H "Accept: application/json" \
+               -H "Authorization: Bearer ${provider_token}"`
+$DEBUG && echo "[DEBUG] $(echo ${response} | jq .)"
+main_catalog_url=`echo ${response} | jq -r '.url' | sed "s/\/integration\/apis\/$NAMESPACE\/$RELEASE_NAME//"`
+if [[ "${main_catalog_url}" == "null" ]]; then
+  echo Create the Catalog
+  echo "main_porg_url = ${main_porg_url}"
+  response=`curl -X POST ${main_porg_url}/catalogs \
+                 -s -k -H "Content-Type: application/json" -H "Accept: application/json" \
+                 -H "Authorization: Bearer ${provider_token}" \
+                 -d "{ \"name\": \"${MAIN_CATALOG}\",
+                       \"title\": \"${MAIN_CATALOG_TITLE}\" }"`
+  $DEBUG && echo "[DEBUG] $(echo ${response} | jq .)"
+  main_catalog_url=`echo ${response} | jq -r '.url' | sed "s/\/integration\/apis\/$NAMESPACE\/$RELEASE_NAME//"`
+fi
+echo "main_catalog_url=${main_catalog_url}"
+
+echo "TODO Stopping here..."
+exit 0
+
 # - MAIN_CATALOG/MAIN_CATALOG_TITLE
 # - TEST_CATALOG/TEST_CATALOG_TITLE
 # See: https://github.com/IBM/cp4i-deployment-samples/blob/test-atg/products/bash/configure-apic-atg.sh#L296-L312
