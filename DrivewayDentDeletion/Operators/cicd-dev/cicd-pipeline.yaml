@@ -11,6 +11,7 @@ spec:
     - name: git-source
   tasks:
     - name: clone-git-source
+      retries: 2
       taskRef:
         name: git-clone
         kind: ClusterTask
@@ -28,6 +29,7 @@ spec:
           workspace: git-source
 
     - name: fixup-dockerfiles
+      retries: 2
       runAfter:
         - clone-git-source
       taskRef:
@@ -43,6 +45,7 @@ spec:
 
     # MQ build in dev namespace
     - name: build-mq
+      retries: 2
       runAfter:
         - fixup-dockerfiles
       taskRef:
@@ -64,6 +67,7 @@ spec:
 
     # MQ deploy in dev namesapce
     - name: deploy-wait-mq
+      retries: 2
       runAfter:
         - build-mq
       taskRef:
@@ -80,6 +84,7 @@ spec:
 
     # build all ace in dev namespace
     - name: build-ace-int-server-ace-api
+      retries: 2
       runAfter:
         - fixup-dockerfiles
       taskRef:
@@ -100,6 +105,7 @@ spec:
           workspace: git-source
 
     - name: build-ace-int-server-ace-acme
+      retries: 2
       runAfter:
         - fixup-dockerfiles
       taskRef:
@@ -120,6 +126,7 @@ spec:
           workspace: git-source
 
     - name: build-ace-int-server-ace-bernie
+      retries: 2
       runAfter:
         - fixup-dockerfiles
       taskRef:
@@ -140,6 +147,7 @@ spec:
           workspace: git-source
 
     - name: build-ace-int-server-ace-chris
+      retries: 2
       runAfter:
         - fixup-dockerfiles
       taskRef:
@@ -161,6 +169,7 @@ spec:
 
     # deploy all ace in dev namespace
     - name: deploy-wait-ace-api
+      retries: 2
       runAfter:
         - build-ace-int-server-ace-api
       taskRef:
@@ -176,6 +185,7 @@ spec:
           workspace: git-source
 
     - name: deploy-wait-ace-bernie
+      retries: 2
       runAfter:
         - build-ace-int-server-ace-bernie
       taskRef:
@@ -191,6 +201,7 @@ spec:
           workspace: git-source
 
     - name: deploy-wait-ace-acme
+      retries: 2
       runAfter:
         - build-ace-int-server-ace-acme
       taskRef:
@@ -206,6 +217,7 @@ spec:
           workspace: git-source
 
     - name: deploy-wait-ace-chris
+      retries: 2
       runAfter:
         - build-ace-int-server-ace-chris
       taskRef:
