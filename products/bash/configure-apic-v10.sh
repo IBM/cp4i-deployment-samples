@@ -337,6 +337,7 @@ if [[ "$(echo ${response} | jq -r '.status')" == "404" ]]; then
                       }"`
   $DEBUG && echo "[DEBUG] $(echo ${response} | jq .)"
   # TODO Error checking!
+  # TODO Fix this, doesn't work yet
 fi
 
 echo "Checking if the mail server (${TEST_PORG}) has already been configured"
@@ -360,6 +361,7 @@ if [[ "$(echo ${response} | jq -r '.status')" == "404" ]]; then
                       }"`
   $DEBUG && echo "[DEBUG] $(echo ${response} | jq .)"
   # TODO Error checking!
+  # TODO Fix this, doesn't work yet
 fi
 
 echo "Checking if the ace toolkit registration has been created"
@@ -381,12 +383,6 @@ if [[ "$(echo ${response} | jq -r '.status')" == "404" ]]; then
   $DEBUG && echo "[DEBUG] $(echo ${response} | jq .)"
   # TODO Should a secret get created?
 fi
-
-# TODO Add CS admin user to the list of members
-# See: https://github.com/IBM/cp4i-deployment-samples/blob/test-atg/products/bash/configure-apic-atg.sh#L269-L286
-
-# TODO Create catalog for:
-
 
 echo "Checking if the catalog named ${MAIN_CATALOG} already exists"
 response=`curl -X GET https://${management}/api/catalogs/${MAIN_PORG}/${MAIN_CATALOG} \
