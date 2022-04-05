@@ -91,7 +91,8 @@ for i in $(seq 1 120); do
     break
   else
     echo "Waiting for APIC install to complete (Attempt $i of 120). Status: $APIC_STATUS"
-    oc get apiconnectcluster,managementcluster,portalcluster,gatewaycluster,pods,pvc -n $NAMESPACE
+    oc get apiconnectcluster,managementcluster,portalcluster,gatewaycluster -n $NAMESPACE
+    oc get pvc,pod -n $NAMESPACE -l app.kubernetes.io/managed-by=ibm-apiconnect -l app.kubernetes.io/part-of=${RELEASE_NAME}
     echo "Checking again in one minute..."
     sleep 60
   fi
@@ -310,26 +311,26 @@ member_json='{
   ]
 }'
 member_json=$(echo $member_json | jq -c .)
-response=`curl -X POST ${test_porg_url}/members \
+curl -v -X POST ${test_porg_url}/members \
                -s -k -H "Content-Type: application/json" -H "Accept: application/json" \
                -H "Authorization: Bearer ${provider_token}" \
-               -d ''$member_json''`
-$DEBUG && echo "[DEBUG] $(echo ${response} | jq .)"
+               -d ''$member_json''
+# TODO Error check
 
-echo "Checking if the mail server (${MAIN_PORG}) has already been configured"
-response=`curl GET https://${management}/api/orgs/${MAIN_PORG}/mail-servers/default-mail-server \
+echo "Checking if the Admin org mail server has already been created"
+response=`curl GET https://${management}/api/orgs/admin/mail-servers/default-mail-server \
                -s -k -H "Content-Type: application/json" -H "Accept: application/json" \
                -H "Authorization: Bearer ${admin_token}"`
 $DEBUG && echo "[DEBUG] $(echo ${response} | jq .)"
 if [[ "$(echo ${response} | jq -r '.status')" == "404" ]]; then
-  echo "Configuring the default mail server for ${MAIN_PORG}"
-  response=`curl https://${management}/api/orgs/${MAIN_PORG}/mail-servers \
+  echo "Create the default mail server for the Admin org"
+  response=`curl https://${management}/api/orgs/admin/mail-servers \
                  -s -k -H "Content-Type: application/json" -H "Accept: application/json" \
                  -H "Authorization: Bearer ${admin_token}" \
                  -d "{ \"title\": \"Default Mail Server\",
                        \"name\": \"default-mail-server\",
                        \"host\": \"${MAIL_SERVER_HOST}\",
-                       \"port\": \"${MAIL_SERVER_PORT}\",
+                       \"port\": ${MAIL_SERVER_PORT},
                        \"credentials\": {
                          \"username\": \"${MAIL_SERVER_USERNAME}\",
                          \"password\": \"${MAIL_SERVER_PASSWORD}\"
@@ -337,32 +338,20 @@ if [[ "$(echo ${response} | jq -r '.status')" == "404" ]]; then
                       }"`
   $DEBUG && echo "[DEBUG] $(echo ${response} | jq .)"
   # TODO Error checking!
-  # TODO Fix this, doesn't work yet
 fi
 
-echo "Checking if the mail server (${TEST_PORG}) has already been configured"
-response=`curl GET https://${management}/api/orgs/${TEST_PORG}/mail-servers/default-mail-server \
-               -s -k -H "Content-Type: application/json" -H "Accept: application/json" \
-               -H "Authorization: Bearer ${admin_token}"`
+echo Updating mail settings
+response=`curl -X PUT https://${management}/api/cloud/settings \
+              -s -k -H "Content-Type: application/json" -H "Accept: application/json" \
+              -H "Authorization: Bearer ${admin_token}" \
+              -d "{
+                \"mail_server_url\": \"https://${API_EP}/api/orgs/admin/mail-servers/default-mail-server\",
+                \"email_sender\": {
+                  \"name\": \"APIC Administrator\",
+                  \"address\": \"${provider_email}\"
+                }
+              }"`
 $DEBUG && echo "[DEBUG] $(echo ${response} | jq .)"
-if [[ "$(echo ${response} | jq -r '.status')" == "404" ]]; then
-  echo "Configuring the default mail server for ${TEST_PORG}"
-  response=`curl https://${management}/api/orgs/${TEST_PORG}/mail-servers \
-                 -s -k -H "Content-Type: application/json" -H "Accept: application/json" \
-                 -H "Authorization: Bearer ${provider_token}" \
-                 -d "{ \"title\": \"Default Mail Server\",
-                       \"name\": \"default-mail-server\",
-                       \"host\": \"${MAIL_SERVER_HOST}\",
-                       \"port\": \"${MAIL_SERVER_PORT}\",
-                       \"credentials\": {
-                         \"username\": \"${MAIL_SERVER_USERNAME}\",
-                         \"password\": \"${MAIL_SERVER_PASSWORD}\"
-                        }
-                      }"`
-  $DEBUG && echo "[DEBUG] $(echo ${response} | jq .)"
-  # TODO Error checking!
-  # TODO Fix this, doesn't work yet
-fi
 
 echo "Checking if the ace toolkit registration has been created"
 response=`curl GET https://${management}/api/cloud/registrations/ace-v11 \
@@ -381,8 +370,13 @@ if [[ "$(echo ${response} | jq -r '.status')" == "404" ]]; then
                        \"client_secret\": \"myclientid123\"
                      }"`
   $DEBUG && echo "[DEBUG] $(echo ${response} | jq .)"
-  # TODO Should a secret get created?
 fi
+
+echo "Creating/updating ${ACE_REGISTRATION_SECRET_NAME} secret"
+oc create secret generic -n ${NAMESPACE} ${ACE_REGISTRATION_SECRET_NAME} \
+  --from-literal=client_id=ace-v11 \
+  --from-literal=client_secret=myclientid123 \
+  --dry-run -o yaml | oc apply -f -
 
 echo "Checking if the catalog named ${MAIN_CATALOG} already exists"
 response=`curl -X GET https://${management}/api/catalogs/${MAIN_PORG}/${MAIN_CATALOG} \
@@ -402,13 +396,6 @@ if [[ "${main_catalog_url}" == "null" ]]; then
   main_catalog_url=`echo ${response} | jq -r '.url' | sed "s/\/integration\/apis\/$NAMESPACE\/$RELEASE_NAME//"`
 fi
 echo "main_catalog_url=${main_catalog_url}"
-
-echo "TODO Stopping here..."
-exit 0
-
-# - MAIN_CATALOG/MAIN_CATALOG_TITLE
-# - TEST_CATALOG/TEST_CATALOG_TITLE
-# See: https://github.com/IBM/cp4i-deployment-samples/blob/test-atg/products/bash/configure-apic-atg.sh#L296-L312
 
 # pull together any necessary info from in-cluster resources
 PROVIDER_CREDENTIALS=$(oc get secret $PROVIDER_SECRET_NAME -n $NAMESPACE -o json | jq .data)
