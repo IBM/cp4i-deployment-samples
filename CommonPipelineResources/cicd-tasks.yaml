@@ -103,5 +103,5 @@ spec:
     - name: git-source
   steps:
     - name: oc
-      image: quay.io/openshift/origin-cli:4.6.0
+      image: quay.io/openshift/origin-cli:latest
       script: "/workspace/git-source/$(params.script) $(params.params)"

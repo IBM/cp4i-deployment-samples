@@ -25,7 +25,7 @@ declare -a image_projects=("ace" "mq")
 
 echo "Creating secrets to push images to openshift local registry"
 for image_project in "${image_projects[@]}"; do
-  kubectl -n ${image_project} create serviceaccount image-bot
+  oc -n ${image_project} create serviceaccount image-bot
   oc -n ${image_project} policy add-role-to-user registry-editor system:serviceaccount:${image_project}:image-bot
 
   export password="$(oc -n ${image_project} serviceaccounts get-token image-bot)"
@@ -59,8 +59,8 @@ oc create -n $NAMESPACE secret generic cluster-kubeconfig --from-file=kubeconfig
 export HELM_HOME=${PWD}/tmp/.helm
 mkdir -p ${HELM_HOME}
 echo "Fetching ca.crt and ca.key for your cluster"
-kubectl -n kube-system get secret cluster-ca-cert -o jsonpath='{.data.tls\.crt}' | base64 --decode >$HELM_HOME/ca.crt
-kubectl -n kube-system get secret cluster-ca-cert -o jsonpath='{.data.tls\.key}' | base64 --decode >$HELM_HOME/ca.key
+oc -n kube-system get secret cluster-ca-cert -o jsonpath='{.data.tls\.crt}' | base64 --decode >$HELM_HOME/ca.crt
+oc -n kube-system get secret cluster-ca-cert -o jsonpath='{.data.tls\.key}' | base64 --decode >$HELM_HOME/ca.key
 
 echo "key.pem does not exist in $HELM_HOME, creating key.pem and cert.pem, ca.pem using the new key.pem"
 openssl genrsa -out $HELM_HOME/key.pem 4096

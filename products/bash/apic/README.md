@@ -35,7 +35,7 @@ User can setup car crash demo if they have got their own APIC instance outside 1
 
 ## Steps
 - Install APIC
-- Install kubectl and jq
+- Install oc and jq
 - Set up env vars:
 ```
     export NAMESPACE= <your apic instance namespace>

@@ -92,6 +92,10 @@ echo "INFO: Default file storage class: '$DEFAULT_FILE_STORAGE'"
 
 divider
 
+echo "INFO: Delete the old pipelineruns and pvcs"
+oc get pipelinerun -n ${namespace} --no-headers=true | awk '/eei-build-pipelinerun/{print $1}' | xargs  oc delete pipelinerun -n ${namespace}
+oc delete pvc -n $namespace git-workspace-eei buildah-ace-rest-eei buildah-ace-db-writer-eei
+
 echo "INFO: Creating pvc for EEI in the '$namespace' namespace"
 if cat $CURRENT_DIR/pvc.yaml |
   sed "s#{{DEFAULT_FILE_STORAGE}}#$DEFAULT_FILE_STORAGE#g;" |
@@ -170,6 +174,11 @@ if [[ "$(oc get pipelinerun -n $namespace $PIPELINE_RUN_NAME -o json | jq -r '.s
   pipelinerunSuccess="true"
 fi
 
+if [[ "$pipelinerunSuccess" == "false" ]]; then
+  echo -e "\n$cross ERROR: The pipelinerun did not succeed\n"
+  exit 1
+fi
+
 echo -e "\nINFO: Going ahead to delete the pipelinerun instance to delete the related pods and the pvc"
 
 divider
@@ -206,15 +215,11 @@ fi
 
 divider
 
-if [[ "$pipelinerunSuccess" == "false" ]]; then
-  echo -e "\n$cross ERROR: The pipelinerun did not succeed\n"
-  exit 1
-else
-  echo -e "\n$tick INFO: The eei demo related applications have been deployed, but with zero replicas.\n"
-  oc get deployment -n $namespace -l demo=eei
-  echo -e "\n$tick INFO: To start the quote simulator app run the command 'oc scale deployment/quote-simulator-eei --replicas=1'"
-  echo -e "$tick INFO: To start the projection claims app run the command 'oc scale deployment/projection-claims-eei --replicas=1'"
-  PC_ROUTE=$(oc get route -n $namespace projection-claims-eei --template='https://{{.spec.host}}/getalldata')
-  echo -e "$tick INFO: To view the projection claims (once the app is running), navigate to:\n${PC_ROUTE}"
-fi
+echo -e "\n$tick INFO: The eei demo related applications have been deployed, but with zero replicas.\n"
+oc get deployment -n $namespace -l demo=eei
+echo -e "\n$tick INFO: To start the quote simulator app run the command 'oc scale deployment/quote-simulator-eei --replicas=1'"
+echo -e "$tick INFO: To start the projection claims app run the command 'oc scale deployment/projection-claims-eei --replicas=1'"
+PC_ROUTE=$(oc get route -n $namespace projection-claims-eei --template='https://{{.spec.host}}/getalldata')
+echo -e "$tick INFO: To view the projection claims (once the app is running), navigate to:\n${PC_ROUTE}"
+
 divider
