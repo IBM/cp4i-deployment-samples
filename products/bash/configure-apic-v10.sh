@@ -244,6 +244,32 @@ if [[ "${main_porg_url}" == "null" ]]; then
 fi
 echo "main_porg_url=${main_porg_url}"
 
+echo Get the Provider Organization Roles for ${MAIN_PORG}
+response=`curl -X GET ${main_porg_url}/roles \
+               -s -k -H "Accept: application/json" \
+               -H "Authorization: Bearer ${provider_token}"`
+$DEBUG && echo "[DEBUG] $(echo ${response} | jq .)"
+main_administrator_role_url=$(echo ${response} | jq -r '.results[]|select(.name=="administrator")|.url')
+echo "main_administrator_role_url=${main_administrator_role_url}"
+
+echo Add the CS admin user to the list of members for ${MAIN_PORG}
+member_json='{
+  "name": "cs-admin",
+  "user": {
+    "identity_provider": "common-services",
+    "url": "https://'${management}'/api/user-registries/admin/common-services/users/admin"
+  },
+  "role_urls": [
+    "'${main_administrator_role_url}'"
+  ]
+}'
+member_json=$(echo $member_json | jq -c .)
+response=`curl -X POST ${main_porg_url}/members \
+               -s -k -H "Content-Type: application/json" -H "Accept: application/json" \
+               -H "Authorization: Bearer ${provider_token}" \
+               -d ''$member_json''`
+$DEBUG && echo "[DEBUG] $(echo ${response} | jq .)"
+
 echo "Checking if the provider org named ${TEST_PORG} already exists"
 response=`curl GET https://${management}/api/orgs/${TEST_PORG} \
                -s -k -H "Content-Type: application/json" -H "Accept: application/json" \
@@ -264,20 +290,46 @@ if [[ "${test_porg_url}" == "null" ]]; then
 fi
 echo "test_porg_url=${test_porg_url}"
 
+echo Get the Provider Organization Roles for ${TEST_PORG}
+response=`curl -X GET ${test_porg_url}/roles \
+               -s -k -H "Accept: application/json" \
+               -H "Authorization: Bearer ${provider_token}"`
+$DEBUG && echo "[DEBUG] $(echo ${response} | jq .)"
+test_administrator_role_url=$(echo ${response} | jq -r '.results[]|select(.name=="administrator")|.url')
+echo "test_administrator_role_url=${test_administrator_role_url}"
+
+echo Add the CS admin user to the list of members for ${TEST_PORG}
+member_json='{
+  "name": "cs-admin",
+  "user": {
+    "identity_provider": "common-services",
+    "url": "https://'${management}'/api/user-registries/admin/common-services/users/admin"
+  },
+  "role_urls": [
+    "'${test_administrator_role_url}'"
+  ]
+}'
+member_json=$(echo $member_json | jq -c .)
+response=`curl -X POST ${test_porg_url}/members \
+               -s -k -H "Content-Type: application/json" -H "Accept: application/json" \
+               -H "Authorization: Bearer ${provider_token}" \
+               -d ''$member_json''`
+$DEBUG && echo "[DEBUG] $(echo ${response} | jq .)"
+
 echo "Checking if the mail server (${MAIN_PORG}) has already been configured"
-response=`curl GET https://${management}/api/orgs/${MAIN_ORG}/mail-servers/default-mail-server \
+response=`curl GET https://${management}/api/orgs/${MAIN_PORG}/mail-servers/default-mail-server \
                -s -k -H "Content-Type: application/json" -H "Accept: application/json" \
                -H "Authorization: Bearer ${admin_token}"`
 $DEBUG && echo "[DEBUG] $(echo ${response} | jq .)"
 if [[ "$(echo ${response} | jq -r '.status')" == "404" ]]; then
-  echo "Configuring the default mail server for ${MAIN_ORG}"
-  response=`curl https://${management}/api/orgs/${MAIN_ORG}/mail-servers \
+  echo "Configuring the default mail server for ${MAIN_PORG}"
+  response=`curl https://${management}/api/orgs/${MAIN_PORG}/mail-servers \
                  -s -k -H "Content-Type: application/json" -H "Accept: application/json" \
                  -H "Authorization: Bearer ${admin_token}" \
                  -d "{ \"title\": \"Default Mail Server\",
                        \"name\": \"default-mail-server\",
                        \"host\": \"${MAIL_SERVER_HOST}\",
-                       \"port\": \"${MAIL_SERVER_PORT}\" }\",
+                       \"port\": \"${MAIL_SERVER_PORT}\",
                        \"credentials\": {
                          \"username\": \"${MAIL_SERVER_USERNAME}\",
                          \"password\": \"${MAIL_SERVER_PASSWORD}\"
@@ -288,19 +340,19 @@ if [[ "$(echo ${response} | jq -r '.status')" == "404" ]]; then
 fi
 
 echo "Checking if the mail server (${TEST_PORG}) has already been configured"
-response=`curl GET https://${management}/api/orgs/${TEST_ORG}/mail-servers/default-mail-server \
+response=`curl GET https://${management}/api/orgs/${TEST_PORG}/mail-servers/default-mail-server \
                -s -k -H "Content-Type: application/json" -H "Accept: application/json" \
                -H "Authorization: Bearer ${admin_token}"`
 $DEBUG && echo "[DEBUG] $(echo ${response} | jq .)"
 if [[ "$(echo ${response} | jq -r '.status')" == "404" ]]; then
-  echo "Configuring the default mail server for ${TEST_ORG}"
-  response=`curl https://${management}/api/orgs/${TEST_ORG}/mail-servers \
+  echo "Configuring the default mail server for ${TEST_PORG}"
+  response=`curl https://${management}/api/orgs/${TEST_PORG}/mail-servers \
                  -s -k -H "Content-Type: application/json" -H "Accept: application/json" \
-                 -H "Authorization: Bearer ${admin_token}" \
+                 -H "Authorization: Bearer ${provider_token}" \
                  -d "{ \"title\": \"Default Mail Server\",
                        \"name\": \"default-mail-server\",
                        \"host\": \"${MAIL_SERVER_HOST}\",
-                       \"port\": \"${MAIL_SERVER_PORT}\" }\",
+                       \"port\": \"${MAIL_SERVER_PORT}\",
                        \"credentials\": {
                          \"username\": \"${MAIL_SERVER_USERNAME}\",
                          \"password\": \"${MAIL_SERVER_PASSWORD}\"
@@ -310,13 +362,12 @@ if [[ "$(echo ${response} | jq -r '.status')" == "404" ]]; then
   # TODO Error checking!
 fi
 
-echo "Checking if the ace toolkit regisration has been created"
+echo "Checking if the ace toolkit registration has been created"
 response=`curl GET https://${management}/api/cloud/registrations/ace-v11 \
                -s -k -H "Content-Type: application/json" -H "Accept: application/json" \
                -H "Authorization: Bearer ${admin_token}"`
 $DEBUG && echo "[DEBUG] $(echo ${response} | jq .)"
-ace_registration=`echo ${response} | jq -r '.status'`
-if [[ "${ace_registration}" == "404" ]]; then
+if [[ "$(echo ${response} | jq -r '.status')" == "404" ]]; then
   echo Registering ace
   response=`curl POST https://${management}/api/cloud/registrations \
                  -s -k -H "Content-Type: application/json" -H "Accept: application/json" \
@@ -324,11 +375,11 @@ if [[ "${ace_registration}" == "404" ]]; then
                  -d "{ \"title\": \"${ACE_REGISTRATION_SECRET_NAME}\",
                        \"name\": \"ace-v11\",
                        \"client_type\": \"toolkit\",
-                       \"client_id\": \"ace-v11\" }\",
+                       \"client_id\": \"ace-v11\",
                        \"client_secret\": \"myclientid123\"
                      }"`
   $DEBUG && echo "[DEBUG] $(echo ${response} | jq .)"
-  ace_registration=`echo ${response} | jq -r '.url'`
+  # TODO Should a secret get created?
 fi
 
 # TODO Add CS admin user to the list of members
