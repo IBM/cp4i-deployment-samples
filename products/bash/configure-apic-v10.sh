@@ -152,17 +152,133 @@ TEST_PORG_TITLE="Org for Demo use (${ORG_NAME_DDD})"
 TEST_CATALOG="${ORG_NAME_DDD}-catalog"
 TEST_CATALOG_TITLE="Catalog for Demo use (${TEST_CATALOG})"
 
-echo "Authenticate as the admin user"
-response=`curl -X POST https://${API_EP}/api/token \
-               -s -k -H "Content-Type: application/json" -H "Accept: application/json" \
-               -d "{ \"realm\": \"${admin_idp}\",
-                     \"username\": \"admin\",
-                     \"password\": \"${admin_password}\",
-                     \"client_id\": \"599b7aef-8841-4ee2-88a0-84d49c4d6ff2\",
-                     \"client_secret\": \"0ea28423-e73b-47d4-b40e-ddb45c48bb0c\",
-                     \"grant_type\": \"password\" }"`
-$DEBUG && echo "[DEBUG]$(echo ${response} | jq .)"
-export admin_token=`echo ${response} | jq -r '.access_token'`
+RESULT=""
+function authenticate() {
+  realm=${1}
+  username=${2}
+  password=${3}
+
+  echo "Authenticate as the ${username} user"
+  response=`curl -X POST https://${API_EP}/api/token \
+                 -s -k -H "Content-Type: application/json" -H "Accept: application/json" \
+                 -d "{ \"realm\": \"${realm}\",
+                       \"username\": \"${username}\",
+                       \"password\": \"${password}\",
+                       \"client_id\": \"599b7aef-8841-4ee2-88a0-84d49c4d6ff2\",
+                       \"client_secret\": \"0ea28423-e73b-47d4-b40e-ddb45c48bb0c\",
+                       \"grant_type\": \"password\" }"`
+  $DEBUG && echo "[DEBUG] $(echo ${response} | jq .)"
+  if [[ "$(echo ${response} | jq -r '.status')" == "401" ]]; then
+    printf "$cross"
+    echo "[ERROR] Failed to authenticate"
+    exit 1
+  fi
+  RESULT=`echo ${response} | jq -r '.access_token'`
+  return 0
+}
+
+function create_org() {
+  token=${1}
+  org_name=${2}
+  org_title=${3}
+  owner_url=${4}
+
+  echo "Checking if the provider org named ${org_name} already exists"
+  response=`curl GET https://${API_EP}/api/orgs/${org_name} \
+                 -s -k -H "Content-Type: application/json" -H "Accept: application/json" \
+                 -H "Authorization: Bearer ${token}"`
+  $DEBUG && echo "[DEBUG] $(echo ${response} | jq .)"
+  main_porg_url=`echo ${response} | jq -r '.url' | sed "s/\/integration\/apis\/$NAMESPACE\/$RELEASE_NAME//"`
+
+  if [[ "${main_porg_url}" == "null" ]]; then
+    echo "Create the ${org_name} Provider Organization"
+    response=`curl https://${API_EP}/api/cloud/orgs \
+                   -s -k -H "Content-Type: application/json" -H "Accept: application/json" \
+                   -H "Authorization: Bearer ${token}" \
+                   -d "{ \"name\": \"${org_name}\",
+                         \"title\": \"${org_title}\",
+                         \"org_type\": \"provider\",
+                         \"owner_url\": \"${owner_url}\" }"`
+    $DEBUG && echo "[DEBUG] $(echo ${response} | jq .)"
+    main_porg_url=`echo ${response} | jq -r '.url' | sed "s/\/integration\/apis\/$NAMESPACE\/$RELEASE_NAME//"`
+  fi
+  RESULT="$main_porg_url"
+  return 0
+}
+
+function add_cs_admin_user() {
+  token=${1}
+  org_name=${2}
+  porg_url=${3}
+
+  echo "Get the Provider Organization Roles for ${org_name}"
+  response=`curl -X GET ${porg_url}/roles \
+                 -s -k -H "Accept: application/json" \
+                 -H "Authorization: Bearer ${token}"`
+  $DEBUG && echo "[DEBUG] $(echo ${response} | jq .)"
+  administrator_role_url=$(echo ${response} | jq -r '.results[]|select(.name=="administrator")|.url')
+  $DEBUG && echo "administrator_role_url=${administrator_role_url}"
+
+  echo "Add the CS admin user to the list of members for ${org_name}"
+  member_json='{
+    "name": "cs-admin",
+    "user": {
+      "identity_provider": "common-services",
+      "url": "https://'${API_EP}'/api/user-registries/admin/common-services/users/admin"
+    },
+    "role_urls": [
+      "'${administrator_role_url}'"
+    ]
+  }'
+  response=`curl -X POST ${porg_url}/members \
+                 -s -k -H "Content-Type: application/json" -H "Accept: application/json" \
+                 -H "Authorization: Bearer ${token}" \
+                 -d ''$(echo $member_json | jq -c .)''`
+  $DEBUG && echo "[DEBUG] $(echo ${response} | jq .)"
+  return 0
+}
+
+function add_catalog() {
+  token=${1}
+  org_name=${2}
+  porg_url=${3}
+  catalog_name=${4}
+  catalog_title=${5}
+
+  echo "Checking if the catalog named ${catalog_name} already exists"
+  response=`curl -X GET https://${API_EP}/api/catalogs/${org_name}/${catalog_name} \
+                 -s -k -H "Content-Type: application/json" -H "Accept: application/json" \
+                 -H "Authorization: Bearer ${token}"`
+  $DEBUG && echo "[DEBUG] $(echo ${response} | jq .)"
+  catalog_url=`echo ${response} | jq -r '.url' | sed "s/\/integration\/apis\/$NAMESPACE\/$RELEASE_NAME//"`
+  if [[ "${catalog_url}" == "null" ]]; then
+    echo "Create the Catalog"
+    response=`curl -X POST ${porg_url}/catalogs \
+                   -s -k -H "Content-Type: application/json" -H "Accept: application/json" \
+                   -H "Authorization: Bearer ${token}" \
+                   -d "{ \"name\": \"${catalog_name}\",
+                         \"title\": \"${catalog_title}\" }"`
+    $DEBUG && echo "[DEBUG] $(echo ${response} | jq .)"
+    catalog_url=`echo ${response} | jq -r '.url' | sed "s/\/integration\/apis\/$NAMESPACE\/$RELEASE_NAME//"`
+  fi
+
+  echo "Add a portal to the catalog named ${catalog_name}"
+  response=`curl -X PUT ${catalog_url}/settings \
+                 -s -k -H "Content-Type: application/json" -H "Accept: application/json" \
+                 -H "Authorization: Bearer ${token}" \
+                 -d "{
+                       \"portal\": {
+                         \"type\": \"drupal\",
+                         \"endpoint\": \"https://${PTL_WEB_EP}/${org_name}/${catalog_name}\",
+                         \"portal_service_url\": \"https://${API_EP}/api/orgs/${org_name}/portal-services/portal-service\"
+                       }
+                     }"`
+  $DEBUG && echo "[DEBUG] $(echo ${response} | jq .)"
+  return 0
+}
+
+authenticate "${admin_idp}" "admin" "${admin_password}"
+admin_token="${RESULT}"
 
 echo "Get the Admin Organization User Registries"
 response=`curl -X GET https://${API_EP}/api/orgs/admin/user-registries \
@@ -170,7 +286,7 @@ response=`curl -X GET https://${API_EP}/api/orgs/admin/user-registries \
                -H "Authorization: Bearer ${admin_token}"`
 $DEBUG && echo "[DEBUG] $(echo ${response} | jq .)"
 api_manager_lur_url=$(echo ${response} | jq -r '.results[]|select(.name=="api-manager-lur")|.url')
-echo "api_manager_lur_url=${api_manager_lur_url}"
+$DEBUG && echo "api_manager_lur_url=${api_manager_lur_url}"
 
 echo "Get the Cloud Scope User Registries Setting"
 response=`curl -X GET https://${API_EP}/api/cloud/settings/user-registries \
@@ -205,117 +321,30 @@ if [[ "${owner_url}" == "null" ]]; then
   $DEBUG && echo "[DEBUG] $(echo ${response} | jq .)"
   owner_url=`echo ${response} | jq -r '.url' | sed "s/\/integration\/apis\/$NAMESPACE\/$RELEASE_NAME//"`
 fi
-echo "owner_url=${owner_url}"
+$DEBUG && echo "owner_url=${owner_url}"
 
 echo "Create ${PROVIDER_SECRET_NAME} secret with credentials for the user named ${provider_username}"
 oc create secret generic -n ${NAMESPACE} ${PROVIDER_SECRET_NAME} \
   --from-literal=username=${provider_username} \
   --from-literal=password=${provider_password} \
-  --dry-run -o yaml | oc apply -f -
+  --dry-run=client -o yaml | oc apply -f -
 
-echo "Authenticate as the user named ${provider_username}"
-response=`curl -X POST https://${API_EP}/api/token \
-               -s -k -H "Content-Type: application/json" -H "Accept: application/json" \
-               -d "{ \"realm\": \"${provider_idp}\",
-                     \"username\": \"${provider_username}\",
-                     \"password\": \"${provider_password}\",
-                     \"client_id\": \"599b7aef-8841-4ee2-88a0-84d49c4d6ff2\",
-                     \"client_secret\": \"0ea28423-e73b-47d4-b40e-ddb45c48bb0c\",
-                     \"grant_type\": \"password\" }"`
-$DEBUG && echo "[DEBUG] $(echo ${response} | jq .)"
-export provider_token=`echo ${response} | jq -r '.access_token'`
-$DEBUG && echo "[DEBUG] $(echo "provider_token=${provider_token}")"
+authenticate "${provider_idp}" "${provider_username}" "${provider_password}"
+provider_token="${RESULT}"
 
-echo "Checking if the provider org named ${ORG_NAME} already exists"
-response=`curl GET https://${API_EP}/api/orgs/${ORG_NAME} \
-               -s -k -H "Content-Type: application/json" -H "Accept: application/json" \
-               -H "Authorization: Bearer ${admin_token}"`
-$DEBUG && echo "[DEBUG] $(echo ${response} | jq .)"
-main_porg_url=`echo ${response} | jq -r '.url' | sed "s/\/integration\/apis\/$NAMESPACE\/$RELEASE_NAME//"`
-if [[ "${main_porg_url}" == "null" ]]; then
-  echo "Create the ${ORG_NAME} Provider Organization"
-  response=`curl https://${API_EP}/api/cloud/orgs \
-                 -s -k -H "Content-Type: application/json" -H "Accept: application/json" \
-                 -H "Authorization: Bearer ${admin_token}" \
-                 -d "{ \"name\": \"${ORG_NAME}\",
-                       \"title\": \"${MAIN_PORG_TITLE}\",
-                       \"org_type\": \"provider\",
-                       \"owner_url\": \"${owner_url}\" }"`
-  $DEBUG && echo "[DEBUG] $(echo ${response} | jq .)"
-  main_porg_url=`echo ${response} | jq -r '.url' | sed "s/\/integration\/apis\/$NAMESPACE\/$RELEASE_NAME//"`
-fi
-echo "main_porg_url=${main_porg_url}"
+# Main org/catalog
+create_org "$admin_token" "${ORG_NAME}" "${MAIN_PORG_TITLE}" "${owner_url}"
+main_porg_url="${RESULT}"
+add_cs_admin_user "${provider_token}" "${ORG_NAME}" "${main_porg_url}"
+add_catalog "${provider_token}" "${ORG_NAME}" "${main_porg_url}" "${MAIN_CATALOG}" "${MAIN_CATALOG_TITLE}"
 
-echo "Get the Provider Organization Roles for ${ORG_NAME}"
-response=`curl -X GET ${main_porg_url}/roles \
-               -s -k -H "Accept: application/json" \
-               -H "Authorization: Bearer ${provider_token}"`
-$DEBUG && echo "[DEBUG] $(echo ${response} | jq .)"
-main_administrator_role_url=$(echo ${response} | jq -r '.results[]|select(.name=="administrator")|.url')
-echo "main_administrator_role_url=${main_administrator_role_url}"
+# Test org/catalog
+create_org "$admin_token" "${ORG_NAME_DDD}" "${TEST_PORG_TITLE}" "${owner_url}"
+test_porg_url="${RESULT}"
+add_cs_admin_user "${provider_token}" "${ORG_NAME_DDD}" "${test_porg_url}"
+add_catalog "${provider_token}" "${ORG_NAME_DDD}" "${test_porg_url}" "${TEST_CATALOG}" "${TEST_CATALOG_TITLE}"
 
-echo "Add the CS admin user to the list of members for ${ORG_NAME}"
-member_json='{
-  "name": "cs-admin",
-  "user": {
-    "identity_provider": "common-services",
-    "url": "https://'${API_EP}'/api/user-registries/admin/common-services/users/admin"
-  },
-  "role_urls": [
-    "'${main_administrator_role_url}'"
-  ]
-}'
-member_json=$(echo $member_json | jq -c .)
-response=`curl -X POST ${main_porg_url}/members \
-               -s -k -H "Content-Type: application/json" -H "Accept: application/json" \
-               -H "Authorization: Bearer ${provider_token}" \
-               -d ''$member_json''`
-$DEBUG && echo "[DEBUG] $(echo ${response} | jq .)"
 
-echo "Checking if the provider org named ${ORG_NAME_DDD} already exists"
-response=`curl GET https://${API_EP}/api/orgs/${ORG_NAME_DDD} \
-               -s -k -H "Content-Type: application/json" -H "Accept: application/json" \
-               -H "Authorization: Bearer ${admin_token}"`
-$DEBUG && echo "[DEBUG] $(echo ${response} | jq .)"
-test_porg_url=`echo ${response} | jq -r '.url' | sed "s/\/integration\/apis\/$NAMESPACE\/$RELEASE_NAME//"`
-if [[ "${test_porg_url}" == "null" ]]; then
-  echo "Create the ${ORG_NAME_DDD} Provider Organization"
-  response=`curl https://${API_EP}/api/cloud/orgs \
-                 -s -k -H "Content-Type: application/json" -H "Accept: application/json" \
-                 -H "Authorization: Bearer ${admin_token}" \
-                 -d "{ \"name\": \"${ORG_NAME_DDD}\",
-                       \"title\": \"${TEST_PORG_TITLE}\",
-                       \"org_type\": \"provider\",
-                       \"owner_url\": \"${owner_url}\" }"`
-  $DEBUG && echo "[DEBUG] $(echo ${response} | jq .)"
-  test_porg_url=`echo ${response} | jq -r '.url' | sed "s/\/integration\/apis\/$NAMESPACE\/$RELEASE_NAME//"`
-fi
-echo "test_porg_url=${test_porg_url}"
-
-echo "Get the Provider Organization Roles for ${ORG_NAME_DDD}"
-response=`curl -X GET ${test_porg_url}/roles \
-               -s -k -H "Accept: application/json" \
-               -H "Authorization: Bearer ${provider_token}"`
-$DEBUG && echo "[DEBUG] $(echo ${response} | jq .)"
-test_administrator_role_url=$(echo ${response} | jq -r '.results[]|select(.name=="administrator")|.url')
-echo "test_administrator_role_url=${test_administrator_role_url}"
-
-echo "Add the CS admin user to the list of members for ${ORG_NAME_DDD}"
-member_json='{
-  "name": "cs-admin",
-  "user": {
-    "identity_provider": "common-services",
-    "url": "https://'${API_EP}'/api/user-registries/admin/common-services/users/admin"
-  },
-  "role_urls": [
-    "'${test_administrator_role_url}'"
-  ]
-}'
-member_json=$(echo $member_json | jq -c .)
-curl -v -X POST ${test_porg_url}/members \
-               -s -k -H "Content-Type: application/json" -H "Accept: application/json" \
-               -H "Authorization: Bearer ${provider_token}" \
-               -d ''$member_json''
 
 echo "Checking if the Admin org mail server has already been created"
 response=`curl GET https://${API_EP}/api/orgs/admin/mail-servers/default-mail-server \
@@ -358,7 +387,7 @@ response=`curl GET https://${API_EP}/api/cloud/registrations/ace-v11 \
                -H "Authorization: Bearer ${admin_token}"`
 $DEBUG && echo "[DEBUG] $(echo ${response} | jq .)"
 if [[ "$(echo ${response} | jq -r '.status')" == "404" ]]; then
-  echo Registering ace
+  echo" Registering ace"
   response=`curl POST https://${API_EP}/api/cloud/registrations \
                  -s -k -H "Content-Type: application/json" -H "Accept: application/json" \
                  -H "Authorization: Bearer ${admin_token}" \
@@ -375,72 +404,7 @@ echo "Creating/updating ${ACE_REGISTRATION_SECRET_NAME} secret"
 oc create secret generic -n ${NAMESPACE} ${ACE_REGISTRATION_SECRET_NAME} \
   --from-literal=client_id=ace-v11 \
   --from-literal=client_secret=myclientid123 \
-  --dry-run -o yaml | oc apply -f -
-
-echo "Checking if the catalog named ${MAIN_CATALOG} already exists"
-response=`curl -X GET https://${API_EP}/api/catalogs/${ORG_NAME}/${MAIN_CATALOG} \
-               -s -k -H "Content-Type: application/json" -H "Accept: application/json" \
-               -H "Authorization: Bearer ${provider_token}"`
-$DEBUG && echo "[DEBUG] $(echo ${response} | jq .)"
-main_catalog_url=`echo ${response} | jq -r '.url' | sed "s/\/integration\/apis\/$NAMESPACE\/$RELEASE_NAME//"`
-if [[ "${main_catalog_url}" == "null" ]]; then
-  echo Create the Catalog
-  echo "main_porg_url = ${main_porg_url}"
-  response=`curl -X POST ${main_porg_url}/catalogs \
-                 -s -k -H "Content-Type: application/json" -H "Accept: application/json" \
-                 -H "Authorization: Bearer ${provider_token}" \
-                 -d "{ \"name\": \"${MAIN_CATALOG}\",
-                       \"title\": \"${MAIN_CATALOG_TITLE}\" }"`
-  $DEBUG && echo "[DEBUG] $(echo ${response} | jq .)"
-  main_catalog_url=`echo ${response} | jq -r '.url' | sed "s/\/integration\/apis\/$NAMESPACE\/$RELEASE_NAME//"`
-fi
-echo "main_catalog_url=${main_catalog_url}"
-
-echo "Add a portal to the catalog named ${MAIN_CATALOG}"
-response=`curl -X PUT ${main_catalog_url}/settings \
-               -s -k -H "Content-Type: application/json" -H "Accept: application/json" \
-               -H "Authorization: Bearer ${provider_token}" \
-               -d "{
-                     \"portal\": {
-                       \"type\": \"drupal\",
-                       \"endpoint\": \"https://${PTL_WEB_EP}/${ORG_NAME}/${MAIN_CATALOG}\",
-                       \"portal_service_url\": \"https://${API_EP}/api/orgs/${ORG_NAME}/portal-services/portal-service\"
-                     }
-                   }"`
-$DEBUG && echo "[DEBUG] $(echo ${response} | jq .)"
-
-echo "Checking if the catalog named ${TEST_CATALOG} already exists"
-response=`curl -X GET https://${API_EP}/api/catalogs/${ORG_NAME_DDD}/${TEST_CATALOG} \
-               -s -k -H "Content-Type: application/json" -H "Accept: application/json" \
-               -H "Authorization: Bearer ${provider_token}"`
-$DEBUG && echo "[DEBUG] $(echo ${response} | jq .)"
-test_catalog_url=`echo ${response} | jq -r '.url' | sed "s/\/integration\/apis\/$NAMESPACE\/$RELEASE_NAME//"`
-if [[ "${test_catalog_url}" == "null" ]]; then
-  echo Create the Catalog
-  echo "test_porg_url = ${test_porg_url}"
-  response=`curl -X POST ${test_porg_url}/catalogs \
-                 -s -k -H "Content-Type: application/json" -H "Accept: application/json" \
-                 -H "Authorization: Bearer ${provider_token}" \
-                 -d "{ \"name\": \"${TEST_CATALOG}\",
-                       \"title\": \"${TEST_CATALOG_TITLE}\" }"`
-  $DEBUG && echo "[DEBUG] $(echo ${response} | jq .)"
-  test_catalog_url=`echo ${response} | jq -r '.url' | sed "s/\/integration\/apis\/$NAMESPACE\/$RELEASE_NAME//"`
-fi
-echo "test_catalog_url=${test_catalog_url}"
-
-echo "Add a portal to the catalog named ${TEST_CATALOG}"
-response=`curl -X PUT ${test_catalog_url}/settings \
-               -s -k -H "Content-Type: application/json" -H "Accept: application/json" \
-               -H "Authorization: Bearer ${provider_token}" \
-               -d "{
-                     \"portal\": {
-                       \"type\": \"drupal\",
-                       \"endpoint\": \"https://${PTL_WEB_EP}/${ORG_NAME_DDD}/${TEST_CATALOG}\",
-                       \"portal_service_url\": \"https://${API_EP}/api/orgs/${ORG_NAME_DDD}/portal-services/portal-service\"
-                     }
-                   }"`
-$DEBUG && echo "[DEBUG] $(echo ${response} | jq .)"
-
+  --dry-run=client -o yaml | oc apply -f -
 
 # pull together any necessary info from in-cluster resources
 PROVIDER_CREDENTIALS=$(oc get secret $PROVIDER_SECRET_NAME -n $NAMESPACE -o json | jq .data)
