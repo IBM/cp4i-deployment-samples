@@ -387,7 +387,7 @@ response=`curl GET https://${API_EP}/api/cloud/registrations/ace-v11 \
                -H "Authorization: Bearer ${admin_token}"`
 $DEBUG && echo "[DEBUG] $(echo ${response} | jq .)"
 if [[ "$(echo ${response} | jq -r '.status')" == "404" ]]; then
-  echo" Registering ace"
+  echo "Registering ace"
   response=`curl POST https://${API_EP}/api/cloud/registrations \
                  -s -k -H "Content-Type: application/json" -H "Accept: application/json" \
                  -H "Authorization: Bearer ${admin_token}" \
