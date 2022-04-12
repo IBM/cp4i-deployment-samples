@@ -135,10 +135,22 @@ if [[ "$CP_PASSWORD" == "$NEW_PASSWORD" ]]; then
   echo "INFO: Password not changed"
 else
   echo "INFO: Updating the admin password"
-  if ! cloudctl pm update-secret ibm-common-services platform-auth-idp-credentials -f -d admin_password=${NEW_PASSWORD} >/dev/null 2>&1; then
-    echo "ERROR: Failed to update the admin password" 1>&2
-    exit 1
-  fi
+  time=0
+  wait_time=5
+  while true; do
+    if ! cloudctl pm update-secret ibm-common-services platform-auth-idp-credentials -f -d admin_password=${NEW_PASSWORD} >/dev/null 2>&1; then
+      echo "WARNING: Failed to update the admin password" 1>&2
+    else
+      break
+    fi
+    if [ $time -gt 600 ]; then
+      echo "ERROR: Exiting as failed to update the admin password"
+      exit 1
+    fi
+    echo "INFO: Waiting up to 10 minutes to update the admin password. Waited for $(output_time $time)."
+    ((time = time + $wait_time))
+    sleep $wait_time
+  done
 fi
 
 if [[ "$CP_USERNAME" == "$NEW_USERNAME" ]]; then
