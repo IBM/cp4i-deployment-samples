@@ -57,6 +57,9 @@ function usage() {
   exit 1
 }
 
+echo -e "Printing env vars before"
+env
+
 TICK="\xE2\x9C\x85"
 CROSS="\xE2\x9D\x8C"
 ALL_DONE="\xF0\x9F\x92\xAF"
@@ -362,6 +365,11 @@ divider
 echo - e "***************printing demos.json**********"
 cat $CURRENT_DIR_WITHOUT_DOT_SLASH/demos.json
 
+
+divider
+
+echo -e "Printing env vars before"
+env
 
 divider
 
