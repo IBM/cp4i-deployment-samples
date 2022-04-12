@@ -74,7 +74,7 @@ CLUSTER_TYPE="roks"
 CLUSTER_SCOPED="false"
 HA_ENABLED="true"
 
-while getopts "a:b:c:d:e:f:g:h:j:k:l:m:n:o:p:q:r:s:t:u:v:w:x:z:y" opt; do
+while getopts "a:b:c:d:e:f:g:h:j:k:l:m:n:o:p:q:r:s:t:u:v:w:x:z:y:wc:ma:cc" opt; do
   case ${opt} in
   a)
     eventEnabledInsuranceDemo="$OPTARG"
@@ -150,6 +150,15 @@ while getopts "a:b:c:d:e:f:g:h:j:k:l:m:n:o:p:q:r:s:t:u:v:w:x:z:y" opt; do
     ;;
   z)
     HA_ENABLED="$OPTARG"
+    ;;
+  cc)
+    cognitiveCarRepairDemo="$OPTARG"
+    ;;
+  ma)
+    mappingAssistDemo="$OPTARG"
+    ;;  
+  wc)
+     weatherChatbotDemo="$OPTARG"
     ;;
   \?)
     usage
@@ -240,6 +249,21 @@ if [[ -z "${HA_ENABLED// /}" ]]; then
   MISSING_PARAMS="true"
 fi
 
+if [[ -z "${cognitiveCarRepairDemo// /}" ]]; then
+  echo -e "$INFO [INFO] 1-click install Cognitive Car Repair parameter is empty (-cc). Setting the default value of 'false' for it."
+  cognitiveCarRepairDemo="false"
+fi
+
+if [[ -z "${mappingAssistDemo// /}" ]]; then
+  echo -e "$INFO [INFO] 1-click install Mapping Assist parameter is empty (-ma). Setting the default value of 'false' for it."
+  mappingAssistDemo="false"
+fi
+
+if [[ -z "${weatherChatbotDemo// /}" ]]; then
+  echo -e "$INFO [INFO] 1-click install Weather Chatbot parameter is empty (-wc). Setting the default value of 'false' for it."
+  weatherChatbotDemo="false"
+fi
+
 if [[ "$MISSING_PARAMS" == "true" ]]; then
   divider
   exit 1
@@ -262,6 +286,18 @@ fi
 
 if [[ "$eventEnabledInsuranceDemo" == "true" ]]; then
   eventEnabledInsuranceDemo=true
+fi
+
+if [[ "$cognitiveCarRepairDemo" == "true" ]]; then
+  cognitiveCarRepairDemo=true
+fi
+
+if [[ "$mappingAssistDemo" == "true" ]]; then
+  mappingAssistDemo=true
+fi
+
+if [[ "$weatherChatbotDemo" == "true" ]]; then
+  weatherChatbotDemo=true
 fi
 
 if [[ "$CLUSTER_SCOPED" == "true" ]]; then
@@ -297,6 +333,41 @@ echo -e "$INFO [INFO] If using fast storage for the installation: '$useFastStora
 echo -e "$INFO [INFO] If testing the driveway dent deletion demo E2E: '$testDrivewayDentDeletionDemoE2E'"
 
 divider
+
+divider && echo -e "$INFO [INFO] Setting up all required addons, products and demos in the '$JOB_NAMESPACE' namespace..."
+CURRENT_DIR_WITHOUT_DOT_SLASH=${CURRENT_DIR//.\//}
+
+# create a new backup json file to revert demos.json after setup script
+cp $CURRENT_DIR_WITHOUT_DOT_SLASH/demos.json $CURRENT_DIR_WITHOUT_DOT_SLASH/demos-backup.json
+
+echo -e "\n$INFO [INFO] Replacing all variables with their values in the demo json file to use as input for the demo script..."
+# replace demo.json with variable values
+sed -i -e "s/JOB_NAMESPACE/$JOB_NAMESPACE/g" $CURRENT_DIR_WITHOUT_DOT_SLASH/demos.json
+sed -i -e "s/DEFAULT_BLOCK_STORAGE/$DEFAULT_BLOCK_STORAGE/g" $CURRENT_DIR_WITHOUT_DOT_SLASH/demos.json
+sed -i -e "s/DEFAULT_FILE_STORAGE/$DEFAULT_FILE_STORAGE/g" $CURRENT_DIR_WITHOUT_DOT_SLASH/demos.json
+sed -i -e "s/DEMO_DEPLOYMENT_BRANCH/$demoDeploymentBranch/g" $CURRENT_DIR_WITHOUT_DOT_SLASH/demos.json
+sed -i -e "s/PORG_ADMIN_EMAIL/$demoAPICEmailAddress/g" $CURRENT_DIR_WITHOUT_DOT_SLASH/demos.json
+sed -i -e "s/MAIL_SERVER_HOST/$demoAPICMailServerHost/g" $CURRENT_DIR_WITHOUT_DOT_SLASH/demos.json
+sed -i -e "s/MAIL_SERVER_PORT/$demoAPICMailServerPort/g" $CURRENT_DIR_WITHOUT_DOT_SLASH/demos.json
+sed -i -e "s/MAIL_SERVER_USERNAME/$demoAPICMailServerUsername/g" $CURRENT_DIR_WITHOUT_DOT_SLASH/demos.json
+sed -i -e "s/MAIL_SERVER_PASSWORD/$demoAPICMailServerPassword/g" $CURRENT_DIR_WITHOUT_DOT_SLASH/demos.json
+sed -i -e "s/DEMO_PREPARATION/$demoPreparation/g" $CURRENT_DIR_WITHOUT_DOT_SLASH/demos.json
+sed -i -e "s/COGNITIVE_CAR_REPAIR_DEMO/$cognitiveCarRepairDemo/g" $CURRENT_DIR_WITHOUT_DOT_SLASH/demos.json
+sed -i -e "s/DRIVEWAY_DENT_DELETION_DEMO/$drivewayDentDeletionDemo/g" $CURRENT_DIR_WITHOUT_DOT_SLASH/demos.json
+sed -i -e "s/EVENT_ENABLED_INSURANCE_DEMO/$eventEnabledInsuranceDemo/g" $CURRENT_DIR_WITHOUT_DOT_SLASH/demos.json
+sed -i -e "s/MAPPING_ASSIST_DEMO/$mappingAssistDemo/g" $CURRENT_DIR_WITHOUT_DOT_SLASH/demos.json
+sed -i -e "s/WEATHER_CHATBOT_DEMO/$weatherChatbotDemo/g" $CURRENT_DIR_WITHOUT_DOT_SLASH/demos.json
+
+divider
+echo - e "***************printing demos.json**********"
+cat $CURRENT_DIR_WITHOUT_DOT_SLASH/demos.json
+
+
+divider
+
+echo -e "Exiting the script w/o installing anything"
+exit 0
+
 
 echo -e "$INFO [INFO] Doing a validation check before installation..."
 if ! $CURRENT_DIR/1-click-pre-validation.sh -n "$JOB_NAMESPACE" -p "$csDefaultAdminPassword" -r "$navReplicaCount" -u "$csDefaultAdminUser" -d "$demoPreparation"; then
@@ -484,7 +555,7 @@ else
   echo -e "$INFO [INFO] Retrieve the common service password using the command 'oc get secrets -n ibm-common-services platform-auth-idp-credentials -o jsonpath='{.data.admin_password}' | base64 --decode' "
 fi
 
-if [[ "$demoPreparation" == "true" || "$drivewayDentDeletionDemo" == "true" || "$eventEnabledInsuranceDemo" == "true" ]]; then
+if [[ "$demoPreparation" == "true" || "$drivewayDentDeletionDemo" == "true" || "$eventEnabledInsuranceDemo" == "true" || "$cognitiveCarRepairDemo" == "true" || "$mappingAssistDemo" == "true" || "$weatherChatbotDemo" == "true" ]]; then
   divider && echo -e "$INFO [INFO] Setting up all required addons, products and demos in the '$JOB_NAMESPACE' namespace..."
   CURRENT_DIR_WITHOUT_DOT_SLASH=${CURRENT_DIR//.\//}
 
@@ -508,6 +579,7 @@ if [[ "$demoPreparation" == "true" || "$drivewayDentDeletionDemo" == "true" || "
   sed -i -e "s/EVENT_ENABLED_INSURANCE_DEMO/$eventEnabledInsuranceDemo/g" $CURRENT_DIR_WITHOUT_DOT_SLASH/demos.json
   sed -i -e "s/MAPPING_ASSIST_DEMO/$mappingAssistDemo/g" $CURRENT_DIR_WITHOUT_DOT_SLASH/demos.json
   sed -i -e "s/WEATHER_CHATBOT_DEMO/$weatherChatbotDemo/g" $CURRENT_DIR_WITHOUT_DOT_SLASH/demos.json
+
 
   if $CURRENT_DIR/setup-demos.sh -i $CURRENT_DIR_WITHOUT_DOT_SLASH/demos.json -o $CURRENT_DIR_WITHOUT_DOT_SLASH/demos-output.json; then
     echo -e "$TICK [SUCCESS] Successfully setup all required addons, products and demos in the '$JOB_NAMESPACE' namespace"
