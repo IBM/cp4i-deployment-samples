@@ -70,9 +70,6 @@ IMAGE_REPO="cp.icr.io"
 PASSWORD_CHANGE="true"
 DEFAULT_BLOCK_STORAGE="cp4i-block-performance"
 DEFAULT_FILE_STORAGE="ibmc-file-gold-gid"
-# cognitiveCarRepairDemo=false
-# mappingAssistDemo=false
-# weatherChatbotDemo=false
 CLUSTER_TYPE="roks"
 CLUSTER_SCOPED="false"
 HA_ENABLED="true"
@@ -337,46 +334,6 @@ echo -e "$INFO [INFO] If testing the driveway dent deletion demo E2E: '$testDriv
 
 divider
 
-divider && echo -e "$INFO [INFO] Setting up all required addons, products and demos in the '$JOB_NAMESPACE' namespace..."
-CURRENT_DIR_WITHOUT_DOT_SLASH=${CURRENT_DIR//.\//}
-
-# create a new backup json file to revert demos.json after setup script
-cp $CURRENT_DIR_WITHOUT_DOT_SLASH/demos.json $CURRENT_DIR_WITHOUT_DOT_SLASH/demos-backup.json
-
-echo -e "\n$INFO [INFO] Replacing all variables with their values in the demo json file to use as input for the demo script..."
-# replace demo.json with variable values
-sed -i -e "s/JOB_NAMESPACE/$JOB_NAMESPACE/g" $CURRENT_DIR_WITHOUT_DOT_SLASH/demos.json
-sed -i -e "s/DEFAULT_BLOCK_STORAGE/$DEFAULT_BLOCK_STORAGE/g" $CURRENT_DIR_WITHOUT_DOT_SLASH/demos.json
-sed -i -e "s/DEFAULT_FILE_STORAGE/$DEFAULT_FILE_STORAGE/g" $CURRENT_DIR_WITHOUT_DOT_SLASH/demos.json
-sed -i -e "s/DEMO_DEPLOYMENT_BRANCH/$demoDeploymentBranch/g" $CURRENT_DIR_WITHOUT_DOT_SLASH/demos.json
-sed -i -e "s/PORG_ADMIN_EMAIL/$demoAPICEmailAddress/g" $CURRENT_DIR_WITHOUT_DOT_SLASH/demos.json
-sed -i -e "s/MAIL_SERVER_HOST/$demoAPICMailServerHost/g" $CURRENT_DIR_WITHOUT_DOT_SLASH/demos.json
-sed -i -e "s/MAIL_SERVER_PORT/$demoAPICMailServerPort/g" $CURRENT_DIR_WITHOUT_DOT_SLASH/demos.json
-sed -i -e "s/MAIL_SERVER_USERNAME/$demoAPICMailServerUsername/g" $CURRENT_DIR_WITHOUT_DOT_SLASH/demos.json
-sed -i -e "s/MAIL_SERVER_PASSWORD/$demoAPICMailServerPassword/g" $CURRENT_DIR_WITHOUT_DOT_SLASH/demos.json
-sed -i -e "s/DEMO_PREPARATION/$demoPreparation/g" $CURRENT_DIR_WITHOUT_DOT_SLASH/demos.json
-sed -i -e "s/COGNITIVE_CAR_REPAIR_DEMO/$cognitiveCarRepairDemo/g" $CURRENT_DIR_WITHOUT_DOT_SLASH/demos.json
-sed -i -e "s/DRIVEWAY_DENT_DELETION_DEMO/$drivewayDentDeletionDemo/g" $CURRENT_DIR_WITHOUT_DOT_SLASH/demos.json
-sed -i -e "s/EVENT_ENABLED_INSURANCE_DEMO/$eventEnabledInsuranceDemo/g" $CURRENT_DIR_WITHOUT_DOT_SLASH/demos.json
-sed -i -e "s/MAPPING_ASSIST_DEMO/$mappingAssistDemo/g" $CURRENT_DIR_WITHOUT_DOT_SLASH/demos.json
-sed -i -e "s/WEATHER_CHATBOT_DEMO/$weatherChatbotDemo/g" $CURRENT_DIR_WITHOUT_DOT_SLASH/demos.json
-
-divider
-echo - e "***************printing demos.json**********"
-cat $CURRENT_DIR_WITHOUT_DOT_SLASH/demos.json
-
-
-divider
-
-echo -e "Printing env vars before"
-env
-
-divider
-
-echo -e "Exiting the script w/o installing anything"
-exit 0
-
-
 echo -e "$INFO [INFO] Doing a validation check before installation..."
 if ! $CURRENT_DIR/1-click-pre-validation.sh -n "$JOB_NAMESPACE" -p "$csDefaultAdminPassword" -r "$navReplicaCount" -u "$csDefaultAdminUser" -d "$demoPreparation"; then
   echo -e "$CROSS [ERROR] 1-click pre validation failed"
@@ -570,6 +527,9 @@ if [[ "$demoPreparation" == "true" || "$drivewayDentDeletionDemo" == "true" || "
   # create a new backup json file to revert demos.json after setup script
   cp $CURRENT_DIR_WITHOUT_DOT_SLASH/demos.json $CURRENT_DIR_WITHOUT_DOT_SLASH/demos-backup.json
 
+  echo -e "Printing the env vars"
+  env
+
   echo -e "\n$INFO [INFO] Replacing all variables with their values in the demo json file to use as input for the demo script..."
   # replace demo.json with variable values
   sed -i -e "s/JOB_NAMESPACE/$JOB_NAMESPACE/g" $CURRENT_DIR_WITHOUT_DOT_SLASH/demos.json
@@ -587,6 +547,9 @@ if [[ "$demoPreparation" == "true" || "$drivewayDentDeletionDemo" == "true" || "
   sed -i -e "s/EVENT_ENABLED_INSURANCE_DEMO/$eventEnabledInsuranceDemo/g" $CURRENT_DIR_WITHOUT_DOT_SLASH/demos.json
   sed -i -e "s/MAPPING_ASSIST_DEMO/$mappingAssistDemo/g" $CURRENT_DIR_WITHOUT_DOT_SLASH/demos.json
   sed -i -e "s/WEATHER_CHATBOT_DEMO/$weatherChatbotDemo/g" $CURRENT_DIR_WITHOUT_DOT_SLASH/demos.json
+
+  echo -e "printing the demos.json"
+  cat $CURRENT_DIR_WITHOUT_DOT_SLASH/demos.json
 
 
   if $CURRENT_DIR/setup-demos.sh -i $CURRENT_DIR_WITHOUT_DOT_SLASH/demos.json -o $CURRENT_DIR_WITHOUT_DOT_SLASH/demos-output.json; then
