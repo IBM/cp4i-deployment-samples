@@ -398,11 +398,15 @@ echo -e "$INFO Namespace: '$NAMESPACE'" && divider
 ALL_DEMOS_ENABLED=$(echo $REQUIRED_DEMOS_JSON | jq -r '. | if has("all") then .all else false end')
 $DEBUG && echo -e "$INFO [DEBUG] All demos enabled: '$ALL_DEMOS_ENABLED'"
 if [[ "${ALL_DEMOS_ENABLED}" == "true" ]]; then
+  echo -e "DEBUGGING: ALL Demos are enabled"
   REQUIRED_DEMOS_JSON='{"cognitiveCarRepair": {"enabled": true},"drivewayDentDeletion": {"enabled": true},"eventEnabledInsurance": {"enabled": true},"mappingAssist": {"enabled": true},"weatherChatbot": {"enabled": true}}'
 else
+  echo -e "DEBUGGING: Deleting false demos"
   REQUIRED_DEMOS_JSON=$(echo $REQUIRED_DEMOS_JSON | jq -c 'del(.all) | del(.[] | select(. == false))')
 fi
 
+echo -e "DEBUGGING: value for REQUIRED_DEMOS_JSON is $REQUIRED_DEMOS_JSON"
+exit 0
 #-------------------------------------------------------------------------------------------------------------------
 # Update the required JSON with addons and products which are enabled in the CR
 #-------------------------------------------------------------------------------------------------------------------
@@ -807,7 +811,10 @@ fi
 #-------------------------------------------------------------------------------------------------------------------
 
 echo -e "$INFO [INFO] Starting demos setup..." && divider
+echo -e "DEBUGGING: My final  REQUIRED_DEMOS_JSON $REQUIRED_DEMOS_JSON"
+
 for EACH_DEMO in $(echo $REQUIRED_DEMOS_JSON | jq -r '. | keys[]'); do
+  echo -e "DEBUGGING: I am in the loop for  EACH_DEMO and the value is $EACH_DEMO"
   case $EACH_DEMO in
   cognitiveCarRepair)
     set_up_demos "$EACH_DEMO" "Cognitive Car Repair" "${#COGNITIVE_CAR_REPAIR_PRODUCTS_LIST[@]}" "${COGNITIVE_CAR_REPAIR_PRODUCTS_LIST[@]}" "${#COGNITIVE_CAR_REPAIR_ADDONS_LIST[@]}" "${COGNITIVE_CAR_REPAIR_ADDONS_LIST[@]}"
