@@ -52,13 +52,10 @@ function divider() {
 }
 
 function usage() {
-  echo "Usage: $0 -a <eventEnabledInsuranceDemo> -b <demoDeploymentBranch> -c <DEFAULT_FILE_STORAGE> -d <demoPreparation> -e <demoAPICEmailAddress> -f <drivewayDentDeletionDemo> -g <DEFAULT_BLOCK_STORAGE> -h <demoAPICMailServerHost> -j <tempERKey> -k <tempRepo> -l <DOCKER_REGISTRY_USER> -m <demoAPICMailServerUsername> -n <JOB_NAMESPACE> -o <demoAPICMailServerPort> -p <csDefaultAdminPassword> -q <demoAPICMailServerPassword> -r <navReplicaCount> -s <DOCKER_REGISTRY_PASS> -t <ENVIRONMENT> -u <csDefaultAdminUser> -v <useFastStorageClass> -w <testDrivewayDentDeletionDemoE2E> -x <CLUSTER_TYPE> [-y]"
+  echo "Usage: $0 -a <eventEnabledInsuranceDemo> -b <demoDeploymentBranch> -c <DEFAULT_FILE_STORAGE> -d <demoPreparation> -e <demoAPICEmailAddress> -f <drivewayDentDeletionDemo> -g <DEFAULT_BLOCK_STORAGE> -h <demoAPICMailServerHost> -j <tempERKey> -k <tempRepo> -l <DOCKER_REGISTRY_USER> -m <demoAPICMailServerUsername> -n <JOB_NAMESPACE> -o <demoAPICMailServerPort> -p <csDefaultAdminPassword> -q <demoAPICMailServerPassword> -r <navReplicaCount> -s <DOCKER_REGISTRY_PASS> -t <ENVIRONMENT> -u <csDefaultAdminUser> -v <useFastStorageClass> -w <testDrivewayDentDeletionDemoE2E> -x <CLUSTER_TYPE> -A <cognitiveCarRepairDemo> -B <mappingAssistDemo> -C <weatherChatbotDemo> [-y]"
   divider
   exit 1
 }
-
-echo -e "Printing env vars before"
-env
 
 TICK="\xE2\x9C\x85"
 CROSS="\xE2\x9D\x8C"
@@ -74,7 +71,7 @@ CLUSTER_TYPE="roks"
 CLUSTER_SCOPED="false"
 HA_ENABLED="true"
 
-while getopts "a:b:c:d:e:f:g:h:j:k:l:m:n:o:p:q:r:s:t:u:v:w:x:z:y:A:B:C" opt; do
+while getopts "a:b:c:d:e:f:g:h:j:k:l:m:n:o:p:q:r:s:t:u:v:w:x:z:A:B:C:y" opt; do
   case ${opt} in
   a)
     eventEnabledInsuranceDemo="$OPTARG"
