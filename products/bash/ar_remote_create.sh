@@ -4,8 +4,6 @@
 
 CURRENT_DIR=$(dirname $0)
 
-USING_OPERATORS=false
-
 ### Inputs
 help="Usage $0 \n-r optional: release-name \n-n optional: namespace \n-g optional: git_remote_url \n-t optional: remote name \n-d optional: remote desc\n-o: Using operators version of asset repo"
 while getopts "r:n:a:u:p:t:g:d:o" opt; do
@@ -35,7 +33,7 @@ while getopts "r:n:a:u:p:t:g:d:o" opt; do
     REMOTE_DESC="$OPTARG"
     ;;
   o)
-    USING_OPERATORS=true
+    echo "-o option ignored"
     ;;
   \?)
     echo -e $help
@@ -90,21 +88,12 @@ echo "=== Checking the route has been created ==="
 i=1
 retries=30
 interval=10
-if [[ "$USING_OPERATORS" == "true" ]]; then
-  # TODO desiredResponseContent="$RELEASE_NAME-ibm-ar-$NAMESPACE"
-  desiredResponseContent="/assets"
-else
-  desiredResponseContent="$RELEASE_NAME-$NAMESPACE"
-fi
+desiredResponseContent="/assets"
 
 ar_path=""
 until [[ "$ar_path" == *"$desiredResponseContent"* ]]; do
   echo "Waiting for asset repo route to be created, attempt number: $i..."
-  if [[ "$USING_OPERATORS" == "true" ]]; then
-    ar_path=$(oc get ar -n $NAMESPACE $RELEASE_NAME -o json | jq -r '.status.endpoints[] | select ( .name == "ui").uri' | sed 's#^https://##;')
-  else
-    ar_path=$(oc get route -n $NAMESPACE -l release=$RELEASE_NAME -o json | jq '.items | .[0].spec.host' -r)
-  fi
+  ar_path=$(oc get ar -n $NAMESPACE $RELEASE_NAME -o json | jq -r '.status.endpoints[] | select ( .name == "ui").uri' | sed 's#^https://##;')
   ((i = i + 1))
   if [[ "$retries" -eq "$i" ]]; then
     echo "Error: Asset repository route could not be found"
@@ -143,6 +132,16 @@ if [[ ! $response =~ 200 || $i -eq $retries ]]; then
 fi
 printf "$tick "
 echo "Asset repository contacted at $ar_path"
+
+
+echo "=== Checking if git remote already added to Asset repository ==="
+remotes_json=$(curl --insecure -s https://$ar_path/api/remotes?catalog_id=catalog -X GET -H "Content-Type: application/json" -H "Authorization: Bearer $token")
+count=$(echo "$remotes_json" | jq '[.remotes[].entity.remote_repo.uri | select (. == "'$GIT_REPO'")] | length')
+if [[ "$count" -ne "0" ]]; then
+  echo "Remote already exists, no need to re-add"
+  exit 0
+fi
+
 
 echo "=== Setting up git remote for Asset repository ==="
 
