@@ -74,7 +74,7 @@ CLUSTER_TYPE="roks"
 CLUSTER_SCOPED="false"
 HA_ENABLED="true"
 
-while getopts "a:b:c:d:e:f:g:h:j:k:l:m:n:o:p:q:r:s:t:u:v:w:x:z:y:wc:ma:cc" opt; do
+while getopts "a:b:c:d:e:f:g:h:j:k:l:m:n:o:p:q:r:s:t:u:v:w:x:z:y:A:B:C" opt; do
   case ${opt} in
   a)
     eventEnabledInsuranceDemo="$OPTARG"
@@ -151,13 +151,13 @@ while getopts "a:b:c:d:e:f:g:h:j:k:l:m:n:o:p:q:r:s:t:u:v:w:x:z:y:wc:ma:cc" opt; 
   z)
     HA_ENABLED="$OPTARG"
     ;;
-  cc)
+  A)
     cognitiveCarRepairDemo="$OPTARG"
     ;;
-  ma)
+  B)
     mappingAssistDemo="$OPTARG"
     ;;  
-  wc)
+  C)
      weatherChatbotDemo="$OPTARG"
     ;;
   \?)
@@ -250,17 +250,17 @@ if [[ -z "${HA_ENABLED// /}" ]]; then
 fi
 
 if [[ -z "${cognitiveCarRepairDemo// /}" ]]; then
-  echo -e "$INFO [INFO] 1-click install Cognitive Car Repair parameter is empty (-cc). Setting the default value of 'false' for it."
+  echo -e "$INFO [INFO] 1-click install Cognitive Car Repair parameter is empty (-A). Setting the default value of 'false' for it."
   cognitiveCarRepairDemo="false"
 fi
 
 if [[ -z "${mappingAssistDemo// /}" ]]; then
-  echo -e "$INFO [INFO] 1-click install Mapping Assist parameter is empty (-ma). Setting the default value of 'false' for it."
+  echo -e "$INFO [INFO] 1-click install Mapping Assist parameter is empty (-B). Setting the default value of 'false' for it."
   mappingAssistDemo="false"
 fi
 
 if [[ -z "${weatherChatbotDemo// /}" ]]; then
-  echo -e "$INFO [INFO] 1-click install Weather Chatbot parameter is empty (-wc). Setting the default value of 'false' for it."
+  echo -e "$INFO [INFO] 1-click install Weather Chatbot parameter is empty (-C). Setting the default value of 'false' for it."
   weatherChatbotDemo="false"
 fi
 
