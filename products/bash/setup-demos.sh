@@ -406,7 +406,7 @@ else
 fi
 
 echo -e "DEBUGGING: value for REQUIRED_DEMOS_JSON is $REQUIRED_DEMOS_JSON"
-exit 0
+
 #-------------------------------------------------------------------------------------------------------------------
 # Update the required JSON with addons and products which are enabled in the CR
 #-------------------------------------------------------------------------------------------------------------------
