@@ -356,9 +356,15 @@ $TKN clustertask ls | grep git-clone
 
 divider
 
+echo "TODO Wait for the PVCs to be bound"
+
+divider
+
 echo -e "$INFO [INFO] Building and deploying the EEI apps ..."
 if ! $CURRENT_DIR/build/build.sh -n $NAMESPACE -r $REPO -b $BRANCH -t $TKN -f "$DEFAULT_FILE_STORAGE" -g "$DEFAULT_BLOCK_STORAGE"; then
   echo -e "\n$CROSS [ERROR] Failed to build/deploy the EEI apps in the '$NAMESPACE' namespace"
+  echo "Check the PVC status"
+  oc get pvc
   exit 1
 else
   echo -e "$TICK [SUCCESS] Successfully built and deployed the EEI apps in the '$NAMESPACE' namespace"
