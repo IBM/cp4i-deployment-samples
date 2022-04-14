@@ -398,7 +398,7 @@ echo -e "$INFO Namespace: '$NAMESPACE'" && divider
 ALL_DEMOS_ENABLED=$(echo $REQUIRED_DEMOS_JSON | jq -r '. | if has("all") then .all else false end')
 $DEBUG && echo -e "$INFO [DEBUG] All demos enabled: '$ALL_DEMOS_ENABLED'"
 if [[ "${ALL_DEMOS_ENABLED}" == "true" ]]; then
-  REQUIRED_DEMOS_JSON='{"cognitiveCarRepair": {"enabled": true},"drivewayDentDeletion": {"enabled": true},"eventEnabledInsurance": {"enabled": true},"mappingAssist": {"enabled": true},"weatherChatbot": {"enabled": true}}'
+  REQUIRED_DEMOS_JSON='{"cognitiveCarRepair": "true","drivewayDentDeletion": "true","eventEnabledInsurance": "true","mappingAssist": "true","weatherChatbot": "true"}'
 else
   REQUIRED_DEMOS_JSON=$(echo $REQUIRED_DEMOS_JSON | jq -c 'del(..|select(. == "false"))')
 fi
