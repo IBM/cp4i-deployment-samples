@@ -400,7 +400,7 @@ $DEBUG && echo -e "$INFO [DEBUG] All demos enabled: '$ALL_DEMOS_ENABLED'"
 if [[ "${ALL_DEMOS_ENABLED}" == "true" ]]; then
   REQUIRED_DEMOS_JSON='{"cognitiveCarRepair": "true","drivewayDentDeletion": "true","eventEnabledInsurance": "true","mappingAssist": "true","weatherChatbot": "true"}'
 else
-  REQUIRED_DEMOS_JSON=$(echo $REQUIRED_DEMOS_JSON | jq -c 'del(..|select(. == "false"))')
+  REQUIRED_DEMOS_JSON=$(echo $REQUIRED_DEMOS_JSON | jq -c 'del(.[] | select(. == false))')
 fi
 
 echo -e "$INFO Following demos will be installed $REQUIRED_DEMOS_JSON"
