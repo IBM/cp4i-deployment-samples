@@ -91,8 +91,7 @@ for i in $(seq 1 120); do
     break
   else
     echo "Waiting for APIC install to complete (Attempt $i of 120). Status: $APIC_STATUS"
-    oc get apiconnectcluster,managementcluster,portalcluster,gatewaycluster -n $NAMESPACE
-    oc get pvc,pod -n $NAMESPACE -l app.kubernetes.io/managed-by=ibm-apiconnect -l app.kubernetes.io/part-of=${RELEASE_NAME}
+    oc get apiconnectcluster,managementcluster,portalcluster,gatewaycluster,pvc,pod -n $NAMESPACE
     echo "Checking again in one minute..."
     sleep 60
   fi
@@ -124,7 +123,7 @@ for i in $(seq 1 60); do
 done
 
 echo "Pod listing for information"
-oc get pod -n $NAMESPACE -l app.kubernetes.io/managed-by=ibm-apiconnect -l app.kubernetes.io/part-of=${RELEASE_NAME}
+oc get pod -n $NAMESPACE
 
 # obtain endpoint info from APIC v10 routes
 APIM_UI_EP=$(oc get route -n $NAMESPACE ${RELEASE_NAME}-mgmt-api-manager -o jsonpath='{.spec.host}')
