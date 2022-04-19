@@ -71,7 +71,8 @@ fi
 
 if [[ "$production" == "true" ]]; then
   echo "Production Mode Enabled"
-  cat <<EOF | oc apply -f -
+  time=0
+  until cat <<EOF | oc apply -f -; do
 apiVersion: integration.ibm.com/v1beta2
 kind: OperationsDashboard
 metadata:
@@ -113,8 +114,17 @@ spec:
       size: 150Gi
   version: 2021.4.1-0
 EOF
+    if [ $time -gt 10 ]; then
+      echo "ERROR: Exiting installation as timeout waiting for OperationsDashboard to be created"
+      exit 1
+    fi
+    echo "INFO: Waiting up to 10 minutes for OperationsDashboard to be created. Waited ${time} minute(s)."
+    time=$((time + 1))
+    sleep 60
+  done
 else
-  cat <<EOF | oc apply -f -
+  time=0
+  until cat <<EOF | oc apply -f -; do
 apiVersion: integration.ibm.com/v1beta2
 kind: OperationsDashboard
 metadata:
@@ -144,6 +154,14 @@ spec:
       class: "${block_storage}"
   version: 2021.4.1
 EOF
+    if [ $time -gt 10 ]; then
+      echo "ERROR: Exiting installation as timeout waiting for OperationsDashboard to be created"
+      exit 1
+    fi
+    echo "INFO: Waiting up to 10 minutes for OperationsDashboard to be created. Waited ${time} minute(s)."
+    time=$((time + 1))
+    sleep 60
+  done
 fi
 
 # If the icp4i-od-store-cred then create a dummy one that the service binding will populate
@@ -164,7 +182,8 @@ for i in $(seq 1 400); do
   fi
 done
 
-cat <<EOF | oc apply -f -
+time=0
+until cat <<EOF | oc apply -f -; do
 apiVersion: integration.ibm.com/v1beta2
 kind: OperationsDashboardServiceBinding
 metadata:
@@ -184,3 +203,11 @@ spec:
   sourcePodName: "demo-tracing"
   sourceSecretName: "icp4i-od-store-cred"
 EOF
+  if [ $time -gt 10 ]; then
+    echo "ERROR: Exiting installation as timeout waiting for OperationsDashboard to be created"
+    exit 1
+  fi
+  echo "INFO: Waiting up to 10 minutes for OperationsDashboard to be created. Waited ${time} minute(s)."
+  time=$((time + 1))
+  sleep 60
+done

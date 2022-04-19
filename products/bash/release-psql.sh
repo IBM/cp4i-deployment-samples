@@ -64,9 +64,27 @@ fi
 if [[ ! -z ${METADATA_UID} && ! -z ${METADATA_NAME} ]]; then
   oc process -n openshift postgresql-persistent --param-file=/tmp/postgres.env >/tmp/postgres.json
   jq '.items[3].metadata += {"ownerReferences": [{"apiVersion": "integration.ibm.com/v1beta1", "kind": "Demo", "name": "'${METADATA_NAME}'", "uid": "'${METADATA_UID}'"}]}' /tmp/postgres.json >/tmp/postgres-owner-ref.json
-  oc apply -n ${POSTGRES_NAMESPACE} -f /tmp/postgres-owner-ref.json
+  time=0
+  until oc apply -n ${POSTGRES_NAMESPACE} -f /tmp/postgres-owner-ref.json; do
+    if [ $time -gt 10 ]; then
+      echo "ERROR: Exiting installation as timeout waiting for postgres to be created"
+      exit 1
+    fi
+    echo "INFO: Waiting up to 10 minutes for postgres to be created. Waited ${time} minute(s)."
+    time=$((time + 1))
+    sleep 60
+  done
 else
-  oc process -n openshift postgresql-persistent --param-file=/tmp/postgres.env | oc apply -n ${POSTGRES_NAMESPACE} -f -
+  time=0
+  until oc process -n openshift postgresql-persistent --param-file=/tmp/postgres.env | oc apply -n ${POSTGRES_NAMESPACE} -f -; do
+    if [ $time -gt 10 ]; then
+      echo "ERROR: Exiting installation as timeout waiting for postgres to be created"
+      exit 1
+    fi
+    echo "INFO: Waiting up to 10 minutes for postgres to be created. Waited ${time} minute(s)."
+    time=$((time + 1))
+    sleep 60
+  done
 fi
 
 echo "INFO: Waiting for postgres to be ready in the ${POSTGRES_NAMESPACE} namespace"

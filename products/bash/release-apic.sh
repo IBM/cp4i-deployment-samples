@@ -75,7 +75,8 @@ if [[ $? == 0 ]]; then
   METADATA_UID=$(echo $json | tr '\r\n' ' ' | jq -r '.data.METADATA_UID')
 fi
 
-cat <<EOF | oc apply -f -
+time=0
+until cat <<EOF | oc apply -f -; do
 apiVersion: apiconnect.ibm.com/v1beta1
 kind: APIConnectCluster
 metadata:
@@ -105,3 +106,11 @@ spec:
   profile: ${profile}
   version: 10.0.4.0
 EOF
+  if [ $time -gt 10 ]; then
+    echo "ERROR: Exiting installation as timeout waiting for APIConnectCluster to be created"
+    exit 1
+  fi
+  echo "INFO: Waiting up to 10 minutes for APIConnectCluster to be created. Waited ${time} minute(s)."
+  time=$((time + 1))
+  sleep 60
+done

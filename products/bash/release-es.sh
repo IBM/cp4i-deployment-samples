@@ -61,7 +61,8 @@ fi
 
 if [ "$production" == "true" ]; then
   echo "Production Mode Enabled"
-  cat <<EOF | oc apply -f -
+  time=0
+  until cat <<EOF | oc apply -f -; do
 apiVersion: eventstreams.ibm.com/v1beta1
 kind: EventStreams
 metadata:
@@ -122,8 +123,17 @@ spec:
         type: persistent-claim
   version: 10.5.0
 EOF
+    if [ $time -gt 10 ]; then
+      echo "ERROR: Exiting installation as timeout waiting for EventStreams to be created"
+      exit 1
+    fi
+    echo "INFO: Waiting up to 10 minutes for EventStreams to be created. Waited ${time} minute(s)."
+    time=$((time + 1))
+    sleep 60
+  done
 else
-  cat <<EOF | oc apply -f -
+  time=0
+  until cat <<EOF | oc apply -f -; do
 apiVersion: eventstreams.ibm.com/v1beta1
 kind: EventStreams
 metadata:
@@ -174,5 +184,12 @@ spec:
         type: ephemeral
   version: 10.5.0
 EOF
-
+    if [ $time -gt 10 ]; then
+      echo "ERROR: Exiting installation as timeout waiting for EventStreams to be created"
+      exit 1
+    fi
+    echo "INFO: Waiting up to 10 minutes for EventStreams to be created. Waited ${time} minute(s)."
+    time=$((time + 1))
+    sleep 60
+  done
 fi
