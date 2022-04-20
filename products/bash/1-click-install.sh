@@ -52,7 +52,7 @@ function divider() {
 }
 
 function usage() {
-  echo "Usage: $0 -a <eventEnabledInsuranceDemo> -b <demoDeploymentBranch> -c <DEFAULT_FILE_STORAGE> -d <demoPreparation> -e <demoAPICEmailAddress> -f <drivewayDentDeletionDemo> -g <DEFAULT_BLOCK_STORAGE> -h <demoAPICMailServerHost> -j <tempERKey> -k <tempRepo> -l <DOCKER_REGISTRY_USER> -m <demoAPICMailServerUsername> -n <JOB_NAMESPACE> -o <demoAPICMailServerPort> -p <csDefaultAdminPassword> -q <demoAPICMailServerPassword> -r <navReplicaCount> -s <DOCKER_REGISTRY_PASS> -t <ENVIRONMENT> -u <csDefaultAdminUser> -v <useFastStorageClass> -w <testDrivewayDentDeletionDemoE2E> -x <CLUSTER_TYPE> [-y]"
+  echo "Usage: $0 -a <eventEnabledInsuranceDemo> -b <demoDeploymentBranch> -c <DEFAULT_FILE_STORAGE> -d <demoPreparation> -e <demoAPICEmailAddress> -f <drivewayDentDeletionDemo> -g <DEFAULT_BLOCK_STORAGE> -h <demoAPICMailServerHost> -j <tempERKey> -k <tempRepo> -l <DOCKER_REGISTRY_USER> -m <demoAPICMailServerUsername> -n <JOB_NAMESPACE> -o <demoAPICMailServerPort> -p <csDefaultAdminPassword> -q <demoAPICMailServerPassword> -r <navReplicaCount> -s <DOCKER_REGISTRY_PASS> -t <ENVIRONMENT> -u <csDefaultAdminUser> -v <useFastStorageClass> -w <testDrivewayDentDeletionDemoE2E> -x <CLUSTER_TYPE> -A <cognitiveCarRepairDemo> -B <mappingAssistDemo> -C <weatherChatbotDemo> [-y]"
   divider
   exit 1
 }
@@ -67,14 +67,11 @@ IMAGE_REPO="cp.icr.io"
 PASSWORD_CHANGE="true"
 DEFAULT_BLOCK_STORAGE="cp4i-block-performance"
 DEFAULT_FILE_STORAGE="ibmc-file-gold-gid"
-cognitiveCarRepairDemo=false
-mappingAssistDemo=false
-weatherChatbotDemo=false
 CLUSTER_TYPE="roks"
 CLUSTER_SCOPED="false"
 HA_ENABLED="true"
 
-while getopts "a:b:c:d:e:f:g:h:j:k:l:m:n:o:p:q:r:s:t:u:v:w:x:z:y" opt; do
+while getopts "a:b:c:d:e:f:g:h:j:k:l:m:n:o:p:q:r:s:t:u:v:w:x:z:A:B:C:y" opt; do
   case ${opt} in
   a)
     eventEnabledInsuranceDemo="$OPTARG"
@@ -150,6 +147,15 @@ while getopts "a:b:c:d:e:f:g:h:j:k:l:m:n:o:p:q:r:s:t:u:v:w:x:z:y" opt; do
     ;;
   z)
     HA_ENABLED="$OPTARG"
+    ;;
+  A)
+    cognitiveCarRepairDemo="$OPTARG"
+    ;;
+  B)
+    mappingAssistDemo="$OPTARG"
+    ;;
+  C)
+     weatherChatbotDemo="$OPTARG"
     ;;
   \?)
     usage
@@ -240,6 +246,21 @@ if [[ -z "${HA_ENABLED// /}" ]]; then
   MISSING_PARAMS="true"
 fi
 
+if [[ -z "${cognitiveCarRepairDemo// /}" ]]; then
+  echo -e "$INFO [INFO] 1-click install Cognitive Car Repair parameter is empty (-A). Setting the default value of 'false' for it."
+  cognitiveCarRepairDemo="false"
+fi
+
+if [[ -z "${mappingAssistDemo// /}" ]]; then
+  echo -e "$INFO [INFO] 1-click install Mapping Assist parameter is empty (-B). Setting the default value of 'false' for it."
+  mappingAssistDemo="false"
+fi
+
+if [[ -z "${weatherChatbotDemo// /}" ]]; then
+  echo -e "$INFO [INFO] 1-click install Weather Chatbot parameter is empty (-C). Setting the default value of 'false' for it."
+  weatherChatbotDemo="false"
+fi
+
 if [[ "$MISSING_PARAMS" == "true" ]]; then
   divider
   exit 1
@@ -262,6 +283,18 @@ fi
 
 if [[ "$eventEnabledInsuranceDemo" == "true" ]]; then
   eventEnabledInsuranceDemo=true
+fi
+
+if [[ "$cognitiveCarRepairDemo" == "true" ]]; then
+  cognitiveCarRepairDemo=true
+fi
+
+if [[ "$mappingAssistDemo" == "true" ]]; then
+  mappingAssistDemo=true
+fi
+
+if [[ "$weatherChatbotDemo" == "true" ]]; then
+  weatherChatbotDemo=true
 fi
 
 if [[ "$CLUSTER_SCOPED" == "true" ]]; then
@@ -484,12 +517,13 @@ else
   echo -e "$INFO [INFO] Retrieve the common service password using the command 'oc get secrets -n ibm-common-services platform-auth-idp-credentials -o jsonpath='{.data.admin_password}' | base64 --decode' "
 fi
 
-if [[ "$demoPreparation" == "true" || "$drivewayDentDeletionDemo" == "true" || "$eventEnabledInsuranceDemo" == "true" ]]; then
+if [[ "$demoPreparation" == "true" || "$drivewayDentDeletionDemo" == "true" || "$eventEnabledInsuranceDemo" == "true" || "$cognitiveCarRepairDemo" == "true" || "$mappingAssistDemo" == "true" || "$weatherChatbotDemo" == "true" ]]; then
   divider && echo -e "$INFO [INFO] Setting up all required addons, products and demos in the '$JOB_NAMESPACE' namespace..."
   CURRENT_DIR_WITHOUT_DOT_SLASH=${CURRENT_DIR//.\//}
 
   # create a new backup json file to revert demos.json after setup script
   cp $CURRENT_DIR_WITHOUT_DOT_SLASH/demos.json $CURRENT_DIR_WITHOUT_DOT_SLASH/demos-backup.json
+
 
   echo -e "\n$INFO [INFO] Replacing all variables with their values in the demo json file to use as input for the demo script..."
   # replace demo.json with variable values
@@ -508,6 +542,9 @@ if [[ "$demoPreparation" == "true" || "$drivewayDentDeletionDemo" == "true" || "
   sed -i -e "s/EVENT_ENABLED_INSURANCE_DEMO/$eventEnabledInsuranceDemo/g" $CURRENT_DIR_WITHOUT_DOT_SLASH/demos.json
   sed -i -e "s/MAPPING_ASSIST_DEMO/$mappingAssistDemo/g" $CURRENT_DIR_WITHOUT_DOT_SLASH/demos.json
   sed -i -e "s/WEATHER_CHATBOT_DEMO/$weatherChatbotDemo/g" $CURRENT_DIR_WITHOUT_DOT_SLASH/demos.json
+
+  echo -e "printing the demos.json"
+  cat $CURRENT_DIR_WITHOUT_DOT_SLASH/demos.json
 
   retries=1
   while ! $CURRENT_DIR/setup-demos.sh -i $CURRENT_DIR_WITHOUT_DOT_SLASH/demos.json -o $CURRENT_DIR_WITHOUT_DOT_SLASH/demos-output.json; do
