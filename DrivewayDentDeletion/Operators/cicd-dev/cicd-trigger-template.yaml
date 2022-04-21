@@ -19,3 +19,4 @@ spec:
         params:
           - name: imageTag
             value: $(uid)
+        timeout: "20m"

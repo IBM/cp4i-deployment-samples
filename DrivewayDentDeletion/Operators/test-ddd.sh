@@ -160,9 +160,10 @@ function wait_and_trigger_pipeline() {
   if [[ "$PIPELINE_RUN_END_STATUS" == "False" ]]; then
     echo -e "$CROSS [ERROR] The '$PIPELINE_TYPE' pipeline run did not complete successfully. $CROSS"
     print_pipelineruns_taskruns
-    exit 1
+    return 1
   else
     echo -e "$TICK [SUCCESS] The '$PIPELINE_TYPE' pipeline for the driveway dent deletion demo completed successfully."
+    return 0
   fi
 }
 
@@ -277,41 +278,84 @@ divider
 # -------------------------------------------- DEV PIPELINE RUN -----------------------------------------------------------
 
 echo -e "$INFO [INFO] Applying the dev pipeline resources...\n"
-if ! $CURRENT_DIR/cicd-apply-dev-pipeline.sh -n "$NAMESPACE" -r "$FORKED_REPO" -b "$BRANCH" -f "$DEFAULT_FILE_STORAGE" -g "$DEFAULT_BLOCK_STORAGE" -a "$HA_ENABLED"; then
-  echo -e "$CROSS [ERROR] Could not apply the dev pipeline resources."
-  exit 1
-fi
+time=0
+until $CURRENT_DIR/cicd-apply-dev-pipeline.sh -n "$NAMESPACE" -r "$FORKED_REPO" -b "$BRANCH" -f "$DEFAULT_FILE_STORAGE" -g "$DEFAULT_BLOCK_STORAGE" -a "$HA_ENABLED"; do
+  if [ $time -gt 5 ]; then
+    echo -e "$CROSS [ERROR] Could not apply the dev pipeline resources."
+    exit 1
+  fi
+  echo -e "$INFO [INFO] Could not apply the dev pipeline resources, retrying in 1 minute..."
+  time=$((time + 1))
+  sleep 60
+done
 
-wait_and_trigger_pipeline "dev"
+time=0
+until wait_and_trigger_pipeline "dev"; do
+  if [ $time -gt 5 ]; then
+    echo -e "$CROSS [ERROR] Dev pipeline run failed."
+    exit 1
+  fi
+  echo -e "$INFO [INFO] Dev pipeline run failed, retrying in 1 minute..."
+  time=$((time + 1))
+  sleep 60
+done
 
 run_continuous_load_script "$NAMESPACE" "false" "dev" "dev"
 
 # -------------------------------------------- TEST PIPELINE RUN ----------------------------------------------------------
 
 echo -e "$INFO [INFO] Applying the test pipeline resources...\n"
-if ! $CURRENT_DIR/cicd-apply-test-pipeline.sh -n "$NAMESPACE" -r "$FORKED_REPO" -b "$BRANCH" -f "$DEFAULT_FILE_STORAGE" -g "$DEFAULT_BLOCK_STORAGE" -a "$HA_ENABLED"; then
-  echo -e "$CROSS [ERROR] Could not apply the test pipeline resources."
-  exit 1
-fi
+time=0
+until $CURRENT_DIR/cicd-apply-test-pipeline.sh -n "$NAMESPACE" -r "$FORKED_REPO" -b "$BRANCH" -f "$DEFAULT_FILE_STORAGE" -g "$DEFAULT_BLOCK_STORAGE" -a "$HA_ENABLED"; do
+  if [ $time -gt 5 ]; then
+    echo -e "$CROSS [ERROR] Could not apply the test pipeline resources."
+    exit 1
+  fi
+  echo -e "$INFO [INFO] Could not apply the test pipeline resources, retrying in 1 minute..."
+  time=$((time + 1))
+  sleep 60
+done
 
-wait_and_trigger_pipeline "test"
+time=0
+until wait_and_trigger_pipeline "test"; do
+  if [ $time -gt 5 ]; then
+    echo -e "$CROSS [ERROR] Test pipeline run failed."
+    exit 1
+  fi
+  echo -e "$INFO [INFO] Test pipeline run failed, retrying in 1 minute..."
+  time=$((time + 1))
+  sleep 60
+done
 
 run_continuous_load_script "$NAMESPACE" "false" "test" "dev"
-
 run_continuous_load_script "$NAMESPACE" "false" "test" "test"
 
 # -------------------------------------------- TEST APIC PIPELINE RUN -----------------------------------------------------
 
 echo -e "$INFO [INFO] Applying the test apic pipeline resources...\n"
-if ! $CURRENT_DIR/cicd-apply-test-apic-pipeline.sh -n "$NAMESPACE" -r "$FORKED_REPO" -b "$BRANCH" -f "$DEFAULT_FILE_STORAGE" -g "$DEFAULT_BLOCK_STORAGE" -a "$HA_ENABLED"; then
-  echo -e "$CROSS [ERROR] Could not apply the test apic pipeline resources."
-  exit 1
-fi
+time=0
+until $CURRENT_DIR/cicd-apply-test-apic-pipeline.sh -n "$NAMESPACE" -r "$FORKED_REPO" -b "$BRANCH" -f "$DEFAULT_FILE_STORAGE" -g "$DEFAULT_BLOCK_STORAGE" -a "$HA_ENABLED"; do
+  if [ $time -gt 5 ]; then
+    echo -e "$CROSS [ERROR] Could not apply the apic pipeline resources."
+    exit 1
+  fi
+  echo -e "$INFO [INFO] Could not apply the apic pipeline resources, retrying in 1 minute..."
+  time=$((time + 1))
+  sleep 60
+done
 
-wait_and_trigger_pipeline "test-apic"
+time=0
+until wait_and_trigger_pipeline "test-apic"; do
+  if [ $time -gt 5 ]; then
+    echo -e "$CROSS [ERROR] APIC pipeline run failed."
+    exit 1
+  fi
+  echo -e "$INFO [INFO] APIC pipeline run failed, retrying in 1 minute..."
+  time=$((time + 1))
+  sleep 60
+done
 
 run_continuous_load_script "$NAMESPACE" "true" "test-apic" "dev"
-
 run_continuous_load_script "$NAMESPACE" "true" "test-apic" "test"
 
 # -------------------------------------------PRINT PIPELINERUN, TASKRUN, EXIT ---------------------------------------------

@@ -159,7 +159,8 @@ else
 fi
 
 if [ -z $image_name ]; then
-  cat <<EOF | oc apply -f -
+  time=0
+  until cat <<EOF | oc apply -f -; do
 apiVersion: mq.ibm.com/v1beta1
 kind: QueueManager
 metadata:
@@ -194,11 +195,14 @@ ${qmStorageAvailability}
     enabled: ${tracing_enabled}
     namespace: ${tracing_namespace}
 EOF
-  if [[ "$?" != "0" ]]; then
-    echo -e "$cross [ERROR] Failed to apply QueueManager CR"
-    exit 1
-  fi
-
+    if [ $time -gt 10 ]; then
+      echo "ERROR: Exiting installation as timeout waiting for QueueManager to be created"
+      exit 1
+    fi
+    echo "INFO: Waiting up to 10 minutes for QueueManager to be created. Waited ${time} minute(s)."
+    time=$((time + 1))
+    sleep 60
+  done
 else
 
   # --------------------------------------------------- FIND IMAGE TAG ---------------------------------------------------
@@ -262,7 +266,8 @@ EOF
 
   divider
 
-  cat <<EOF | oc apply -f -
+  time=0
+  until cat <<EOF | oc apply -f -; do
 apiVersion: mq.ibm.com/v1beta1
 kind: QueueManager
 metadata:
@@ -318,10 +323,14 @@ ${qmStorageAvailability}
     enabled: ${tracing_enabled}
     namespace: ${tracing_namespace}
 EOF
-  if [[ "$?" != "0" ]]; then
-    echo -e "$cross [ERROR] Failed to apply QueueManager CR"
-    exit 1
-  fi
+    if [ $time -gt 10 ]; then
+      echo "ERROR: Exiting installation as timeout waiting for QueueManager to be created"
+      exit 1
+    fi
+    echo "INFO: Waiting up to 10 minutes for QueueManager to be created. Waited ${time} minute(s)."
+    time=$((time + 1))
+    sleep 60
+  done
 
   divider
 
