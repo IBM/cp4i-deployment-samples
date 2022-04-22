@@ -505,13 +505,18 @@ divider
 
 # Only update common services username and password if common services is not already installed
 if [ "$PASSWORD_CHANGE" == "true" ]; then
-  if ! $CURRENT_DIR/change-cs-credentials.sh -u "$csDefaultAdminUser" -p "$csDefaultAdminPassword"; then
-    echo -e "$CROSS [ERROR] Failed to update the common services admin username/password"
-    divider
-    exit 1
-  else
-    echo -e "$TICK [SUCCESS] Successfully updated the common services admin username/password"
-  fi
+  time=0
+  until $CURRENT_DIR/change-cs-credentials.sh -u "$csDefaultAdminUser" -p "$csDefaultAdminPassword"; do
+    if [ $time -gt 10 ]; then
+      echo -e "$CROSS [ERROR] Failed to update the common services admin username/password"
+      exit 1
+    fi
+    echo -e "$INFO [INFO] Failed to update the common services admin username/password, retrying in 1 minute"
+    time=$((time + 1))
+    sleep 60
+  done
+
+  echo -e "$TICK [SUCCESS] Successfully updated the common services admin username/password"
 else
   echo -e "$INFO [INFO] Retrieve the common service username using the command 'oc get secrets -n ibm-common-services platform-auth-idp-credentials -o jsonpath='{.data.admin_username}' | base64 --decode' "
   echo -e "$INFO [INFO] Retrieve the common service password using the command 'oc get secrets -n ibm-common-services platform-auth-idp-credentials -o jsonpath='{.data.admin_password}' | base64 --decode' "
