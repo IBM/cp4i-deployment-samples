@@ -297,6 +297,48 @@ EOF
   fi
 fi
 
+# Check for IAF 1.3 and uninstall!
+IAF_NAME="ibm-automation-core"
+CSVS=$(oc get csvs -n ${namespace} | grep "${IAF_NAME}.v1.3" | awk '{print $1}' | xargs)
+if [[ "$CSVS" != "" ]]; then
+  echo "IAF v1.3 is installed, uninstalling ready to downgrade to v1.2"
+
+  # Delete the subscription, the csv, the install plan?
+  INSTALL_PLANS=$(oc get installplans -n ${namespace} | grep "${IAF_NAME}" | awk '{print $1}' | xargs)
+  if [[ "$INSTALL_PLANS" != "" ]]; then
+    echo "About to delete installplans: $INSTALL_PLANS"
+    oc delete installplans -n ${namespace} ${INSTALL_PLANS}
+  fi
+
+  CSVS=$(oc get csvs -n ${namespace} | grep "${IAF_NAME}" | awk '{print $1}' | xargs)
+  if [[ "$CSVS" != "" ]]; then
+    echo "About to delete csvs: $CSVS"
+    oc delete csvs -n ${namespace} ${CSVS}
+  fi
+
+  SUBSCRIPTIONS=$(oc get subscriptions -n ${namespace} | grep "${IAF_NAME}" | awk '{print $1}' | xargs)
+  if [[ "$SUBSCRIPTIONS" != "" ]]; then
+    echo "About to delete subscriptions: $SUBSCRIPTIONS"
+    oc delete subscriptions -n ${namespace} ${SUBSCRIPTIONS}
+  fi
+fi
+
+echo "INFO: Creating a subscription for IAF 1.2 and waiting for it to install"
+cat <<EOF | oc apply -f -
+apiVersion: operators.coreos.com/v1alpha1
+kind: Subscription
+metadata:
+  name: "ibm-automation-core"
+  namespace: ${namespace}
+spec:
+  channel: v1.2
+  installPlanApproval: Automatic
+  name: ibm-automation-core
+  source: ibm-operator-catalog
+  sourceNamespace: openshift-marketplace
+EOF
+wait_for_all_subscriptions ${namespace}
+
 # Create the subscription for navigator. This needs to be before APIC (ibm-apiconnect)
 # so APIC knows it's running in CP4I and before tracing (ibm-integration-operations-dashboard)
 # as tracing uses a CRD created by the navigator operator.
