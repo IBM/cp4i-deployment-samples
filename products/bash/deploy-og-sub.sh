@@ -297,7 +297,23 @@ EOF
   fi
 fi
 
-echo "INFO: Creating a subscription for IAF 1.3.5 and waiting for it to install"
+# echo "INFO: Creating a subscription for IAF 1.3.5 and waiting for it to install"
+# cat <<EOF | oc apply -f -
+# apiVersion: operators.coreos.com/v1alpha1
+# kind: Subscription
+# metadata:
+#   name: "ibm-automation-core"
+#   namespace: ${namespace}
+# spec:
+#   channel: v1.3
+#   installPlanApproval: Manual
+#   name: ibm-automation-core
+#   source: ibm-operator-catalog
+#   sourceNamespace: openshift-marketplace
+#   startingCSV: ibm-automation-core.v1.3.5
+# EOF
+
+echo "INFO: Creating a subscription for IAF 1.2 and waiting for it to install"
 cat <<EOF | oc apply -f -
 apiVersion: operators.coreos.com/v1alpha1
 kind: Subscription
@@ -305,12 +321,11 @@ metadata:
   name: "ibm-automation-core"
   namespace: ${namespace}
 spec:
-  channel: v1.3
+  channel: v1.2
   installPlanApproval: Manual
   name: ibm-automation-core
   source: ibm-operator-catalog
   sourceNamespace: openshift-marketplace
-  startingCSV: ibm-automation-core.v1.3.5
 EOF
 wait_for_all_subscriptions ${namespace}
 
