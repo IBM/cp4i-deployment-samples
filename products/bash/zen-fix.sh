@@ -9,12 +9,9 @@
 #******************************************************************************
 
 #******************************************************************************
-#For restarting the ZenWatcher and ibm-nginx pods
+#For restarting the ZenWatcher pod
 #******************************************************************************
 
-# Namespace needed
-# Called by apic
-# called by ar
 
 function divider() {
   echo -e "\n-------------------------------------------------------------------------------------------------------------------\n"
@@ -42,7 +39,7 @@ SCRIPT_DIR=$(dirname $0)
 
 if ! oc get namespace ${NAMESPACE} >/dev/null 2>&1; then
     echo "Namespace not found: ${NAMESPACE}"
-    exit 1
+    exit 0
 fi
 
 ZEN_WATCHER_POD=$(oc get pod -n ${NAMESPACE} -o name | grep -iw zen-watcher)
@@ -59,6 +56,6 @@ if [ ! -z "${PANIC_FOUND}" ]; then
 
     if ! oc delete ${ZEN_WATCHER_POD} -n ${NAMESPACE}; then
         echo -e "[ERROR] Unable to delete the pod ${ZEN_WATCHER_POD}"
-        exit 1
+        exit 0
     fi 
 fi

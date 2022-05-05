@@ -93,6 +93,7 @@ for i in $(seq 1 120); do
     echo "Waiting for APIC install to complete (Attempt $i of 120). Status: $APIC_STATUS"
     oc get apiconnectcluster,managementcluster,portalcluster,gatewaycluster,pvc,pod -n $NAMESPACE
     echo "Checking again in one minute..."
+    $CURRENT_DIR/zen-fix.sh -n "$NAMESPACE"
     sleep 60
   fi
 done
@@ -103,7 +104,7 @@ if [ "$APIC_STATUS" != "Ready" ]; then
   exit 1
 fi
 
-$CURRENT_DIR/zen-fix.sh -n "$NAMESPACE"
+
 
 for i in $(seq 1 60); do
   PORTAL_WWW_POD=$(oc get pods -n $NAMESPACE | grep -m1 "${RELEASE_NAME}-ptl.*www" | awk '{print $1}')
