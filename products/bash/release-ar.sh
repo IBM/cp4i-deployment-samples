@@ -96,7 +96,6 @@ EOF
     exit 1
   fi
   echo "INFO: Waiting up to 10 minutes for AssetRepository to be created. Waited ${time} minute(s)."
-  $CURRENT_DIR/zen-fix.sh -n "$namespace"
   time=$((time + 1))
   sleep 60
 done

@@ -61,18 +61,4 @@ if [ ! -z "${PANIC_FOUND}" ]; then
         echo -e "[ERROR] Unable to delete the pod ${ZEN_WATCHER_POD}"
         exit 1
     fi 
-
-    sleep 30 #wait few seconds for the pods to appear
-
-    PODS_TO_RESTART=$( oc get pod -n ${NAMESPACE} -o name | grep -iw 'zen-watcher')
-
-    if [ -z "$PODS_TO_RESTART}" ]; then
-        echo -e "[ERROR] zen-watcher pod not found"
-        exit 0
-    fi
-
-    echo -e "[INFO] Waiting for zen-watcher ${PODS_TO_RESTART} to get ready"
-
-    oc get pod -n ${NAMESPACE} -o name | grep -iw 'zen-watcher'
-
 fi

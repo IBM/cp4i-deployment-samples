@@ -103,6 +103,8 @@ if [ "$APIC_STATUS" != "Ready" ]; then
   exit 1
 fi
 
+$CURRENT_DIR/zen-fix.sh -n "$NAMESPACE"
+
 for i in $(seq 1 60); do
   PORTAL_WWW_POD=$(oc get pods -n $NAMESPACE | grep -m1 "${RELEASE_NAME}-ptl.*www" | awk '{print $1}')
   if [ -z "$PORTAL_WWW_POD" ]; then

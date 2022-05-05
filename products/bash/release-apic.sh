@@ -110,7 +110,6 @@ EOF
     echo "ERROR: Exiting installation as timeout waiting for APIConnectCluster to be created"
     exit 1
   fi
-  $CURRENT_DIR/zen-fix.sh -n "$namespace"
   echo "INFO: Waiting up to 10 minutes for APIConnectCluster to be created. Waited ${time} minute(s)."
   time=$((time + 1))
   sleep 60
