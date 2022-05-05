@@ -68,24 +68,11 @@ if [ ! -z "${PANIC_FOUND}" ]; then
 
     if [ -z "$PODS_TO_RESTART}" ]; then
         echo -e "[ERROR] zen-watcher pod not found"
-        exit 1
+        exit 0
     fi
 
     echo -e "[INFO] Waiting for zen-watcher ${PODS_TO_RESTART} to get ready"
 
-    time=0
-    # wait for pods to get ready after the restart
-        while [[ "$(oc get ${PODS_TO_RESTART} -n ${NAMESPACE} -o json | jq -r '.status.conditions[] | select(.type=="Ready").status')" != "True" ]]; do
-        echo "INFO: $(oc get ${PODS_TO_RESTART} -n ${NAMESPACE})"
-        if [ $time -gt 5 ]; then
-            echo "ERROR: Exiting ${PODS_TO_RESTART} in ${NAMESPACE} is not ready"
-            exit 1
-        fi
-        echo "INFO: Waiting up to 5 minutes for  ${PODS_TO_RESTART} in ${NAMESPACE} to be ready. Waited ${time} minute(s)."
-        time=$((time + 1))
-        sleep 60
-        done
-  
     oc get pod -n ${NAMESPACE} -o name | grep -iw 'zen-watcher'
 
 fi
