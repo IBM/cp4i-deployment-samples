@@ -54,8 +54,5 @@ if [ ! -z "${PANIC_FOUND}" ]; then
 
     echo -e "[INFO] Deleting the ${ZEN_WATCHER_POD}"
 
-    if ! oc delete ${ZEN_WATCHER_POD} -n ${NAMESPACE}; then
-        echo -e "[ERROR] Unable to delete the pod ${ZEN_WATCHER_POD}"
-        exit 0
-    fi 
+    oc delete ${ZEN_WATCHER_POD} -n ${NAMESPACE}
 fi
