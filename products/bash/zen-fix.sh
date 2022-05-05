@@ -45,7 +45,7 @@ fi
 ZEN_WATCHER_POD=$(oc get pod -n ${NAMESPACE} -o name | grep -iw zen-watcher)
 if [ -z "${ZEN_WATCHER_POD}" ]; then
     echo -e "[ERROR] zen-watcher pod not found"
-    exit 1
+    exit 0
 fi
 
 PANIC_FOUND=$(oc logs $ZEN_WATCHER_POD -n ${NAMESPACE} | grep -i panic)
