@@ -60,6 +60,8 @@ echo "=== Initialising Asset repository with a remote ==="
 rm -rf /tmp/ar_create_tmp
 mkdir -p /tmp/ar_create_tmp
 
+
+
 for i in $(seq 1 60); do
   cp4iuser=$(oc get secrets -n ibm-common-services platform-auth-idp-credentials -o jsonpath='{.data.admin_username}' | base64 --decode)
   cp4ipwd=$(oc get secrets -n ibm-common-services platform-auth-idp-credentials -o jsonpath='{.data.admin_password}' | base64 --decode)
@@ -99,6 +101,7 @@ until [[ "$ar_path" == *"$desiredResponseContent"* ]]; do
     echo "Error: Asset repository route could not be found"
     exit 1
   fi
+  $CURRENT_DIR/zen-fix.sh -n "$NAMESPACE"
   sleep $interval
 done
 
@@ -122,6 +125,7 @@ until [[ $response =~ 200 || "$retries" -eq "$i" ]]; do
   get_catalogs $ar_path $token
   ((i = i + 1))
   echo "Response code: $response"
+  $CURRENT_DIR/zen-fix.sh -n "$NAMESPACE"
   sleep $interval
 done
 ## If we never got a successful response, exit
