@@ -36,24 +36,34 @@ ASPERA_CATALOG_DISPLAY_NAME="Aspera Operators 1.4.1"
 IAF_CATALOG_NAME=automation-base-pak-operators
 IAF_CATALOG_IMAGE=icr.io/cpopen/ibm-automation-foundation-core-catalog@sha256:0bd8ed8ee6807f780471d05bca46dea5b1eb9edcbd76587d08fa94fe9fa27c25
 IAF_CATALOG_DISPLAY_NAME="IBMABP Operators 1.3.6"
-REDIS_CATALOG_NAME=ibm-cloud-databases-redis-1.4.5
+REDIS_CATALOG_NAME=aspera-redis-operators
 REDIS_CATALOG_IMAGE=icr.io/cpopen/ibm-cloud-databases-redis-catalog@sha256:0f288d16fa18af1af176398cd066a4fb549d811067a41668b05ef4b60ed6088a
-COUCHDB_CATALOG_NAME=ibm-couchdb-1.0.13
+REDIS_CATALOG_DISPLAY_NAME="Redis for Aspera Operators 1.4.5"
+COUCHDB_CATALOG_NAME=couchdb-operators
 COUCHDB_CATALOG_IMAGE=icr.io/cpopen/couchdb-operator-catalog@sha256:c35df32a8de999a4bb76229fbe302b1107d9c6bd17d159ee30167016c51bc215
-COMMON_SERVICES_CATALOG_NAME=ibm-cp-common-services-1.13.0
+COUCHDB_CATALOG_DISPLAY_NAME="IBM CouchDB Operators 1.0.13"
+COMMON_SERVICES_CATALOG_NAME=opencloud-operators
 COMMON_SERVICES_CATALOG_IMAGE=icr.io/cpopen/ibm-common-service-catalog@sha256:f637b2888f7be48760b3925e906216f8565ab6b036172b21c87506fbdd53020a
-DATAPOWER_CATALOG_NAME=ibm-datapower-operator-1.5.3
+COMMON_SERVICES_CATALOG_DISPLAY_NAME="IBMCS Operators 1.13.0"
+
+DATAPOWER_CATALOG_NAME=dp-operators
 DATAPOWER_CATALOG_IMAGE=icr.io/cpopen/datapower-operator-catalog@sha256:3995b3114b3ef872cccf76f8c3bdc15df0a01d039b9957a280b9571ffbb1fa50
-EVENT_STREAMS_CATALOG_NAME=ibm-eventstreams-1.6.1
+DATAPOWER_CATALOG_DISPLAY_NAME="DP Operators 1.5.3"
+EVENT_STREAMS_CATALOG_NAME=es-operators
 EVENT_STREAMS_CATALOG_IMAGE=icr.io/cpopen/ibm-eventstreams-catalog@sha256:76b1f2637c5ed871f66ee4e89b4b48fe91aef7613a894f9bdf6638a493ab0cdc
-ASSET_REPO_CATALOG_NAME=ibm-integration-asset-repository-1.4.5
+EVENT_STREAMS_CATALOG_DISPLAY_NAME="ES Operators 1.6.1"
+ASSET_REPO_CATALOG_NAME=ar-operators
 ASSET_REPO_CATALOG_IMAGE=icr.io/cpopen/ibm-integration-asset-repository-catalog@sha256:ef993b1eca79044918d1757559598d167ed34321d55310aa8c9171c138ec085d
-OPERATIONS_DASHBOARD_CATALOG_NAME=ibm-integration-operations-dashboard-2.5.5
+ASSET_REPO_CATALOG_DISPLAY_NAME="AR Operators 1.4.5"
+OPERATIONS_DASHBOARD_CATALOG_NAME=od-operators
 OPERATIONS_DASHBOARD_CATALOG_IMAGE=icr.io/cpopen/ibm-integration-operations-dashboard-catalog@sha256:53b8d24b9650e5e82cac5d4c33000372439826bfe874a8565ed49f46a33e7f8c
-NAVIGATOR_CATALOG_NAME=ibm-integration-platform-navigator-1.6.1
+OPERATIONS_DASHBOARD_CATALOG_DISPLAY_NAME="OD Operators 2.5.5"
+NAVIGATOR_CATALOG_NAME=pn-operators
 NAVIGATOR_CATALOG_IMAGE=icr.io/cpopen/ibm-integration-platform-navigator-catalog@sha256:b41fd254ab7f503f65409a4a417d65fb1f3d9950fc5ea9dac30ec2f29ec31e4d
-MQ_CATALOG_NAME=ibm-mq-1.8.1
+NAVIGATOR_CATALOG_DISPLAY_NAME="PN Operators 1.6.1"
+MQ_CATALOG_NAME=mq-operators
 MQ_CATALOG_IMAGE=icr.io/cpopen/ibm-mq-operator-catalog@sha256:8ad0fe91b535b6169933b0270ea7266fcaf73173f26ea17bb50255c39d5b2aa6
+MQ_CATALOG_DISPLAY_NAME="MQ Operators 1.8.1"
 
 function create_catalog_source() {
   CATALOG_NAME=${1}
@@ -82,9 +92,9 @@ create_catalog_source ${APIC_CATALOG_NAME} ${APIC_CATALOG_IMAGE} ${APIC_CATALOG_
 create_catalog_source ${ACE_CATALOG_NAME} ${ACE_CATALOG_IMAGE} ${ACE_CATALOG_DISPLAY_NAME}
 create_catalog_source ${ASPERA_CATALOG_NAME} ${ASPERA_CATALOG_IMAGE} ${ASPERA_CATALOG_DISPLAY_NAME}
 create_catalog_source ${IAF_CATALOG_NAME} ${IAF_CATALOG_IMAGE} ${IAF_CATALOG_DISPLAY_NAME}
-# create_catalog_source ${REDIS_CATALOG_NAME} ${REDIS_CATALOG_IMAGE}
-# create_catalog_source ${COUCHDB_CATALOG_NAME} ${COUCHDB_CATALOG_IMAGE}
-# create_catalog_source ${COMMON_SERVICES_CATALOG_NAME} ${COMMON_SERVICES_CATALOG_IMAGE}
+create_catalog_source ${REDIS_CATALOG_NAME} ${REDIS_CATALOG_IMAGE} ${REDIS_CATALOG_DISPLAY_NAME}
+create_catalog_source ${COUCHDB_CATALOG_NAME} ${COUCHDB_CATALOG_IMAGE} ${COUCHDB_CATALOG_DISPLAY_NAME}
+create_catalog_source ${COMMON_SERVICES_CATALOG_NAME} ${COMMON_SERVICES_CATALOG_IMAGE} ${COMMON_SERVICES_CATALOG_DISPLAY_NAME}
 # create_catalog_source ${DATAPOWER_CATALOG_NAME} ${DATAPOWER_CATALOG_IMAGE}
 # create_catalog_source ${EVENT_STREAMS_CATALOG_NAME} ${EVENT_STREAMS_CATALOG_IMAGE}
 # create_catalog_source ${ASSET_REPO_CATALOG_NAME} ${ASSET_REPO_CATALOG_IMAGE}
