@@ -61,16 +61,20 @@ done
 #    ./create-catalog-sources.sh -p
 # Wait for the catalog sources to install, then run:
 # CHANNELS_JSON=$(oc get packagemanifest -o json | jq -r '.items[] | { name: .metadata.name, catalog: .status.catalogSource, channel: .status.channels[-1].name }')
-# ENTRIES="NAVIGATOR=ibm-integration-platform-navigator
-# ACE=ibm-appconnect
+# ENTRIES="WML_TRAINING=ibm-ai-wmltraining
 # APIC=ibm-apiconnect
-# AR=ibm-integration-asset-repository
+# ACE=ibm-appconnect
 # ASPERA=aspera-hsts-operator
-# DEMOS=ibm-integration-demos-operator
-# DP=datapower-operator
-# ES=ibm-eventstreams
-# MQ=ibm-mq
-# OD=ibm-integration-operations-dashboard"
+# IAF=ibm-automation-core
+# REDIS=ibm-cloud-databases-redis-operator
+# COUCH=couchdb-operator
+# COMMON_SERVICES=ibm-common-service-operator
+# DATAPOWER=datapower-operator
+# EVENT_STREAMS=ibm-eventstreams
+# ASSET_REPO=ibm-integration-asset-repository
+# OPERATIONS_DASHBOARD=ibm-integration-operations-dashboard
+# NAVIGATOR=ibm-integration-platform-navigator
+# MQ=ibm-mq"
 # for ENTRY in ${ENTRIES} ; do
 #   IFS="=" read -r PRODUCT NAME <<< "${ENTRY}"
 #   CHANNEL_JSON=$(echo $CHANNELS_JSON | jq -r "select(.name == \"${NAME}\")")
@@ -80,36 +84,48 @@ done
 #   echo "${PRODUCT}_NAME=$NAME"
 #   echo "${PRODUCT}_CHANNEL=$CHANNEL"
 # done
-NAVIGATOR_CATALOG=ibm-operator-catalog
-NAVIGATOR_NAME=ibm-integration-platform-navigator
-NAVIGATOR_CHANNEL=v5.2
-ACE_CATALOG=ibm-operator-catalog
-ACE_NAME=ibm-appconnect
-ACE_CHANNEL=v3.0
-APIC_CATALOG=ibm-operator-catalog
+WML_TRAINING_CATALOG=ibm-ai-wmltraining-catalog
+WML_TRAINING_NAME=ibm-ai-wmltraining
+WML_TRAINING_CHANNEL=v1.1
+APIC_CATALOG=apic-operators
 APIC_NAME=ibm-apiconnect
-APIC_CHANNEL=v2.4
-AR_CATALOG=ibm-operator-catalog
-AR_NAME=ibm-integration-asset-repository
-AR_CHANNEL=v1.4
-ASPERA_CATALOG=ibm-operator-catalog
+APIC_CHANNEL=v2.5
+ACE_CATALOG=ace-operators
+ACE_NAME=ibm-appconnect
+ACE_CHANNEL=v4.1
+ASPERA_CATALOG=aspera-operators
 ASPERA_NAME=aspera-hsts-operator
 ASPERA_CHANNEL=v1.4
-DEMOS_CATALOG=cp4i-demo-operator-catalog-source
-DEMOS_NAME=ibm-integration-demos-operator
-DEMOS_CHANNEL=v1.0
-DP_CATALOG=ibm-operator-catalog
-DP_NAME=datapower-operator
-DP_CHANNEL=v1.6
-ES_CATALOG=ibm-operator-catalog
-ES_NAME=ibm-eventstreams
-ES_CHANNEL=v2.5
-MQ_CATALOG=ibm-operator-catalog
+IAF_CATALOG=automation-base-pak-operators
+IAF_NAME=ibm-automation-core
+IAF_CHANNEL=v1.3
+REDIS_CATALOG=aspera-redis-operators
+REDIS_NAME=ibm-cloud-databases-redis-operator
+REDIS_CHANNEL=v1.4
+COUCH_CATALOG=couchdb-operators
+COUCH_NAME=couchdb-operator
+COUCH_CHANNEL=v2.2
+COMMON_SERVICES_CATALOG=opencloud-operators
+COMMON_SERVICES_NAME=ibm-common-service-operator
+COMMON_SERVICES_CHANNEL=v3
+DATAPOWER_CATALOG=dp-operators
+DATAPOWER_NAME=datapower-operator
+DATAPOWER_CHANNEL=v1.5
+EVENT_STREAMS_CATALOG=es-operators
+EVENT_STREAMS_NAME=ibm-eventstreams
+EVENT_STREAMS_CHANNEL=v3.0
+ASSET_REPO_CATALOG=ar-operators
+ASSET_REPO_NAME=ibm-integration-asset-repository
+ASSET_REPO_CHANNEL=v1.4
+OPERATIONS_DASHBOARD_CATALOG=od-operators
+OPERATIONS_DASHBOARD_NAME=ibm-integration-operations-dashboard
+OPERATIONS_DASHBOARD_CHANNEL=v2.5
+NAVIGATOR_CATALOG=pn-operators
+NAVIGATOR_NAME=ibm-integration-platform-navigator
+NAVIGATOR_CHANNEL=v5.3
+MQ_CATALOG=mq-operators
 MQ_NAME=ibm-mq
-MQ_CHANNEL=v1.7
-OD_CATALOG=ibm-operator-catalog
-OD_NAME=ibm-integration-operations-dashboard
-OD_CHANNEL=v2.5
+MQ_CHANNEL=v1.8
 
 function output_time() {
   SECONDS=${1}
@@ -297,6 +313,14 @@ EOF
   fi
 fi
 
+echo "INFO: Create prereq subscriptions"
+create_subscription ${namespace} ${WML_TRAINING_CATALOG} "${WML_TRAINING_NAME}" "$WML_TRAINING_CHANNEL"
+create_subscription ${namespace} ${IAF_CATALOG} "${IAF_NAME}" "$IAF_CHANNEL"
+create_subscription ${namespace} ${REDIS_CATALOG} "${REDIS_NAME}" "$REDIS_CHANNEL"
+create_subscription ${namespace} ${COUCH_CATALOG} "${COUCH_NAME}" "$COUCH_CHANNEL"
+create_subscription ${namespace} ${COMMON_SERVICES_CATALOG} "${COMMON_SERVICES_NAME}" "$COMMON_SERVICES_CHANNEL"
+wait_for_all_subscriptions ${namespace}
+
 # Create the subscription for navigator. This needs to be before APIC (ibm-apiconnect)
 # so APIC knows it's running in CP4I and before tracing (ibm-integration-operations-dashboard)
 # as tracing uses a CRD created by the navigator operator.
@@ -306,9 +330,10 @@ create_subscription ${namespace} ${NAVIGATOR_CATALOG} "${NAVIGATOR_NAME}" "$NAVI
 echo "INFO: Applying subscriptions for aspera, ace, event streams, mq, and asset repo"
 create_subscription ${namespace} ${ASPERA_CATALOG} "${ASPERA_NAME}" "${ASPERA_CHANNEL}"
 create_subscription ${namespace} ${ACE_CATALOG} "${ACE_NAME}" "${ACE_CHANNEL}"
-create_subscription ${namespace} ${ES_CATALOG} "${ES_NAME}" "${ES_CHANNEL}"
+create_subscription ${namespace} ${EVENT_STREAMS_CATALOG} "${EVENT_STREAMS_NAME}" "${EVENT_STREAMS_CHANNEL}"
 create_subscription ${namespace} ${MQ_CATALOG} "${MQ_NAME}" "${MQ_CHANNEL}"
 create_subscription ${namespace} ${AR_CATALOG} "${AR_NAME}" "${AR_CHANNEL}"
+create_subscription ${namespace} ${DATAPOWER_CATALOG} "${DATAPOWER_NAME}" "${DATAPOWER_CHANNEL}"
 
 if [[ "${DEPLOY_DEMOS}" == "true" ]]; then
   echo "INFO: Applying subscription for demos"
@@ -316,8 +341,9 @@ if [[ "${DEPLOY_DEMOS}" == "true" ]]; then
 fi
 
 if [[ "${EXTRA_SAFE_BUT_SLOW}" == "false" ]]; then
-  echo "INFO: Wait for platform navigator before applying the APIC/Tracing subscriptions"
+  echo "INFO: Wait for platform navigator and datapower before applying the APIC/Tracing subscriptions"
   wait_for_subscription ${namespace} ${NAVIGATOR_CATALOG} "${NAVIGATOR_NAME}" "$NAVIGATOR_CHANNEL"
+  wait_for_subscription ${namespace} ${DATAPOWER_CATALOG} "${DATAPOWER_NAME}" "${DATAPOWER_CHANNEL}"
 fi
 
 echo "INFO: Apply the APIC/Tracing subscriptions"
