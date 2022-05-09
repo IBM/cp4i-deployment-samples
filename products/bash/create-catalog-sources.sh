@@ -18,246 +18,76 @@
 # USAGE:
 #   With defaults values
 #     ./create-catalog-sources.sh
-#
-#   Using pre-release catalog sources
-#     ./create-catalog-sources.sh -p
-#
 
-function usage() {
-  echo "Usage: $0 -p"
-  exit 1
-}
-
-USE_PRERELEASE_CATALOGS=false
 INFO="\xE2\x84\xB9"
 
-while getopts "p" opt; do
-  case ${opt} in
-  p)
-    USE_PRERELEASE_CATALOGS=true
-    ;;
-  \?)
-    usage
-    ;;
-  esac
-done
+WML_TRAINING_CATALOG_NAME=ibm-ai-wmltraining-catalog
+WML_TRAINING_CATALOG_IMAGE=icr.io/cpopen/ibm-ai-wmltraining-operator-catalog@sha256:4e88b9f2df60be6af156d188657763dfa4cbe074c40ea85ba82858796e3cd6a3
+WML_TRAINING_CATALOG_DISPLAY_NAME="WML Training Operators 1.1.1"
+APIC_CATALOG_NAME=apic-operators
+APIC_CATALOG_IMAGE=icr.io/cpopen/ibm-apiconnect-catalog@sha256:214c287742fb86a943f593179616a7f1d265ee948e36da4e11d7504368917ff9
+APIC_CATALOG_DISPLAY_NAME="APIC Operators 3.0.7"
+ACE_CATALOG_NAME=ace-operators
+ACE_CATALOG_IMAGE=icr.io/cpopen/appconnect-operator-catalog@sha256:d70302c0d7ecd0a17a7256b3e62fb0d6039797021a42728cf681940d012372ae
+ACE_CATALOG_DISPLAY_NAME="ACE Operators 4.1.0"
+ASPERA_CATALOG_NAME=aspera-operators
+ASPERA_CATALOG_IMAGE=icr.io/cpopen/aspera-hsts-catalog@sha256:69bcdd83f138306b1510d5835e44245808d2a435f3c7705b75ac7309c0eb207c
+ASPERA_CATALOG_DISPLAY_NAME="Aspera Operators 1.4.1"
+IAF_CATALOG_NAME=automation-base-pak-operators
+IAF_CATALOG_IMAGE=icr.io/cpopen/ibm-automation-foundation-core-catalog@sha256:0bd8ed8ee6807f780471d05bca46dea5b1eb9edcbd76587d08fa94fe9fa27c25
+IAF_CATALOG_DISPLAY_NAME="IBMABP Operators 1.3.6"
+REDIS_CATALOG_NAME=ibm-cloud-databases-redis-1.4.5
+REDIS_CATALOG_IMAGE=icr.io/cpopen/ibm-cloud-databases-redis-catalog@sha256:0f288d16fa18af1af176398cd066a4fb549d811067a41668b05ef4b60ed6088a
+COUCHDB_CATALOG_NAME=ibm-couchdb-1.0.13
+COUCHDB_CATALOG_IMAGE=icr.io/cpopen/couchdb-operator-catalog@sha256:c35df32a8de999a4bb76229fbe302b1107d9c6bd17d159ee30167016c51bc215
+COMMON_SERVICES_CATALOG_NAME=ibm-cp-common-services-1.13.0
+COMMON_SERVICES_CATALOG_IMAGE=icr.io/cpopen/ibm-common-service-catalog@sha256:f637b2888f7be48760b3925e906216f8565ab6b036172b21c87506fbdd53020a
+DATAPOWER_CATALOG_NAME=ibm-datapower-operator-1.5.3
+DATAPOWER_CATALOG_IMAGE=icr.io/cpopen/datapower-operator-catalog@sha256:3995b3114b3ef872cccf76f8c3bdc15df0a01d039b9957a280b9571ffbb1fa50
+EVENT_STREAMS_CATALOG_NAME=ibm-eventstreams-1.6.1
+EVENT_STREAMS_CATALOG_IMAGE=icr.io/cpopen/ibm-eventstreams-catalog@sha256:76b1f2637c5ed871f66ee4e89b4b48fe91aef7613a894f9bdf6638a493ab0cdc
+ASSET_REPO_CATALOG_NAME=ibm-integration-asset-repository-1.4.5
+ASSET_REPO_CATALOG_IMAGE=icr.io/cpopen/ibm-integration-asset-repository-catalog@sha256:ef993b1eca79044918d1757559598d167ed34321d55310aa8c9171c138ec085d
+OPERATIONS_DASHBOARD_CATALOG_NAME=ibm-integration-operations-dashboard-2.5.5
+OPERATIONS_DASHBOARD_CATALOG_IMAGE=icr.io/cpopen/ibm-integration-operations-dashboard-catalog@sha256:53b8d24b9650e5e82cac5d4c33000372439826bfe874a8565ed49f46a33e7f8c
+NAVIGATOR_CATALOG_NAME=ibm-integration-platform-navigator-1.6.1
+NAVIGATOR_CATALOG_IMAGE=icr.io/cpopen/ibm-integration-platform-navigator-catalog@sha256:b41fd254ab7f503f65409a4a417d65fb1f3d9950fc5ea9dac30ec2f29ec31e4d
+MQ_CATALOG_NAME=ibm-mq-1.8.1
+MQ_CATALOG_IMAGE=icr.io/cpopen/ibm-mq-operator-catalog@sha256:8ad0fe91b535b6169933b0270ea7266fcaf73173f26ea17bb50255c39d5b2aa6
+
+function create_catalog_source() {
+  CATALOG_NAME=${1}
+  CATALOG_IMAGE=${2}
+  CATALOG_DISPLAY_NAME=${3}
+  cat <<EOF | oc apply -f -
+apiVersion: operators.coreos.com/v1alpha1
+kind: CatalogSource
+metadata:
+  name: ${CATALOG_NAME}
+  namespace: openshift-marketplace
+spec:
+  displayName: ${CATALOG_DISPLAY_NAME}
+  image: ${CATALOG_IMAGE}
+  publisher: IBM
+  sourceType: grpc
+  updateStrategy:
+    registryPoll:
+      interval: 45m
+EOF
+}
 
 echo -e "$INFO [INFO] Applying catalogsources\n"
-if [[ "${USE_PRERELEASE_CATALOGS}" == "true" ]]; then
-  echo -e "$INFO [INFO] Using the Q4 pre-release catalog sources as specified at https://ibm.ent.box.com/notes/881484983929"
-  cat <<EOF | oc apply -f -
----
-apiVersion: operators.coreos.com/v1alpha1
-kind: CatalogSource
-metadata:
-  name: opencloud-operators
-  namespace: openshift-marketplace
-spec:
-  displayName: IBMCS Operators
-  image: hyc-cloud-private-daily-docker-local.artifactory.swg-devops.com/ibmcom/ibm-common-service-catalog:latest-validated
-  publisher: IBM
-  sourceType: grpc
-  updateStrategy:
-    registryPoll:
-      interval: 45m
----
-apiVersion: operators.coreos.com/v1alpha1
-kind: CatalogSource
-metadata:
-  name: automation-base-pak-operators
-  namespace: openshift-marketplace
-spec:
-  displayName: IBMABP Operators
-  image: cp.stg.icr.io/cp/ibm-automation-foundation-core-catalog:latest-validated
-  publisher: IBM
-  sourceType: grpc
-  updateStrategy:
-    registryPoll:
-      interval: 45m
----
-apiVersion: operators.coreos.com/v1alpha1
-kind: CatalogSource
-metadata:
-  name: pn-operators
-  namespace: openshift-marketplace
-spec:
-  displayName: PN Operators
-  image: cp.stg.icr.io/cp/ibm-integration-platform-navigator-catalog:latest
-  publisher: IBM
-  sourceType: grpc
-  updateStrategy:
-    registryPoll:
-      interval: 45m
----
-apiVersion: operators.coreos.com/v1alpha1
-kind: CatalogSource
-metadata:
-  name: ace-operators
-  namespace: openshift-marketplace
-spec:
-  displayName: ACE Operators
-  image: cp.stg.icr.io/cp/appconnect-operator-catalog:latest-cd
-  publisher: IBM
-  sourceType: grpc
-  updateStrategy:
-    registryPoll:
-      interval: 45m
----
-apiVersion: operators.coreos.com/v1alpha1
-kind: CatalogSource
-metadata:
- name: mq-operators
- namespace: openshift-marketplace
-spec:
- displayName: MQ Operators
- image: cp.stg.icr.io/cp/ibm-mq-operator-catalog@sha256:bd686e3aee196ce92ba34356afcc95e95c0121679784ae91e8ed342df437eed0
- publisher: IBM
- sourceType: grpc
- updateStrategy:
-   registryPoll:
-     interval: 45m
----
-apiVersion: operators.coreos.com/v1alpha1
-kind: CatalogSource
-metadata:
-  name: es-operators
-  namespace: openshift-marketplace
-spec:
-  displayName: ES Operators
-  image: cp.stg.icr.io/cp/ibm-eventstreams-catalog:latest-cd
-  publisher: IBM
-  sourceType: grpc
-  updateStrategy:
-    registryPoll:
-      interval: 45m
----
-apiVersion: operators.coreos.com/v1alpha1
-kind: CatalogSource
-metadata:
-  name: apic-operators
-  namespace: openshift-marketplace
-spec:
-  displayName: APIC Operators
-  image: cp.stg.icr.io/cp/ibm-apiconnect-catalog:latest-cd
-  publisher: IBM
-  sourceType: grpc
-  updateStrategy:
-    registryPoll:
-      interval: 45m
----
-apiVersion: operators.coreos.com/v1alpha1
-kind: CatalogSource
-metadata:
-  name: ibm-ai-wmltraining-catalog
-  namespace: openshift-marketplace
-spec:
-  sourceType: grpc
-  image: icr.io/cpopen/ibm-ai-wmltraining-operator-catalog@sha256@sha256:4e88b9f2df60be6af156d188657763dfa4cbe074c40ea85ba82858796e3cd6a3
-  updateStrategy:
-    registryPoll:
-      interval: 45m
----
-apiVersion: operators.coreos.com/v1alpha1
-kind: CatalogSource
-metadata:
-  name: dp-operators
-  namespace: openshift-marketplace
-spec:
-  displayName: DP Operators
-  image: cp.stg.icr.io/cp/datapower-operator-catalog:latest-cd
-  publisher: IBM
-  sourceType: grpc
-  updateStrategy:
-    registryPoll:
-      interval: 45m
----
-apiVersion: operators.coreos.com/v1alpha1
-kind: CatalogSource
-metadata:
-  name: aspera-redis-operators
-  namespace: openshift-marketplace
-spec:
-  displayName: Redis for Aspera Operators
-  image: cp.stg.icr.io/cp/ibm-cloud-databases-redis-catalog@sha256:bb65ca87c987b040b0a8cea4cf44af9bf1a0110442f249529032dd580cc29b36
-  publisher: IBM
-  sourceType: grpc
-  updateStrategy:
-    registryPoll:
-      interval: 45m
----
-apiVersion: operators.coreos.com/v1alpha1
-kind: CatalogSource
-metadata:
-  name: aspera-operators
-  namespace: openshift-marketplace
-spec:
-  displayName: Aspera Operators
-  image: cp.stg.icr.io/cp/icp4i/aspera/aspera-hsts-catalog@sha256:1b6e1e5437c427815eeb483f0db010aff7e27983cbe4a35a368919e3d339a925
-  publisher: IBM
-  sourceType: grpc
-  updateStrategy:
-    registryPoll:
-      interval: 45m
----
-apiVersion: operators.coreos.com/v1alpha1
-kind: CatalogSource
-metadata:
-  name: ar-operators
-  namespace: openshift-marketplace
-spec:
-  displayName: AR Operators
-  image: cp.stg.icr.io/cp/ibm-integration-asset-repository-catalog:1.3.2-2021-09-06-1534-815bfd8b-service-v2021.2.1-1-amd64@sha256:9c065c84879686e4a45b9f23a121958f59d9372c1378e8b75536405da1d10693
-  publisher: IBM
-  sourceType: grpc
-  updateStrategy:
-    registryPoll:
-      interval: 45m
----
-apiVersion: operators.coreos.com/v1alpha1
-kind: CatalogSource
-metadata:
-  name: od-operators
-  namespace: openshift-marketplace
-spec:
-  displayName: OD Operators
-  image: icr.io/cpopen/ibm-integration-operations-dashboard-catalog:2.5.0-2021-11-12-0957-0c2dac20@sha256:4b01abb219dddc2808895d4e15f0de9b33f546cce5cfb6281e6dda0f5c34bb41
-  publisher: IBM
-  sourceType: grpc
-  updateStrategy:
-    registryPoll:
-      interval: 45m
----
-apiVersion: operators.coreos.com/v1alpha1
-kind: CatalogSource
-metadata:
-  name: cp4i-demo-operator-catalog-source
-  namespace: openshift-marketplace
-spec:
-  displayName: Demo Operators
-  sourceType: grpc
-  image: cp.stg.icr.io/cp/ibm-integration-demos-catalog:latest
-  publisher: IBM
-  sourceType: grpc
-  updateStrategy:
-    registryPoll:
-      interval: 45m
----
-EOF
-else
-  echo -e "$INFO [INFO] Using the release catalog sources"
-  cat <<EOF | oc apply -f -
-apiVersion: operators.coreos.com/v1alpha1
-kind: CatalogSource
-metadata:
-  name: ibm-operator-catalog
-  namespace: openshift-marketplace
-spec:
-  displayName: IBM Operator Catalog
-  publisher: IBM
-  sourceType: grpc
-  image: icr.io/cpopen/ibm-operator-catalog:latest
-  updateStrategy:
-    registryPoll:
-      interval: 45m
-EOF
-fi
+create_catalog_source ${WML_TRAINING_CATALOG_NAME} ${WML_TRAINING_CATALOG_IMAGE} ${WML_TRAINING_CATALOG_DISPLAY_NAME}
+create_catalog_source ${APIC_CATALOG_NAME} ${APIC_CATALOG_IMAGE} ${APIC_CATALOG_DISPLAY_NAME}
+create_catalog_source ${ACE_CATALOG_NAME} ${ACE_CATALOG_IMAGE} ${ACE_CATALOG_DISPLAY_NAME}
+create_catalog_source ${ASPERA_CATALOG_NAME} ${ASPERA_CATALOG_IMAGE} ${ASPERA_CATALOG_DISPLAY_NAME}
+create_catalog_source ${IAF_CATALOG_NAME} ${IAF_CATALOG_IMAGE} ${IAF_CATALOG_DISPLAY_NAME}
+# create_catalog_source ${REDIS_CATALOG_NAME} ${REDIS_CATALOG_IMAGE}
+# create_catalog_source ${COUCHDB_CATALOG_NAME} ${COUCHDB_CATALOG_IMAGE}
+# create_catalog_source ${COMMON_SERVICES_CATALOG_NAME} ${COMMON_SERVICES_CATALOG_IMAGE}
+# create_catalog_source ${DATAPOWER_CATALOG_NAME} ${DATAPOWER_CATALOG_IMAGE}
+# create_catalog_source ${EVENT_STREAMS_CATALOG_NAME} ${EVENT_STREAMS_CATALOG_IMAGE}
+# create_catalog_source ${ASSET_REPO_CATALOG_NAME} ${ASSET_REPO_CATALOG_IMAGE}
+# create_catalog_source ${OPERATIONS_DASHBOARD_CATALOG_NAME} ${OPERATIONS_DASHBOARD_CATALOG_IMAGE}
+# create_catalog_source ${NAVIGATOR_CATALOG_NAME} ${NAVIGATOR_CATALOG_IMAGE}
+# create_catalog_source ${MQ_CATALOG_NAME} ${MQ_CATALOG_IMAGE}
