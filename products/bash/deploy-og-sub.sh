@@ -256,7 +256,8 @@ function create_subscription() {
 
   SUBSCRIPTION_NAME="${NAME}-${CHANNEL}-${SOURCE}-${SOURCE_NAMESPACE}"
 
-  cat <<EOF | oc apply -f -
+  time=0
+  until cat <<EOF | oc apply -f -; do
 apiVersion: operators.coreos.com/v1alpha1
 kind: Subscription
 metadata:
@@ -269,6 +270,14 @@ spec:
   source: ${SOURCE}
   sourceNamespace: ${SOURCE_NAMESPACE}
 EOF
+  if [ $time -gt 10 ]; then
+    echo "ERROR: Exiting installation as timeout waiting for ${SUBSCRIPTION_NAME} Subscription to be created"
+    exit 1
+  fi
+  echo "INFO: Waiting up to 10 minutes for ${SUBSCRIPTION_NAME} Subscription to be created. Waited ${time} minute(s)."
+  time=$((time + 1))
+  sleep 60
+done
 
   if [[ "${EXTRA_SAFE_BUT_SLOW}" == "true" ]]; then
     wait_for_subscription ${NAMESPACE} ${SOURCE} "${NAME}" "${CHANNEL}"
@@ -332,7 +341,7 @@ create_subscription ${namespace} ${ASPERA_CATALOG} "${ASPERA_NAME}" "${ASPERA_CH
 create_subscription ${namespace} ${ACE_CATALOG} "${ACE_NAME}" "${ACE_CHANNEL}"
 create_subscription ${namespace} ${EVENT_STREAMS_CATALOG} "${EVENT_STREAMS_NAME}" "${EVENT_STREAMS_CHANNEL}"
 create_subscription ${namespace} ${MQ_CATALOG} "${MQ_NAME}" "${MQ_CHANNEL}"
-create_subscription ${namespace} ${AR_CATALOG} "${AR_NAME}" "${AR_CHANNEL}"
+create_subscription ${namespace} ${ASSET_REPO_CATALOG} "${ASSET_REPO_NAME}" "${ASSET_REPO_CHANNEL}"
 create_subscription ${namespace} ${DATAPOWER_CATALOG} "${DATAPOWER_NAME}" "${DATAPOWER_CHANNEL}"
 
 if [[ "${DEPLOY_DEMOS}" == "true" ]]; then
@@ -348,7 +357,7 @@ fi
 
 echo "INFO: Apply the APIC/Tracing subscriptions"
 create_subscription ${namespace} ${APIC_CATALOG} "${APIC_NAME}" "${APIC_CHANNEL}"
-create_subscription ${namespace} ${OD_CATALOG} "${OD_NAME}" "${OD_CHANNEL}"
+create_subscription ${namespace} ${OPERATIONS_DASHBOARD_CATALOG} "${OPERATIONS_DASHBOARD_NAME}" "${OPERATIONS_DASHBOARD_CHANNEL}"
 
 echo "INFO: Wait for all subscriptions to succeed"
 wait_for_all_subscriptions ${namespace}
