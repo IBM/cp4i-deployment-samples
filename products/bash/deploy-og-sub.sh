@@ -89,10 +89,10 @@ WML_TRAINING_NAME=ibm-ai-wmltraining
 WML_TRAINING_CHANNEL=v1.1
 APIC_CATALOG=apic-operators
 APIC_NAME=ibm-apiconnect
-APIC_CHANNEL=v2.5
+APIC_CHANNEL=v2.4
 ACE_CATALOG=ace-operators
 ACE_NAME=ibm-appconnect
-ACE_CHANNEL=v4.1
+ACE_CHANNEL=v3.0
 ASPERA_CATALOG=aspera-operators
 ASPERA_NAME=aspera-hsts-operator
 ASPERA_CHANNEL=v1.4
@@ -113,7 +113,7 @@ DATAPOWER_NAME=datapower-operator
 DATAPOWER_CHANNEL=v1.5
 EVENT_STREAMS_CATALOG=es-operators
 EVENT_STREAMS_NAME=ibm-eventstreams
-EVENT_STREAMS_CHANNEL=v3.0
+EVENT_STREAMS_CHANNEL=v2.5
 ASSET_REPO_CATALOG=ar-operators
 ASSET_REPO_NAME=ibm-integration-asset-repository
 ASSET_REPO_CHANNEL=v1.4
@@ -122,10 +122,10 @@ OPERATIONS_DASHBOARD_NAME=ibm-integration-operations-dashboard
 OPERATIONS_DASHBOARD_CHANNEL=v2.5
 NAVIGATOR_CATALOG=pn-operators
 NAVIGATOR_NAME=ibm-integration-platform-navigator
-NAVIGATOR_CHANNEL=v5.3
+NAVIGATOR_CHANNEL=v5.2
 MQ_CATALOG=mq-operators
 MQ_NAME=ibm-mq
-MQ_CHANNEL=v1.8
+MQ_CHANNEL=v1.7
 
 function output_time() {
   SECONDS=${1}
@@ -287,19 +287,19 @@ done
 function delete_datapower_subscription() {
   NAMESPACE=${1}
 
-  INSTALL_PLANS=$(oc get installplans -n ${NAMESPACE} | grep "${DP_NAME}" | awk '{print $1}' | xargs)
+  INSTALL_PLANS=$(oc get installplans -n ${NAMESPACE} | grep "${DATAPOWER_NAME}" | awk '{print $1}' | xargs)
   if [[ "$INSTALL_PLANS" != "" ]]; then
     echo "About to delete installplans: $INSTALL_PLANS"
     oc delete installplans -n ${NAMESPACE} ${INSTALL_PLANS}
   fi
 
-  CSVS=$(oc get csvs -n ${NAMESPACE} | grep "${DP_NAME}" | awk '{print $1}' | xargs)
+  CSVS=$(oc get csvs -n ${NAMESPACE} | grep "${DATAPOWER_NAME}" | awk '{print $1}' | xargs)
   if [[ "$CSVS" != "" ]]; then
     echo "About to delete csvs: $CSVS"
     oc delete csvs -n ${NAMESPACE} ${CSVS}
   fi
 
-  SUBSCRIPTIONS=$(oc get subscriptions -n ${NAMESPACE} | grep "${DP_NAME}" | awk '{print $1}' | xargs)
+  SUBSCRIPTIONS=$(oc get subscriptions -n ${NAMESPACE} | grep "${DATAPOWER_NAME}" | awk '{print $1}' | xargs)
   if [[ "$SUBSCRIPTIONS" != "" ]]; then
     echo "About to delete subscriptions: $SUBSCRIPTIONS"
     oc delete subscriptions -n ${NAMESPACE} ${SUBSCRIPTIONS}
@@ -352,8 +352,20 @@ fi
 if [[ "${EXTRA_SAFE_BUT_SLOW}" == "false" ]]; then
   echo "INFO: Wait for platform navigator and datapower before applying the APIC/Tracing subscriptions"
   wait_for_subscription ${namespace} ${NAVIGATOR_CATALOG} "${NAVIGATOR_NAME}" "$NAVIGATOR_CHANNEL"
-  wait_for_subscription ${namespace} ${DATAPOWER_CATALOG} "${DATAPOWER_NAME}" "${DATAPOWER_CHANNEL}"
 fi
+
+time=0
+until wait_for_subscription_with_timeout ${namespace} ${DATAPOWER_CATALOG} "${DATAPOWER_NAME}" "${DATAPOWER_CHANNEL}" 360; do
+  if [ $time -gt 10 ]; then
+    echo "ERROR: Exiting installation as datapower operator failed to install"
+    exit 1
+  fi
+  time=$((time + 1))
+  echo "INFO: Datapower operator failed to install on attempt ${time}, retrying..."
+  delete_datapower_subscription ${namespace}
+  sleep 30
+  create_subscription ${namespace} ${DATAPOWER_CATALOG} "${DATAPOWER_NAME}" "${DATAPOWER_CHANNEL}"
+done
 
 echo "INFO: Apply the APIC/Tracing subscriptions"
 create_subscription ${namespace} ${APIC_CATALOG} "${APIC_NAME}" "${APIC_CHANNEL}"
