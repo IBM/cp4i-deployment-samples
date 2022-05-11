@@ -152,7 +152,7 @@ spec:
       class: "${file_storage}"
     tracingVolume:
       class: "${block_storage}"
-  version: 2021.4.1-4
+  version: 2021.4.1
 EOF
     if [ $time -gt 10 ]; then
       echo "ERROR: Exiting installation as timeout waiting for OperationsDashboard to be created"
