@@ -67,7 +67,7 @@ PORG_ADMIN_EMAIL=${PORG_ADMIN_EMAIL:-"cp4i-admin@apiconnect.net"} # update to re
 ACE_REGISTRATION_SECRET_NAME="ace-v11-service-creds"              # corresponds to registration obj currently hard-coded in configmap
 PROVIDER_SECRET_NAME="cp4i-admin-creds"                           # corresponds to credentials obj currently hard-coded in configmap
 
-if [[ $(oc get secret cp4i-demo-apic-smtp-secret -n "$NAMESPACE") ]]; then
+if [[ $(oc get secret cp4i-demo-apic-smtp-secret -n "$NAMESPACE" 2>/dev/null) ]]; then
   MAIL_SERVER_HOST=$(oc get secret cp4i-demo-apic-smtp-secret -n "$NAMESPACE" -o json | jq -r '.data.mailServerHost' | base64 --decode)
   MAIL_SERVER_PORT=$(oc get secret cp4i-demo-apic-smtp-secret -n "$NAMESPACE" -o json | jq -r '.data.mailServerPort' | base64 --decode)
   MAIL_SERVER_USERNAME=$(oc get secret cp4i-demo-apic-smtp-secret -n "$NAMESPACE" -o json | jq -r '.data.mailServerUsername' | base64 --decode)
@@ -91,8 +91,9 @@ for i in $(seq 1 120); do
     break
   else
     echo "Waiting for APIC install to complete (Attempt $i of 120). Status: $APIC_STATUS"
-    oc get apiconnectcluster,managementcluster,portalcluster,gatewaycluster,pvc,pod -n $NAMESPACE
-    echo "Checking again in one minute..."
+    if [ $i -gt 50 ]; then
+      oc get apiconnectcluster,managementcluster,portalcluster,gatewaycluster,pvc,pod -n $NAMESPACE
+    fi
     $CURRENT_DIR/zen-fix.sh -n "$NAMESPACE"
     sleep 60
   fi
@@ -103,8 +104,6 @@ if [ "$APIC_STATUS" != "Ready" ]; then
   echo "[ERROR] APIC failed to install"
   exit 1
 fi
-
-
 
 for i in $(seq 1 60); do
   PORTAL_WWW_POD=$(oc get pods -n $NAMESPACE | grep -m1 "${RELEASE_NAME}-ptl.*www" | awk '{print $1}')

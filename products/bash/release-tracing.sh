@@ -176,8 +176,6 @@ for i in $(seq 1 400); do
     break
   else
     echo "Waiting for Operations Dashboard install to complete (Attempt $i of 400). Status: $STATUS"
-
-    echo "Checking again in 15 seconds..."
     sleep 15
   fi
 done

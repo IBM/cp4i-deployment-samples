@@ -244,7 +244,7 @@ fi
 divider
 
 if [[ $check -ne 0 ]]; then
-  echo -e "$cross ERROR: Delete the schematics workspace and rerun the installation after fixing the above validation errors"
+  echo -e "$cross ERROR: Rerun the installation after fixing the above validation errors (no need to delete the schematics workspace)."
   exit 1
 else
   echo -e "$tick $all_done INFO: All validation checks passed $all_done $tick"

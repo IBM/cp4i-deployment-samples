@@ -81,14 +81,14 @@ EOF
   sleep 60
 done
 
-# Waiting upto 90 minutes for platform navigator object to be ready
-echo "INFO: Waiting upto 90 minutes for platform navigator object to be ready"
+# Waiting up to 90 minutes for platform navigator object to be ready
+echo "INFO: Waiting up to 90 minutes for platform navigator object to be ready"
 time=0
 
 while [[ "$(oc get PlatformNavigator -n ${namespace} ${namespace}-navigator -o json | jq -r '.status.conditions[] | select(.type=="Ready").status')" != "True" ]]; do
-  echo "INFO: The platform navigator object status:"
-  echo "INFO: $(oc get PlatformNavigator -n ${namespace} ${namespace}-navigator)"
   if [ $time -gt 90 ]; then
+    echo "INFO: The platform navigator object status:"
+    echo "INFO: $(oc get PlatformNavigator -n ${namespace} ${namespace}-navigator)"
     echo "ERROR: Exiting installation Platform Navigator object is not ready"
     exit 1
   fi

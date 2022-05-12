@@ -224,9 +224,6 @@ function wait_for_all_subscriptions() {
       fi
     done
 
-    if [[ ! -z "$subscriptions_succeeded" ]]; then
-      echo -e "  The following subscriptions have succeeded:${subscriptions_succeeded}"
-    fi
     if [[ ! -z "$subscriptions_waiting" ]]; then
       echo -e "  Still waiting for the following subscriptions:${subscriptions_waiting}"
     fi
@@ -244,7 +241,7 @@ function wait_for_all_subscriptions() {
 
   done
 
-  echo "All subscriptions in $NAMESPACE have succeeded"
+  echo -e "All subscriptions in $NAMESPACE have succeeded:${subscriptions_succeeded}"
 }
 
 function create_subscription() {

@@ -93,8 +93,8 @@ echo "INFO: Default file storage class: '$DEFAULT_FILE_STORAGE'"
 divider
 
 echo "INFO: Delete the old pipelineruns and pvcs"
-oc get pipelinerun -n ${namespace} --no-headers=true | awk '/eei-build-pipelinerun/{print $1}' | xargs  oc delete pipelinerun -n ${namespace}
-oc delete pvc -n $namespace git-workspace-eei buildah-ace-rest-eei buildah-ace-db-writer-eei
+oc get pipelinerun -n ${namespace} --no-headers=true 2>/dev/null | awk '/eei-build-pipelinerun/{print $1}' | xargs  oc delete pipelinerun -n ${namespace}
+oc delete pvc -n $namespace git-workspace-eei buildah-ace-rest-eei buildah-ace-db-writer-eei 2>/dev/null
 
 echo "INFO: Creating pvc for EEI in the '$namespace' namespace"
 if cat $CURRENT_DIR/pvc.yaml |
