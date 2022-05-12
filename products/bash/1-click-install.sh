@@ -423,7 +423,7 @@ divider
 
 # Create/update secret to pull images from the ER
 echo -e "$INFO [INFO] Creating secret to pull images from the ER\n"
-EXISTING_DOCKER_AUTHS=$(oc get secret --namespace ${JOB_NAMESPACE} ibm-entitlement-key -o json | jq -r '.data.".dockerconfigjson"' | base64 --decode | jq -r .auths)
+EXISTING_DOCKER_AUTHS=$(oc get secret --namespace ${JOB_NAMESPACE} ibm-entitlement-key -o json 2>/dev/null | jq -r '.data.".dockerconfigjson"' | base64 --decode | jq -r .auths)
 if [[ "$EXISTING_DOCKER_AUTHS" == "" ]]; then
   EXISTING_DOCKER_AUTHS='{}'
 fi
@@ -452,7 +452,7 @@ EOF
 divider
 
 echo -e "$INFO [INFO] Checking for the platform-auth-idp-credentials secret\n"
-if oc get secrets platform-auth-idp-credentials -n ibm-common-services; then
+if oc get secrets platform-auth-idp-credentials -n ibm-common-services 2>/dev/null; then
   PASSWORD_CHANGE=false
   echo -e "\n$INFO [INFO] Secret platform-auth-idp-credentials already exist so not updating password and username in the installation with provided values"
 else

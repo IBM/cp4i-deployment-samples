@@ -555,7 +555,7 @@ echo "[DEBUG] Licenses configmap:"
 echo $(oc -n $NAMESPACE get configmap demo-licenses -oyaml)
 
 METADATA_NAME=$(oc get demo -n $NAMESPACE -o jsonpath='{.items[0].metadata.name}' 2> /dev/null)
-METADATA_UID=$(oc get demo -n $NAMESPACE $METADATA_NAME -o json | jq -r '.metadata.uid' 2> /dev/null)
+METADATA_UID=$(oc get demo -n $NAMESPACE $METADATA_NAME -o json 2> /dev/null | jq -r '.metadata.uid' 2> /dev/null)
 
 if [[ $METADATA_NAME && $METADATA_UID != '' ]]; then
   cat <<EOF | oc apply --namespace ${NAMESPACE} -f -
@@ -594,7 +594,7 @@ for EACH_ADDON in $(echo $REQUIRED_ADDONS_JSON | jq -r '. | keys[]'); do
 
   ocpPipelines)
     echo -e "$INFO [INFO] Checking if 'ocp-pipeline' is already installed...\n"
-    oc get serviceaccount pipeline
+    oc get serviceaccount pipeline >/dev/null 2>&1
     if [ $? -ne 0 ]; then
       echo -e "$INFO [INFO] 'ocp-pipeline' currently not installed, attempting to install...\n" 1>&2
       $SCRIPT_DIR/install-ocp-pipeline.sh

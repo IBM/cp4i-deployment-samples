@@ -75,8 +75,8 @@ EOF
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
 time=0
-echo -e "INFO: Waiting for upto 5 minutes for 'pipeline' service account to be available in the '$namespace' namespace...\n"
-GET_PIPELINE_SERVICE_ACCOUNT=$(oc get sa --namespace ${namespace} pipeline)
+echo -e "INFO: Waiting for up to 5 minutes for 'pipeline' service account to be available in the '$namespace' namespace...\n"
+GET_PIPELINE_SERVICE_ACCOUNT=$(oc get sa --namespace ${namespace} pipeline 2>/dev/null)
 RESULT_GET_PIPELINE_SERVICE_ACCOUNT=$(echo $?)
 while [ "$RESULT_GET_PIPELINE_SERVICE_ACCOUNT" -ne "0" ]; do
   if [ $time -gt 5 ]; then
@@ -85,11 +85,11 @@ while [ "$RESULT_GET_PIPELINE_SERVICE_ACCOUNT" -ne "0" ]; do
     exit 1
   fi
 
-  oc get sa --namespace ${namespace} pipeline
+  oc get sa --namespace ${namespace} pipeline >/dev/null 2>&1
   echo -e "\nINFO: The 'pipeline' service account is not yet available in the '$namespace' namespace, waiting for upto 5 minutes. Waited ${time} minute(s).\n"
   time=$((time + 1))
   sleep 60
-  GET_PIPELINE_SERVICE_ACCOUNT=$(oc get sa --namespace ${namespace} pipeline)
+  GET_PIPELINE_SERVICE_ACCOUNT=$(oc get sa --namespace ${namespace} pipeline 2>/dev/null)
   RESULT_GET_PIPELINE_SERVICE_ACCOUNT=$(echo $?)
 done
 
