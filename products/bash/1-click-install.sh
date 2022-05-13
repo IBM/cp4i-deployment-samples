@@ -423,7 +423,7 @@ divider
 
 # Create/update secret to pull images from the ER
 echo -e "$INFO [INFO] Creating secret to pull images from the ER\n"
-EXISTING_DOCKER_AUTHS=$(oc get secret --namespace ${JOB_NAMESPACE} ibm-entitlement-key -o json | jq -r '.data.".dockerconfigjson"' | base64 --decode | jq -r .auths)
+EXISTING_DOCKER_AUTHS=$(oc get secret --namespace ${JOB_NAMESPACE} ibm-entitlement-key -o json 2>/dev/null | jq -r '.data.".dockerconfigjson"' | base64 --decode | jq -r .auths)
 if [[ "$EXISTING_DOCKER_AUTHS" == "" ]]; then
   EXISTING_DOCKER_AUTHS='{}'
 fi
@@ -452,7 +452,7 @@ EOF
 divider
 
 echo -e "$INFO [INFO] Checking for the platform-auth-idp-credentials secret\n"
-if oc get secrets platform-auth-idp-credentials -n ibm-common-services; then
+if oc get secrets platform-auth-idp-credentials -n ibm-common-services 2>/dev/null; then
   PASSWORD_CHANGE=false
   echo -e "\n$INFO [INFO] Secret platform-auth-idp-credentials already exist so not updating password and username in the installation with provided values"
 else
@@ -504,19 +504,14 @@ fi
 divider
 
 # Only update common services username and password if common services is not already installed
+PASSWORD_CHANGE_FAILED="false"
 if [ "$PASSWORD_CHANGE" == "true" ]; then
-  time=0
-  until $CURRENT_DIR/change-cs-credentials.sh -u "$csDefaultAdminUser" -p "$csDefaultAdminPassword"; do
-    if [ $time -gt 10 ]; then
-      echo -e "$CROSS [ERROR] Failed to update the common services admin username/password"
-      exit 1
-    fi
-    echo -e "$INFO [INFO] Failed to update the common services admin username/password, retrying in 1 minute"
-    time=$((time + 1))
-    sleep 60
-  done
-
-  echo -e "$TICK [SUCCESS] Successfully updated the common services admin username/password"
+  if $CURRENT_DIR/change-cs-credentials.sh -u "$csDefaultAdminUser" -p "$csDefaultAdminPassword"; then
+    echo -e "$TICK [SUCCESS] Successfully updated the common services admin username/password"
+  else
+    echo -e "$CROSS [WARNING] Failed to update the common services admin username/password, continuing anyway..."
+    PASSWORD_CHANGE_FAILED="true"
+  fi
 else
   echo -e "$INFO [INFO] Retrieve the common service username using the command 'oc get secrets -n ibm-common-services platform-auth-idp-credentials -o jsonpath='{.data.admin_username}' | base64 --decode' "
   echo -e "$INFO [INFO] Retrieve the common service password using the command 'oc get secrets -n ibm-common-services platform-auth-idp-credentials -o jsonpath='{.data.admin_password}' | base64 --decode' "
@@ -586,6 +581,12 @@ if [[ "$demoPreparation" == "true" || "$drivewayDentDeletionDemo" == "true" || "
   elif [[ "$demoPreparation" == "false" && "$drivewayDentDeletionDemo" == "false" && "$testDrivewayDentDeletionDemoE2E" == "true" ]]; then
     echo -e "$INFO [INFO] 'testDrivewayDentDeletionDemoE2E' option was set to 'true'.\n\n$INFO [INFO] To run an automated test for driveway dent deletion demo, set the 'demoPreparation' or 'drivewayDentDeletionDemo' option to 'true' along with the 'testDrivewayDentDeletionDemoE2E' option as 'true'."
   fi
+fi
+
+if [ "$PASSWORD_CHANGE_FAILED" == "true" ]; then
+  echo -e "$CROSS [WARNING] Failed to update the common services admin username/password."
+  echo -e "$INFO [INFO] Retrieve the common service username using the command 'oc get secrets -n ibm-common-services platform-auth-idp-credentials -o jsonpath='{.data.admin_username}' | base64 --decode' "
+  echo -e "$INFO [INFO] Retrieve the common service password using the command 'oc get secrets -n ibm-common-services platform-auth-idp-credentials -o jsonpath='{.data.admin_password}' | base64 --decode' "
 fi
 
 divider && echo -e "$INFO [INFO] The 1-click installation took $(($SECONDS / 60 / 60 % 24)) hour(s) $(($SECONDS / 60 % 60)) minutes and $(($SECONDS % 60)) seconds." && divider

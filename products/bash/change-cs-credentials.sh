@@ -141,6 +141,7 @@ else
     if ! cloudctl pm update-secret ibm-common-services platform-auth-idp-credentials -f -d admin_password=${NEW_PASSWORD} >/dev/null 2>&1; then
       echo "WARNING: Failed to update the admin password" 1>&2
     else
+      echo "INFO: Updated the admin password" 1>&2
       break
     fi
     if [ $time -gt 600 ]; then
@@ -163,6 +164,7 @@ else
     if ! cloudctl pm update-secret ibm-common-services platform-auth-idp-credentials -f -d admin_username=${NEW_USERNAME} >/dev/null 2>&1; then
       echo "WARNING: Failed to update the admin username" 1>&2
     else
+      echo "INFO: Updated the admin username" 1>&2
       break
     fi
     if [ $time -gt 600 ]; then

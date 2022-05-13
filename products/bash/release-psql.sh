@@ -53,7 +53,7 @@ cat <<EOF >/tmp/postgres.env
   POSTGRESQL_VERSION=10-el8
 EOF
 
-oc create namespace ${POSTGRES_NAMESPACE}
+oc create namespace ${POSTGRES_NAMESPACE} >/dev/null 2>&1
 
 json=$(oc get configmap -n ${POSTGRES_NAMESPACE} operator-info -o json 2> /dev/null)
 if [[ $? == 0 ]]; then
