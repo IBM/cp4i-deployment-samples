@@ -398,6 +398,33 @@ reclaimPolicy: Delete
 volumeBindingMode: Immediate
 EOF
 
+  echo -e "$INFO [INFO] Creating new cp4i-file-performance-gid storage class\n"
+  cat <<EOF | oc apply -f -
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: cp4i-file-performance-gid
+  labels:
+    kubernetes.io/cluster-service: "true"
+provisioner: ibm.io/ibmc-file
+parameters:
+  billingType: "hourly"
+  classVersion: "2"
+  gidAllocate: "true"
+  sizeIOPSRange: |-
+    "[1-39]Gi:[1000]"
+    "[40-79]Gi:[2000]"
+    "[80-99]Gi:[4000]"
+    "[100-499]Gi:[5000-6000]"
+    "[500-999]Gi:[5000-10000]"
+    "[1000-1999]Gi:[10000-20000]"
+    "[2000-2999]Gi:[20000-40000]"
+    "[3000-12000]Gi:[24000-48000]"
+  type: "Performance"
+reclaimPolicy: Delete
+volumeBindingMode: Immediate
+EOF
+
   defaultStorageClass=$(oc get sc -o json | jq -r '.items[].metadata | select(.annotations["storageclass.kubernetes.io/is-default-class"] == "true") | .name')
 
   DEFAULT_BLOCK_STORAGE=$defaultStorageClass
@@ -412,11 +439,13 @@ EOF
     oc patch storageclass cp4i-block-performance -p '{"metadata": {"annotations":{"storageclass.kubernetes.io/is-default-class":"true"}}}'
 
     DEFAULT_BLOCK_STORAGE="cp4i-block-performance"
+    DEFAULT_FILE_STORAGE="cp4i-file-performance-gid"
   fi
   divider
 fi
 
 echo -e "$INFO [INFO] Default block storage class: '$DEFAULT_BLOCK_STORAGE'" && divider
+echo -e "$INFO [INFO] Default file storage class: '$DEFAULT_FILE_STORAGE'" && divider
 echo -e "$INFO [INFO] Current storage classes:\n"
 oc get sc
 divider
