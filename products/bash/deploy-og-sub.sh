@@ -35,7 +35,7 @@ function usage() {
 namespace="cp4i"
 ALM_EXAMPLES=false
 DEPLOY_DEMOS=false
-EXTRA_SAFE_BUT_SLOW=false
+EXTRA_SAFE_BUT_SLOW=true
 
 while getopts "n:dae" opt; do
   case ${opt} in
