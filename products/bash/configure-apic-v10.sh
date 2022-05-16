@@ -75,17 +75,19 @@ if [[ $(oc get secret cp4i-demo-apic-smtp-secret -n "$NAMESPACE" 2>/dev/null) ]]
   PORG_ADMIN_EMAIL=$(oc get secret cp4i-demo-apic-smtp-secret -n "$NAMESPACE" -o json | jq -r '.data.emailAddress' | base64 --decode)
 else
   echo -e "\nThe secret 'cp4i-demo-apic-smtp-secret' does not exist in the namespace '$NAMESPACE', continuing configuring APIC with default SMTP values..."
-fi
+  echo -e "\nGoing to use the values defined in 1-click which are also the default values"
+  MAIL_SERVER_HOST=${demoAPICMailServerHost}
+  MAIL_SERVER_PORT=${demoAPICMailServerPort}
+  MAIL_SERVER_USERNAME=${demoAPICMailServerUsername}
+  MAIL_SERVER_PASSWORD=${demoAPICMailServerPassword}
 
-MAIL_SERVER_HOST=${MAIL_SERVER_HOST:-$demoAPICMailServerHost}
-MAIL_SERVER_PORT=${MAIL_SERVER_PORT:-$demoAPICMailServerPort}
-MAIL_SERVER_USERNAME=${MAIL_SERVER_USERNAME:-$demoAPICMailServerUsername}
-MAIL_SERVER_PASSWORD=${MAIL_SERVER_PASSWORD:-$demoAPICMailServerPassword}
+fi
 
 echo -e "Printing values-metadata1: $demoAPICEmailAddress"
 echo -e "Printing values-metadata2: $demoAPICMailServerHost"
 echo -e "Printing values-metadata3: $demoAPICMailServerPort"
 echo -e "Printing values-metadata4: $demoAPICMailServerUsername"
+echo -e "Printing values-metadata5: $demoAPICMailServerPassword"
 
 echo -e "Printing assigned value 1: $MAIL_SERVER_HOST"
 echo -e "Printing assigned value 2: $MAIL_SERVER_PORT"
