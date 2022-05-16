@@ -82,6 +82,11 @@ MAIL_SERVER_PORT=${MAIL_SERVER_PORT:-"2525"}
 MAIL_SERVER_USERNAME=${MAIL_SERVER_USERNAME:-"<your-username>"}
 MAIL_SERVER_PASSWORD=${MAIL_SERVER_PASSWORD:-"<your-password>"}
 
+echo -e "Printing values-metadata1: $demoAPICEmailAddress"
+echo -e "Printing values-metadata2: $demoAPICMailServerHost"
+echo -e "Printing values-metadata3: $demoAPICMailServerPort"
+echo -e "Printing values-metadata4: $demoAPICMailServerUsername"
+
 echo "Waiting for APIC installation to complete..."
 for i in $(seq 1 120); do
   APIC_STATUS=$(oc get apiconnectcluster.apiconnect.ibm.com -n $NAMESPACE ${RELEASE_NAME} -o jsonpath='{.status.phase}')
