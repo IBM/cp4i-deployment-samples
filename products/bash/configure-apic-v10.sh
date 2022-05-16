@@ -77,15 +77,20 @@ else
   echo -e "\nThe secret 'cp4i-demo-apic-smtp-secret' does not exist in the namespace '$NAMESPACE', continuing configuring APIC with default SMTP values..."
 fi
 
-MAIL_SERVER_HOST=${MAIL_SERVER_HOST:-"smtp.mailtrap.io"}
-MAIL_SERVER_PORT=${MAIL_SERVER_PORT:-"2525"}
-MAIL_SERVER_USERNAME=${MAIL_SERVER_USERNAME:-"<your-username>"}
-MAIL_SERVER_PASSWORD=${MAIL_SERVER_PASSWORD:-"<your-password>"}
+MAIL_SERVER_HOST=${MAIL_SERVER_HOST:-$demoAPICMailServerHost}
+MAIL_SERVER_PORT=${MAIL_SERVER_PORT:-$demoAPICMailServerPort}
+MAIL_SERVER_USERNAME=${MAIL_SERVER_USERNAME:-$demoAPICMailServerUsername}
+MAIL_SERVER_PASSWORD=${MAIL_SERVER_PASSWORD:-$demoAPICMailServerPassword}
 
 echo -e "Printing values-metadata1: $demoAPICEmailAddress"
 echo -e "Printing values-metadata2: $demoAPICMailServerHost"
 echo -e "Printing values-metadata3: $demoAPICMailServerPort"
 echo -e "Printing values-metadata4: $demoAPICMailServerUsername"
+
+echo -e "Printing assigned value 1: $MAIL_SERVER_HOST"
+echo -e "Printing assigned value 2: $MAIL_SERVER_PORT"
+echo -e "Printing assigned value 3: $MAIL_SERVER_USERNAME"
+echo -e "Printing assigned value 4: $MAIL_SERVER_PASSWORD"
 
 echo "Waiting for APIC installation to complete..."
 for i in $(seq 1 120); do
