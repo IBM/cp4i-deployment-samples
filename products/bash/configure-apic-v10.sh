@@ -84,19 +84,6 @@ else
 fi
 
 
-
-echo -e "Printing values-metadata1: $demoAPICEmailAddress"
-echo -e "Printing values-metadata2: $demoAPICMailServerHost"
-echo -e "Printing values-metadata3: $demoAPICMailServerPort"
-echo -e "Printing values-metadata4: $demoAPICMailServerUsername"
-echo -e "Printing values-metadata5: $demoAPICMailServerPassword"
-
-echo -e "Printing assigned value 1: $MAIL_SERVER_HOST"
-echo -e "Printing assigned value 2: $MAIL_SERVER_PORT"
-echo -e "Printing assigned value 3: $MAIL_SERVER_USERNAME"
-echo -e "Printing assigned value 4: $MAIL_SERVER_PASSWORD"
-echo -e "Printing assigned value 5: $PORG_ADMIN_EMAIL"
-
 echo "Waiting for APIC installation to complete..."
 for i in $(seq 1 120); do
   APIC_STATUS=$(oc get apiconnectcluster.apiconnect.ibm.com -n $NAMESPACE ${RELEASE_NAME} -o jsonpath='{.status.phase}')
@@ -361,7 +348,6 @@ add_cs_admin_user "${provider_token}" "${ORG_NAME_DDD}" "${test_porg_url}"
 add_catalog "${provider_token}" "${ORG_NAME_DDD}" "${test_porg_url}" "${TEST_CATALOG}" "${TEST_CATALOG_TITLE}"
 
 
-echo -e "Printing mail creds for testing host: ${MAIL_SERVER_HOST} port: ${MAIL_SERVER_PORT} usr: ${MAIL_SERVER_USERNAME} "
 echo "Checking if the Admin org mail server has already been created"
 response=`curl GET https://${API_EP}/api/orgs/admin/mail-servers/default-mail-server \
                -s -k -H "Content-Type: application/json" -H "Accept: application/json" \
