@@ -75,12 +75,14 @@ if [[ $(oc get secret cp4i-demo-apic-smtp-secret -n "$NAMESPACE" 2>/dev/null) ]]
   PORG_ADMIN_EMAIL=$(oc get secret cp4i-demo-apic-smtp-secret -n "$NAMESPACE" -o json | jq -r '.data.emailAddress' | base64 --decode)
 else
   echo -e "\nThe secret 'cp4i-demo-apic-smtp-secret' does not exist in the namespace '$NAMESPACE', continuing configuring APIC with default SMTP values..."
+  echo -e "\nGoing to use the values defined in 1-click which are also the default values"
+  MAIL_SERVER_HOST=${demoAPICMailServerHost}
+  MAIL_SERVER_PORT=${demoAPICMailServerPort}
+  MAIL_SERVER_USERNAME=${demoAPICMailServerUsername}
+  MAIL_SERVER_PASSWORD=${demoAPICMailServerPassword}
+  PORG_ADMIN_EMAIL=${demoAPICEmailAddress}
 fi
 
-MAIL_SERVER_HOST=${MAIL_SERVER_HOST:-"smtp.mailtrap.io"}
-MAIL_SERVER_PORT=${MAIL_SERVER_PORT:-"2525"}
-MAIL_SERVER_USERNAME=${MAIL_SERVER_USERNAME:-"<your-username>"}
-MAIL_SERVER_PASSWORD=${MAIL_SERVER_PASSWORD:-"<your-password>"}
 
 echo "Waiting for APIC installation to complete..."
 for i in $(seq 1 120); do
@@ -344,7 +346,6 @@ create_org "$admin_token" "${ORG_NAME_DDD}" "${TEST_PORG_TITLE}" "${owner_url}"
 test_porg_url="${RESULT}"
 add_cs_admin_user "${provider_token}" "${ORG_NAME_DDD}" "${test_porg_url}"
 add_catalog "${provider_token}" "${ORG_NAME_DDD}" "${test_porg_url}" "${TEST_CATALOG}" "${TEST_CATALOG_TITLE}"
-
 
 
 echo "Checking if the Admin org mail server has already been created"
