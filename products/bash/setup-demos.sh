@@ -61,19 +61,23 @@ MISSING_PARAMS="false"
 MISSING_PREREQS="false"
 
 # cognitive car repair demo list
-COGNITIVE_CAR_REPAIR_PRODUCTS_LIST=("aceDashboard" "aceDesigner" "apic" "assetRepo" "tracing")
+# COGNITIVE_CAR_REPAIR_PRODUCTS_LIST=("aceDashboard" "aceDesigner" "apic" "assetRepo" "tracing")
+COGNITIVE_CAR_REPAIR_PRODUCTS_LIST=("aceDashboard" "aceDesigner" "apic" "assetRepo")
 COGNITIVE_CAR_REPAIR_ADDONS_LIST=()
 # driveway dent deletion demo list
-DRIVEWAY_DENT_DELETION_PRODUCTS_LIST=("aceDashboard" "apic" "tracing")
+# DRIVEWAY_DENT_DELETION_PRODUCTS_LIST=("aceDashboard" "apic" "tracing")
+DRIVEWAY_DENT_DELETION_PRODUCTS_LIST=("aceDashboard" "apic")
 DRIVEWAY_DENT_DELETION_ADDONS_LIST=("postgres" "ocpPipelines")
 # event insurance demo list
-EVENT_ENABLED_INSURANCE_PRODUCTS_LIST=("aceDashboard" "apic" "eventStreams" "tracing")
+# EVENT_ENABLED_INSURANCE_PRODUCTS_LIST=("aceDashboard" "apic" "eventStreams" "tracing")
+EVENT_ENABLED_INSURANCE_PRODUCTS_LIST=("aceDashboard" "apic" "eventStreams")
 EVENT_ENABLED_INSURANCE_ADDONS_LIST=("postgres" "ocpPipelines")
 # mapping assist demo list
 MAPPING_ASSIST_PRODUCTS_LIST=("aceDesigner")
 MAPPING_ASSIST_ADDONS_LIST=()
 # ace weather chatbot demo list
-ACE_WEATHER_CHATBOT_PRODUCTS_LIST=("aceDashboard" "aceDesigner" "apic" "assetRepo" "tracing")
+# ACE_WEATHER_CHATBOT_PRODUCTS_LIST=("aceDashboard" "aceDesigner" "apic" "assetRepo" "tracing")
+ACE_WEATHER_CHATBOT_PRODUCTS_LIST=("aceDashboard" "aceDesigner" "apic" "assetRepo")
 ACE_WEATHER_CHATBOT_ADDONS_LIST=()
 
 # Default release name variables
@@ -426,16 +430,16 @@ for DEMO in $(echo $REQUIRED_DEMOS_JSON | jq -r 'keys[]'); do
       aceDesigner
       apic
       assetRepo
-      tracing
       '
+      # tracing
     ADDONS_FOR_DEMO=''
     ;;
   drivewayDentDeletion)
     PRODUCTS_FOR_DEMO='
       aceDashboard
       apic
-      tracing
       '
+      # tracing
 
     # Disabled as we no longer want a separate namespace for test. The following is an example
     # of how this could work if we want to re-add this support later.
@@ -452,8 +456,8 @@ for DEMO in $(echo $REQUIRED_DEMOS_JSON | jq -r 'keys[]'); do
       aceDashboard
       apic
       eventStreams
-      tracing
       '
+      # tracing
     ADDONS_FOR_DEMO='
       postgres
       ocpPipelines
@@ -471,8 +475,8 @@ for DEMO in $(echo $REQUIRED_DEMOS_JSON | jq -r 'keys[]'); do
       aceDesigner
       apic
       assetRepo
-      tracing
       '
+      # tracing
     ADDONS_FOR_DEMO=''
     ;;
   *)
