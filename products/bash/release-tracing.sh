@@ -35,6 +35,8 @@ block_storage="ibmc-block-gold"
 file_storage="ibmc-file-gold-gid"
 production="false"
 CURRENT_DIR=$(dirname $0)
+TICK="\xE2\x9C\x85"
+CROSS="\xE2\x9D\x8C"
 
 while getopts "n:r:b:d:f:p" opt; do
   case ${opt} in
@@ -168,17 +170,19 @@ fi
 oc create secret generic -n ${namespace} icp4i-od-store-cred --from-literal=icp4i-od-cacert.pem="empty" --from-literal=username="empty" --from-literal=password="empty" --from-literal=tracingUrl="empty"
 
 echo "Waiting for Operations Dashboard installation to complete..."
-for i in $(seq 1 400); do
-  STATUS=$(oc get OperationsDashboard -n ${namespace} ${release_name} -o jsonpath='{.status.phase}')
-  if [ "$STATUS" == "Ready" ]; then
-    printf "$tick"
-    echo "Operations Dashboard is ready"
-    break
-  else
-    echo "Waiting for Operations Dashboard install to complete (Attempt $i of 400). Status: $STATUS"
-    sleep 15
+time=1
+STATUS=$(oc get OperationsDashboard -n ${namespace} ${release_name} -o jsonpath='{.status.phase}')
+until [ "$STATUS" == "Ready" ]; do
+  if [ $time -gt 400 ]; then
+    echo -e "$CROSS [ERROR] Exiting installation as timeout waiting for Operations Dashboard to be ready"
+    exit 1
   fi
+  echo "Waiting for Operations Dashboard install to complete (Attempt $time of 400). Status: $STATUS"
+  sleep 15
+  time=$((time + 1))
 done
+
+echo -e "$TICK [INFO] Operations Dashboard is ready"
 
 time=0
 until cat <<EOF | oc apply -f -; do
