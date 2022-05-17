@@ -355,7 +355,6 @@ response=`curl GET https://${API_EP}/api/orgs/admin/mail-servers/default-mail-se
 $DEBUG && echo "[DEBUG] $(echo ${response} | jq .)"
 if [[ "$(echo ${response} | jq -r '.status')" == "404" ]]; then
   echo "Create the default mail server for the Admin org"
-  echo -e "Printing mail creds for testing host: ${MAIL_SERVER_HOST} port: ${MAIL_SERVER_PORT} usr: ${MAIL_SERVER_USERNAME} "
   response=`curl https://${API_EP}/api/orgs/admin/mail-servers \
                  -s -k -H "Content-Type: application/json" -H "Accept: application/json" \
                  -H "Authorization: Bearer ${admin_token}" \
