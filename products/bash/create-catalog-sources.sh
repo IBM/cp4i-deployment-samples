@@ -21,6 +21,7 @@
 
 INFO="\xE2\x84\xB9"
 
+# See the find-catalog-sources/README.md for how to create/update the following list of env vars:
 WML_TRAINING_CATALOG_NAME=ibm-ai-wmltraining-catalog
 WML_TRAINING_CATALOG_IMAGE=icr.io/cpopen/ibm-ai-wmltraining-operator-catalog@sha256:4e88b9f2df60be6af156d188657763dfa4cbe074c40ea85ba82858796e3cd6a3
 WML_TRAINING_CATALOG_DISPLAY_NAME="WML Training Operators 1.1.1"
