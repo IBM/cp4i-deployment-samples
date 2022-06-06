@@ -132,7 +132,7 @@ for EACH_DEPLOY_TYPE in "${DEPLOY_NAMES[@]}"; do
   echo -e "$INFO [INFO] Generating user, database name and password for the postgres database in the '$NAMESPACE' namespace"
   DB_USER=$(echo ${NAMESPACE}_${EACH_DEPLOY_TYPE}_${SUFFIX} | sed 's/-/_/g')
   DB_NAME="db_$DB_USER"
-  EXISTING_PASSWORD=$(oc -n $NAMESPACE get secret postgres-credential-$SUFFIX-$EACH_DEPLOY_TYPE -ojsonpath='{.data.password}')
+  EXISTING_PASSWORD=$(oc -n $NAMESPACE get secret postgres-credential-$SUFFIX-$EACH_DEPLOY_TYPE -ojsonpath='{.data.password}' 2>/dev/null)
 
   if [[ $? == 0 ]]; then
     echo "INFO: Retrieving existing password"

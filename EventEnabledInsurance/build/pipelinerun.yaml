@@ -12,3 +12,4 @@ spec:
     - name: git-source
       persistentvolumeclaim:
         claimName: git-workspace-eei
+  timeout: "20m"

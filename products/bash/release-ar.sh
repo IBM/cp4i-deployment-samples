@@ -63,7 +63,8 @@ if [[ $? == 0 ]]; then
   METADATA_UID=$(echo $json | tr '\r\n' ' ' | jq -r '.data.METADATA_UID')
 fi
 
-cat <<EOF | oc apply -f -
+time=0
+until cat <<EOF | oc apply -f -; do
 apiVersion: integration.ibm.com/v1beta1
 kind: AssetRepository
 metadata:
@@ -88,5 +89,13 @@ spec:
       class: ${assetDataVolume}
     couchVolume:
       class: ${couchVolume}
-  version: 2021.4.1
+  version: 2021.4.1-3
 EOF
+  if [ $time -gt 10 ]; then
+    echo "ERROR: Exiting installation as timeout waiting for AssetRepository to be created"
+    exit 1
+  fi
+  echo "INFO: Waiting up to 10 minutes for AssetRepository to be created. Waited ${time} minute(s)."
+  time=$((time + 1))
+  sleep 60
+done

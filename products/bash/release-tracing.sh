@@ -35,6 +35,8 @@ block_storage="ibmc-block-gold"
 file_storage="ibmc-file-gold-gid"
 production="false"
 CURRENT_DIR=$(dirname $0)
+TICK="\xE2\x9C\x85"
+CROSS="\xE2\x9D\x8C"
 
 while getopts "n:r:b:d:f:p" opt; do
   case ${opt} in
@@ -71,7 +73,8 @@ fi
 
 if [[ "$production" == "true" ]]; then
   echo "Production Mode Enabled"
-  cat <<EOF | oc apply -f -
+  time=0
+  until cat <<EOF | oc apply -f -; do
 apiVersion: integration.ibm.com/v1beta2
 kind: OperationsDashboard
 metadata:
@@ -113,8 +116,17 @@ spec:
       size: 150Gi
   version: 2021.4.1-0
 EOF
+    if [ $time -gt 10 ]; then
+      echo "ERROR: Exiting installation as timeout waiting for OperationsDashboard to be created"
+      exit 1
+    fi
+    echo "INFO: Waiting up to 10 minutes for OperationsDashboard to be created. Waited ${time} minute(s)."
+    time=$((time + 1))
+    sleep 60
+  done
 else
-  cat <<EOF | oc apply -f -
+  time=0
+  until cat <<EOF | oc apply -f -; do
 apiVersion: integration.ibm.com/v1beta2
 kind: OperationsDashboard
 metadata:
@@ -144,27 +156,36 @@ spec:
       class: "${block_storage}"
   version: 2021.4.1
 EOF
+    if [ $time -gt 10 ]; then
+      echo "ERROR: Exiting installation as timeout waiting for OperationsDashboard to be created"
+      exit 1
+    fi
+    echo "INFO: Waiting up to 10 minutes for OperationsDashboard to be created. Waited ${time} minute(s)."
+    time=$((time + 1))
+    sleep 60
+  done
 fi
 
 # If the icp4i-od-store-cred then create a dummy one that the service binding will populate
 oc create secret generic -n ${namespace} icp4i-od-store-cred --from-literal=icp4i-od-cacert.pem="empty" --from-literal=username="empty" --from-literal=password="empty" --from-literal=tracingUrl="empty"
 
 echo "Waiting for Operations Dashboard installation to complete..."
-for i in $(seq 1 400); do
-  STATUS=$(oc get OperationsDashboard -n ${namespace} ${release_name} -o jsonpath='{.status.phase}')
-  if [ "$STATUS" == "Ready" ]; then
-    printf "$tick"
-    echo "Operations Dashboard is ready"
-    break
-  else
-    echo "Waiting for Operations Dashboard install to complete (Attempt $i of 400). Status: $STATUS"
-
-    echo "Checking again in 15 seconds..."
-    sleep 15
+time=1
+STATUS=$(oc get OperationsDashboard -n ${namespace} ${release_name} -o jsonpath='{.status.phase}')
+until [ "$STATUS" == "Ready" ]; do
+  if [ $time -gt 400 ]; then
+    echo -e "$CROSS [ERROR] Exiting installation as timeout waiting for Operations Dashboard to be ready"
+    exit 1
   fi
+  echo "Waiting for Operations Dashboard install to complete (Attempt $time of 400). Status: $STATUS"
+  sleep 15
+  time=$((time + 1))
 done
 
-cat <<EOF | oc apply -f -
+echo -e "$TICK [INFO] Operations Dashboard is ready"
+
+time=0
+until cat <<EOF | oc apply -f -; do
 apiVersion: integration.ibm.com/v1beta2
 kind: OperationsDashboardServiceBinding
 metadata:
@@ -184,3 +205,11 @@ spec:
   sourcePodName: "demo-tracing"
   sourceSecretName: "icp4i-od-store-cred"
 EOF
+  if [ $time -gt 10 ]; then
+    echo "ERROR: Exiting installation as timeout waiting for OperationsDashboard to be created"
+    exit 1
+  fi
+  echo "INFO: Waiting up to 10 minutes for OperationsDashboard to be created. Waited ${time} minute(s)."
+  time=$((time + 1))
+  sleep 60
+done

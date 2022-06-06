@@ -62,19 +62,23 @@ MISSING_PREREQS="false"
 
 # cognitive car repair demo list
 # 20220311 - remove tracing
+# COGNITIVE_CAR_REPAIR_PRODUCTS_LIST=("aceDashboard" "aceDesigner" "apic" "assetRepo" "tracing")
 COGNITIVE_CAR_REPAIR_PRODUCTS_LIST=("aceDashboard" "aceDesigner" "apic" "assetRepo")
 COGNITIVE_CAR_REPAIR_ADDONS_LIST=()
 # driveway dent deletion demo list
-DRIVEWAY_DENT_DELETION_PRODUCTS_LIST=("aceDashboard" "apic" "tracing")
+# DRIVEWAY_DENT_DELETION_PRODUCTS_LIST=("aceDashboard" "apic" "tracing")
+DRIVEWAY_DENT_DELETION_PRODUCTS_LIST=("aceDashboard" "apic")
 DRIVEWAY_DENT_DELETION_ADDONS_LIST=("postgres" "ocpPipelines")
 # event insurance demo list
-EVENT_ENABLED_INSURANCE_PRODUCTS_LIST=("aceDashboard" "apic" "eventStreams" "tracing")
+# EVENT_ENABLED_INSURANCE_PRODUCTS_LIST=("aceDashboard" "apic" "eventStreams" "tracing")
+EVENT_ENABLED_INSURANCE_PRODUCTS_LIST=("aceDashboard" "apic" "eventStreams")
 EVENT_ENABLED_INSURANCE_ADDONS_LIST=("postgres" "ocpPipelines")
 # mapping assist demo list
 MAPPING_ASSIST_PRODUCTS_LIST=("aceDesigner")
 MAPPING_ASSIST_ADDONS_LIST=()
 # ace weather chatbot demo list
-ACE_WEATHER_CHATBOT_PRODUCTS_LIST=("aceDashboard" "aceDesigner" "apic" "assetRepo" "tracing")
+# ACE_WEATHER_CHATBOT_PRODUCTS_LIST=("aceDashboard" "aceDesigner" "apic" "assetRepo" "tracing")
+ACE_WEATHER_CHATBOT_PRODUCTS_LIST=("aceDashboard" "aceDesigner" "apic" "assetRepo")
 ACE_WEATHER_CHATBOT_ADDONS_LIST=()
 
 # Default release name variables
@@ -400,10 +404,12 @@ echo -e "$INFO Namespace: '$NAMESPACE'" && divider
 ALL_DEMOS_ENABLED=$(echo $REQUIRED_DEMOS_JSON | jq -r '. | if has("all") then .all else false end')
 $DEBUG && echo -e "$INFO [DEBUG] All demos enabled: '$ALL_DEMOS_ENABLED'"
 if [[ "${ALL_DEMOS_ENABLED}" == "true" ]]; then
-  REQUIRED_DEMOS_JSON='{"cognitiveCarRepair": {"enabled": true},"drivewayDentDeletion": {"enabled": true},"eventEnabledInsurance": {"enabled": true},"mappingAssist": {"enabled": true},"weatherChatbot": {"enabled": true}}'
+  REQUIRED_DEMOS_JSON='{"cognitiveCarRepair": "true","drivewayDentDeletion": "true","eventEnabledInsurance": "true","mappingAssist": "true","weatherChatbot": "true"}'
 else
-  REQUIRED_DEMOS_JSON=$(echo $REQUIRED_DEMOS_JSON | jq -c 'del(.all) | del(.[] | select(. == false))')
+  REQUIRED_DEMOS_JSON=$(echo $REQUIRED_DEMOS_JSON | jq -c 'del(.. | select(. == "false"))' | jq -c 'del(.. | select(. == false))')
 fi
+
+echo -e "$INFO Following demos will be installed $REQUIRED_DEMOS_JSON"
 
 #-------------------------------------------------------------------------------------------------------------------
 # Update the required JSON with addons and products which are enabled in the CR
@@ -426,16 +432,16 @@ for DEMO in $(echo $REQUIRED_DEMOS_JSON | jq -r 'keys[]'); do
       aceDesigner
       apic
       assetRepo
-      tracing
       '
+      # tracing
     ADDONS_FOR_DEMO=''
     ;;
   drivewayDentDeletion)
     PRODUCTS_FOR_DEMO='
       aceDashboard
       apic
-      tracing
       '
+      # tracing
 
     # Disabled as we no longer want a separate namespace for test. The following is an example
     # of how this could work if we want to re-add this support later.
@@ -452,8 +458,8 @@ for DEMO in $(echo $REQUIRED_DEMOS_JSON | jq -r 'keys[]'); do
       aceDashboard
       apic
       eventStreams
-      tracing
       '
+      # tracing
     ADDONS_FOR_DEMO='
       postgres
       ocpPipelines
@@ -471,8 +477,8 @@ for DEMO in $(echo $REQUIRED_DEMOS_JSON | jq -r 'keys[]'); do
       aceDesigner
       apic
       assetRepo
-      tracing
       '
+      # tracing
     ADDONS_FOR_DEMO=''
     ;;
   *)
@@ -555,7 +561,7 @@ echo "[DEBUG] Licenses configmap:"
 echo $(oc -n $NAMESPACE get configmap demo-licenses -oyaml)
 
 METADATA_NAME=$(oc get demo -n $NAMESPACE -o jsonpath='{.items[0].metadata.name}' 2> /dev/null)
-METADATA_UID=$(oc get demo -n $NAMESPACE $METADATA_NAME -o json | jq -r '.metadata.uid' 2> /dev/null)
+METADATA_UID=$(oc get demo -n $NAMESPACE $METADATA_NAME -o json 2> /dev/null | jq -r '.metadata.uid' 2> /dev/null)
 
 if [[ $METADATA_NAME && $METADATA_UID != '' ]]; then
   cat <<EOF | oc apply --namespace ${NAMESPACE} -f -
@@ -594,7 +600,7 @@ for EACH_ADDON in $(echo $REQUIRED_ADDONS_JSON | jq -r '. | keys[]'); do
 
   ocpPipelines)
     echo -e "$INFO [INFO] Checking if 'ocp-pipeline' is already installed...\n"
-    oc get serviceaccount pipeline
+    oc get serviceaccount pipeline >/dev/null 2>&1
     if [ $? -ne 0 ]; then
       echo -e "$INFO [INFO] 'ocp-pipeline' currently not installed, attempting to install...\n" 1>&2
       $SCRIPT_DIR/install-ocp-pipeline.sh
@@ -809,6 +815,7 @@ fi
 #-------------------------------------------------------------------------------------------------------------------
 
 echo -e "$INFO [INFO] Starting demos setup..." && divider
+
 for EACH_DEMO in $(echo $REQUIRED_DEMOS_JSON | jq -r '. | keys[]'); do
   case $EACH_DEMO in
   cognitiveCarRepair)

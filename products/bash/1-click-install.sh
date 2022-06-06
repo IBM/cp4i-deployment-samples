@@ -52,7 +52,7 @@ function divider() {
 }
 
 function usage() {
-  echo "Usage: $0 -a <eventEnabledInsuranceDemo> -b <demoDeploymentBranch> -c <DEFAULT_FILE_STORAGE> -d <demoPreparation> -e <demoAPICEmailAddress> -f <drivewayDentDeletionDemo> -g <DEFAULT_BLOCK_STORAGE> -h <demoAPICMailServerHost> -j <tempERKey> -k <tempRepo> -l <DOCKER_REGISTRY_USER> -m <demoAPICMailServerUsername> -n <JOB_NAMESPACE> -o <demoAPICMailServerPort> -p <csDefaultAdminPassword> -q <demoAPICMailServerPassword> -r <navReplicaCount> -s <DOCKER_REGISTRY_PASS> -t <ENVIRONMENT> -u <csDefaultAdminUser> -v <useFastStorageClass> -w <testDrivewayDentDeletionDemoE2E> -x <CLUSTER_TYPE> [-y]"
+  echo "Usage: $0 -a <eventEnabledInsuranceDemo> -b <demoDeploymentBranch> -c <DEFAULT_FILE_STORAGE> -d <demoPreparation> -e <demoAPICEmailAddress> -f <drivewayDentDeletionDemo> -g <DEFAULT_BLOCK_STORAGE> -h <demoAPICMailServerHost> -j <tempERKey> -k <tempRepo> -l <DOCKER_REGISTRY_USER> -m <demoAPICMailServerUsername> -n <JOB_NAMESPACE> -o <demoAPICMailServerPort> -p <csDefaultAdminPassword> -q <demoAPICMailServerPassword> -r <navReplicaCount> -s <DOCKER_REGISTRY_PASS> -t <ENVIRONMENT> -u <csDefaultAdminUser> -v <useFastStorageClass> -w <testDrivewayDentDeletionDemoE2E> -x <CLUSTER_TYPE> -A <cognitiveCarRepairDemo> -B <mappingAssistDemo> -C <weatherChatbotDemo> [-y]"
   divider
   exit 1
 }
@@ -67,14 +67,11 @@ IMAGE_REPO="cp.icr.io"
 PASSWORD_CHANGE="true"
 DEFAULT_BLOCK_STORAGE="cp4i-block-performance"
 DEFAULT_FILE_STORAGE="ibmc-file-gold-gid"
-cognitiveCarRepairDemo=false
-mappingAssistDemo=false
-weatherChatbotDemo=false
 CLUSTER_TYPE="roks"
 CLUSTER_SCOPED="false"
 HA_ENABLED="true"
 
-while getopts "a:b:c:d:e:f:g:h:j:k:l:m:n:o:p:q:r:s:t:u:v:w:x:z:y" opt; do
+while getopts "a:b:c:d:e:f:g:h:j:k:l:m:n:o:p:q:r:s:t:u:v:w:x:z:A:B:C:y" opt; do
   case ${opt} in
   a)
     eventEnabledInsuranceDemo="$OPTARG"
@@ -150,6 +147,15 @@ while getopts "a:b:c:d:e:f:g:h:j:k:l:m:n:o:p:q:r:s:t:u:v:w:x:z:y" opt; do
     ;;
   z)
     HA_ENABLED="$OPTARG"
+    ;;
+  A)
+    cognitiveCarRepairDemo="$OPTARG"
+    ;;
+  B)
+    mappingAssistDemo="$OPTARG"
+    ;;
+  C)
+     weatherChatbotDemo="$OPTARG"
     ;;
   \?)
     usage
@@ -240,6 +246,21 @@ if [[ -z "${HA_ENABLED// /}" ]]; then
   MISSING_PARAMS="true"
 fi
 
+if [[ -z "${cognitiveCarRepairDemo// /}" ]]; then
+  echo -e "$INFO [INFO] 1-click install Cognitive Car Repair parameter is empty (-A). Setting the default value of 'false' for it."
+  cognitiveCarRepairDemo="false"
+fi
+
+if [[ -z "${mappingAssistDemo// /}" ]]; then
+  echo -e "$INFO [INFO] 1-click install Mapping Assist parameter is empty (-B). Setting the default value of 'false' for it."
+  mappingAssistDemo="false"
+fi
+
+if [[ -z "${weatherChatbotDemo// /}" ]]; then
+  echo -e "$INFO [INFO] 1-click install Weather Chatbot parameter is empty (-C). Setting the default value of 'false' for it."
+  weatherChatbotDemo="false"
+fi
+
 if [[ "$MISSING_PARAMS" == "true" ]]; then
   divider
   exit 1
@@ -262,6 +283,18 @@ fi
 
 if [[ "$eventEnabledInsuranceDemo" == "true" ]]; then
   eventEnabledInsuranceDemo=true
+fi
+
+if [[ "$cognitiveCarRepairDemo" == "true" ]]; then
+  cognitiveCarRepairDemo=true
+fi
+
+if [[ "$mappingAssistDemo" == "true" ]]; then
+  mappingAssistDemo=true
+fi
+
+if [[ "$weatherChatbotDemo" == "true" ]]; then
+  weatherChatbotDemo=true
 fi
 
 if [[ "$CLUSTER_SCOPED" == "true" ]]; then
@@ -365,6 +398,33 @@ reclaimPolicy: Delete
 volumeBindingMode: Immediate
 EOF
 
+  echo -e "$INFO [INFO] Creating new cp4i-file-performance-gid storage class\n"
+  cat <<EOF | oc apply -f -
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: cp4i-file-performance-gid
+  labels:
+    kubernetes.io/cluster-service: "true"
+provisioner: ibm.io/ibmc-file
+parameters:
+  billingType: "hourly"
+  classVersion: "2"
+  gidAllocate: "true"
+  sizeIOPSRange: |-
+    "[1-39]Gi:[1000]"
+    "[40-79]Gi:[2000]"
+    "[80-99]Gi:[4000]"
+    "[100-499]Gi:[5000-6000]"
+    "[500-999]Gi:[5000-10000]"
+    "[1000-1999]Gi:[10000-20000]"
+    "[2000-2999]Gi:[20000-40000]"
+    "[3000-12000]Gi:[24000-48000]"
+  type: "Performance"
+reclaimPolicy: Delete
+volumeBindingMode: Immediate
+EOF
+
   defaultStorageClass=$(oc get sc -o json | jq -r '.items[].metadata | select(.annotations["storageclass.kubernetes.io/is-default-class"] == "true") | .name')
 
   DEFAULT_BLOCK_STORAGE=$defaultStorageClass
@@ -379,18 +439,20 @@ EOF
     oc patch storageclass cp4i-block-performance -p '{"metadata": {"annotations":{"storageclass.kubernetes.io/is-default-class":"true"}}}'
 
     DEFAULT_BLOCK_STORAGE="cp4i-block-performance"
+    DEFAULT_FILE_STORAGE="cp4i-file-performance-gid"
   fi
   divider
 fi
 
 echo -e "$INFO [INFO] Default block storage class: '$DEFAULT_BLOCK_STORAGE'" && divider
+echo -e "$INFO [INFO] Default file storage class: '$DEFAULT_FILE_STORAGE'" && divider
 echo -e "$INFO [INFO] Current storage classes:\n"
 oc get sc
 divider
 
 # Create/update secret to pull images from the ER
 echo -e "$INFO [INFO] Creating secret to pull images from the ER\n"
-EXISTING_DOCKER_AUTHS=$(oc get secret --namespace ${JOB_NAMESPACE} ibm-entitlement-key -o json | jq -r '.data.".dockerconfigjson"' | base64 --decode | jq -r .auths)
+EXISTING_DOCKER_AUTHS=$(oc get secret --namespace ${JOB_NAMESPACE} ibm-entitlement-key -o json 2>/dev/null | jq -r '.data.".dockerconfigjson"' | base64 --decode | jq -r .auths)
 if [[ "$EXISTING_DOCKER_AUTHS" == "" ]]; then
   EXISTING_DOCKER_AUTHS='{}'
 fi
@@ -419,7 +481,7 @@ EOF
 divider
 
 echo -e "$INFO [INFO] Checking for the platform-auth-idp-credentials secret\n"
-if oc get secrets platform-auth-idp-credentials -n ibm-common-services; then
+if oc get secrets platform-auth-idp-credentials -n ibm-common-services 2>/dev/null; then
   PASSWORD_CHANGE=false
   echo -e "\n$INFO [INFO] Secret platform-auth-idp-credentials already exist so not updating password and username in the installation with provided values"
 else
@@ -471,25 +533,26 @@ fi
 divider
 
 # Only update common services username and password if common services is not already installed
+PASSWORD_CHANGE_FAILED="false"
 if [ "$PASSWORD_CHANGE" == "true" ]; then
-  if ! $CURRENT_DIR/change-cs-credentials.sh -u "$csDefaultAdminUser" -p "$csDefaultAdminPassword"; then
-    echo -e "$CROSS [ERROR] Failed to update the common services admin username/password"
-    divider
-    exit 1
-  else
+  if $CURRENT_DIR/change-cs-credentials.sh -u "$csDefaultAdminUser" -p "$csDefaultAdminPassword"; then
     echo -e "$TICK [SUCCESS] Successfully updated the common services admin username/password"
+  else
+    echo -e "$CROSS [WARNING] Failed to update the common services admin username/password, continuing anyway..."
+    PASSWORD_CHANGE_FAILED="true"
   fi
 else
   echo -e "$INFO [INFO] Retrieve the common service username using the command 'oc get secrets -n ibm-common-services platform-auth-idp-credentials -o jsonpath='{.data.admin_username}' | base64 --decode' "
   echo -e "$INFO [INFO] Retrieve the common service password using the command 'oc get secrets -n ibm-common-services platform-auth-idp-credentials -o jsonpath='{.data.admin_password}' | base64 --decode' "
 fi
 
-if [[ "$demoPreparation" == "true" || "$drivewayDentDeletionDemo" == "true" || "$eventEnabledInsuranceDemo" == "true" ]]; then
+if [[ "$demoPreparation" == "true" || "$drivewayDentDeletionDemo" == "true" || "$eventEnabledInsuranceDemo" == "true" || "$cognitiveCarRepairDemo" == "true" || "$mappingAssistDemo" == "true" || "$weatherChatbotDemo" == "true" ]]; then
   divider && echo -e "$INFO [INFO] Setting up all required addons, products and demos in the '$JOB_NAMESPACE' namespace..."
   CURRENT_DIR_WITHOUT_DOT_SLASH=${CURRENT_DIR//.\//}
 
   # create a new backup json file to revert demos.json after setup script
   cp $CURRENT_DIR_WITHOUT_DOT_SLASH/demos.json $CURRENT_DIR_WITHOUT_DOT_SLASH/demos-backup.json
+
 
   echo -e "\n$INFO [INFO] Replacing all variables with their values in the demo json file to use as input for the demo script..."
   # replace demo.json with variable values
@@ -508,6 +571,9 @@ if [[ "$demoPreparation" == "true" || "$drivewayDentDeletionDemo" == "true" || "
   sed -i -e "s/EVENT_ENABLED_INSURANCE_DEMO/$eventEnabledInsuranceDemo/g" $CURRENT_DIR_WITHOUT_DOT_SLASH/demos.json
   sed -i -e "s/MAPPING_ASSIST_DEMO/$mappingAssistDemo/g" $CURRENT_DIR_WITHOUT_DOT_SLASH/demos.json
   sed -i -e "s/WEATHER_CHATBOT_DEMO/$weatherChatbotDemo/g" $CURRENT_DIR_WITHOUT_DOT_SLASH/demos.json
+
+  echo -e "printing the demos.json"
+  cat $CURRENT_DIR_WITHOUT_DOT_SLASH/demos.json
 
   retries=1
   while ! $CURRENT_DIR/setup-demos.sh -i $CURRENT_DIR_WITHOUT_DOT_SLASH/demos.json -o $CURRENT_DIR_WITHOUT_DOT_SLASH/demos-output.json; do
@@ -544,6 +610,12 @@ if [[ "$demoPreparation" == "true" || "$drivewayDentDeletionDemo" == "true" || "
   elif [[ "$demoPreparation" == "false" && "$drivewayDentDeletionDemo" == "false" && "$testDrivewayDentDeletionDemoE2E" == "true" ]]; then
     echo -e "$INFO [INFO] 'testDrivewayDentDeletionDemoE2E' option was set to 'true'.\n\n$INFO [INFO] To run an automated test for driveway dent deletion demo, set the 'demoPreparation' or 'drivewayDentDeletionDemo' option to 'true' along with the 'testDrivewayDentDeletionDemoE2E' option as 'true'."
   fi
+fi
+
+if [ "$PASSWORD_CHANGE_FAILED" == "true" ]; then
+  echo -e "$CROSS [WARNING] Failed to update the common services admin username/password."
+  echo -e "$INFO [INFO] Retrieve the common service username using the command 'oc get secrets -n ibm-common-services platform-auth-idp-credentials -o jsonpath='{.data.admin_username}' | base64 --decode' "
+  echo -e "$INFO [INFO] Retrieve the common service password using the command 'oc get secrets -n ibm-common-services platform-auth-idp-credentials -o jsonpath='{.data.admin_password}' | base64 --decode' "
 fi
 
 divider && echo -e "$INFO [INFO] The 1-click installation took $(($SECONDS / 60 / 60 % 24)) hour(s) $(($SECONDS / 60 % 60)) minutes and $(($SECONDS % 60)) seconds." && divider

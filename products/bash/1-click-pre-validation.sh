@@ -118,7 +118,7 @@ mem_req_gi=154.5
 total_cpu=0.0
 total_mem_gi=0.0
 
-if [[ "${demoPreparation}" == "true" ]]; then
+if [[ "${demoPreparation}" == "true" || "${drivewayDentDeletionDemo}" == "true" || "${eventEnabledInsuranceDemo}" == "true" || "${cognitiveCarRepairDemo}" == "true" || "${mappingAssistDemo}" == "true" || "${weatherChatbotDemo}" == "true" ]]; then
   for row in $(oc get node -o json | jq -r '.items[] | { name: .metadata.name, cpu: .status.allocatable.cpu, mem: .status.allocatable.memory } | @base64'); do
     _jq() {
       echo ${row} | base64 --decode | jq -r ${1}
@@ -244,7 +244,7 @@ fi
 divider
 
 if [[ $check -ne 0 ]]; then
-  echo -e "$cross ERROR: Delete the schematics workspace and rerun the installation after fixing the above validation errors"
+  echo -e "$cross ERROR: Rerun the installation after fixing the above validation errors (no need to delete the schematics workspace)."
   exit 1
 else
   echo -e "$tick $all_done INFO: All validation checks passed $all_done $tick"

@@ -68,7 +68,7 @@ PORG_ADMIN_EMAIL=${PORG_ADMIN_EMAIL:-"cp4i-admin@apiconnect.net"} # update to re
 ACE_REGISTRATION_SECRET_NAME="ace-v11-service-creds"              # corresponds to registration obj currently hard-coded in configmap
 PROVIDER_SECRET_NAME="cp4i-admin-creds"                           # corresponds to credentials obj currently hard-coded in configmap
 
-if [[ $(oc get secret cp4i-demo-apic-smtp-secret -n "$NAMESPACE") ]]; then
+if [[ $(oc get secret cp4i-demo-apic-smtp-secret -n "$NAMESPACE" 2>/dev/null) ]]; then
   MAIL_SERVER_HOST=$(oc get secret cp4i-demo-apic-smtp-secret -n "$NAMESPACE" -o json | jq -r '.data.mailServerHost' | base64 --decode)
   MAIL_SERVER_PORT=$(oc get secret cp4i-demo-apic-smtp-secret -n "$NAMESPACE" -o json | jq -r '.data.mailServerPort' | base64 --decode)
   MAIL_SERVER_USERNAME=$(oc get secret cp4i-demo-apic-smtp-secret -n "$NAMESPACE" -o json | jq -r '.data.mailServerUsername' | base64 --decode)
@@ -76,12 +76,14 @@ if [[ $(oc get secret cp4i-demo-apic-smtp-secret -n "$NAMESPACE") ]]; then
   PORG_ADMIN_EMAIL=$(oc get secret cp4i-demo-apic-smtp-secret -n "$NAMESPACE" -o json | jq -r '.data.emailAddress' | base64 --decode)
 else
   echo -e "\nThe secret 'cp4i-demo-apic-smtp-secret' does not exist in the namespace '$NAMESPACE', continuing configuring APIC with default SMTP values..."
+  echo -e "\nGoing to use the values defined in 1-click which are also the default values"
+  MAIL_SERVER_HOST=${demoAPICMailServerHost}
+  MAIL_SERVER_PORT=${demoAPICMailServerPort}
+  MAIL_SERVER_USERNAME=${demoAPICMailServerUsername}
+  MAIL_SERVER_PASSWORD=${demoAPICMailServerPassword}
+  PORG_ADMIN_EMAIL=${demoAPICEmailAddress}
 fi
 
-MAIL_SERVER_HOST=${MAIL_SERVER_HOST:-"smtp.mailtrap.io"}
-MAIL_SERVER_PORT=${MAIL_SERVER_PORT:-"2525"}
-MAIL_SERVER_USERNAME=${MAIL_SERVER_USERNAME:-"<your-username>"}
-MAIL_SERVER_PASSWORD=${MAIL_SERVER_PASSWORD:-"<your-password>"}
 
 echo "Waiting for APIC installation to complete..."
 for i in $(seq 1 120); do
@@ -92,9 +94,10 @@ for i in $(seq 1 120); do
     break
   else
     echo "Waiting for APIC install to complete (Attempt $i of 120). Status: $APIC_STATUS"
-    oc get apiconnectcluster,managementcluster,portalcluster,gatewaycluster -n $NAMESPACE
-    oc get pvc,pod -n $NAMESPACE -l app.kubernetes.io/managed-by=ibm-apiconnect -l app.kubernetes.io/part-of=${RELEASE_NAME}
-    echo "Checking again in one minute..."
+    if [ $i -gt 50 ]; then
+      oc get apiconnectcluster,managementcluster,portalcluster,gatewaycluster,pvc,pod -n $NAMESPACE
+    fi
+    $CURRENT_DIR/zen-fix.sh -n "$NAMESPACE"
     sleep 60
   fi
 done
@@ -125,7 +128,7 @@ for i in $(seq 1 60); do
 done
 
 echo "Pod listing for information"
-oc get pod -n $NAMESPACE -l app.kubernetes.io/managed-by=ibm-apiconnect -l app.kubernetes.io/part-of=${RELEASE_NAME}
+oc get pod -n $NAMESPACE
 
 # obtain endpoint info from APIC v10 routes
 APIM_UI_EP=$(oc get route -n $NAMESPACE ${RELEASE_NAME}-mgmt-api-manager -o jsonpath='{.spec.host}')
@@ -344,7 +347,6 @@ create_org "$admin_token" "${ORG_NAME_DDD}" "${TEST_PORG_TITLE}" "${owner_url}"
 test_porg_url="${RESULT}"
 add_cs_admin_user "${provider_token}" "${ORG_NAME_DDD}" "${test_porg_url}"
 add_catalog "${provider_token}" "${ORG_NAME_DDD}" "${test_porg_url}" "${TEST_CATALOG}" "${TEST_CATALOG_TITLE}"
-
 
 
 echo "Checking if the Admin org mail server has already been created"
