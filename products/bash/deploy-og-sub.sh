@@ -320,11 +320,12 @@ EOF
 fi
 
 echo "INFO: Create prereq subscriptions"
+#Changing the order of operator install so that the right version of CS/iaf is pulled
+create_subscription ${namespace} ${COMMON_SERVICES_CATALOG} "${COMMON_SERVICES_NAME}" "$COMMON_SERVICES_CHANNEL"
 create_subscription ${namespace} ${WML_TRAINING_CATALOG} "${WML_TRAINING_NAME}" "$WML_TRAINING_CHANNEL"
 create_subscription ${namespace} ${IAF_CATALOG} "${IAF_NAME}" "$IAF_CHANNEL"
 create_subscription ${namespace} ${REDIS_CATALOG} "${REDIS_NAME}" "$REDIS_CHANNEL"
 create_subscription ${namespace} ${COUCH_CATALOG} "${COUCH_NAME}" "$COUCH_CHANNEL"
-create_subscription ${namespace} ${COMMON_SERVICES_CATALOG} "${COMMON_SERVICES_NAME}" "$COMMON_SERVICES_CHANNEL"
 wait_for_all_subscriptions ${namespace}
 
 # Create the subscription for navigator. This needs to be before APIC (ibm-apiconnect)
