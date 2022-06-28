@@ -21,49 +21,51 @@
 
 INFO="\xE2\x84\xB9"
 
+# TODO Below pre-release versions taken from https://hyc-cip-jenkins.swg-devops.com/job/Automation/job/test/job/e2e-test/job/main/1545/
+
 # See the find-catalog-sources/README.md for how to create/update the following list of env vars:
 WML_TRAINING_CATALOG_NAME=ibm-ai-wmltraining-catalog
 WML_TRAINING_CATALOG_IMAGE=icr.io/cpopen/ibm-ai-wmltraining-operator-catalog@sha256:4e88b9f2df60be6af156d188657763dfa4cbe074c40ea85ba82858796e3cd6a3
 WML_TRAINING_CATALOG_DISPLAY_NAME="WML Training Operators 1.1.1"
 APIC_CATALOG_NAME=apic-operators
-APIC_CATALOG_IMAGE=icr.io/cpopen/ibm-apiconnect-catalog@sha256:214c287742fb86a943f593179616a7f1d265ee948e36da4e11d7504368917ff9
-APIC_CATALOG_DISPLAY_NAME="APIC Operators 3.0.7"
+APIC_CATALOG_IMAGE=cp.stg.icr.io/cp/ibm-apiconnect-catalog@sha256:c8ea09c92bcfbb18829eb5c08d4f099af4b800d8813a4dd22db25b99de6d7f37
+APIC_CATALOG_DISPLAY_NAME="APIC Operators 2022.2.1 Pre-release"
 ACE_CATALOG_NAME=ace-operators
-ACE_CATALOG_IMAGE=icr.io/cpopen/appconnect-operator-catalog@sha256:d70302c0d7ecd0a17a7256b3e62fb0d6039797021a42728cf681940d012372ae
-ACE_CATALOG_DISPLAY_NAME="ACE Operators 4.1.0"
+ACE_CATALOG_IMAGE=cp.stg.icr.io/cp/appconnect-operator-catalog@sha256:56df4ba338d533b8d0db555ff1803404a2bc5620d545a3ab08dbe8cf7ebbb12a
+ACE_CATALOG_DISPLAY_NAME="ACE Operators 2022.2.1 Pre-release"
 ASPERA_CATALOG_NAME=aspera-operators
-ASPERA_CATALOG_IMAGE=icr.io/cpopen/aspera-hsts-catalog@sha256:69bcdd83f138306b1510d5835e44245808d2a435f3c7705b75ac7309c0eb207c
-ASPERA_CATALOG_DISPLAY_NAME="Aspera Operators 1.4.1"
-IAF_CATALOG_NAME=automation-base-pak-operators
-IAF_CATALOG_IMAGE=icr.io/cpopen/ibm-automation-foundation-core-catalog@sha256:0bd8ed8ee6807f780471d05bca46dea5b1eb9edcbd76587d08fa94fe9fa27c25
-IAF_CATALOG_DISPLAY_NAME="IBMABP Operators 1.3.6"
+ASPERA_CATALOG_IMAGE=cp.stg.icr.io/cp/icp4i/aspera/aspera-hsts-catalog@sha256:4d793923a1a2eb73e5db3d3da160316afd6510b2070a66702adc47ccf3d50ced
+ASPERA_CATALOG_DISPLAY_NAME="Aspera Operators 2022.2.1 Pre-release"
+IAF_CATALOG_NAME=ibm-automation-foundation-core-catalog
+IAF_CATALOG_IMAGE=icr.io/cpopen/ibm-automation-foundation-core-catalog@sha256:71f42c0a9d043fc7865d5c1b9cb4b41c9da249ba8981836dd7474e01b7cf1d3e
+IAF_CATALOG_DISPLAY_NAME="IBMABP Operators 1.3.7"
 REDIS_CATALOG_NAME=aspera-redis-operators
-REDIS_CATALOG_IMAGE=icr.io/cpopen/ibm-cloud-databases-redis-catalog@sha256:0f288d16fa18af1af176398cd066a4fb549d811067a41668b05ef4b60ed6088a
-REDIS_CATALOG_DISPLAY_NAME="Redis for Aspera Operators 1.4.5"
-COUCHDB_CATALOG_NAME=couchdb-operators
+REDIS_CATALOG_IMAGE=cp.stg.icr.io/cp/ibm-cloud-databases-redis-catalog@sha256:4aa56dd1e90065668a280d6eb34f5793bf5f54b0479f46d635343400560b9dcd
+REDIS_CATALOG_DISPLAY_NAME="Redis for Aspera Operators 2022.2.1 Pre-release"
+COUCHDB_CATALOG_NAME=couchdb-operator-catalog
 COUCHDB_CATALOG_IMAGE=icr.io/cpopen/couchdb-operator-catalog@sha256:c35df32a8de999a4bb76229fbe302b1107d9c6bd17d159ee30167016c51bc215
-COUCHDB_CATALOG_DISPLAY_NAME="IBM CouchDB Operators 1.0.13"
-COMMON_SERVICES_CATALOG_NAME=opencloud-operators
-COMMON_SERVICES_CATALOG_IMAGE=icr.io/cpopen/ibm-common-service-catalog@sha256:f637b2888f7be48760b3925e906216f8565ab6b036172b21c87506fbdd53020a
-COMMON_SERVICES_CATALOG_DISPLAY_NAME="IBMCS Operators 1.13.0"
+COUCHDB_CATALOG_DISPLAY_NAME="IBM CouchDB Operators latest"
+COMMON_SERVICES_CATALOG_NAME=ibm-common-service-catalog
+COMMON_SERVICES_CATALOG_IMAGE=icr.io/cpopen/ibm-common-service-catalog@sha256:8fb50af805915ba40e69aaa123dcb0cb859921e476d02adf109e62130b6d1008
+COMMON_SERVICES_CATALOG_DISPLAY_NAME="IBMCS Operators v3.19.0"
 DATAPOWER_CATALOG_NAME=dp-operators
-DATAPOWER_CATALOG_IMAGE=icr.io/cpopen/datapower-operator-catalog@sha256:3995b3114b3ef872cccf76f8c3bdc15df0a01d039b9957a280b9571ffbb1fa50
-DATAPOWER_CATALOG_DISPLAY_NAME="DP Operators 1.5.3"
+DATAPOWER_CATALOG_IMAGE=cp.stg.icr.io/cp/datapower-operator-catalog@sha256:dd3c631a1f51ce4933b8bb450160ced0667cdc5c5c9314e4033a55222faa92d5
+DATAPOWER_CATALOG_DISPLAY_NAME="DP Operators 2022.2.1 Pre-release"
 EVENT_STREAMS_CATALOG_NAME=es-operators
-EVENT_STREAMS_CATALOG_IMAGE=icr.io/cpopen/ibm-eventstreams-catalog@sha256:76b1f2637c5ed871f66ee4e89b4b48fe91aef7613a894f9bdf6638a493ab0cdc
-EVENT_STREAMS_CATALOG_DISPLAY_NAME="ES Operators 1.6.1"
+EVENT_STREAMS_CATALOG_IMAGE=cp.stg.icr.io/cp/ibm-eventstreams-catalog@sha256:550d886742f90cea1cd42b80eafe7c9a21bafb9bf2ac5c1de7d183bf7802954a
+EVENT_STREAMS_CATALOG_DISPLAY_NAME="ES Operators 2022.2.1 Pre-release"
 ASSET_REPO_CATALOG_NAME=ar-operators
-ASSET_REPO_CATALOG_IMAGE=icr.io/cpopen/ibm-integration-asset-repository-catalog@sha256:ef993b1eca79044918d1757559598d167ed34321d55310aa8c9171c138ec085d
-ASSET_REPO_CATALOG_DISPLAY_NAME="AR Operators 1.4.5"
+ASSET_REPO_CATALOG_IMAGE=cp.stg.icr.io/cp/ibm-integration-asset-repository-catalog@sha256:a68d1e925263090eb30061b38944a030e13cf5a8910a6f0e5aa047dc9a6b9614
+ASSET_REPO_CATALOG_DISPLAY_NAME="AR Operators 2022.2.1 Pre-release"
 OPERATIONS_DASHBOARD_CATALOG_NAME=od-operators
-OPERATIONS_DASHBOARD_CATALOG_IMAGE=icr.io/cpopen/ibm-integration-operations-dashboard-catalog@sha256:53b8d24b9650e5e82cac5d4c33000372439826bfe874a8565ed49f46a33e7f8c
-OPERATIONS_DASHBOARD_CATALOG_DISPLAY_NAME="OD Operators 2.5.5"
+OPERATIONS_DASHBOARD_CATALOG_IMAGE=cp.stg.icr.io/cp/ibm-integration-operations-dashboard-catalog@sha256:e9c2b98879ac9f6ba08992c04a5efcec8df74fef04711438383a5577f48034c1
+OPERATIONS_DASHBOARD_CATALOG_DISPLAY_NAME="OD Operators 2022.2.1 Pre-release"
 NAVIGATOR_CATALOG_NAME=pn-operators
-NAVIGATOR_CATALOG_IMAGE=icr.io/cpopen/ibm-integration-platform-navigator-catalog@sha256:b41fd254ab7f503f65409a4a417d65fb1f3d9950fc5ea9dac30ec2f29ec31e4d
-NAVIGATOR_CATALOG_DISPLAY_NAME="PN Operators 1.6.1"
+NAVIGATOR_CATALOG_IMAGE=cp.stg.icr.io/cp/ibm-integration-platform-navigator-catalog@sha256:5be84a8103c894abebd4836cba7be54152788d373b82a7a2e83497a32c5d6574
+NAVIGATOR_CATALOG_DISPLAY_NAME="PN Operators 2022.2.1 Pre-release"
 MQ_CATALOG_NAME=mq-operators
-MQ_CATALOG_IMAGE=icr.io/cpopen/ibm-mq-operator-catalog@sha256:8ad0fe91b535b6169933b0270ea7266fcaf73173f26ea17bb50255c39d5b2aa6
-MQ_CATALOG_DISPLAY_NAME="MQ Operators 1.8.1"
+MQ_CATALOG_IMAGE=cp.stg.icr.io/cp/ibm-mq-operator-catalog@sha256:9caf9697a9bb03853965cb8335323a0a20f1b4c74fea1bbb6cb2a34c4b74d953
+MQ_CATALOG_DISPLAY_NAME="MQ Operators 2022.2.1 Pre-release"
 
 function create_catalog_source() {
   CATALOG_NAME=${1}
