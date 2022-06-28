@@ -103,7 +103,7 @@ spec:
     use: CloudPakForIntegrationNonProduction
   replicas: 1
   useCommonServices: true
-  version: '12.0.2'
+  version: '12.0-lts'
 EOF
   if [ $time -gt 10 ]; then
     echo "ERROR: Exiting installation as timeout waiting for DesignerAuthoring to be created"

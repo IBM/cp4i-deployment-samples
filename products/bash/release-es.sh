@@ -63,7 +63,7 @@ if [ "$production" == "true" ]; then
   echo "Production Mode Enabled"
   time=0
   until cat <<EOF | oc apply -f -; do
-apiVersion: eventstreams.ibm.com/v1beta1
+apiVersion: eventstreams.ibm.com/v1beta2
 kind: EventStreams
 metadata:
   name: ${release_name}
@@ -101,27 +101,42 @@ spec:
         num.replica.fetchers: 3
         offsets.topic.replication.factor: 3
       listeners:
-        external:
-          authentication:
+        - authentication:
             type: scram-sha-512
+          name: external
+          port: 9094
+          tls: true
           type: route
-        tls:
-          authentication:
+        - authentication:
             type: tls
-      metrics: {}
+          name: tls
+          port: 9093
+          tls: true
+          type: internal
+      metricsConfig:
+        type: jmxPrometheusExporter
+        valueFrom:
+          configMapKeyRef:
+            key: kafka-metrics-config.yaml
+            name: metrics-config
       replicas: 3
       storage:
         class: ${storageClass}
         size: 4Gi
         type: persistent-claim
     zookeeper:
-      metrics: {}
+      metricsConfig:
+         type: jmxPrometheusExporter
+         valueFrom:
+           configMapKeyRef:
+             key: zookeeper-metrics-config.yaml
+             name: metrics-config
       replicas: 3
       storage:
         class: ${storageClass}
         size: 2Gi
         type: persistent-claim
-  version: 10.5.0
+  version: 11.0.2
 EOF
     if [ $time -gt 10 ]; then
       echo "ERROR: Exiting installation as timeout waiting for EventStreams to be created"
@@ -134,7 +149,7 @@ EOF
 else
   time=0
   until cat <<EOF | oc apply -f -; do
-apiVersion: eventstreams.ibm.com/v1beta1
+apiVersion: eventstreams.ibm.com/v1beta2
 kind: EventStreams
 metadata:
   name: ${release_name}
@@ -172,17 +187,30 @@ spec:
         transaction.state.log.min.isr: 1
         transaction.state.log.replication.factor: 1
       listeners:
-        plain: {}
-      metrics: {}
+        - name: plain
+          port: 9092
+          tls: false
+          type: internal
+      metricsConfig:
+        type: jmxPrometheusExporter
+        valueFrom:
+          configMapKeyRef:
+            key: kafka-metrics-config.yaml
+            name: metrics-config
       replicas: 3
       storage:
         type: ephemeral
     zookeeper:
-      metrics: {}
+      metricsConfig:
+        type: jmxPrometheusExporter
+        valueFrom:
+          configMapKeyRef:
+            key: zookeeper-metrics-config.yaml
+            name: metrics-config
       replicas: 3
       storage:
         type: ephemeral
-  version: 10.5.0
+  version: 11.0.2
 EOF
     if [ $time -gt 10 ]; then
       echo "ERROR: Exiting installation as timeout waiting for EventStreams to be created"

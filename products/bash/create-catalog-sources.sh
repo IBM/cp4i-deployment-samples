@@ -28,7 +28,8 @@ WML_TRAINING_CATALOG_NAME=ibm-ai-wmltraining-catalog
 WML_TRAINING_CATALOG_IMAGE=icr.io/cpopen/ibm-ai-wmltraining-operator-catalog@sha256:4e88b9f2df60be6af156d188657763dfa4cbe074c40ea85ba82858796e3cd6a3
 WML_TRAINING_CATALOG_DISPLAY_NAME="WML Training Operators 1.1.1"
 APIC_CATALOG_NAME=apic-operators
-APIC_CATALOG_IMAGE=cp.stg.icr.io/cp/ibm-apiconnect-catalog@sha256:c8ea09c92bcfbb18829eb5c08d4f099af4b800d8813a4dd22db25b99de6d7f37
+#APIC_CATALOG_IMAGE=cp.stg.icr.io/cp/ibm-apiconnect-catalog@sha256:c8ea09c92bcfbb18829eb5c08d4f099af4b800d8813a4dd22db25b99de6d7f37
+APIC_CATALOG_IMAGE=icr.io/cpopen/ibm-apiconnect-catalog@sha256:5514de8857f1f971448eccc043cec046afccf7c887097477a2f57d4f864b0476
 APIC_CATALOG_DISPLAY_NAME="APIC Operators 2022.2.1 Pre-release"
 ACE_CATALOG_NAME=ace-operators
 ACE_CATALOG_IMAGE=cp.stg.icr.io/cp/appconnect-operator-catalog@sha256:56df4ba338d533b8d0db555ff1803404a2bc5620d545a3ab08dbe8cf7ebbb12a
@@ -36,15 +37,15 @@ ACE_CATALOG_DISPLAY_NAME="ACE Operators 2022.2.1 Pre-release"
 ASPERA_CATALOG_NAME=aspera-operators
 ASPERA_CATALOG_IMAGE=cp.stg.icr.io/cp/icp4i/aspera/aspera-hsts-catalog@sha256:4d793923a1a2eb73e5db3d3da160316afd6510b2070a66702adc47ccf3d50ced
 ASPERA_CATALOG_DISPLAY_NAME="Aspera Operators 2022.2.1 Pre-release"
-IAF_CATALOG_NAME=ibm-automation-foundation-core-catalog
-IAF_CATALOG_IMAGE=icr.io/cpopen/ibm-automation-foundation-core-catalog@sha256:71f42c0a9d043fc7865d5c1b9cb4b41c9da249ba8981836dd7474e01b7cf1d3e
-IAF_CATALOG_DISPLAY_NAME="IBMABP Operators 1.3.7"
+# IAF_CATALOG_NAME=ibm-automation-foundation-core-catalog
+# IAF_CATALOG_IMAGE=icr.io/cpopen/ibm-automation-foundation-core-catalog@sha256:71f42c0a9d043fc7865d5c1b9cb4b41c9da249ba8981836dd7474e01b7cf1d3e
+# IAF_CATALOG_DISPLAY_NAME="IBMABP Operators 1.3.7"
 REDIS_CATALOG_NAME=aspera-redis-operators
 REDIS_CATALOG_IMAGE=cp.stg.icr.io/cp/ibm-cloud-databases-redis-catalog@sha256:4aa56dd1e90065668a280d6eb34f5793bf5f54b0479f46d635343400560b9dcd
 REDIS_CATALOG_DISPLAY_NAME="Redis for Aspera Operators 2022.2.1 Pre-release"
-COUCHDB_CATALOG_NAME=couchdb-operator-catalog
-COUCHDB_CATALOG_IMAGE=icr.io/cpopen/couchdb-operator-catalog@sha256:c35df32a8de999a4bb76229fbe302b1107d9c6bd17d159ee30167016c51bc215
-COUCHDB_CATALOG_DISPLAY_NAME="IBM CouchDB Operators latest"
+# COUCHDB_CATALOG_NAME=couchdb-operator-catalog
+# COUCHDB_CATALOG_IMAGE=icr.io/cpopen/couchdb-operator-catalog@sha256:c35df32a8de999a4bb76229fbe302b1107d9c6bd17d159ee30167016c51bc215
+# COUCHDB_CATALOG_DISPLAY_NAME="IBM CouchDB Operators latest"
 COMMON_SERVICES_CATALOG_NAME=ibm-common-service-catalog
 COMMON_SERVICES_CATALOG_IMAGE=icr.io/cpopen/ibm-common-service-catalog@sha256:8fb50af805915ba40e69aaa123dcb0cb859921e476d02adf109e62130b6d1008
 COMMON_SERVICES_CATALOG_DISPLAY_NAME="IBMCS Operators v3.19.0"
@@ -93,9 +94,9 @@ create_catalog_source ${WML_TRAINING_CATALOG_NAME} ${WML_TRAINING_CATALOG_IMAGE}
 create_catalog_source ${APIC_CATALOG_NAME} ${APIC_CATALOG_IMAGE} ${APIC_CATALOG_DISPLAY_NAME}
 create_catalog_source ${ACE_CATALOG_NAME} ${ACE_CATALOG_IMAGE} ${ACE_CATALOG_DISPLAY_NAME}
 create_catalog_source ${ASPERA_CATALOG_NAME} ${ASPERA_CATALOG_IMAGE} ${ASPERA_CATALOG_DISPLAY_NAME}
-create_catalog_source ${IAF_CATALOG_NAME} ${IAF_CATALOG_IMAGE} ${IAF_CATALOG_DISPLAY_NAME}
+# create_catalog_source ${IAF_CATALOG_NAME} ${IAF_CATALOG_IMAGE} ${IAF_CATALOG_DISPLAY_NAME}
 create_catalog_source ${REDIS_CATALOG_NAME} ${REDIS_CATALOG_IMAGE} ${REDIS_CATALOG_DISPLAY_NAME}
-create_catalog_source ${COUCHDB_CATALOG_NAME} ${COUCHDB_CATALOG_IMAGE} ${COUCHDB_CATALOG_DISPLAY_NAME}
+# create_catalog_source ${COUCHDB_CATALOG_NAME} ${COUCHDB_CATALOG_IMAGE} ${COUCHDB_CATALOG_DISPLAY_NAME}
 create_catalog_source ${COMMON_SERVICES_CATALOG_NAME} ${COMMON_SERVICES_CATALOG_IMAGE} ${COMMON_SERVICES_CATALOG_DISPLAY_NAME}
 
 create_catalog_source ${DATAPOWER_CATALOG_NAME} ${DATAPOWER_CATALOG_IMAGE} ${DATAPOWER_CATALOG_DISPLAY_NAME}
