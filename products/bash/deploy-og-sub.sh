@@ -89,43 +89,44 @@ WML_TRAINING_NAME=ibm-ai-wmltraining
 WML_TRAINING_CHANNEL=v1.1
 APIC_CATALOG=apic-operators
 APIC_NAME=ibm-apiconnect
-APIC_CHANNEL=v2.4
+APIC_CHANNEL=v3.0
 ACE_CATALOG=ace-operators
 ACE_NAME=ibm-appconnect
-ACE_CHANNEL=v3.0
+ACE_CHANNEL=v5.0-lts
 ASPERA_CATALOG=aspera-operators
 ASPERA_NAME=aspera-hsts-operator
-ASPERA_CHANNEL=v1.4
-IAF_CATALOG=automation-base-pak-operators
+ASPERA_CHANNEL=v1.5
+# ASPERA_CHANNEL=v1.5-beta <-- This is the latest, but I guess shouldn't use beta?
+IAF_CATALOG=ibm-automation-foundation-core-catalog
 IAF_NAME=ibm-automation-core
 IAF_CHANNEL=v1.3
 REDIS_CATALOG=aspera-redis-operators
 REDIS_NAME=ibm-cloud-databases-redis-operator
-REDIS_CHANNEL=v1.4
-COUCH_CATALOG=couchdb-operators
+REDIS_CHANNEL=v1.5
+COUCH_CATALOG=couchdb-operator-catalog
 COUCH_NAME=couchdb-operator
 COUCH_CHANNEL=v2.2
-COMMON_SERVICES_CATALOG=opencloud-operators
+COMMON_SERVICES_CATALOG=ibm-common-service-catalog
 COMMON_SERVICES_NAME=ibm-common-service-operator
 COMMON_SERVICES_CHANNEL=v3
 DATAPOWER_CATALOG=dp-operators
 DATAPOWER_NAME=datapower-operator
-DATAPOWER_CHANNEL=v1.5
+DATAPOWER_CHANNEL=v1.6
 EVENT_STREAMS_CATALOG=es-operators
 EVENT_STREAMS_NAME=ibm-eventstreams
-EVENT_STREAMS_CHANNEL=v2.5
+EVENT_STREAMS_CHANNEL=v3.0
 ASSET_REPO_CATALOG=ar-operators
 ASSET_REPO_NAME=ibm-integration-asset-repository
-ASSET_REPO_CHANNEL=v1.4
+ASSET_REPO_CHANNEL=v1.5
 OPERATIONS_DASHBOARD_CATALOG=od-operators
 OPERATIONS_DASHBOARD_NAME=ibm-integration-operations-dashboard
-OPERATIONS_DASHBOARD_CHANNEL=v2.5
+OPERATIONS_DASHBOARD_CHANNEL=v2.6-lts
 NAVIGATOR_CATALOG=pn-operators
 NAVIGATOR_NAME=ibm-integration-platform-navigator
-NAVIGATOR_CHANNEL=v5.2
+NAVIGATOR_CHANNEL=v6.0
 MQ_CATALOG=mq-operators
 MQ_NAME=ibm-mq
-MQ_CHANNEL=v1.7
+MQ_CHANNEL=v2.0
 
 function output_time() {
   SECONDS=${1}
@@ -320,11 +321,11 @@ EOF
 fi
 
 echo "INFO: Create prereq subscriptions"
+create_subscription ${namespace} ${COMMON_SERVICES_CATALOG} "${COMMON_SERVICES_NAME}" "$COMMON_SERVICES_CHANNEL"
 create_subscription ${namespace} ${WML_TRAINING_CATALOG} "${WML_TRAINING_NAME}" "$WML_TRAINING_CHANNEL"
 create_subscription ${namespace} ${IAF_CATALOG} "${IAF_NAME}" "$IAF_CHANNEL"
 create_subscription ${namespace} ${REDIS_CATALOG} "${REDIS_NAME}" "$REDIS_CHANNEL"
 create_subscription ${namespace} ${COUCH_CATALOG} "${COUCH_NAME}" "$COUCH_CHANNEL"
-create_subscription ${namespace} ${COMMON_SERVICES_CATALOG} "${COMMON_SERVICES_NAME}" "$COMMON_SERVICES_CHANNEL"
 wait_for_all_subscriptions ${namespace}
 
 # Create the subscription for navigator. This needs to be before APIC (ibm-apiconnect)
