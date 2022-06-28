@@ -65,9 +65,7 @@ done
 # APIC=ibm-apiconnect
 # ACE=ibm-appconnect
 # ASPERA=aspera-hsts-operator
-# TODO REMOVE ME IAF=ibm-automation-core
 # REDIS=ibm-cloud-databases-redis-operator
-# TODO REMOVE ME COUCH=couchdb-operator
 # COMMON_SERVICES=ibm-common-service-operator
 # DATAPOWER=datapower-operator
 # EVENT_STREAMS=ibm-eventstreams
@@ -97,15 +95,9 @@ ASPERA_CATALOG=aspera-operators
 ASPERA_NAME=aspera-hsts-operator
 ASPERA_CHANNEL=v1.5
 # ASPERA_CHANNEL=v1.5-beta <-- This is the latest, but I guess shouldn't use beta?
-# IAF_CATALOG=ibm-automation-foundation-core-catalog
-# IAF_NAME=ibm-automation-core
-# IAF_CHANNEL=v1.3
 REDIS_CATALOG=aspera-redis-operators
 REDIS_NAME=ibm-cloud-databases-redis-operator
 REDIS_CHANNEL=v1.5
-# COUCH_CATALOG=couchdb-operator-catalog
-# COUCH_NAME=couchdb-operator
-# COUCH_CHANNEL=v2.2
 COMMON_SERVICES_CATALOG=ibm-common-service-catalog
 COMMON_SERVICES_NAME=ibm-common-service-operator
 COMMON_SERVICES_CHANNEL=v3
@@ -323,9 +315,7 @@ fi
 echo "INFO: Create prereq subscriptions"
 create_subscription ${namespace} ${COMMON_SERVICES_CATALOG} "${COMMON_SERVICES_NAME}" "$COMMON_SERVICES_CHANNEL"
 create_subscription ${namespace} ${WML_TRAINING_CATALOG} "${WML_TRAINING_NAME}" "$WML_TRAINING_CHANNEL"
-# create_subscription ${namespace} ${IAF_CATALOG} "${IAF_NAME}" "$IAF_CHANNEL"
 create_subscription ${namespace} ${REDIS_CATALOG} "${REDIS_NAME}" "$REDIS_CHANNEL"
-# create_subscription ${namespace} ${COUCH_CATALOG} "${COUCH_NAME}" "$COUCH_CHANNEL"
 wait_for_all_subscriptions ${namespace}
 
 # Create the subscription for navigator. This needs to be before APIC (ibm-apiconnect)
@@ -371,15 +361,6 @@ create_subscription ${namespace} ${OPERATIONS_DASHBOARD_CATALOG} "${OPERATIONS_D
 
 echo "INFO: Wait for all subscriptions to succeed"
 wait_for_all_subscriptions ${namespace}
-
-# TODO Should no longer be needed
-# echo "INFO: Update the cartridges.core.automation.ibm.com CRD to fix support for 1.0.0 cartridges"
-# oc get crd cartridges.core.automation.ibm.com -o yaml |
-#   grep -v "pattern: ^\[A-Za-z](\[A-Za-z0-9_,:]\*\[A-Za-z0-9_])\?" |
-#   grep -v "minLength: 1" |
-#   grep -v "\- message" |
-#   grep -v "\- reason" |
-#   oc apply -f -
 
 if [[ "${ALM_EXAMPLES}" == "true" ]]; then
   SOURCE_NAMESPACE="openshift-marketplace"
