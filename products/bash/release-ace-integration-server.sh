@@ -152,17 +152,17 @@ spec:
        resources:
          limits:
            cpu: 300m
-           memory: 350Mi
+           memory: 368Mi
          requests:
            cpu: 300m
-           memory: 300Mi
+           memory: 368Mi
   replicas: ${ace_replicas}
   router:
     timeout: 120s
   service:
     endpointType: https
   useCommonServices: true
-  version: '12.0.2.0-r2'
+  version: '12.0.5.0-r1-lts'
   tracing:
     enabled: ${tracing_enabled}
     namespace: ${tracing_namespace}

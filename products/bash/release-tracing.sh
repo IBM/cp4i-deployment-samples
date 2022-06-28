@@ -180,6 +180,7 @@ until [ "$STATUS" == "Ready" ]; do
   echo "Waiting for Operations Dashboard install to complete (Attempt $time of 400). Status: $STATUS"
   sleep 15
   time=$((time + 1))
+  STATUS=$(oc get OperationsDashboard -n ${namespace} ${release_name} -o jsonpath='{.status.phase}')
 done
 
 echo -e "$TICK [INFO] Operations Dashboard is ready"

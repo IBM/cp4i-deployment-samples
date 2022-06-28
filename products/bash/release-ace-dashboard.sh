@@ -119,7 +119,7 @@ spec:
     size: 5Gi
     type: persistent-claim
   useCommonServices: true
-  version: '12.0.2'
+  version: '12.0-lts'
 EOF
   if [ $time -gt 10 ]; then
     echo "ERROR: Exiting installation as timeout waiting for Dashboard to be created"
