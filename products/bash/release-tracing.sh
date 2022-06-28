@@ -114,7 +114,7 @@ spec:
     tracingVolume:
       class: "${block_storage}"
       size: 150Gi
-  version: 2021.4.1-0
+  version: 2022.2.1-lts
 EOF
     if [ $time -gt 10 ]; then
       echo "ERROR: Exiting installation as timeout waiting for OperationsDashboard to be created"
