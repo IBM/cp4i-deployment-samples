@@ -46,7 +46,8 @@ all_done="\xF0\x9F\x92\xAF"
 info="\xE2\x84\xB9"
 missingParams="false"
 namespace="cp4i"
-MAX_OCP_VERSION=4.8
+MIN_OCP_VERSION=4.10
+MAX_OCP_VERSION=4.11
 
 while getopts "p:r:u:d:n:" opt; do
   case ${opt} in
@@ -232,13 +233,23 @@ fi
 OCP_VERSION=$(oc version -o json | jq -r '.openshiftVersion')
 OCP_MAJOR_VERSION=$(echo $OCP_VERSION | cut -f1 -d'.')
 OCP_MINOR_VERSION=$(echo $OCP_VERSION | cut -f2 -d'.')
+MIN_OCP_MAJOR_VERSION=$(echo $MIN_OCP_VERSION | cut -f1 -d'.')
+MIN_OCP_MINOR_VERSION=$(echo $MIN_OCP_VERSION | cut -f2 -d'.')
 MAX_OCP_MAJOR_VERSION=$(echo $MAX_OCP_VERSION | cut -f1 -d'.')
 MAX_OCP_MINOR_VERSION=$(echo $MAX_OCP_VERSION | cut -f2 -d'.')
+OCP_VERSION_OK=true
+if [ "$OCP_MAJOR_VERSION" -lt "$MIN_OCP_MAJOR_VERSION" ] || ([ "$OCP_MAJOR_VERSION" -eq "$MIN_OCP_MAJOR_VERSION" ] && [ "$OCP_MINOR_VERSION" -lt "$MIN_OCP_MINOR_VERSION" ]); then
+  echo -e "$cross ERROR: The Openshift version (${OCP_VERSION}) of the cluster is too low, ${MIN_OCP_VERSION} is the minimum currently supported"
+  check=1
+  OCP_VERSION_OK=false
+fi
 if [ "$OCP_MAJOR_VERSION" -gt "$MAX_OCP_MAJOR_VERSION" ] || ([ "$OCP_MAJOR_VERSION" -eq "$MAX_OCP_MAJOR_VERSION" ] && [ "$OCP_MINOR_VERSION" -gt "$MAX_OCP_MINOR_VERSION" ]); then
   echo -e "$cross ERROR: The Openshift version (${OCP_VERSION}) of the cluster is too high, ${MAX_OCP_VERSION} is the maximum currently supported"
   check=1
-else
-  echo -e "$tick INFO: The Openshift version (${OCP_VERSION}) is supported. Maximum version is ${MAX_OCP_VERSION}"
+  OCP_VERSION_OK=false
+fi
+if [ "$OCP_VERSION_OK" == "true" ]; then
+  echo -e "$tick INFO: The Openshift version (${OCP_VERSION}) is supported. Minimum version is ${MIN_OCP_VERSION} and maximum version is ${MAX_OCP_VERSION}"
 fi
 
 divider
