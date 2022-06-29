@@ -15,11 +15,9 @@ This list needs to be re-calculated for each new release of CP4I and doing this 
 so this dir provides some scripts to help do this.
 
 ## find-catalog-images.sh
-This is the main script which finds the catalog images for the ibm-cp-integration CASE using the
-specified version, or if not specified uses that latest version returned by `get-latest.sh`. To
-choose which version call with the -v option, I.e.:
+This is the main script which finds the latest catalog images for all CP4I cases. I.e.:
 ```
-./find-catalog-images.sh -v 3.0.0
+./find-catalog-images.sh
 ```
 
 If this script works then the output can be copied straight into `create-catalog-sources.sh`, job
