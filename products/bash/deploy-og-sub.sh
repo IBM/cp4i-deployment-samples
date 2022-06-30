@@ -61,7 +61,7 @@ done
 #    ./create-catalog-sources.sh -p
 # Wait for the catalog sources to install, then run:
 # CHANNELS_JSON=$(oc get packagemanifest -o json | jq -r '.items[] | { name: .metadata.name, catalog: .status.catalogSource, channel: .status.channels[-1].name }')
-# ENTRIES="WML_TRAINING=ibm-ai-wmltraining
+# ENTRIES="WML_TRAINING=ibm-ai-wmltraining-operator-catalog
 # APIC=ibm-apiconnect
 # ACE=ibm-appconnect
 # ASPERA=aspera-hsts-operator
@@ -82,7 +82,7 @@ done
 #   echo "${PRODUCT}_NAME=$NAME"
 #   echo "${PRODUCT}_CHANNEL=$CHANNEL"
 # done
-WML_TRAINING_CATALOG=ibm-ai-wmltraining-catalog
+WML_TRAINING_CATALOG=ibm-ai-wmltraining-operator-catalog
 WML_TRAINING_NAME=ibm-ai-wmltraining
 WML_TRAINING_CHANNEL=v1.1
 APIC_CATALOG=apic-operators
