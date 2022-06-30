@@ -122,7 +122,10 @@ if [[ "$FOUND_ERRORS" == "true" ]]; then
   exit 1
 fi
 
-echo "No problems found, creating env vars..."
+echo "No problems found, creating catalogsource yaml:"
+echo ""
+echo ""
+echo ""
 
 for line in $CATALOG_IMAGES; do
   image_name=$(echo $line | cut -d, -f 2)
@@ -137,8 +140,22 @@ for line in $CATALOG_IMAGES; do
     envVarPrefix=$(echo "$data" | jq -r '.envVarPrefix')
     catalogName=$(echo "$data" | jq -r '.catalogName')
     displayNamePrefix=$(echo "$data" | jq -r '.displayNamePrefix')
-    echo "${envVarPrefix}_CATALOG_NAME=${catalog_name}"
-    echo "${envVarPrefix}_CATALOG_IMAGE=${registry}/${image_name}@${digest}"
-    echo "${envVarPrefix}_CATALOG_DISPLAY_NAME=\"${displayNamePrefix} ${version}\""
+    CATALOG_NAME=${catalog_name}
+    CATALOG_IMAGE="${registry}/${image_name}@${digest}"
+    CATALOG_DISPLAY_NAME="${displayNamePrefix} ${version}"
+    echo "---
+apiVersion: operators.coreos.com/v1alpha1
+kind: CatalogSource
+metadata:
+  name: ${CATALOG_NAME}
+  namespace: openshift-marketplace
+spec:
+  displayName: \"${CATALOG_DISPLAY_NAME}\"
+  image: ${CATALOG_IMAGE}
+  publisher: IBM
+  sourceType: grpc
+  updateStrategy:
+    registryPoll:
+      interval: 45m"
   fi
 done
