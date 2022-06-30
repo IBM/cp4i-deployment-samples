@@ -26,17 +26,17 @@ the Event Streams toolbox, which can be accessed by:
 
 The example includes comments describing each change, see the following:
 ```yaml
-apiVersion: eventstreams.ibm.com/v1beta1
+apiVersion: eventstreams.ibm.com/v1beta2
 kind: KafkaConnect
 metadata:
   name: eei-cluster
   annotations:
     eventstreams.ibm.com/use-connector-resources: "true"
 spec:
-  replicas: 1
-
   # Use the latest version of kafka
   version: 2.8.1
+
+  replicas: 1
 
   # The `es-demo` Event Streams runtime is setup with no external access. This is the
   # service name of the demo bootstrap server and can only be used within the cluster.
@@ -55,7 +55,7 @@ spec:
           productName: IBM Event Streams for Non Production
 
           # Use the latest version of Eventstreams
-          productVersion: 10.5.0
+          productVersion: 11.0.1
 
           productMetric: VIRTUAL_PROCESSOR_CORE
           productChargedContainers: eei-cluster-connect
@@ -135,7 +135,7 @@ $ oc describe KafkaConnect eei-cluster
 ...
 Status:
   Conditions:
-    Last Transition Time:  2021-09-21T12:39:27.873564313Z
+    Last Transition Time:  2022-06-30T14:10:07.392315758Z
     Status:                True
     Type:                  Ready
 ...
@@ -157,6 +157,8 @@ When using pre-release the base image in the Dockerfile may need updating. If so
 find the docker image used by the eei-cluster connect pod and change the FROM in the Dockerfile
 to use that image. May need to change it from cp.icr.io to cp.stg.icr.io.
 -->
+
+Make sure the `FROM` in the Dockerfile is using `cp.icr.io/cp/ibm-eventstreams-kafka:11.0.1` rather than an older version.
 
 Do a docker login to cp.icr.io using your entitlement key.
 
@@ -206,7 +208,7 @@ $ oc describe KafkaConnect eei-cluster
 ...
 Status:
   Conditions:
-    Last Transition Time:  2021-12-16T10:45:32.247201449Z
+    Last Transition Time:  2022-06-30T14:29:49.708705870Z
     Status:                True
     Type:                  Ready
   Connector Plugins:
@@ -215,10 +217,10 @@ Status:
     Version:            1.2.0.Final
     Class:              org.apache.kafka.connect.file.FileStreamSinkConnector
     Type:               sink
-    Version:            2.8.1
+    Version:            3.1.0
     Class:              org.apache.kafka.connect.file.FileStreamSourceConnector
     Type:               source
-    Version:            2.8.1
+    Version:            3.1.0
     Class:              org.apache.kafka.connect.mirror.MirrorCheckpointConnector
     Type:               source
     Version:            1
@@ -231,7 +233,7 @@ Status:
   Label Selector:       eventstreams.ibm.com/kind=KafkaConnect,eventstreams.ibm.com/name=eei-cluster-connect,eventstreams.ibm.com/cluster=eei-cluster
   Observed Generation:  2
   Replicas:             1
-  URL:                  http://eei-cluster-connect-api.dan.svc:8083
+  URL:                  http://eei-cluster-connect-api.cp4i.svc:8083
 ```
 
 # Start Kafka Connect with the Postgres (Debezium) connector
@@ -245,7 +247,7 @@ the Event Streams toolbox, which can be accessed by:
 
 The example includes comments describing each change, see the following:
 ```yaml
-apiVersion: eventstreams.ibm.com/v1alpha1
+apiVersion: eventstreams.ibm.com/v1beta2
 kind: KafkaConnector
 metadata:
   name: eei-postgres
