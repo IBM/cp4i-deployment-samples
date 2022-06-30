@@ -16,12 +16,18 @@ mkdir "${SCRATCH}/cases"
 export CASES_DIR="${SCRATCH}/cases"
 
 for CASE_NAME in ${CASE_NAMES}; do
-  ${CLOUDCTL} case save \
+  retry_count=0
+  echo "Saving case for ${CASE_NAME}"
+  until ${CLOUDCTL} case save \
           --repo $CASE_REPO_PATH \
           --case $CASE_NAME \
           --no-dependency \
-          --outputdir "${CASES_DIR}"
-#          --version $CASE_VERSION \
+          --outputdir "${CASES_DIR}" ; do
+    if [ $retry_count -gt 10 ]; then
+      exit 1
+    fi
+    retry_count=$((retry_count + 1))
+  done
 done
 
 ls -ltr ${CASES_DIR}/*.tgz
