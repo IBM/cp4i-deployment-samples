@@ -35,7 +35,7 @@ spec:
           cloudpakName: IBM Cloud Pak for Integration
 
           # Use the latest version of Eventstreams
-          cloudpakVersion: 2021.4.1
+          cloudpakVersion: 2022.2.1
 
           productCloudpakRatio: "2:1"
   config:
