@@ -21,25 +21,24 @@
 
 INFO="\xE2\x84\xB9"
 
-# TODO Below pre-release versions taken from https://hyc-cip-jenkins.swg-devops.com/job/Automation/job/test/job/e2e-test/job/main/1545/
-
 # See the find-catalog-sources/README.md for how to create/update the following list of env vars:
 WML_TRAINING_CATALOG_NAME=ibm-ai-wmltraining-operator-catalog
 WML_TRAINING_CATALOG_IMAGE=icr.io/cpopen/ibm-ai-wmltraining-operator-catalog@sha256:4e88b9f2df60be6af156d188657763dfa4cbe074c40ea85ba82858796e3cd6a3
 WML_TRAINING_CATALOG_DISPLAY_NAME="WML Training Operators 1.1.0"
+
+# TODO APIC still not released yet, below is a pre-release version from https://na.artifactory.swg-devops.com/artifactory/apic-rel-docker/apic-release-v10.0.5/217/operator/catalog-source.yaml
 APIC_CATALOG_NAME=ibm-apiconnect-catalog
 # APIC_CATALOG_IMAGE=icr.io/cpopen/ibm-apiconnect-catalog@sha256:214c287742fb86a943f593179616a7f1d265ee948e36da4e11d7504368917ff9
 # APIC_CATALOG_DISPLAY_NAME="APIC Operators 4.9"
-APIC_CATALOG_IMAGE=icr.io/cpopen/ibm-apiconnect-catalog@sha256:5514de8857f1f971448eccc043cec046afccf7c887097477a2f57d4f864b0476
+APIC_CATALOG_IMAGE=icr.io/cpopen/ibm-apiconnect-catalog@sha256:2de0f6dcf02f1816e16a3bbc0fcdc3c367ee88d66de6a2139798422305b7f2e1
 APIC_CATALOG_DISPLAY_NAME="APIC Operators 2022.2.1 Pre-release"
+
 ACE_CATALOG_NAME=appconnect-operator-catalog
 ACE_CATALOG_IMAGE=icr.io/cpopen/appconnect-operator-catalog@sha256:da0023a6f68f813a872e4ceae2f81ce38041ecda198713cef19dda43820ad640
 ACE_CATALOG_DISPLAY_NAME="ACE Operators 5.0.0"
 ASPERA_CATALOG_NAME=aspera-hsts-catalog
-# ASPERA_CATALOG_IMAGE=icr.io/cpopen/aspera-hsts-catalog@sha256:69bcdd83f138306b1510d5835e44245808d2a435f3c7705b75ac7309c0eb207c
-# ASPERA_CATALOG_DISPLAY_NAME="Aspera Operators latest"
-ASPERA_CATALOG_IMAGE=cp.stg.icr.io/cp/icp4i/aspera/aspera-hsts-catalog@sha256:4d793923a1a2eb73e5db3d3da160316afd6510b2070a66702adc47ccf3d50ced
-ASPERA_CATALOG_DISPLAY_NAME="Aspera Operators 2022.2.1 Pre-release"
+ASPERA_CATALOG_IMAGE=icr.io/cpopen/aspera-hsts-catalog@sha256:9b961dd0be0f6849dfae56f2acbdf66184f88308b01e276a85e0b96d51e13c51
+ASPERA_CATALOG_DISPLAY_NAME="Aspera Operators latest"
 REDIS_CATALOG_NAME=ibm-cloud-databases-redis-catalog
 REDIS_CATALOG_IMAGE=icr.io/cpopen/ibm-cloud-databases-redis-catalog@sha256:7ed8781a8ca2afa08960a4eb7dccb467e821f875bdfbd8f3cdabd746800ee846
 REDIS_CATALOG_DISPLAY_NAME="Redis for Aspera Operators 1.5.2"
@@ -47,10 +46,8 @@ COMMON_SERVICES_CATALOG_NAME=ibm-common-service-catalog
 COMMON_SERVICES_CATALOG_IMAGE=icr.io/cpopen/ibm-common-service-catalog@sha256:8fb50af805915ba40e69aaa123dcb0cb859921e476d02adf109e62130b6d1008
 COMMON_SERVICES_CATALOG_DISPLAY_NAME="IBMCS Operators v3.19.0"
 DATAPOWER_CATALOG_NAME=datapower-operator-catalog
-# DATAPOWER_CATALOG_IMAGE=icr.io/cpopen/datapower-operator-catalog@sha256:3995b3114b3ef872cccf76f8c3bdc15df0a01d039b9957a280b9571ffbb1fa50
-# DATAPOWER_CATALOG_DISPLAY_NAME="DP Operators 1.5.3"
-DATAPOWER_CATALOG_IMAGE=cp.stg.icr.io/cp/datapower-operator-catalog@sha256:dd3c631a1f51ce4933b8bb450160ced0667cdc5c5c9314e4033a55222faa92d5
-DATAPOWER_CATALOG_DISPLAY_NAME="DP Operators 2022.2.1 Pre-release"
+DATAPOWER_CATALOG_IMAGE=icr.io/cpopen/datapower-operator-catalog@sha256:dd3c631a1f51ce4933b8bb450160ced0667cdc5c5c9314e4033a55222faa92d5
+DATAPOWER_CATALOG_DISPLAY_NAME="DP Operators 1.6.0"
 EVENT_STREAMS_CATALOG_NAME=ibm-eventstreams-catalog
 EVENT_STREAMS_CATALOG_IMAGE=icr.io/cpopen/ibm-eventstreams-catalog@sha256:c2114a611291377b04760066d89b650f1f19cda5ff33b4f0517f728ad2106456
 EVENT_STREAMS_CATALOG_DISPLAY_NAME="ES Operators v3.0.2"
