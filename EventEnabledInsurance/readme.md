@@ -33,9 +33,6 @@ metadata:
   annotations:
     eventstreams.ibm.com/use-connector-resources: "true"
 spec:
-  # Use the latest version of kafka
-  version: 2.8.1
-
   replicas: 1
 
   # The `es-demo` Event Streams runtime is setup with no external access. This is the
@@ -158,7 +155,7 @@ find the docker image used by the eei-cluster connect pod and change the FROM in
 to use that image. May need to change it from cp.icr.io to cp.stg.icr.io.
 -->
 
-Make sure the `FROM` in the Dockerfile is using `cp.icr.io/cp/ibm-eventstreams-kafka:11.0.1` rather than an older version.
+Make sure the `FROM` in the Dockerfile is using `cp.icr.io/cp/ibm-eventstreams-kafka:11.0.2` rather than an older version.
 
 Do a docker login to cp.icr.io using your entitlement key.
 
