@@ -28,8 +28,8 @@ metadata:
   name: ibm-ai-wmltraining-operator-catalog
   namespace: openshift-marketplace
 spec:
-  displayName: "WML Training Operators 1.1.0"
-  image: icr.io/cpopen/ibm-ai-wmltraining-operator-catalog@sha256:4e88b9f2df60be6af156d188657763dfa4cbe074c40ea85ba82858796e3cd6a3
+  displayName: "WML Training Operators 1.1.1"
+  image: icr.io/cpopen/ibm-ai-wmltraining-operator-catalog@sha256:6bc72737c10c985de0f1325c50382fc2dd1ceb811fd0948bd1eef58f544d9188
   publisher: IBM
   sourceType: grpc
   updateStrategy:
@@ -42,11 +42,8 @@ metadata:
   name: ibm-apiconnect-catalog
   namespace: openshift-marketplace
 spec:
-  # TODO APIC still not released yet, below is a pre-release version from https://na.artifactory.swg-devops.com/artifactory/apic-rel-docker/apic-release-v10.0.5/217/operator/catalog-source.yaml
-  displayName: "APIC Operators 2022.2.1 Pre-release"
-  image: icr.io/cpopen/ibm-apiconnect-catalog@sha256:2de0f6dcf02f1816e16a3bbc0fcdc3c367ee88d66de6a2139798422305b7f2e1
-  # displayName: "APIC Operators 4.9"
-  # image: icr.io/cpopen/ibm-apiconnect-catalog@sha256:214c287742fb86a943f593179616a7f1d265ee948e36da4e11d7504368917ff9
+  displayName: "APIC Operators 4.10"
+  image: icr.io/cpopen/ibm-apiconnect-catalog@sha256:5d54fe6f7bb4db9e3255f1e24d194cc06b7917181368883fba1e6aa0e9e83eaa
   publisher: IBM
   sourceType: grpc
   updateStrategy:
