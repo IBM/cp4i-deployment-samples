@@ -101,7 +101,6 @@ until [[ "$ar_path" == *"$desiredResponseContent"* ]]; do
     echo "Error: Asset repository route could not be found"
     exit 1
   fi
-  $CURRENT_DIR/zen-fix.sh -n "$NAMESPACE"
   sleep $interval
 done
 
@@ -125,7 +124,6 @@ until [[ $response =~ 200 || "$retries" -eq "$i" ]]; do
   get_catalogs $ar_path $token
   ((i = i + 1))
   echo "Response code: $response"
-  $CURRENT_DIR/zen-fix.sh -n "$NAMESPACE"
   sleep $interval
 done
 ## If we never got a successful response, exit
