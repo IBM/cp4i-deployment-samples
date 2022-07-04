@@ -16,7 +16,7 @@
 #   -n : <namespace> (string), Defaults to "cp4i"
 #   -r : <release-name> (string), Defaults to "tracing-demo"
 #   -b : <block-storage-class> (string), Default to "ibmc-block-gold"
-#   -f : <file-storage-class> (string), Default to "ibmc-file-gold-gid"
+#   -f : <file-storage-class> (string), Default to "cp4i-file-performance-gid"
 #
 # USAGE:
 #   With defaults values
@@ -32,7 +32,7 @@ function usage() {
 namespace="cp4i"
 release_name="tracing-demo"
 block_storage="ibmc-block-gold"
-file_storage="ibmc-file-gold-gid"
+file_storage="cp4i-file-performance-gid"
 production="false"
 CURRENT_DIR=$(dirname $0)
 TICK="\xE2\x9C\x85"

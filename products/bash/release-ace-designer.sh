@@ -26,7 +26,7 @@
 designer_release_name="ace-designer-demo"
 namespace="cp4i"
 storage="ibmc-block-gold"
-file_storage="ibmc-file-gold-gid"
+file_storage="cp4i-file-performance-gid"
 CURRENT_DIR=$(dirname $0)
 
 function usage() {
