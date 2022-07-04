@@ -5,9 +5,6 @@ metadata:
   annotations:
     eventstreams.ibm.com/use-connector-resources: "true"
 spec:
-  # Use the latest version of kafka
-  version: 3.2.0
-
   replicas: 1
 
   # The `es-demo` Event Streams runtime is setup with no external access. This is the
