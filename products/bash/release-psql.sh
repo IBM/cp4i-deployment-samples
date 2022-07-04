@@ -102,7 +102,16 @@ ALTER SYSTEM SET max_replication_slots=10;
 EOF
 
 echo "INFO: Restarting postgres to pick up the parameter changes"
-oc rollout latest -n ${POSTGRES_NAMESPACE} dc/postgresql
+time=0
+until oc rollout latest -n ${POSTGRES_NAMESPACE} dc/postgresql; do
+  if [ $time -gt 10 ]; then
+    echo "ERROR: Exiting installation as timeout waiting for postgres restart to be kicked off"
+    exit 1
+  fi
+  echo "INFO: Waiting up to 10 minutes for postgres to be restarted. Waited ${time} minute(s)."
+  time=$((time + 1))
+  sleep 60
+done
 
 echo "INFO: Waiting for postgres to restart"
 sleep 30
@@ -110,3 +119,11 @@ oc wait -n ${POSTGRES_NAMESPACE} --for=condition=available --timeout=20m deploym
 
 DB_POD=$(oc get pod -n ${POSTGRES_NAMESPACE} -l name=postgresql -o jsonpath='{.items[].metadata.name}')
 echo "INFO: Found new DB pod as: ${DB_POD}"
+
+echo "INFO: Showing the changed DB parameters so change can be verified"
+oc exec -n ${POSTGRES_NAMESPACE} -i $DB_POD \
+-- psql <<EOF
+SHOW wal_level;
+SHOW max_wal_senders;
+SHOW max_replication_slots;
+EOF
