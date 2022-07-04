@@ -96,7 +96,6 @@ for i in $(seq 1 120); do
     if [ $i -gt 50 ]; then
       oc get apiconnectcluster,managementcluster,portalcluster,gatewaycluster,pvc,pod -n $NAMESPACE
     fi
-    $CURRENT_DIR/zen-fix.sh -n "$NAMESPACE"
     sleep 60
   fi
 done
