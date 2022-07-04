@@ -29,7 +29,7 @@ function usage() {
 
 namespace="cp4i"
 replicas="1"
-storage="ibmc-file-gold-gid"
+storage="cp4i-file-performance-gid"
 
 SCRIPT_DIR="$(dirname $0)"
 echo "Current Dir: $SCRIPT_DIR"

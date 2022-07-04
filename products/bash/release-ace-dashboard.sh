@@ -27,7 +27,7 @@
 dashboard_release_name="ace-dashboard-demo"
 namespace="cp4i"
 production="false"
-storage="ibmc-file-gold-gid"
+storage="cp4i-file-performance-gid"
 CURRENT_DIR=$(dirname $0)
 
 function usage() {

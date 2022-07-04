@@ -29,7 +29,7 @@ function usage() {
 
 namespace="cp4i"
 release_name="demo"
-assetDataVolume="ibmc-file-gold-gid"
+assetDataVolume="cp4i-file-performance-gid"
 couchVolume="ibmc-block-gold"
 CURRENT_DIR=$(dirname $0)
 

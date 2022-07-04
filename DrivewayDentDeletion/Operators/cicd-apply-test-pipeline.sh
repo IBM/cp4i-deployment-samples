@@ -15,7 +15,7 @@
 #   -n : <NAMESPACE> (string), Defaults to 'cp4i'
 #   -r : <REPO> (string), Defaults to 'https://github.com/IBM/cp4i-deployment-samples.git'
 #   -b : <BRANCH> (string), Defaults to 'main'
-#   -f : <DEFAULT_FILE_STORAGE> (string), Default to 'ibmc-file-gold-gid'
+#   -f : <DEFAULT_FILE_STORAGE> (string), Default to 'cp4i-file-performance-gid'
 #   -g : <DEFAULT_BLOCK_STORAGE> (string), Default to 'cp4i-block-performance'
 #   -a : <HA_ENABLED>, default to 'true'
 #
@@ -46,7 +46,7 @@ ALL_DONE="\xF0\x9F\x92\xAF"
 INFO="\xE2\x84\xB9"
 SUM=0
 MISSING_PARAMS="false"
-DEFAULT_FILE_STORAGE="ibmc-file-gold-gid"
+DEFAULT_FILE_STORAGE="cp4i-file-performance-gid"
 DEFAULT_BLOCK_STORAGE="cp4i-block-performance"
 HA_ENABLED="true"
 

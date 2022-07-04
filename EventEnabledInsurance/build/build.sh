@@ -16,7 +16,7 @@
 #   -r : <REPO> (string), Defaults to 'https://github.com/IBM/cp4i-deployment-samples.git'
 #   -b : <BRANCH> (string), Defaults to 'main'
 #   -t : <TKN-path> (string), Default to 'tkn'
-#   -f : <DEFAULT_FILE_STORAGE> (string), Default to 'ibmc-file-gold-gid'
+#   -f : <DEFAULT_FILE_STORAGE> (string), Default to 'cp4i-file-performance-gid'
 #   -g : <DEFAULT_BLOCK_STORAGE> (string), Default to 'cp4i-block-performance'
 #
 #   With defaults values
@@ -44,7 +44,7 @@ POSTGRES_NAMESPACE=
 REPO="https://github.com/IBM/cp4i-deployment-samples.git"
 BRANCH="main"
 TKN=tkn
-DEFAULT_FILE_STORAGE="ibmc-file-gold-gid"
+DEFAULT_FILE_STORAGE="cp4i-file-performance-gid"
 DEFAULT_BLOCK_STORAGE="cp4i-block-performance"
 
 while getopts "n:r:b:t:f:g:" opt; do
