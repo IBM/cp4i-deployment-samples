@@ -167,6 +167,7 @@ docker build -t eei-connect-cluster-image:latest .
 Push the image to the cluster's image registry. Expose the registry and get the login details:
 ```
 oc patch configs.imageregistry.operator.openshift.io/cluster --patch '{"spec":{"defaultRoute":true}}' --type=merge
+
 export IMAGE_REPO="$(oc get route default-route -n openshift-image-registry --template='{{ .spec.host }}')"
 echo "IMAGE_REPO=${IMAGE_REPO}"
 
@@ -174,7 +175,6 @@ export DOCKER_REGISTRY_USER=image-bot
 export DOCKER_REGISTRY_PASS="$(oc serviceaccounts get-token image-bot)"
 echo "DOCKER_REGISTRY_USER=${DOCKER_REGISTRY_USER}"
 echo "DOCKER_REGISTRY_PASS=${DOCKER_REGISTRY_PASS}"
-
 docker login $IMAGE_REPO -u $DOCKER_REGISTRY_USER -p $DOCKER_REGISTRY_PASS
 ```
 
@@ -442,7 +442,7 @@ The pipeline deploys an ACE integration server (`ace-rest-int-srv-eei`) that hos
 
 Get api endpoint and auth:
 ```bash
-export NAMESPACE=#eei namespace
+export NAMESPACE=$(oc project -q)
 export API_BASE_URL=$(oc -n $NAMESPACE get secret eei-api-endpoint-client-id -o jsonpath='{.data.api}' | base64 --decode)
 export API_CLIENT_ID=$(oc -n $NAMESPACE get secret eei-api-endpoint-client-id -o jsonpath='{.data.cid}' | base64 --decode)
 ```

@@ -13,8 +13,6 @@ spec:
 
   # Set the following to the newly built custom image once it has been built and pushed to the cluster
   # image: image-registry.openshift-image-registry.svc:5000/<namespace>/eei-connect-cluster-image:latest
-  # TODO Delete this line below \/
-  image: image-registry.openshift-image-registry.svc:5000/cp4i/eei-connect-cluster-image:latest
 
   template:
     pod:
