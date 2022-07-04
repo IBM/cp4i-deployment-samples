@@ -24,7 +24,7 @@ spec:
           productName: IBM Event Streams for Non Production
 
           # Use the latest version of Eventstreams
-          productVersion: 11.0.1
+          productVersion: 11.0.2
 
           productMetric: VIRTUAL_PROCESSOR_CORE
           productChargedContainers: eei-cluster-connect
