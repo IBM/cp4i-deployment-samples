@@ -21,84 +21,172 @@
 
 INFO="\xE2\x84\xB9"
 
-# See the find-catalog-sources/README.md for how to create/update the following list of env vars:
-WML_TRAINING_CATALOG_NAME=ibm-ai-wmltraining-catalog
-WML_TRAINING_CATALOG_IMAGE=icr.io/cpopen/ibm-ai-wmltraining-operator-catalog@sha256:4e88b9f2df60be6af156d188657763dfa4cbe074c40ea85ba82858796e3cd6a3
-WML_TRAINING_CATALOG_DISPLAY_NAME="WML Training Operators 1.1.1"
-APIC_CATALOG_NAME=apic-operators
-APIC_CATALOG_IMAGE=icr.io/cpopen/ibm-apiconnect-catalog@sha256:214c287742fb86a943f593179616a7f1d265ee948e36da4e11d7504368917ff9
-APIC_CATALOG_DISPLAY_NAME="APIC Operators 3.0.7"
-ACE_CATALOG_NAME=ace-operators
-ACE_CATALOG_IMAGE=icr.io/cpopen/appconnect-operator-catalog@sha256:d70302c0d7ecd0a17a7256b3e62fb0d6039797021a42728cf681940d012372ae
-ACE_CATALOG_DISPLAY_NAME="ACE Operators 4.1.0"
-ASPERA_CATALOG_NAME=aspera-operators
-ASPERA_CATALOG_IMAGE=icr.io/cpopen/aspera-hsts-catalog@sha256:69bcdd83f138306b1510d5835e44245808d2a435f3c7705b75ac7309c0eb207c
-ASPERA_CATALOG_DISPLAY_NAME="Aspera Operators 1.4.1"
-IAF_CATALOG_NAME=automation-base-pak-operators
-IAF_CATALOG_IMAGE=icr.io/cpopen/ibm-automation-foundation-core-catalog@sha256:0bd8ed8ee6807f780471d05bca46dea5b1eb9edcbd76587d08fa94fe9fa27c25
-IAF_CATALOG_DISPLAY_NAME="IBMABP Operators 1.3.6"
-REDIS_CATALOG_NAME=aspera-redis-operators
-REDIS_CATALOG_IMAGE=icr.io/cpopen/ibm-cloud-databases-redis-catalog@sha256:0f288d16fa18af1af176398cd066a4fb549d811067a41668b05ef4b60ed6088a
-REDIS_CATALOG_DISPLAY_NAME="Redis for Aspera Operators 1.4.5"
-COUCHDB_CATALOG_NAME=couchdb-operators
-COUCHDB_CATALOG_IMAGE=icr.io/cpopen/couchdb-operator-catalog@sha256:c35df32a8de999a4bb76229fbe302b1107d9c6bd17d159ee30167016c51bc215
-COUCHDB_CATALOG_DISPLAY_NAME="IBM CouchDB Operators 1.0.13"
-COMMON_SERVICES_CATALOG_NAME=opencloud-operators
-COMMON_SERVICES_CATALOG_IMAGE=icr.io/cpopen/ibm-common-service-catalog@sha256:f637b2888f7be48760b3925e906216f8565ab6b036172b21c87506fbdd53020a
-COMMON_SERVICES_CATALOG_DISPLAY_NAME="IBMCS Operators 1.13.0"
-DATAPOWER_CATALOG_NAME=dp-operators
-DATAPOWER_CATALOG_IMAGE=icr.io/cpopen/datapower-operator-catalog@sha256:3995b3114b3ef872cccf76f8c3bdc15df0a01d039b9957a280b9571ffbb1fa50
-DATAPOWER_CATALOG_DISPLAY_NAME="DP Operators 1.5.3"
-EVENT_STREAMS_CATALOG_NAME=es-operators
-EVENT_STREAMS_CATALOG_IMAGE=icr.io/cpopen/ibm-eventstreams-catalog@sha256:76b1f2637c5ed871f66ee4e89b4b48fe91aef7613a894f9bdf6638a493ab0cdc
-EVENT_STREAMS_CATALOG_DISPLAY_NAME="ES Operators 1.6.1"
-ASSET_REPO_CATALOG_NAME=ar-operators
-ASSET_REPO_CATALOG_IMAGE=icr.io/cpopen/ibm-integration-asset-repository-catalog@sha256:ef993b1eca79044918d1757559598d167ed34321d55310aa8c9171c138ec085d
-ASSET_REPO_CATALOG_DISPLAY_NAME="AR Operators 1.4.5"
-OPERATIONS_DASHBOARD_CATALOG_NAME=od-operators
-OPERATIONS_DASHBOARD_CATALOG_IMAGE=icr.io/cpopen/ibm-integration-operations-dashboard-catalog@sha256:53b8d24b9650e5e82cac5d4c33000372439826bfe874a8565ed49f46a33e7f8c
-OPERATIONS_DASHBOARD_CATALOG_DISPLAY_NAME="OD Operators 2.5.5"
-NAVIGATOR_CATALOG_NAME=pn-operators
-NAVIGATOR_CATALOG_IMAGE=icr.io/cpopen/ibm-integration-platform-navigator-catalog@sha256:b41fd254ab7f503f65409a4a417d65fb1f3d9950fc5ea9dac30ec2f29ec31e4d
-NAVIGATOR_CATALOG_DISPLAY_NAME="PN Operators 1.6.1"
-MQ_CATALOG_NAME=mq-operators
-MQ_CATALOG_IMAGE=icr.io/cpopen/ibm-mq-operator-catalog@sha256:8ad0fe91b535b6169933b0270ea7266fcaf73173f26ea17bb50255c39d5b2aa6
-MQ_CATALOG_DISPLAY_NAME="MQ Operators 1.8.1"
-
-function create_catalog_source() {
-  CATALOG_NAME=${1}
-  CATALOG_IMAGE=${2}
-  CATALOG_DISPLAY_NAME=${3}
-  cat <<EOF | oc apply -f -
+cat <<EOF | oc apply -f -
 apiVersion: operators.coreos.com/v1alpha1
 kind: CatalogSource
 metadata:
-  name: ${CATALOG_NAME}
+  name: ibm-ai-wmltraining-operator-catalog
   namespace: openshift-marketplace
 spec:
-  displayName: ${CATALOG_DISPLAY_NAME}
-  image: ${CATALOG_IMAGE}
+  displayName: "WML Training Operators 1.1.1"
+  image: icr.io/cpopen/ibm-ai-wmltraining-operator-catalog@sha256:6bc72737c10c985de0f1325c50382fc2dd1ceb811fd0948bd1eef58f544d9188
+  publisher: IBM
+  sourceType: grpc
+  updateStrategy:
+    registryPoll:
+      interval: 45m
+---
+apiVersion: operators.coreos.com/v1alpha1
+kind: CatalogSource
+metadata:
+  name: ibm-apiconnect-catalog
+  namespace: openshift-marketplace
+spec:
+  displayName: "APIC Operators 4.10"
+  image: icr.io/cpopen/ibm-apiconnect-catalog@sha256:5d54fe6f7bb4db9e3255f1e24d194cc06b7917181368883fba1e6aa0e9e83eaa
+  publisher: IBM
+  sourceType: grpc
+  updateStrategy:
+    registryPoll:
+      interval: 45m
+---
+apiVersion: operators.coreos.com/v1alpha1
+kind: CatalogSource
+metadata:
+  name: appconnect-operator-catalog
+  namespace: openshift-marketplace
+spec:
+  displayName: "ACE Operators 5.0.0"
+  image: icr.io/cpopen/appconnect-operator-catalog@sha256:da0023a6f68f813a872e4ceae2f81ce38041ecda198713cef19dda43820ad640
+  publisher: IBM
+  sourceType: grpc
+  updateStrategy:
+    registryPoll:
+      interval: 45m
+---
+apiVersion: operators.coreos.com/v1alpha1
+kind: CatalogSource
+metadata:
+  name: aspera-hsts-catalog
+  namespace: openshift-marketplace
+spec:
+  displayName: "Aspera Operators latest"
+  image: icr.io/cpopen/aspera-hsts-catalog@sha256:9b961dd0be0f6849dfae56f2acbdf66184f88308b01e276a85e0b96d51e13c51
+  publisher: IBM
+  sourceType: grpc
+  updateStrategy:
+    registryPoll:
+      interval: 45m
+---
+apiVersion: operators.coreos.com/v1alpha1
+kind: CatalogSource
+metadata:
+  name: ibm-cloud-databases-redis-catalog
+  namespace: openshift-marketplace
+spec:
+  displayName: "Redis for Aspera Operators 1.5.2"
+  image: icr.io/cpopen/ibm-cloud-databases-redis-catalog@sha256:7ed8781a8ca2afa08960a4eb7dccb467e821f875bdfbd8f3cdabd746800ee846
+  publisher: IBM
+  sourceType: grpc
+  updateStrategy:
+    registryPoll:
+      interval: 45m
+---
+apiVersion: operators.coreos.com/v1alpha1
+kind: CatalogSource
+metadata:
+  name: ibm-common-service-catalog
+  namespace: openshift-marketplace
+spec:
+  displayName: "IBMCS Operators v3.19.0"
+  image: icr.io/cpopen/ibm-common-service-catalog@sha256:8fb50af805915ba40e69aaa123dcb0cb859921e476d02adf109e62130b6d1008
+  publisher: IBM
+  sourceType: grpc
+  updateStrategy:
+    registryPoll:
+      interval: 45m
+---
+apiVersion: operators.coreos.com/v1alpha1
+kind: CatalogSource
+metadata:
+  name: datapower-operator-catalog
+  namespace: openshift-marketplace
+spec:
+  displayName: "DP Operators 1.6.0"
+  image: icr.io/cpopen/datapower-operator-catalog@sha256:dd3c631a1f51ce4933b8bb450160ced0667cdc5c5c9314e4033a55222faa92d5
+  publisher: IBM
+  sourceType: grpc
+  updateStrategy:
+    registryPoll:
+      interval: 45m
+---
+apiVersion: operators.coreos.com/v1alpha1
+kind: CatalogSource
+metadata:
+  name: ibm-eventstreams-catalog
+  namespace: openshift-marketplace
+spec:
+  displayName: "ES Operators v3.0.2"
+  image: icr.io/cpopen/ibm-eventstreams-catalog@sha256:c2114a611291377b04760066d89b650f1f19cda5ff33b4f0517f728ad2106456
+  publisher: IBM
+  sourceType: grpc
+  updateStrategy:
+    registryPoll:
+      interval: 45m
+---
+apiVersion: operators.coreos.com/v1alpha1
+kind: CatalogSource
+metadata:
+  name: ibm-integration-asset-repository-catalog
+  namespace: openshift-marketplace
+spec:
+  displayName: "AR Operators 1.5.0"
+  image: icr.io/cpopen/ibm-integration-asset-repository-catalog@sha256:a68d1e925263090eb30061b38944a030e13cf5a8910a6f0e5aa047dc9a6b9614
+  publisher: IBM
+  sourceType: grpc
+  updateStrategy:
+    registryPoll:
+      interval: 45m
+---
+apiVersion: operators.coreos.com/v1alpha1
+kind: CatalogSource
+metadata:
+  name: ibm-integration-operations-dashboard-catalog
+  namespace: openshift-marketplace
+spec:
+  displayName: "OD Operators 2.6.0"
+  image: icr.io/cpopen/ibm-integration-operations-dashboard-catalog@sha256:e9c2b98879ac9f6ba08992c04a5efcec8df74fef04711438383a5577f48034c1
+  publisher: IBM
+  sourceType: grpc
+  updateStrategy:
+    registryPoll:
+      interval: 45m
+---
+apiVersion: operators.coreos.com/v1alpha1
+kind: CatalogSource
+metadata:
+  name: ibm-integration-platform-navigator-catalog
+  namespace: openshift-marketplace
+spec:
+  displayName: "PN Operators 6.0.0"
+  image: icr.io/cpopen/ibm-integration-platform-navigator-catalog@sha256:e67b85bc65246d0d023ca9ca79a6a7b510431aa831668a5074bc555075aec58d
+  publisher: IBM
+  sourceType: grpc
+  updateStrategy:
+    registryPoll:
+      interval: 45m
+---
+apiVersion: operators.coreos.com/v1alpha1
+kind: CatalogSource
+metadata:
+  name: ibm-mq-operator-catalog
+  namespace: openshift-marketplace
+spec:
+  displayName: "MQ Operators v2.0.0"
+  image: icr.io/cpopen/ibm-mq-operator-catalog@sha256:ce5cbb440329131346ab1b5b63751042de8c5285acc480231d51961305872618
   publisher: IBM
   sourceType: grpc
   updateStrategy:
     registryPoll:
       interval: 45m
 EOF
-}
-
-echo -e "$INFO [INFO] Applying catalogsources\n"
-create_catalog_source ${WML_TRAINING_CATALOG_NAME} ${WML_TRAINING_CATALOG_IMAGE} ${WML_TRAINING_CATALOG_DISPLAY_NAME}
-create_catalog_source ${APIC_CATALOG_NAME} ${APIC_CATALOG_IMAGE} ${APIC_CATALOG_DISPLAY_NAME}
-create_catalog_source ${ACE_CATALOG_NAME} ${ACE_CATALOG_IMAGE} ${ACE_CATALOG_DISPLAY_NAME}
-create_catalog_source ${ASPERA_CATALOG_NAME} ${ASPERA_CATALOG_IMAGE} ${ASPERA_CATALOG_DISPLAY_NAME}
-create_catalog_source ${IAF_CATALOG_NAME} ${IAF_CATALOG_IMAGE} ${IAF_CATALOG_DISPLAY_NAME}
-create_catalog_source ${REDIS_CATALOG_NAME} ${REDIS_CATALOG_IMAGE} ${REDIS_CATALOG_DISPLAY_NAME}
-create_catalog_source ${COUCHDB_CATALOG_NAME} ${COUCHDB_CATALOG_IMAGE} ${COUCHDB_CATALOG_DISPLAY_NAME}
-create_catalog_source ${COMMON_SERVICES_CATALOG_NAME} ${COMMON_SERVICES_CATALOG_IMAGE} ${COMMON_SERVICES_CATALOG_DISPLAY_NAME}
-
-create_catalog_source ${DATAPOWER_CATALOG_NAME} ${DATAPOWER_CATALOG_IMAGE} ${DATAPOWER_CATALOG_DISPLAY_NAME}
-create_catalog_source ${EVENT_STREAMS_CATALOG_NAME} ${EVENT_STREAMS_CATALOG_IMAGE} ${EVENT_STREAMS_CATALOG_DISPLAY_NAME}
-create_catalog_source ${ASSET_REPO_CATALOG_NAME} ${ASSET_REPO_CATALOG_IMAGE} ${ASSET_REPO_CATALOG_DISPLAY_NAME}
-create_catalog_source ${OPERATIONS_DASHBOARD_CATALOG_NAME} ${OPERATIONS_DASHBOARD_CATALOG_IMAGE} ${OPERATIONS_DASHBOARD_CATALOG_DISPLAY_NAME}
-create_catalog_source ${NAVIGATOR_CATALOG_NAME} ${NAVIGATOR_CATALOG_IMAGE} ${NAVIGATOR_CATALOG_DISPLAY_NAME}
-create_catalog_source ${MQ_CATALOG_NAME} ${MQ_CATALOG_IMAGE} ${MQ_CATALOG_DISPLAY_NAME}

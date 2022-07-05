@@ -2,42 +2,37 @@
 
 SCRIPT_DIR=$(dirname $0)
 
-CASE_VERSION=
-
-while getopts "v:" opt; do
-  case ${opt} in
-  v)
-    CASE_VERSION="$OPTARG"
-    ;;
-  esac
-done
-
-if [[ -z "$CASE_VERSION" ]]; then
-  CASE_VERSION=$(${SCRIPT_DIR}/get-latest.sh)
-fi
-
 : ${CLOUDCTL:=cloudctl}
-: ${GIT:=git}
 
 ${CLOUDCTL} version
-${GIT} version
+
+CASE_REPO_PATH=https://github.com/IBM/cloud-pak/raw/master/repo/case
+CASE_NAMES="ibm-ai-wmltraining ibm-apiconnect ibm-appconnect ibm-aspera-hsts-operator ibm-cloud-databases-redis ibm-cp-common-services ibm-datapower-operator ibm-eventstreams ibm-integration-asset-repository ibm-integration-operations-dashboard ibm-integration-platform-navigator ibm-mq"
 
 SCRATCH=$(mktemp -d)
 mkdir -p $SCRATCH
 
-CASE_REPO_PATH=https://github.com/IBM/cloud-pak/raw/master/repo/case
-CASE_NAME=ibm-cp-integration
-echo "CASE_VERSION=${CASE_VERSION}"
-
 mkdir "${SCRATCH}/cases"
-export CASES="${SCRATCH}/cases"
-${CLOUDCTL} case save \
-        --repo $CASE_REPO_PATH \
-        --case $CASE_NAME \
-        --version $CASE_VERSION \
-        --outputdir "${CASES}"
+export CASES_DIR="${SCRATCH}/cases"
 
-CATALOG_IMAGES=$(grep -h -e "catalog" ${SCRATCH}/cases/*-images.csv | grep -e ",amd64,")
+for CASE_NAME in ${CASE_NAMES}; do
+  retry_count=0
+  echo "Saving case for ${CASE_NAME}"
+  until ${CLOUDCTL} case save \
+          --repo $CASE_REPO_PATH \
+          --case $CASE_NAME \
+          --no-dependency \
+          --outputdir "${CASES_DIR}" ; do
+    if [ $retry_count -gt 10 ]; then
+      exit 1
+    fi
+    retry_count=$((retry_count + 1))
+  done
+done
+
+ls -ltr ${CASES_DIR}/*.tgz
+
+CATALOG_IMAGES=$(grep -h -e "catalog" ${CASES_DIR}/*-images.csv | grep -e ",amd64,")
 FIXED_DATA_JSON='
 {
   "ibm-ai-wmltraining-operator-catalog": {
@@ -60,28 +55,15 @@ FIXED_DATA_JSON='
     "catalogName": "aspera-operators",
     "displayNamePrefix": "Aspera Operators"
   },
-  "ibm-automation-foundation-core-catalog": {
-    "envVarPrefix": "IAF",
-    "catalogName": "automation-base-pak-operators",
-    "displayNamePrefix": "IBMABP Operators"
-  },
   "ibm-cloud-databases-redis-catalog": {
     "envVarPrefix": "REDIS",
     "catalogName": "aspera-redis-operators",
     "displayNamePrefix": "Redis for Aspera Operators"
   },
-  "couchdb-operator-catalog": {
-    "envVarPrefix": "COUCHDB",
-    "catalogName": "couchdb-operators",
-    "displayNamePrefix": "IBM CouchDB Operators"
-  },
   "ibm-common-service-catalog": {
     "envVarPrefix": "COMMON_SERVICES",
     "catalogName": "opencloud-operators",
     "displayNamePrefix": "IBMCS Operators"
-  },
-  "ibm-cp-integration-catalog": {
-    "ignore": true
   },
   "datapower-operator-catalog": {
     "envVarPrefix": "DATAPOWER",
@@ -140,7 +122,10 @@ if [[ "$FOUND_ERRORS" == "true" ]]; then
   exit 1
 fi
 
-echo "No problems found, creating env vars..."
+echo "No problems found, creating catalogsource yaml:"
+echo ""
+echo ""
+echo ""
 
 for line in $CATALOG_IMAGES; do
   image_name=$(echo $line | cut -d, -f 2)
@@ -155,8 +140,22 @@ for line in $CATALOG_IMAGES; do
     envVarPrefix=$(echo "$data" | jq -r '.envVarPrefix')
     catalogName=$(echo "$data" | jq -r '.catalogName')
     displayNamePrefix=$(echo "$data" | jq -r '.displayNamePrefix')
-    echo "${envVarPrefix}_CATALOG_NAME=${catalog_name}"
-    echo "${envVarPrefix}_CATALOG_IMAGE=${registry}/${image_name}@${digest}"
-    echo "${envVarPrefix}_CATALOG_DISPLAY_NAME=\"${displayNamePrefix} ${version}\""
+    CATALOG_NAME=${catalog_name}
+    CATALOG_IMAGE="${registry}/${image_name}@${digest}"
+    CATALOG_DISPLAY_NAME="${displayNamePrefix} ${version}"
+    echo "---
+apiVersion: operators.coreos.com/v1alpha1
+kind: CatalogSource
+metadata:
+  name: ${CATALOG_NAME}
+  namespace: openshift-marketplace
+spec:
+  displayName: \"${CATALOG_DISPLAY_NAME}\"
+  image: ${CATALOG_IMAGE}
+  publisher: IBM
+  sourceType: grpc
+  updateStrategy:
+    registryPoll:
+      interval: 45m"
   fi
 done

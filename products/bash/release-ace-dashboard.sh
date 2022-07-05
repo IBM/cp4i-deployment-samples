@@ -27,7 +27,7 @@
 dashboard_release_name="ace-dashboard-demo"
 namespace="cp4i"
 production="false"
-storage="ibmc-file-gold-gid"
+storage="cp4i-file-performance-gid"
 CURRENT_DIR=$(dirname $0)
 
 function usage() {
@@ -119,7 +119,7 @@ spec:
     size: 5Gi
     type: persistent-claim
   useCommonServices: true
-  version: '12.0.2'
+  version: '12.0-lts'
 EOF
   if [ $time -gt 10 ]; then
     echo "ERROR: Exiting installation as timeout waiting for Dashboard to be created"

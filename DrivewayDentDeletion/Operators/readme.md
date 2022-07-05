@@ -28,7 +28,7 @@ These steps will need to be documented in the demo docs:
   export NAMESPACE=<NAMESPACE>
 
   # Branch/tag for required version of CP4I
-  export BRANCH=2021.4.1
+  export BRANCH=2022.2.1
 
   # The URL for your forked repo
   export FORKED_REPO=https://github.com/IBM/cp4i-deployment-samples.git
@@ -37,7 +37,7 @@ These steps will need to be documented in the demo docs:
   export HA_ENABLED=false
 
   # Default to storage classes appropriate for 1-click on ROKS
-  export DEFAULT_FILE_STORAGE=ibmc-file-gold-gid
+  export DEFAULT_FILE_STORAGE=cp4i-file-performance-gid
   export DEFAULT_BLOCK_STORAGE=cp4i-block-performance
 
   oc project $NAMESPACE
@@ -50,7 +50,7 @@ These steps will need to be documented in the demo docs:
   export NAMESPACE=<NAMESPACE>
 
   # Branch/tag for required version of CP4I
-  export BRANCH=2021.4.1
+  export BRANCH=2022.2.1
 
   # The URL for your forked repo
   export FORKED_REPO=https://github.com/IBM/cp4i-deployment-samples.git
@@ -59,7 +59,7 @@ These steps will need to be documented in the demo docs:
   export HA_ENABLED=false
 
   # Default to storage classes appropriate for 1-click on ROKS
-  export DEFAULT_FILE_STORAGE=ibmc-file-gold-gid
+  export DEFAULT_FILE_STORAGE=cp4i-file-performance-gid
   export DEFAULT_BLOCK_STORAGE=cp4i-block-performance
 
   oc project $NAMESPACE
@@ -72,7 +72,7 @@ These steps will need to be documented in the demo docs:
   export NAMESPACE=<NAMESPACE>
 
   # Branch/tag for required version of CP4I
-  export BRANCH=2021.4.1
+  export BRANCH=2022.2.1
 
   # The URL for your forked repo
   export FORKED_REPO=https://github.com/IBM/cp4i-deployment-samples.git
@@ -81,7 +81,7 @@ These steps will need to be documented in the demo docs:
   export HA_ENABLED=false
 
   # Default to storage classes appropriate for 1-click on ROKS
-  export DEFAULT_FILE_STORAGE=ibmc-file-gold-gid
+  export DEFAULT_FILE_STORAGE=cp4i-file-performance-gid
   export DEFAULT_BLOCK_STORAGE=cp4i-block-performance
 
   oc project $NAMESPACE

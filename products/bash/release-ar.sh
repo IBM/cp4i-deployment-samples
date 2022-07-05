@@ -29,7 +29,7 @@ function usage() {
 
 namespace="cp4i"
 release_name="demo"
-assetDataVolume="ibmc-file-gold-gid"
+assetDataVolume="cp4i-file-performance-gid"
 couchVolume="ibmc-block-gold"
 CURRENT_DIR=$(dirname $0)
 
@@ -89,7 +89,7 @@ spec:
       class: ${assetDataVolume}
     couchVolume:
       class: ${couchVolume}
-  version: 2021.4.1-3
+  version: 2022.2.1
 EOF
   if [ $time -gt 10 ]; then
     echo "ERROR: Exiting installation as timeout waiting for AssetRepository to be created"

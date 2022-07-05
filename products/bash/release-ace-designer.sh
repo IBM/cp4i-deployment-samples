@@ -26,7 +26,7 @@
 designer_release_name="ace-designer-demo"
 namespace="cp4i"
 storage="ibmc-block-gold"
-file_storage="ibmc-file-gold-gid"
+file_storage="cp4i-file-performance-gid"
 CURRENT_DIR=$(dirname $0)
 
 function usage() {
@@ -103,7 +103,7 @@ spec:
     use: CloudPakForIntegrationNonProduction
   replicas: 1
   useCommonServices: true
-  version: '12.0.2'
+  version: '12.0-lts'
 EOF
   if [ $time -gt 10 ]; then
     echo "ERROR: Exiting installation as timeout waiting for DesignerAuthoring to be created"

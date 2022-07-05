@@ -29,7 +29,7 @@ function usage() {
 
 namespace="cp4i"
 replicas="1"
-storage="ibmc-file-gold-gid"
+storage="cp4i-file-performance-gid"
 
 SCRIPT_DIR="$(dirname $0)"
 echo "Current Dir: $SCRIPT_DIR"
@@ -64,10 +64,10 @@ metadata:
 spec:
   license:
     accept: true
-    license: L-RJON-C7QG3S
+    license: L-RJON-CD3JKX
   mqDashboard: true
   replicas: ${replicas}
-  version: 2021.4.1
+  version: 2022.2.1
   storage:
     class: ${storage}
 EOF

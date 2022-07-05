@@ -104,7 +104,7 @@ spec:
     use: ${license_use}
     license: $(getAPICLicense $namespace)
   profile: ${profile}
-  version: 10.0.4.0
+  version: "10.0.5"
 EOF
   if [ $time -gt 10 ]; then
     echo "ERROR: Exiting installation as timeout waiting for APIConnectCluster to be created"

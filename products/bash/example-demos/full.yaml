@@ -9,7 +9,7 @@ spec:
       block:
         class: cp4i-block-performance
       file:
-        class: ibmc-file-gold-gid
+        class: cp4i-file-performance-gid
     license:
       accept: true
       ace: L-APEH-BPUCJK
@@ -117,4 +117,4 @@ status:
       installed: true
       readyToUse: true
       namespace: cp4i
-  version: 2020.3.1-1
+  version: 2022.2.1

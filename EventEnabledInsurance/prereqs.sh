@@ -18,7 +18,7 @@
 #   -e : (string), No longer used
 #   -p : <POSTGRES_NAMESPACE> (string), Namespace where postgres is setup, Defaults to the value of <NAMESPACE>
 #   -o : <OMIT_INITIAL_SETUP> (optional), Parameter to decide if initial setup is to be done or not, Defaults to false
-#   -f : <DEFAULT_FILE_STORAGE> (string), Default to 'ibmc-file-gold-gid'
+#   -f : <DEFAULT_FILE_STORAGE> (string), Default to 'cp4i-file-performance-gid'
 #   -g : <DEFAULT_BLOCK_STORAGE> (string), Default to 'cp4i-block-performance'
 #
 #   With defaults values
@@ -48,7 +48,7 @@ BRANCH="main"
 INFO="\xE2\x84\xB9"
 MISSING_PARAMS="false"
 OMIT_INITIAL_SETUP=false
-DEFAULT_FILE_STORAGE="ibmc-file-gold-gid"
+DEFAULT_FILE_STORAGE="cp4i-file-performance-gid"
 DEFAULT_BLOCK_STORAGE="ibmc-block-gold"
 
 while getopts "n:r:b:e:p:of:g:" opt; do

@@ -1,5 +1,5 @@
 # Note if ibm-entitlement-key includes an auth for cp.stg.icr.io then this will be changed to cp.stg.icr.io:
-FROM cp.icr.io/cp/ibm-mqadvanced-server-integration@sha256:dca6dbcfbd93ea0e4503f410c4bb986531435965bda6a63f1b6fecff70e88767
+FROM cp.icr.io/cp/ibm-mqadvanced-server-integration@sha256:0639d6d84c18ec8c477e47c29f604725f07b47ea50f23e4eaffae4e440d75fed
 RUN echo -e "\
 DEFINE QLOCAL('AccidentIn') DEFPSIST(YES) BOTHRESH(5) \n\
 DEFINE QLOCAL('AccidentOut') DEFPSIST(YES) BOTHRESH(5) \n\

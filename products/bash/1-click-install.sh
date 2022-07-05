@@ -16,7 +16,7 @@
 # PARAMETERS:
 #   -a : <eventEnabledInsuranceDemo> (string), If event enabled insurance demo is to be setup. Defaults to "false"
 #   -b : <demoDeploymentBranch> (string), The demo deployment branch to be used, Defaults to 'main'
-#   -c : <DEFAULT_FILE_STORAGE> (string), Defines the default file storage for the cluster. Defaults to "ibmc-file-gold-gid"
+#   -c : <DEFAULT_FILE_STORAGE> (string), Defines the default file storage for the cluster. Defaults to "cp4i-file-performance-gid"
 #   -d : <demoPreparation> (string), If all demos are to be setup. Defaults to "false"
 #   -e : <demoAPICEmailAddress> (string), The email address APIC uses to notify of portal configuration. Defaults to "your@email.address"
 #   -f : <drivewayDentDeletionDemo> (string),  If driveway dent deletion demo is to be setup. Defaults to "false"
@@ -66,7 +66,7 @@ MISSING_PARAMS="false"
 IMAGE_REPO="cp.icr.io"
 PASSWORD_CHANGE="true"
 DEFAULT_BLOCK_STORAGE="cp4i-block-performance"
-DEFAULT_FILE_STORAGE="ibmc-file-gold-gid"
+DEFAULT_FILE_STORAGE="cp4i-file-performance-gid"
 CLUSTER_TYPE="roks"
 CLUSTER_SCOPED="false"
 HA_ENABLED="true"

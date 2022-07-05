@@ -16,7 +16,7 @@
 #   -n : <namespace> (string), Defaults to "cp4i"
 #   -r : <release-name> (string), Defaults to "tracing-demo"
 #   -b : <block-storage-class> (string), Default to "ibmc-block-gold"
-#   -f : <file-storage-class> (string), Default to "ibmc-file-gold-gid"
+#   -f : <file-storage-class> (string), Default to "cp4i-file-performance-gid"
 #
 # USAGE:
 #   With defaults values
@@ -32,7 +32,7 @@ function usage() {
 namespace="cp4i"
 release_name="tracing-demo"
 block_storage="ibmc-block-gold"
-file_storage="ibmc-file-gold-gid"
+file_storage="cp4i-file-performance-gid"
 production="false"
 CURRENT_DIR=$(dirname $0)
 TICK="\xE2\x9C\x85"
@@ -114,7 +114,7 @@ spec:
     tracingVolume:
       class: "${block_storage}"
       size: 150Gi
-  version: 2021.4.1-0
+  version: 2022.2.1-lts
 EOF
     if [ $time -gt 10 ]; then
       echo "ERROR: Exiting installation as timeout waiting for OperationsDashboard to be created"
@@ -154,7 +154,7 @@ spec:
       class: "${file_storage}"
     tracingVolume:
       class: "${block_storage}"
-  version: 2021.4.1
+  version: 2022.2.1-lts
 EOF
     if [ $time -gt 10 ]; then
       echo "ERROR: Exiting installation as timeout waiting for OperationsDashboard to be created"
@@ -180,6 +180,7 @@ until [ "$STATUS" == "Ready" ]; do
   echo "Waiting for Operations Dashboard install to complete (Attempt $time of 400). Status: $STATUS"
   sleep 15
   time=$((time + 1))
+  STATUS=$(oc get OperationsDashboard -n ${namespace} ${release_name} -o jsonpath='{.status.phase}')
 done
 
 echo -e "$TICK [INFO] Operations Dashboard is ready"
