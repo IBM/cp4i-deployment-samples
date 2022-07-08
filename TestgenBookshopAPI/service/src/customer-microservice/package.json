@@ -21,7 +21,7 @@
     "express": "~4.17.1",
     "http-errors": "~1.8.0",
     "http-request": "file:../libs/httpRequest",
-    "moment": "^2.29.1",
+    "moment": "^2.29.4",
     "morgan": "~1.10.0",
     "nodemon": "^2.0.7",
     "pug": "3.0.2",
