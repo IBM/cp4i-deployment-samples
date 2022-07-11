@@ -26,8 +26,18 @@ IAM_Update_OperandConfig() {
   echo "INFO: External url: ${EXTERNAL}"
   echo "INFO: INT_URL: ${INT_URL}"
   echo "INFO: IAM URL : ${IAM_URL}"
-  echo "INFO: Updating the OperandConfig 'common-service' for IAM Authentication"
-  oc get OperandConfig -n ibm-common-services common-service -o json | jq '(.spec.services[] | select(.name == "ibm-iam-operator") | .spec.authentication)|={"config":{"roksEnabled":true,"roksURL":"'$IAM_URL'","roksUserPrefix":"IAM#"}}' | oc apply -f -
+  echo "INFO: Updating the OperandConfig 'common-services' for IAM Authentication"
+  time=0
+  until oc get OperandConfig -n ibm-common-services common-service -o json | jq '(.spec.services[] | select(.name == "ibm-iam-operator") | .spec.authentication)|={"config":{"roksEnabled":true,"roksURL":"'$IAM_URL'","roksUserPrefix":"IAM#"}}' | oc apply -f - ; do
+    if [ $time -gt 10 ]; then
+      echo "ERROR: Exiting installation as timeout waiting to update the OperandConfig 'common-services' for IAM Authentication"
+      exit 1
+    fi
+    echo "INFO: Waiting up to 10 minutes to update the OperandConfig 'common-services' for IAM Authentication"
+    time=$((time + 1))
+    sleep 60
+  done
+  echo "INFO: OperandConfig 'common-services' for IAM Authentication updated successfully"
 }
 
 # Wait for up to 10 minutes for the OperandConfig to appear in the common services namespace for a ROKS cluster
