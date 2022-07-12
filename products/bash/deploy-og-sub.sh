@@ -63,6 +63,9 @@ function wait_for_all_subscriptions() {
     subscriptions_waiting=""
 
     rows=$(oc get subscription -n ${NAMESPACE} -o json | jq -r '.items[] | { name: .metadata.name, csv: .status.currentCSV } | @base64')
+    if [ $? -ne 0 ]; then
+      continue
+    fi
     for row in $rows; do
       _jq() {
         echo ${row} | base64 --decode | jq -r ${1}
