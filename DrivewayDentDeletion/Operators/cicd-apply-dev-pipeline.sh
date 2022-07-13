@@ -39,12 +39,8 @@ function usage() {
 NAMESPACE="cp4i"
 BRANCH="main"
 REPO="https://github.com/IBM/cp4i-deployment-samples.git"
-TICK="\xE2\x9C\x85"
-CROSS="\xE2\x9D\x8C"
-ALL_DONE="\xF0\x9F\x92\xAF"
-INFO="\xE2\x84\xB9"
-SUM=0
 CURRENT_DIR=$(dirname $0)
+source $CURRENT_DIR/../../products/bash/utils.sh
 MISSING_PARAMS="false"
 DEFAULT_FILE_STORAGE="cp4i-file-performance-gid"
 DEFAULT_BLOCK_STORAGE="cp4i-block-performance"
@@ -154,69 +150,46 @@ divider
 
 # apply pvc for buildah tasks
 echo -e "$INFO [INFO] Apply pvc for buildah tasks for the dev pipeline of the driveway dent deletion demo"
-if cat $CURRENT_DIR/cicd-dev/cicd-pvc.yaml |
+YAML=$(cat $CURRENT_DIR/cicd-dev/cicd-pvc.yaml |
   sed "s#{{DEFAULT_FILE_STORAGE}}#$DEFAULT_FILE_STORAGE#g;" |
-  sed "s#{{DEFAULT_BLOCK_STORAGE}}#$DEFAULT_BLOCK_STORAGE#g;" |
-  oc apply -n $NAMESPACE -f -; then
-  echo -e "\n$TICK [SUCCESS] Successfully applied pvc in the '$NAMESPACE' namespace"
-else
-  echo -e "\n$CROSS [ERROR] Failed to apply pvc in the '$NAMESPACE' namespace"
-  SUM=$((SUM + 1))
-fi
+  sed "s#{{DEFAULT_BLOCK_STORAGE}}#$DEFAULT_BLOCK_STORAGE#g;")
+OCApplyYAML "$NAMESPACE" "$YAML"
 
 divider
 
 # create tekton tasks
 TRACING="-t -z $NAMESPACE"
 echo -e "$INFO [INFO] Create tekton tasks for the dev pipeline of the driveway dent deletion demo"
-if cat $CURRENT_DIR/../../CommonPipelineResources/cicd-tasks.yaml |
+YAML=$(cat $CURRENT_DIR/../../CommonPipelineResources/cicd-tasks.yaml |
   sed "s#{{NAMESPACE}}#$NAMESPACE#g;" |
-  sed "s#{{TRACING}}#$TRACING#g;" |
-  oc apply -f -; then
-  echo -e "\n$TICK [SUCCESS] Successfully applied tekton tasks in the '$NAMESPACE' namespace for the dev pipeline of the driveway dent deletion demo"
-else
-  echo -e "\n$CROSS [ERROR] Failed to apply tekton tasks in the '$NAMESPACE' namespace for the dev pipeline of the driveway dent deletion demo"
-  SUM=$((SUM + 1))
-fi
+  sed "s#{{TRACING}}#$TRACING#g;")
+OCApplyYAML "$NAMESPACE" "$YAML"
 
 divider
 
 # create the pipeline to run tasks to build and deploy to dev
 echo -e "$INFO [INFO] Create the pipeline to run tasks for the dev pipeline of the driveway dent deletion demo in '$NAMESPACE' namespace"
-if cat $CURRENT_DIR/cicd-dev/cicd-pipeline.yaml |
+YAML=$(cat $CURRENT_DIR/cicd-dev/cicd-pipeline.yaml |
   sed "s#{{NAMESPACE}}#$NAMESPACE#g;" |
   sed "s#{{FORKED_REPO}}#$REPO#g;" |
   sed "s#{{BRANCH}}#$BRANCH#g;" |
   sed "s#{{HA_ENABLED}}#$HA_ENABLED#g;" |
-  sed "s#{{DEFAULT_BLOCK_STORAGE}}#$DEFAULT_BLOCK_STORAGE#g;" |
-  oc apply -f -; then
-  echo -e "\n$TICK [SUCCESS] Successfully applied the pipeline to run tasks to build and deploy to '$NAMESPACE' namespace for the dev pipeline of the driveway dent deletion demo"
-else
-  echo -e "\n$CROSS [ERROR] Failed to apply the pipeline to run tasks to build and deploy to '$NAMESPACE' namespace for the dev pipeline of the driveway dent deletion demo"
-  SUM=$((SUM + 1))
-fi
+  sed "s#{{DEFAULT_BLOCK_STORAGE}}#$DEFAULT_BLOCK_STORAGE#g;")
+OCApplyYAML "$NAMESPACE" "$YAML"
 
 divider
 
 # create the trigger template containing the pipelinerun
 echo -e "$INFO [INFO] Create the trigger template for the dev pipeline of the driveway dent deletion demo in the '$NAMESPACE' namespace"
-if oc apply -f $CURRENT_DIR/cicd-dev/cicd-trigger-template.yaml; then
-  echo -e "\n$TICK [SUCCESS] Successfully applied the trigger template containing the pipelinerun in the '$NAMESPACE' namespace for the dev pipeline of the driveway dent deletion demo"
-else
-  echo -e "\n$CROSS [ERROR] Failed to apply the trigger template containing the pipelinerun in the '$NAMESPACE' namespace for the dev pipeline of the driveway dent deletion demo"
-  SUM=$((SUM + 1))
-fi
+YAML=$(cat $CURRENT_DIR/cicd-dev/cicd-trigger-template.yaml)
+OCApplyYAML "$NAMESPACE" "$YAML"
 
 divider
 
 # create the event listener and route for webhook
 echo "INFO : Create the event listener and route for webhook for the dev pipeline of the driveway dent deletion demo in the '$NAMESPACE' namespace"
-if oc apply -f $CURRENT_DIR/cicd-dev/cicd-events-routes.yaml; then
-  echo -e "\n$TICK [SUCCESS] Successfully created the event listener and route for webhook in the '$NAMESPACE' namespace for the dev pipeline of the driveway dent deletion demo"
-else
-  echo -e "\n$CROSS [ERROR] Failed to apply the event listener and route for webhook in the '$NAMESPACE' namespace for the dev pipeline of the driveway dent deletion demo"
-  SUM=$((SUM + 1))
-fi
+YAML=$(cat $CURRENT_DIR/cicd-dev/cicd-events-routes.yaml)
+OCApplyYAML "$NAMESPACE" "$YAML"
 
 divider
 
@@ -239,23 +212,18 @@ echo -e "\n\n$TICK [INFO] Webhook route in the '$NAMESPACE' namespace for the de
 
 if [[ -z $WEBHOOK_ROUTE ]]; then
   echo -e "\n$CROSS [ERROR] Failed to get route for the webhook in the '$NAMESPACE' namespace for the dev pipeline of the driveway dent deletion demo"
-  SUM=$((SUM + 1))
-else
-  echo -e "\n$TICK [SUCCESS] Successfully got route for the webhook in the '$NAMESPACE' namespace for the dev pipeline of the driveway dent deletion demo"
+  exit 1
 fi
+
+echo -e "\n$TICK [SUCCESS] Successfully got route for the webhook in the '$NAMESPACE' namespace for the dev pipeline of the driveway dent deletion demo"
 
 divider
 
-if [[ $SUM -gt 0 ]]; then
-  echo -e "$CROSS [ERROR] Creating the webhook is not recommended as some resources have not been applied successfully in the '$NAMESPACE' namespace"
-  exit 1
-else
-  # print route for webhook
-  echo -e "$INFO [INFO] Your trigger route for the github webhook for the dev pipeline of the driveway dent deletion demo is: $WEBHOOK_ROUTE"
-  echo -e "$INFO [INFO] The next step is to add the trigger URL to the forked repository as a webhook with the Content type as 'application/json', which triggers an initial run of the pipeline."
-  echo -e "$INFO [INFO] To manually trigger a run of the pipeline use:"
-  echo -e "$INFO [INFO]    curl -X POST $WEBHOOK_ROUTE --header \"Content-Type: application/json\" --data '{\"message\":\"Test run\"}'\n"
-  echo -e "$TICK  $ALL_DONE Successfully applied all the cicd pipeline resources and requirements in the '$NAMESPACE' namespace for the dev pipeline of the driveway dent deletion demo"
-fi
+# print route for webhook
+echo -e "$INFO [INFO] Your trigger route for the github webhook for the dev pipeline of the driveway dent deletion demo is: $WEBHOOK_ROUTE"
+echo -e "$INFO [INFO] The next step is to add the trigger URL to the forked repository as a webhook with the Content type as 'application/json', which triggers an initial run of the pipeline."
+echo -e "$INFO [INFO] To manually trigger a run of the pipeline use:"
+echo -e "$INFO [INFO]    curl -X POST $WEBHOOK_ROUTE --header \"Content-Type: application/json\" --data '{\"message\":\"Test run\"}'\n"
+echo -e "$TICK  $ALL_DONE Successfully applied all the cicd pipeline resources and requirements in the '$NAMESPACE' namespace for the dev pipeline of the driveway dent deletion demo"
 
 divider

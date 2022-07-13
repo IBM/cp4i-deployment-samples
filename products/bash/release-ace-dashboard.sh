@@ -24,11 +24,12 @@
 #     ./release-ace-dashboard.sh -n cp4i-prod -r prod
 
 
+CURRENT_DIR=$(dirname $0)
+source $CURRENT_DIR/utils.sh
 dashboard_release_name="ace-dashboard-demo"
 namespace="cp4i"
 production="false"
 storage="cp4i-file-performance-gid"
-CURRENT_DIR=$(dirname $0)
 
 function usage() {
   echo "Usage: $0 -n <namespace> -r <dashboard-release-name>"
@@ -76,8 +77,7 @@ if [[ $? == 0 ]]; then
   METADATA_UID=$(echo $json | tr '\r\n' ' ' | jq -r '.data.METADATA_UID')
 fi
 
-time=0
-until cat <<EOF | oc apply -f -; do
+YAML=$(cat <<EOF
 apiVersion: appconnect.ibm.com/v1beta1
 kind: Dashboard
 metadata:
@@ -120,12 +120,5 @@ spec:
     type: persistent-claim
   useCommonServices: true
   version: '12.0-lts'
-EOF
-  if [ $time -gt 10 ]; then
-    echo "ERROR: Exiting installation as timeout waiting for Dashboard to be created"
-    exit 1
-  fi
-  echo "INFO: Waiting up to 10 minutes for Dashboard to be created. Waited ${time} minute(s)."
-  time=$((time + 1))
-  sleep 60
-done
+EOF)
+OCApplyYAML "$namespace" "$YAML"

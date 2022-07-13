@@ -28,6 +28,8 @@ function usage() {
   exit 1
 }
 
+CURRENT_DIR=$(dirname $0)
+source $CURRENT_DIR/utils.sh
 namespace="cp4i"
 
 while getopts "n:" opt; do
@@ -111,7 +113,7 @@ function wait_for_all_subscriptions() {
 if [[ "$CLUSTER_SCOPED" != "true" ]]; then
   OPERATOR_GROUP_COUNT=$(oc get operatorgroups -n ${namespace} -o json | jq '.items | length')
   if [[ "${OPERATOR_GROUP_COUNT}" == "0" ]]; then
-    cat <<EOF | oc apply -f -
+    YAML=$(cat <<EOF
 apiVersion: operators.coreos.com/v1
 kind: OperatorGroup
 metadata:
@@ -120,11 +122,12 @@ metadata:
 spec:
   targetNamespaces:
     - ${namespace}
-EOF
+EOF)
+    OCApplyYAML "$namespace" "$YAML"
   fi
 fi
 
-cat <<EOF | oc apply -n ${namespace} -f -
+YAML=$(cat <<EOF
 apiVersion: operators.coreos.com/v1alpha1
 kind: Subscription
 metadata:
@@ -244,7 +247,8 @@ spec:
   name: ibm-integration-operations-dashboard
   source: ibm-integration-operations-dashboard-catalog
   sourceNamespace: openshift-marketplace
-EOF
+EOF)
+OCApplyYAML "$namespace" "$YAML"
 
 echo "INFO: Wait for all subscriptions to succeed"
 wait_for_all_subscriptions ${namespace}

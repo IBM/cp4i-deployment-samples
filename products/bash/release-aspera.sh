@@ -29,6 +29,8 @@ function usage() {
   echo "Usage: $0 -n <namespace> -r <release-name> [-t]"
 }
 
+CURRENT_DIR=$(dirname $0)
+source $CURRENT_DIR/utils.sh
 namespace="cp4i"
 release_name="aspera"
 production="false"
@@ -63,7 +65,7 @@ license="$(cat ${license_key_filepath} | awk '{printf "      %s\n",$0}')"
 
 if [[ "$production" == "true" ]]; then
   echo "Production Mode Enabled"
-  cat <<EOF | oc apply -f -
+  YAML=$(cat <<EOF
 apiVersion: hsts.aspera.ibm.com/v1
 kind: IbmAsperaHsts
 metadata:
@@ -104,7 +106,7 @@ spec:
       replicas: 3
   license:
     accept: true
-    key: >- 
+    key: >-
 ${license}
     use: CloudPakForIntegrationProduction
   redis:
@@ -127,10 +129,9 @@ ${license}
       mountPath: /data/
       size: 2000Gi
   version: 4.0.0
-EOF
+EOF)
 else
-
-  cat <<EOF | oc apply -f -
+  YAML=$(cat <<EOF
 apiVersion: hsts.aspera.ibm.com/v1
 kind: IbmAsperaHsts
 metadata:
@@ -146,7 +147,7 @@ spec:
       replicas: 1
   license:
     accept: true
-    key: >- 
+    key: >-
 ${license}
     use: CloudPakForIntegrationNonProduction
   redis:
@@ -164,6 +165,6 @@ ${license}
       mountPath: /data/
       size: 20Gi
   version: 4.0.0
-
-EOF
+EOF)
 fi
+OCApplyYAML "$namespace" "$YAML"

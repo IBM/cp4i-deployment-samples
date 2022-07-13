@@ -27,11 +27,12 @@ function usage() {
   echo "Usage: $0 -n <namespace> -r <release-name> -a <assets storage class (file)> -c <couch storage class (block)>"
 }
 
+CURRENT_DIR=$(dirname $0)
+source $CURRENT_DIR/utils.sh
 namespace="cp4i"
 release_name="demo"
 assetDataVolume="cp4i-file-performance-gid"
 couchVolume="ibmc-block-gold"
-CURRENT_DIR=$(dirname $0)
 
 while getopts "n:r:a:c:" opt; do
   case ${opt} in
@@ -63,8 +64,7 @@ if [[ $? == 0 ]]; then
   METADATA_UID=$(echo $json | tr '\r\n' ' ' | jq -r '.data.METADATA_UID')
 fi
 
-time=0
-until cat <<EOF | oc apply -f -; do
+YAML=$(cat <<EOF
 apiVersion: integration.ibm.com/v1beta1
 kind: AssetRepository
 metadata:
@@ -90,12 +90,5 @@ spec:
     couchVolume:
       class: ${couchVolume}
   version: 2022.2.1
-EOF
-  if [ $time -gt 10 ]; then
-    echo "ERROR: Exiting installation as timeout waiting for AssetRepository to be created"
-    exit 1
-  fi
-  echo "INFO: Waiting up to 10 minutes for AssetRepository to be created. Waited ${time} minute(s)."
-  time=$((time + 1))
-  sleep 60
-done
+EOF)
+OCApplyYAML "$namespace" "$YAML"
