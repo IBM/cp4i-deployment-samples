@@ -23,11 +23,12 @@
 #   Overriding the namespace and release-name
 #     ./release-ace-designer.sh -n cp4i-prod -r prod
 
+CURRENT_DIR=$(dirname $0)
+source $CURRENT_DIR/utils.sh
 designer_release_name="ace-designer-demo"
 namespace="cp4i"
 storage="ibmc-block-gold"
 file_storage="cp4i-file-performance-gid"
-CURRENT_DIR=$(dirname $0)
 
 function usage() {
   echo "Usage: $0 -n <namespace> -r <designer_release_name>"
@@ -67,8 +68,7 @@ if [[ $? == 0 ]]; then
   METADATA_UID=$(echo $json | tr '\r\n' ' ' | jq -r '.data.METADATA_UID')
 fi
 
-time=0
-until cat <<EOF | oc apply -f -; do
+YAML=$(cat <<EOF
 apiVersion: appconnect.ibm.com/v1beta1
 kind: DesignerAuthoring
 metadata:
@@ -104,12 +104,5 @@ spec:
   replicas: 1
   useCommonServices: true
   version: '12.0-lts'
-EOF
-  if [ $time -gt 10 ]; then
-    echo "ERROR: Exiting installation as timeout waiting for DesignerAuthoring to be created"
-    exit 1
-  fi
-  echo "INFO: Waiting up to 10 minutes for DesignerAuthoring to be created. Waited ${time} minute(s)."
-  time=$((time + 1))
-  sleep 60
-done
+EOF)
+OCApplyYAML "$namespace" "$YAML"

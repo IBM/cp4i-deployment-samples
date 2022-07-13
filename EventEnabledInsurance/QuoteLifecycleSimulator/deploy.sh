@@ -27,10 +27,9 @@ function usage() {
   exit 1
 }
 
+CURRENT_DIR=$(dirname $0)
+source $CURRENT_DIR/../../products/bash/utils.sh
 namespace="cp4i"
-tick="\xE2\x9C\x85"
-cross="\xE2\x9D\x8C"
-all_done="\xF0\x9F\x92\xAF"
 SUFFIX="eei"
 POSTGRES_NAMESPACE=
 PG_PORT=5432
@@ -50,14 +49,13 @@ done
 
 POSTGRES_NAMESPACE=${POSTGRES_NAMESPACE:-$namespace}
 
-CURRENT_DIR=$(dirname $0)
 echo "INFO: Current directory: '$CURRENT_DIR'"
 echo "INFO: Namespace: '$namespace'"
 echo "INFO: Postgres namespace: '$POSTGRES_NAMESPACE'"
 echo "INFO: Suffix for the postgres is: '$SUFFIX'"
 
 if [[ -z "${namespace// /}" ]]; then
-  echo -e "$cross ERROR: A mandatory parameter 'namespace' is empty"
+  echo -e "$CROSS ERROR: A mandatory parameter 'namespace' is empty"
   usage
 fi
 
@@ -75,7 +73,7 @@ echo "INFO: The username for the simulator app to connect to the postgres: $PG_U
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
 echo "INFO: Creating a deployment for the lifecycle simulator application..."
-cat <<EOF | oc apply -f -
+YAML=$(cat <<EOF
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -116,4 +114,5 @@ spec:
               secretKeyRef:
                 key: password
                 name: postgres-credential-eei
-EOF
+EOF)
+OCApplyYAML "$NAMESPACE" "$YAML"

@@ -33,12 +33,10 @@ function usage() {
   exit 1
 }
 
+CURRENT_DIR=$(dirname $0)
+source $CURRENT_DIR/../../products/bash/utils.sh
 NAMESPACE="cp4i"
 NAV_REPLICAS="2"
-TICK="\xE2\x9C\x85"
-CROSS="\xE2\x9D\x8C"
-ALL_DONE="\xF0\x9F\x92\xAF"
-INFO="\xE2\x84\xB9"
 SUFFIX="ddd"
 POSTGRES_NAMESPACE=
 MISSING_PARAMS="false"
@@ -92,7 +90,6 @@ if [[ "$MISSING_PARAMS" == "true" ]]; then
   usage
 fi
 
-CURRENT_DIR=$(dirname $0)
 echo -e "$INFO [INFO] Current directory for the driveway dent deletion demo: '$CURRENT_DIR'"
 echo -e "$INFO [INFO] Namespace for running driveway dent deletion prereqs: '$NAMESPACE'"
 echo -e "$INFO [INFO] Namespace for postgres for the driveway dent deletion demo: '$POSTGRES_NAMESPACE'"
@@ -158,7 +155,7 @@ for EACH_DEPLOY_TYPE in "${DEPLOY_NAMES[@]}"; do
 
     echo -e "$INFO [INFO] Creating a secret for the database user '$DB_USER' in the database '$DB_NAME' with the password generated\n"
     # everything inside 'data' must be in the base64 encoded form
-    cat <<EOF | oc apply -f -
+    YAML=$(cat <<EOF
 apiVersion: v1
 kind: Secret
 metadata:
@@ -176,8 +173,8 @@ stringData:
   username: $DB_USER
 data:
   password: $PASSWORD_ENCODED
-EOF
-  fi
+EOF)
+  OCApplyYAML "$NAMESPACE" "$YAML"
 
   divider
 

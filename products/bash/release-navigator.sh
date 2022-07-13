@@ -32,6 +32,7 @@ replicas="1"
 storage="cp4i-file-performance-gid"
 
 SCRIPT_DIR="$(dirname $0)"
+source $SCRIPT_DIR/utils.sh
 echo "Current Dir: $SCRIPT_DIR"
 
 while getopts "n:r:s:" opt; do
@@ -54,8 +55,7 @@ done
 
 # Instantiate Platform Navigator
 echo "INFO: Instantiating Platform Navigator"
-time=0
-while ! cat <<EOF | oc apply -f -; do
+YAML=$(cat <<EOF
 apiVersion: integration.ibm.com/v1beta1
 kind: PlatformNavigator
 metadata:
@@ -70,16 +70,8 @@ spec:
   version: 2022.2.1
   storage:
     class: ${storage}
-EOF
-
-  if [ $time -gt 10 ]; then
-    echo "ERROR: Exiting installation as timeout waiting for PlatformNavigator to be created"
-    exit 1
-  fi
-  echo "INFO: Waiting up to 10 minutes for PlatformNavigator to be created. Waited ${time} minute(s)."
-  time=$((time + 1))
-  sleep 60
-done
+EOF)
+OCApplyYAML "$namespace" "$YAML"
 
 # Waiting up to 90 minutes for platform navigator object to be ready
 echo "INFO: Waiting up to 90 minutes for platform navigator object to be ready"

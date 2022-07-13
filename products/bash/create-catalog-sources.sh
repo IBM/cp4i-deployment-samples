@@ -19,9 +19,10 @@
 #   With defaults values
 #     ./create-catalog-sources.sh
 
-INFO="\xE2\x84\xB9"
 
-cat <<EOF | oc apply -f -
+CURRENT_DIR=$(dirname $0)
+source $CURRENT_DIR/utils.sh
+YAML=$(cat <<EOF
 apiVersion: operators.coreos.com/v1alpha1
 kind: CatalogSource
 metadata:
@@ -189,4 +190,5 @@ spec:
   updateStrategy:
     registryPoll:
       interval: 45m
-EOF
+EOF)
+OCApplyYAML "openshift-marketplace" "$YAML"

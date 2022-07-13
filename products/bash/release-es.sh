@@ -27,6 +27,8 @@ function usage() {
   echo "Usage: $0 -n <namespace> -r <release-name>"
 }
 
+CURRENT_DIR=$(dirname $0)
+source $CURRENT_DIR/utils.sh
 namespace="cp4i"
 release_name="es-demo"
 production="false"
@@ -61,8 +63,7 @@ fi
 
 if [ "$production" == "true" ]; then
   echo "Production Mode Enabled"
-  time=0
-  until cat <<EOF | oc apply -f -; do
+  YAML=$(cat <<EOF
 apiVersion: eventstreams.ibm.com/v1beta2
 kind: EventStreams
 metadata:
@@ -137,18 +138,9 @@ spec:
         size: 2Gi
         type: persistent-claim
   version: 11.0.2
-EOF
-    if [ $time -gt 10 ]; then
-      echo "ERROR: Exiting installation as timeout waiting for EventStreams to be created"
-      exit 1
-    fi
-    echo "INFO: Waiting up to 10 minutes for EventStreams to be created. Waited ${time} minute(s)."
-    time=$((time + 1))
-    sleep 60
-  done
+EOF)
 else
-  time=0
-  until cat <<EOF | oc apply -f -; do
+  YAML=$(cat <<EOF
 apiVersion: eventstreams.ibm.com/v1beta2
 kind: EventStreams
 metadata:
@@ -211,13 +203,6 @@ spec:
       storage:
         type: ephemeral
   version: 11.0.2
-EOF
-    if [ $time -gt 10 ]; then
-      echo "ERROR: Exiting installation as timeout waiting for EventStreams to be created"
-      exit 1
-    fi
-    echo "INFO: Waiting up to 10 minutes for EventStreams to be created. Waited ${time} minute(s)."
-    time=$((time + 1))
-    sleep 60
-  done
+EOF)
 fi
+OCApplyYAML "$namespace" "$YAML"

@@ -25,6 +25,9 @@ function usage() {
   exit 1
 }
 
+CURRENT_DIR=$(dirname $0)
+source $CURRENT_DIR/utils.sh
+
 namespace="cp4i"
 
 while getopts "n:" opt; do
@@ -59,7 +62,7 @@ done
 
 # Creating a new secret as the type of entitlement key is 'kubernetes.io/DOCKERCONFIGJSON' but we need secret of type 'kubernetes.io/basic-auth'
 # to pull images from the ER
-cat <<EOF | oc apply --namespace ${namespace} -f -
+YAML=$(cat <<EOF
 apiVersion: v1
 kind: Secret
 metadata:
@@ -70,7 +73,8 @@ type: kubernetes.io/basic-auth
 stringData:
   username: ${ER_USERNAME}
   password: ${ER_PASSWORD}
-EOF
+EOF)
+OCApplyYAML "$namespace" "$YAML"
 
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
@@ -117,7 +121,9 @@ export password="$(oc -n ${namespace} serviceaccounts get-token image-bot)"
 echo -e "\nINFO: Adding permission for '$namespace' to write images to openshift local registry in the '$namespace'"
 oc -n ${namespace} policy add-role-to-user registry-editor system:serviceaccount:${namespace}:image-bot
 echo -e "\nCreating secret to push images to openshift local registry"
-oc create -n ${namespace} secret docker-registry cicd-${namespace} --docker-server=${DOCKER_REGISTRY} \
-  --docker-username=${username} --docker-password=${password} -o yaml | oc apply -f -
+YAML=$(oc create -n ${namespace} secret docker-registry cicd-${namespace} --docker-server=${DOCKER_REGISTRY} \
+  --docker-username=${username} --docker-password=${password} -o yaml)
+OCApplyYAML "$namespace" "$YAML"
+
 
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"

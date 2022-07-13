@@ -29,14 +29,13 @@
 #   Overriding the namespace and release-name
 #     ./release-mq.sh -n cp4i -r mq-demo -i image-registry.openshift-image-registry.svc:5000/cp4i/mq-ddd -q mq-qm  -a {HA_ENABLED}
 
-tick="\xE2\x9C\x85"
-cross="\xE2\x9D\x8C"
+CURRENT_DIR=$(dirname $0)
+source $CURRENT_DIR/utils.sh
 namespace="cp4i"
 release_name="mq-demo"
 qm_name="QUICKSTART"
 tracing_namespace=""
 tracing_enabled="false"
-CURRENT_DIR=$(dirname $0)
 HA_ENABLED="false"
 block_storage="ibmc-block-gold"
 
@@ -159,8 +158,7 @@ else
 fi
 
 if [ -z $image_name ]; then
-  time=0
-  until cat <<EOF | oc apply -f -; do
+  YAML=$(cat <<EOF
 apiVersion: mq.ibm.com/v1beta1
 kind: QueueManager
 metadata:
@@ -194,15 +192,8 @@ ${qmStorageAvailability}
   tracing:
     enabled: ${tracing_enabled}
     namespace: ${tracing_namespace}
-EOF
-    if [ $time -gt 10 ]; then
-      echo "ERROR: Exiting installation as timeout waiting for QueueManager to be created"
-      exit 1
-    fi
-    echo "INFO: Waiting up to 10 minutes for QueueManager to be created. Waited ${time} minute(s)."
-    time=$((time + 1))
-    sleep 60
-  done
+EOF)
+  OCApplyYAML "$namespace" "$YAML"
 else
 
   # --------------------------------------------------- FIND IMAGE TAG ---------------------------------------------------
@@ -231,8 +222,7 @@ else
     APP_CERT=$(base64 $CURRENT_DIR/mq/createcerts/application.crt)
   fi
 
-
-  cat <<EOF | oc apply -f -
+  YAML=$(cat <<EOF
 ---
 kind: ConfigMap
 apiVersion: v1
@@ -256,18 +246,14 @@ data:
   tls.crt: $QM_CERT
   app.crt: $APP_CERT
 type: Opaque
-EOF
-  if [[ "$?" != "0" ]]; then
-    echo -e "$cross [ERROR] Failed to apply ConfigMap/Secret for MQ TLS"
-    exit 1
-  fi
+EOF)
+  OCApplyYAML "$namespace" "$YAML"
 
   echo -e "INFO: Going ahead to apply the CR for '$release_name'"
 
   divider
 
-  time=0
-  until cat <<EOF | oc apply -f -; do
+  YAML=$(cat <<EOF
 apiVersion: mq.ibm.com/v1beta1
 kind: QueueManager
 metadata:
@@ -322,15 +308,8 @@ ${qmStorageAvailability}
   tracing:
     enabled: ${tracing_enabled}
     namespace: ${tracing_namespace}
-EOF
-    if [ $time -gt 10 ]; then
-      echo "ERROR: Exiting installation as timeout waiting for QueueManager to be created"
-      exit 1
-    fi
-    echo "INFO: Waiting up to 10 minutes for QueueManager to be created. Waited ${time} minute(s)."
-    time=$((time + 1))
-    sleep 60
-  done
+EOF)
+  OCApplyYAML "$namespace" "$YAML"
 
   divider
 

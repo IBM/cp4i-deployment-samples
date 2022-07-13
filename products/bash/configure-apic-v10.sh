@@ -28,14 +28,13 @@
 #     ./configure-apic-v10 -n cp4i-prod -r prod
 
 CURRENT_DIR=$(dirname $0)
+source $CURRENT_DIR/../../products/bash/utils.sh
 
 ha_enabled="true"
 NAMESPACE="cp4i"
 RELEASE_NAME="ademo"
 ORG_NAME="main-demo"
 ORG_NAME_DDD="ddd-demo-test"
-tick="\xE2\x9C\x85"
-cross="\xE2\x9D\x8C"
 DEBUG=false
 
 function usage() {
@@ -88,7 +87,7 @@ echo "Waiting for APIC installation to complete..."
 for i in $(seq 1 120); do
   APIC_STATUS=$(oc get apiconnectcluster.apiconnect.ibm.com -n $NAMESPACE ${RELEASE_NAME} -o jsonpath='{.status.phase}')
   if [ "$APIC_STATUS" == "Ready" ]; then
-    printf "$tick"
+    printf "$TICK"
     echo "[OK] APIC is ready"
     break
   else
@@ -101,7 +100,7 @@ for i in $(seq 1 120); do
 done
 
 if [ "$APIC_STATUS" != "Ready" ]; then
-  printf "$cross"
+  printf "$CROSS"
   echo "[ERROR] APIC failed to install"
   exit 1
 fi
@@ -113,7 +112,7 @@ for i in $(seq 1 60); do
   else
     PORTAL_WWW_ADMIN_READY=$(oc get pod -n ${NAMESPACE} ${PORTAL_WWW_POD} -o json | jq '.status.containerStatuses[0].ready')
     if [[ "$PORTAL_WWW_ADMIN_READY" == "true" ]]; then
-      printf "$tick"
+      printf "$TICK"
       echo "PORTAL_WWW_POD (${PORTAL_WWW_POD}) is ready"
       break
     else
@@ -171,7 +170,7 @@ function authenticate() {
                        \"grant_type\": \"password\" }"`
   $DEBUG && echo "[DEBUG] $(echo ${response} | jq .)"
   if [[ "$(echo ${response} | jq -r '.status')" == "401" ]]; then
-    printf "$cross"
+    printf "$CROSS"
     echo "[ERROR] Failed to authenticate"
     exit 1
   fi
@@ -326,10 +325,11 @@ fi
 $DEBUG && echo "owner_url=${owner_url}"
 
 echo "Create ${PROVIDER_SECRET_NAME} secret with credentials for the user named ${provider_username}"
-oc create secret generic -n ${NAMESPACE} ${PROVIDER_SECRET_NAME} \
+YAML=$(oc create secret generic -n ${NAMESPACE} ${PROVIDER_SECRET_NAME} \
   --from-literal=username=${provider_username} \
   --from-literal=password=${provider_password} \
-  --dry-run=client -o yaml | oc apply -f -
+  --dry-run=client -o yaml)
+OCApplyYAML "$NAMESPACE" "$YAML"
 
 authenticate "${provider_idp}" "${provider_username}" "${provider_password}"
 provider_token="${RESULT}"
@@ -402,10 +402,10 @@ if [[ "$(echo ${response} | jq -r '.status')" == "404" ]]; then
 fi
 
 echo "Creating/updating ${ACE_REGISTRATION_SECRET_NAME} secret"
-oc create secret generic -n ${NAMESPACE} ${ACE_REGISTRATION_SECRET_NAME} \
+YAML=$(oc create secret generic -n ${NAMESPACE} ${ACE_REGISTRATION_SECRET_NAME} \
   --from-literal=client_id=ace-v11 \
-  --from-literal=client_secret=myclientid123 \
-  --dry-run=client -o yaml | oc apply -f -
+  --from-literal=client_secret=myclientid123)
+OCApplyYAML "$NAMESPACE" "$YAML"
 
 # pull together any necessary info from in-cluster resources
 PROVIDER_CREDENTIALS=$(oc get secret $PROVIDER_SECRET_NAME -n $NAMESPACE -o json | jq .data)
@@ -419,7 +419,7 @@ for i in $(seq 1 60); do
   PORTAL_SITE_RESET_URL=$(oc exec -n $NAMESPACE -it $PORTAL_WWW_POD -c admin -- /opt/ibm/bin/site_login_link $PORTAL_SITE_UUID | tail -1)
   $DEBUG && echo "[DEBUG] PORTAL_SITE_RESET_URL=${PORTAL_SITE_RESET_URL}"
   if [[ "$PORTAL_SITE_RESET_URL" =~ "https://$PTL_WEB_EP" ]]; then
-    printf "$tick"
+    printf "$TICK"
     echo "[OK] Got the portal_site_password_reset_link"
     break
   else
@@ -439,7 +439,7 @@ if [[ "$ha_enabled" == "true" ]]; then
   for i in $(seq 1 720); do
     oc get -n $NAMESPACE GatewayCluster/${RELEASE_NAME}-gw
     if [[ $? == 0 ]]; then
-      printf "$tick"
+      printf "$TICK"
       echo "[OK] GatewayCluster/${RELEASE_NAME}-gw"
       break
     else
@@ -451,7 +451,7 @@ if [[ "$ha_enabled" == "true" ]]; then
   oc patch -n ${NAMESPACE} GatewayCluster/${RELEASE_NAME}-gw --patch '{"spec":{"profile":"n3xc4.m8","replicaCount":3}}' --type=merge
 fi
 
-printf "$tick"
+printf "$TICK"
 echo "
 ********** Configuration **********
 api_manager_ui: https://$APIM_UI_EP/manager
