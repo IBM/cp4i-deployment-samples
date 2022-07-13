@@ -115,4 +115,4 @@ spec:
                 key: password
                 name: postgres-credential-eei
 EOF)
-OCApplyYAML "$NAMESPACE" "$YAML"
+OCApplyYAML "$namespace" "$YAML"

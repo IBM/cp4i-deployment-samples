@@ -58,7 +58,7 @@ function usage() {
 }
 
 CURRENT_DIR=$(dirname $0)
-source $CURRENT_DIR/../../products/bash/utils.sh
+source $CURRENT_DIR/utils.sh
 MISSING_PARAMS="false"
 IMAGE_REPO="cp.icr.io"
 PASSWORD_CHANGE="true"
