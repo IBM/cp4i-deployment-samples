@@ -175,7 +175,8 @@ data:
   password: $PASSWORD_ENCODED
 EOF
 )
-  OCApplyYAML "$NAMESPACE" "$YAML"
+    OCApplyYAML "$NAMESPACE" "$YAML"
+  fi
 
   divider
 
