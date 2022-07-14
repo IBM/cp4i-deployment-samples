@@ -118,7 +118,21 @@ echo "INFO: Creating 'image-bot' service account to create a secret to push to t
 export DOCKER_REGISTRY="image-registry.openshift-image-registry.svc:5000"
 export username=image-bot
 oc -n ${namespace} create serviceaccount image-bot
+
+time=0
+password=""
 export password="$(oc -n ${namespace} serviceaccounts get-token image-bot)"
+until [[ "${password}" != "" ]]; do
+  if [ $time -gt 12 ]; then
+    echo -e "$CROSS [ERROR] Could not get the token for the image-bot service account"
+    exit 1
+  fi
+  echo -e "$INFO [INFO] Could not get the token for the image-bot service account, retrying in 5 seconds..."
+  time=$((time + 1))
+  sleep 5
+  export password="$(oc -n ${namespace} serviceaccounts get-token image-bot)"
+done
+
 echo -e "\nINFO: Adding permission for '$namespace' to write images to openshift local registry in the '$namespace'"
 oc -n ${namespace} policy add-role-to-user registry-editor system:serviceaccount:${namespace}:image-bot
 echo -e "\nCreating secret to push images to openshift local registry"
