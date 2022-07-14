@@ -165,7 +165,8 @@ spec:
   tracing:
     enabled: ${tracing_enabled}
     namespace: ${tracing_namespace}
-EOF)
+EOF
+)
 OCApplyYAML "$namespace" "$YAML"
 
 timer=0

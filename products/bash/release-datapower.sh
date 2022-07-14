@@ -132,5 +132,6 @@ spec:
       local:
       - test-tar
   version: 10.0-eus
-EOF)
+EOF
+)
 OCApplyYAML "$namespace" "$YAML"

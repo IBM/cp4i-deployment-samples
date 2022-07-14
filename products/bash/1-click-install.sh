@@ -393,7 +393,8 @@ parameters:
   type: "Performance"
 reclaimPolicy: Delete
 volumeBindingMode: Immediate
-EOF)
+EOF
+)
   OCApplyYAML "$JOB_NAMESPACE" "$YAML"
 
   echo -e "$INFO [INFO] Creating new cp4i-file-performance-gid storage class\n"
@@ -421,7 +422,8 @@ parameters:
   type: "Performance"
 reclaimPolicy: Delete
 volumeBindingMode: Immediate
-EOF)
+EOF
+)
   OCApplyYAML "$JOB_NAMESPACE" "$YAML"
 
   defaultStorageClass=$(oc get sc -o json | jq -r '.items[].metadata | select(.annotations["storageclass.kubernetes.io/is-default-class"] == "true") | .name')
@@ -475,7 +477,8 @@ metadata:
 type: kubernetes.io/dockerconfigjson
 data:
   .dockerconfigjson: $COMBINED_DOCKER_CFG_B64
-EOF)
+EOF
+)
 OCApplyYAML "$JOB_NAMESPACE" "$YAML"
 
 divider

@@ -120,5 +120,6 @@ spec:
     type: persistent-claim
   useCommonServices: true
   version: '12.0-lts'
-EOF)
+EOF
+)
 OCApplyYAML "$namespace" "$YAML"

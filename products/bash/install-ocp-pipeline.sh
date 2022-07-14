@@ -28,7 +28,8 @@ spec:
   name: openshift-pipelines-operator-rh
   source: redhat-operators
   sourceNamespace: openshift-marketplace
-EOF)
+EOF
+)
 OCApplyYAML "openshift-operators" "$YAML"
 
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"

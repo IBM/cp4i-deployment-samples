@@ -121,5 +121,6 @@ spec:
   tls:
     termination: edge
     insecureEdgeTerminationPolicy: Redirect
-EOF)
+EOF
+)
 OCApplyYAML "$namespace" "$YAML"

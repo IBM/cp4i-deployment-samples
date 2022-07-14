@@ -113,7 +113,8 @@ spec:
       class: "${block_storage}"
       size: 150Gi
   version: 2022.2.1-lts
-EOF)
+EOF
+)
 else
   YAML=$(cat <<EOF
 apiVersion: integration.ibm.com/v1beta2
@@ -144,7 +145,8 @@ spec:
     tracingVolume:
       class: "${block_storage}"
   version: 2022.2.1-lts
-EOF)
+EOF
+)
 fi
 OCApplyYAML "$namespace" "$YAML"
 
@@ -186,5 +188,6 @@ spec:
   sourceInstanceName: "demo-tracing"
   sourcePodName: "demo-tracing"
   sourceSecretName: "icp4i-od-store-cred"
-EOF)
+EOF
+)
 OCApplyYAML "$namespace" "$YAML"

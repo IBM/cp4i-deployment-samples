@@ -70,7 +70,8 @@ spec:
   version: 2022.2.1
   storage:
     class: ${storage}
-EOF)
+EOF
+)
 OCApplyYAML "$namespace" "$YAML"
 
 # Waiting up to 90 minutes for platform navigator object to be ready

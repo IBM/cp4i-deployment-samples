@@ -198,7 +198,8 @@ stringData:
   pass: $API_PASS
   auth: "$API_USER:$API_PASS"
 type: Opaque
-EOF)
+EOF
+)
   OCApplyYAML "$NAMESPACE" "$YAML"
 
   if [[ "$?" != "0" ]]; then

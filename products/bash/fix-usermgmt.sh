@@ -67,7 +67,8 @@ spec:
         persistentVolumeClaim:
           claimName: user-home-pvc
   backoffLimit: 4
-EOF)
+EOF
+)
 OCApplyYAML "$namespace" "$YAML"
 
 echo "Wait for usermgmt pods to come back up"

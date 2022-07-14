@@ -173,7 +173,8 @@ stringData:
   username: $DB_USER
 data:
   password: $PASSWORD_ENCODED
-EOF)
+EOF
+)
   OCApplyYAML "$NAMESPACE" "$YAML"
 
   divider

@@ -122,7 +122,8 @@ metadata:
 spec:
   targetNamespaces:
     - ${namespace}
-EOF)
+EOF
+)
     OCApplyYAML "$namespace" "$YAML"
   fi
 fi

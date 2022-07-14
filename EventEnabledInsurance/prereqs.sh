@@ -245,7 +245,8 @@ metadata:
 type: Opaque
 data:
   password: $PASSWORD_ENCODED
-EOF)
+EOF
+)
   OCApplyYAML "$NAMESPACE" "$YAML"
   divider
 fi
@@ -315,7 +316,8 @@ stringData:
     dbName: $DB_NAME
     dbUsername: $REPLICATION_USER
     dbPassword: $REPLICATION_PASSWORD
-EOF)
+EOF
+)
   OCApplyYAML "$NAMESPACE" "$YAML"
 
 echo -e "\n$INFO [INFO] Creating ace postgres configuration and policy in the '$NAMESPACE' namespace with the user '$DB_USER' and database name '$DB_NAME' and suffix '$SUFFIX'"
