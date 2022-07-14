@@ -123,7 +123,7 @@ echo -e "\nINFO: Adding permission for '$namespace' to write images to openshift
 oc -n ${namespace} policy add-role-to-user registry-editor system:serviceaccount:${namespace}:image-bot
 echo -e "\nCreating secret to push images to openshift local registry"
 YAML=$(oc create -n ${namespace} secret docker-registry cicd-${namespace} --docker-server=${DOCKER_REGISTRY} \
-  --docker-username=${username} --docker-password=${password} -o yaml)
+  --docker-username=${username} --docker-password=${password} -o yaml --dry-run)
 OCApplyYAML "$namespace" "$YAML"
 
 
