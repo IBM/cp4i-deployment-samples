@@ -404,7 +404,8 @@ fi
 echo "Creating/updating ${ACE_REGISTRATION_SECRET_NAME} secret"
 YAML=$(oc create secret generic -n ${NAMESPACE} ${ACE_REGISTRATION_SECRET_NAME} \
   --from-literal=client_id=ace-v11 \
-  --from-literal=client_secret=myclientid123)
+  --from-literal=client_secret=myclientid123 \
+  --dry-run=client -o yaml)
 OCApplyYAML "$NAMESPACE" "$YAML"
 
 # pull together any necessary info from in-cluster resources
