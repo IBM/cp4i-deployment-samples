@@ -90,5 +90,6 @@ spec:
     couchVolume:
       class: ${couchVolume}
   version: 2022.2.1
-EOF)
+EOF
+)
 OCApplyYAML "$namespace" "$YAML"

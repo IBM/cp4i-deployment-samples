@@ -192,7 +192,8 @@ ${qmStorageAvailability}
   tracing:
     enabled: ${tracing_enabled}
     namespace: ${tracing_namespace}
-EOF)
+EOF
+)
   OCApplyYAML "$namespace" "$YAML"
 else
 
@@ -246,7 +247,8 @@ data:
   tls.crt: $QM_CERT
   app.crt: $APP_CERT
 type: Opaque
-EOF)
+EOF
+)
   OCApplyYAML "$namespace" "$YAML"
 
   echo -e "INFO: Going ahead to apply the CR for '$release_name'"
@@ -308,7 +310,8 @@ ${qmStorageAvailability}
   tracing:
     enabled: ${tracing_enabled}
     namespace: ${tracing_namespace}
-EOF)
+EOF
+)
   OCApplyYAML "$namespace" "$YAML"
 
   divider

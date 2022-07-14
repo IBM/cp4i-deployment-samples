@@ -129,7 +129,8 @@ ${license}
       mountPath: /data/
       size: 2000Gi
   version: 4.0.0
-EOF)
+EOF
+)
 else
   YAML=$(cat <<EOF
 apiVersion: hsts.aspera.ibm.com/v1
@@ -165,6 +166,7 @@ ${license}
       mountPath: /data/
       size: 20Gi
   version: 4.0.0
-EOF)
+EOF
+)
 fi
 OCApplyYAML "$namespace" "$YAML"

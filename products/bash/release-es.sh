@@ -138,7 +138,8 @@ spec:
         size: 2Gi
         type: persistent-claim
   version: 11.0.2
-EOF)
+EOF
+)
 else
   YAML=$(cat <<EOF
 apiVersion: eventstreams.ibm.com/v1beta2
@@ -203,6 +204,7 @@ spec:
       storage:
         type: ephemeral
   version: 11.0.2
-EOF)
+EOF
+)
 fi
 OCApplyYAML "$namespace" "$YAML"

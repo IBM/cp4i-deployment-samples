@@ -103,5 +103,6 @@ spec:
     license: $(getAPICLicense $namespace)
   profile: ${profile}
   version: "10.0.5"
-EOF)
+EOF
+)
 OCApplyYAML "$namespace" "$YAML"

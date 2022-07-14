@@ -114,5 +114,6 @@ spec:
               secretKeyRef:
                 key: password
                 name: postgres-credential-eei
-EOF)
+EOF
+)
 OCApplyYAML "$namespace" "$YAML"

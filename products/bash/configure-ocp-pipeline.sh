@@ -73,7 +73,8 @@ type: kubernetes.io/basic-auth
 stringData:
   username: ${ER_USERNAME}
   password: ${ER_PASSWORD}
-EOF)
+EOF
+)
 OCApplyYAML "$namespace" "$YAML"
 
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"

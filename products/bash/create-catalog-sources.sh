@@ -190,5 +190,6 @@ spec:
   updateStrategy:
     registryPoll:
       interval: 45m
-EOF)
+EOF
+)
 OCApplyYAML "openshift-marketplace" "$YAML"
