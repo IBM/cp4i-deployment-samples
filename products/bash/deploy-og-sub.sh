@@ -247,7 +247,9 @@ spec:
   name: ibm-integration-operations-dashboard
   source: ibm-integration-operations-dashboard-catalog
   sourceNamespace: openshift-marketplace
-EOF)
+EOF
+)
+echo "namespace=$namespace"
 OCApplyYAML "$namespace" "$YAML"
 
 echo "INFO: Wait for all subscriptions to succeed"
