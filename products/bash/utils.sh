@@ -21,8 +21,12 @@ function OCApplyYAML() {
   namespace=${1}
   yaml=${2}
 
+  # TODO Debug:
+  echo "Applying the following yaml in the ${namespace} project:"
+  echo "${yaml}"
+
   time=0
-  until cat <<EOF | oc apply -f -; do
+  until cat <<EOF | oc apply -n ${namespace} -f -; do
 ${yaml}
 EOF
     if [ $time -gt $RETRY_COUNT ]; then
