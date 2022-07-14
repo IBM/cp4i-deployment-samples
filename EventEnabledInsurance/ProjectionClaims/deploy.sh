@@ -40,7 +40,6 @@ while getopts "n:" opt; do
   esac
 done
 
-CURRENT_DIR=$(dirname $0)
 echo "INFO: Current directory: '$CURRENT_DIR'"
 echo "INFO: Namespace: '$namespace'"
 
