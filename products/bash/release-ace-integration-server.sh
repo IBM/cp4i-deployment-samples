@@ -27,14 +27,13 @@
 #   Overriding the namespace and release-name
 #     ./release-ace-integration-server -d policyproject-ddd-test -n cp4i -r cp4i-bernie-ace -a {HA_ENABLED}
 
-tick="\xE2\x9C\x85"
-cross="\xE2\x9D\x8C"
+CURRENT_DIR=$(dirname $0)
+source $CURRENT_DIR/utils.sh
 namespace="cp4i"
 is_image_name=""
 is_release_name="ace-is"
 tracing_enabled="false"
 tracing_namespace=""
-CURRENT_DIR=$(dirname $0)
 POLICY_PROJECT_TYPE="policyproject-ddd-dev"
 ace_replicas="2"
 license_use="CloudPakForIntegrationNonProduction"
@@ -130,7 +129,7 @@ echo -e "INFO: Going ahead to apply the CR for '$is_release_name'"
 
 divider
 
-cat <<EOF | oc apply -f -
+YAML=$(cat <<EOF
 apiVersion: appconnect.ibm.com/v1beta1
 kind: IntegrationServer
 metadata:
@@ -167,11 +166,8 @@ spec:
     enabled: ${tracing_enabled}
     namespace: ${tracing_namespace}
 EOF
-
-if [[ "$?" != "0" ]]; then
-  echo -e "$cross [ERROR] Failed to apply IntegrationServer CR"
-  exit 1
-fi
+)
+OCApplyYAML "$namespace" "$YAML"
 
 timer=0
 echo "[INFO] tracing is set to $tracing_enabled"

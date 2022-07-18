@@ -15,6 +15,8 @@
 # PARAMETERS:
 #   -n : <namespace> (string), Defaults to "cp4i"
 
+CURRENT_DIR=$(dirname $0)
+source $CURRENT_DIR/utils.sh
 namespace="cp4i"
 
 function usage() {
@@ -40,7 +42,7 @@ fi
 echo "'/user-home/_global_/config/oidc' is a file when it should be a dir, fixing..."
 
 echo "Run the fix-usermgmt-oidc job to delete the /user-home/_global_/config/oidc file"
-cat <<EOF | oc apply -f -
+YAML=$(cat <<EOF
 apiVersion: batch/v1
 kind: Job
 metadata:
@@ -66,6 +68,8 @@ spec:
           claimName: user-home-pvc
   backoffLimit: 4
 EOF
+)
+OCApplyYAML "$namespace" "$YAML"
 
 echo "Wait for usermgmt pods to come back up"
 oc wait --for=condition=available deployment --timeout=10m usermgmt -n ${namespace}

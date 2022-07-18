@@ -25,10 +25,9 @@ function usage() {
   exit 1
 }
 
+CURRENT_DIR=$(dirname $0)
+source $CURRENT_DIR/../../products/bash/utils.sh
 namespace="cp4i"
-tick="\xE2\x9C\x85"
-cross="\xE2\x9D\x8C"
-all_done="\xF0\x9F\x92\xAF"
 
 while getopts "n:" opt; do
   case ${opt} in
@@ -41,19 +40,18 @@ while getopts "n:" opt; do
   esac
 done
 
-CURRENT_DIR=$(dirname $0)
 echo "INFO: Current directory: '$CURRENT_DIR'"
 echo "INFO: Namespace: '$namespace'"
 
 if [[ -z "${namespace// }" ]]; then
-  echo -e "$cross ERROR: A namespace must be specified"
+  echo -e "$CROSS ERROR: A namespace must be specified"
   usage
 fi
 
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 
 echo "INFO: Creating a deployment/service/route for the Projection Claims KTable application..."
-cat << EOF | oc apply -f -
+YAML=$(cat <<EOF
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -77,18 +75,18 @@ spec:
         - name: projection-claims-eei
           image: image-registry.openshift-image-registry.svc:5000/$namespace/projection-claims-eei
           env:
-          readinessProbe:	
-            httpGet:	
+          readinessProbe:
+            httpGet:
               path: /getalldata
-              port: 8080	
-              scheme: HTTP	
+              port: 8080
+              scheme: HTTP
               periodSeconds: 10
-          livenessProbe:	
-            httpGet:	
+          livenessProbe:
+            httpGet:
               path: /getalldata
-              port: 8080	
-              scheme: HTTP	
-            initialDelaySeconds: 15	
+              port: 8080
+              scheme: HTTP
+            initialDelaySeconds: 15
             periodSeconds: 30
 ---
 apiVersion: v1
@@ -124,3 +122,5 @@ spec:
     termination: edge
     insecureEdgeTerminationPolicy: Redirect
 EOF
+)
+OCApplyYAML "$namespace" "$YAML"

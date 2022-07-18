@@ -33,18 +33,16 @@ function usage() {
   exit 1
 }
 
+CURRENT_DIR=$(dirname $0)
+source $CURRENT_DIR/utils.sh
 DDD_DEMO_TYPE="dev"
 MISSING_PARAMS="false"
-CROSS="\xE2\x9D\x8C"
-INFO="\xE2\x84\xB9"
-TICK="\xE2\x9C\x85"
 NAMESPACE="cp4i"
 POSTGRES_NAMESPACE=
 DB_USER="cp4i"
 DB_NAME="db_cp4i"
 DB_PASS=""
 SUFFIX="ddd"
-CURRENT_DIR=$(dirname $0)
 WORKING_DIR=/tmp
 CONFIG_DIR=$WORKING_DIR/ace
 CONFIG_YAML=$WORKING_DIR/configurations.yaml
@@ -189,7 +187,7 @@ if [[ -z $EXISTING_PASS ]]; then
     echo
   )
   # Store ace api password
-  cat <<EOF | oc apply -f -
+  YAML=$(cat <<EOF
 kind: Secret
 apiVersion: v1
 metadata:
@@ -201,6 +199,8 @@ stringData:
   auth: "$API_USER:$API_PASS"
 type: Opaque
 EOF
+)
+  OCApplyYAML "$NAMESPACE" "$YAML"
 
   if [[ "$?" != "0" ]]; then
     echo -e "$CROSS [ERROR] Failed to create 'ace-api-creds-$SUFFIX' secret in '$NAMESPACE' namespace"
@@ -279,13 +279,9 @@ divider
 
 # Apply configuration yaml
 echo -e "$INFO [INFO] Applying configuration yaml\n"
-oc apply -f $CONFIG_YAML
-if [[ "$?" != "0" ]]; then
-  echo -e "$CROSS [ERROR] Failed to apply $CONFIG_YAML"
-  exit 1
-else
-  echo -e "\n$TICK [SUCCESS] Successfully applied all the configuration yaml"
-fi
+YAML=$(cat $CONFIG_YAML)
+OCApplyYAML "$NAMESPACE" "$YAML"
+echo -e "\n$TICK [SUCCESS] Successfully applied all the configuration yaml"
 
 # DEBUG: get configurations
 $DEBUG && divider && echo "[DEBUG] Getting configurations"

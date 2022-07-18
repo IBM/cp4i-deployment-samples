@@ -28,13 +28,12 @@ function usage() {
   echo "Usage: $0 -n <namespace> -r <release-name> [-t]"
 }
 
-tick="\xE2\x9C\x85"
-cross="\xE2\x9D\x8C"
+CURRENT_DIR=$(dirname $0)
+source $CURRENT_DIR/utils.sh
 namespace="cp4i"
 release_name="ademo"
 tracing="false"
 production="false"
-CURRENT_DIR=$(dirname $0)
 
 while getopts "n:r:tp" opt; do
   case ${opt} in
@@ -75,8 +74,7 @@ if [[ $? == 0 ]]; then
   METADATA_UID=$(echo $json | tr '\r\n' ' ' | jq -r '.data.METADATA_UID')
 fi
 
-time=0
-until cat <<EOF | oc apply -f -; do
+YAML=$(cat <<EOF
 apiVersion: apiconnect.ibm.com/v1beta1
 kind: APIConnectCluster
 metadata:
@@ -106,11 +104,5 @@ spec:
   profile: ${profile}
   version: "10.0.5"
 EOF
-  if [ $time -gt 10 ]; then
-    echo "ERROR: Exiting installation as timeout waiting for APIConnectCluster to be created"
-    exit 1
-  fi
-  echo "INFO: Waiting up to 10 minutes for APIConnectCluster to be created. Waited ${time} minute(s)."
-  time=$((time + 1))
-  sleep 60
-done
+)
+OCApplyYAML "$namespace" "$YAML"

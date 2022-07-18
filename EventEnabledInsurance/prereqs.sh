@@ -37,15 +37,13 @@ function usage() {
   exit 1
 }
 
+CURRENT_DIR=$(dirname $0)
+source $CURRENT_DIR/../../products/bash/utils.sh
 NAMESPACE="cp4i"
-TICK="\xE2\x9C\x85"
-CROSS="\xE2\x9D\x8C"
-ALL_DONE="\xF0\x9F\x92\xAF"
 SUFFIX="eei"
 POSTGRES_NAMESPACE=
 REPO="https://github.com/IBM/cp4i-deployment-samples.git"
 BRANCH="main"
-INFO="\xE2\x84\xB9"
 MISSING_PARAMS="false"
 OMIT_INITIAL_SETUP=false
 DEFAULT_FILE_STORAGE="cp4i-file-performance-gid"
@@ -120,7 +118,6 @@ if [[ "$MISSING_PARAMS" == "true" ]]; then
   usage
 fi
 
-CURRENT_DIR=$(dirname $0)
 echo -e "$INFO [INFO] Current directory for the event enabled insurance demo: '$CURRENT_DIR'"
 echo -e "$INFO [INFO] Namespace for running event enabled insurance demo prereqs: '$NAMESPACE'"
 echo -e "$INFO [INFO] Namespace for postgres for the event enabled insurance demo: '$POSTGRES_NAMESPACE'"
@@ -232,7 +229,7 @@ else
 
   echo -e "$INFO [INFO] Creating a secret for the lifecycle simulator app to connect to postgres"
   # everything inside 'data' must be in the base64 encoded form
-  cat <<EOF | oc apply -f -
+  YAML=$(cat <<EOF
 apiVersion: v1
 kind: Secret
 metadata:
@@ -249,6 +246,8 @@ type: Opaque
 data:
   password: $PASSWORD_ENCODED
 EOF
+)
+  OCApplyYAML "$NAMESPACE" "$YAML"
   divider
 fi
 
@@ -298,7 +297,7 @@ EOF
   fi
 
   echo -e "\n$INFO [INFO] Creating secret for replication user"
-  cat <<EOF | oc apply -f -
+  YAML=$(cat <<EOF
 apiVersion: v1
 kind: Secret
 metadata:
@@ -318,6 +317,8 @@ stringData:
     dbUsername: $REPLICATION_USER
     dbPassword: $REPLICATION_PASSWORD
 EOF
+)
+  OCApplyYAML "$NAMESPACE" "$YAML"
 fi
 
 echo -e "\n$INFO [INFO] Creating ace postgres configuration and policy in the '$NAMESPACE' namespace with the user '$DB_USER' and database name '$DB_NAME' and suffix '$SUFFIX'"

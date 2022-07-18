@@ -19,9 +19,10 @@
 #   With defaults values
 #     ./create-catalog-sources.sh
 
-INFO="\xE2\x84\xB9"
 
-cat <<EOF | oc apply -f -
+CURRENT_DIR=$(dirname $0)
+source $CURRENT_DIR/utils.sh
+YAML=$(cat <<EOF
 apiVersion: operators.coreos.com/v1alpha1
 kind: CatalogSource
 metadata:
@@ -126,8 +127,8 @@ metadata:
   name: ibm-eventstreams-catalog
   namespace: openshift-marketplace
 spec:
-  displayName: "ES Operators v3.0.2"
-  image: icr.io/cpopen/ibm-eventstreams-catalog@sha256:c2114a611291377b04760066d89b650f1f19cda5ff33b4f0517f728ad2106456
+  displayName: "ES Operators v3.0.3"
+  image: icr.io/cpopen/ibm-eventstreams-catalog@sha256:1d3217f4d789d9b3ddca229e9d39ce4d80da9b4fb3470b73377e161c065a6fb2
   publisher: IBM
   sourceType: grpc
   updateStrategy:
@@ -190,3 +191,5 @@ spec:
     registryPoll:
       interval: 45m
 EOF
+)
+OCApplyYAML "openshift-marketplace" "$YAML"

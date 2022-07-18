@@ -30,7 +30,7 @@ function usage() {
 }
 
 SCRIPT_DIR=$(dirname $0)
-
+source $SCRIPT_DIR/utils.sh
 namespace="cp4i"
 release_name="datapower"
 production="false"
@@ -83,7 +83,7 @@ oc create secret generic -n ${namespace} jon --from-file=${SCRIPT_DIR}/datapower
 oc create secret generic -n ${namespace} datapower-admin-credentials --from-literal=password=${admin_password}
 
 # Create DataPowerService
-cat <<EOF | oc apply -f -
+YAML=$(cat <<EOF
 apiVersion: datapower.ibm.com/v1beta2
 kind: DataPowerService
 metadata:
@@ -132,5 +132,6 @@ spec:
       local:
       - test-tar
   version: 10.0-eus
-
 EOF
+)
+OCApplyYAML "$namespace" "$YAML"

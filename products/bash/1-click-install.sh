@@ -57,11 +57,8 @@ function usage() {
   exit 1
 }
 
-TICK="\xE2\x9C\x85"
-CROSS="\xE2\x9D\x8C"
-ALL_DONE="\xF0\x9F\x92\xAF"
-INFO="\xE2\x84\xB9"
 CURRENT_DIR=$(dirname $0)
+source $CURRENT_DIR/utils.sh
 MISSING_PARAMS="false"
 IMAGE_REPO="cp.icr.io"
 PASSWORD_CHANGE="true"
@@ -373,7 +370,7 @@ divider
 if echo $CLUSTER_TYPE | grep -iqF roks; then
   # This storage class improves the pvc performance for small PVCs
   echo -e "$INFO [INFO] Creating new cp4i-block-performance storage class\n"
-  cat <<EOF | oc apply -f -
+  YAML=$(cat <<EOF
 apiVersion: storage.k8s.io/v1
 kind: StorageClass
 metadata:
@@ -397,9 +394,11 @@ parameters:
 reclaimPolicy: Delete
 volumeBindingMode: Immediate
 EOF
+)
+  OCApplyYAML "$JOB_NAMESPACE" "$YAML"
 
   echo -e "$INFO [INFO] Creating new cp4i-file-performance-gid storage class\n"
-  cat <<EOF | oc apply -f -
+  YAML=$(cat <<EOF
 apiVersion: storage.k8s.io/v1
 kind: StorageClass
 metadata:
@@ -424,6 +423,8 @@ parameters:
 reclaimPolicy: Delete
 volumeBindingMode: Immediate
 EOF
+)
+  OCApplyYAML "$JOB_NAMESPACE" "$YAML"
 
   defaultStorageClass=$(oc get sc -o json | jq -r '.items[].metadata | select(.annotations["storageclass.kubernetes.io/is-default-class"] == "true") | .name')
 
@@ -468,7 +469,7 @@ else
   BASE64_FLAG=""
 fi
 COMBINED_DOCKER_CFG_B64=$(echo $EXISTING_DOCKER_AUTHS $NEW_DOCKER_AUTHS | jq -s -r '{"auths": add}' | base64 $BASE64_FLAG)
-cat <<EOF | oc apply --namespace ${JOB_NAMESPACE} -f -
+YAML=$(cat <<EOF
 apiVersion: v1
 kind: Secret
 metadata:
@@ -477,6 +478,8 @@ type: kubernetes.io/dockerconfigjson
 data:
   .dockerconfigjson: $COMBINED_DOCKER_CFG_B64
 EOF
+)
+OCApplyYAML "$JOB_NAMESPACE" "$YAML"
 
 divider
 

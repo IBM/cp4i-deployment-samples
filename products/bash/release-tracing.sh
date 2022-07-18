@@ -29,14 +29,13 @@ function usage() {
   echo "Usage: $0 -n <namespace> -r <release-name>"
 }
 
+CURRENT_DIR=$(dirname $0)
+source $CURRENT_DIR/utils.sh
 namespace="cp4i"
 release_name="tracing-demo"
 block_storage="ibmc-block-gold"
 file_storage="cp4i-file-performance-gid"
 production="false"
-CURRENT_DIR=$(dirname $0)
-TICK="\xE2\x9C\x85"
-CROSS="\xE2\x9D\x8C"
 
 while getopts "n:r:b:d:f:p" opt; do
   case ${opt} in
@@ -73,8 +72,7 @@ fi
 
 if [[ "$production" == "true" ]]; then
   echo "Production Mode Enabled"
-  time=0
-  until cat <<EOF | oc apply -f -; do
+  YAML=$(cat <<EOF
 apiVersion: integration.ibm.com/v1beta2
 kind: OperationsDashboard
 metadata:
@@ -116,17 +114,9 @@ spec:
       size: 150Gi
   version: 2022.2.1-lts
 EOF
-    if [ $time -gt 10 ]; then
-      echo "ERROR: Exiting installation as timeout waiting for OperationsDashboard to be created"
-      exit 1
-    fi
-    echo "INFO: Waiting up to 10 minutes for OperationsDashboard to be created. Waited ${time} minute(s)."
-    time=$((time + 1))
-    sleep 60
-  done
+)
 else
-  time=0
-  until cat <<EOF | oc apply -f -; do
+  YAML=$(cat <<EOF
 apiVersion: integration.ibm.com/v1beta2
 kind: OperationsDashboard
 metadata:
@@ -156,15 +146,9 @@ spec:
       class: "${block_storage}"
   version: 2022.2.1-lts
 EOF
-    if [ $time -gt 10 ]; then
-      echo "ERROR: Exiting installation as timeout waiting for OperationsDashboard to be created"
-      exit 1
-    fi
-    echo "INFO: Waiting up to 10 minutes for OperationsDashboard to be created. Waited ${time} minute(s)."
-    time=$((time + 1))
-    sleep 60
-  done
+)
 fi
+OCApplyYAML "$namespace" "$YAML"
 
 # If the icp4i-od-store-cred then create a dummy one that the service binding will populate
 oc create secret generic -n ${namespace} icp4i-od-store-cred --from-literal=icp4i-od-cacert.pem="empty" --from-literal=username="empty" --from-literal=password="empty" --from-literal=tracingUrl="empty"
@@ -185,8 +169,7 @@ done
 
 echo -e "$TICK [INFO] Operations Dashboard is ready"
 
-time=0
-until cat <<EOF | oc apply -f -; do
+YAML=$(cat <<EOF
 apiVersion: integration.ibm.com/v1beta2
 kind: OperationsDashboardServiceBinding
 metadata:
@@ -206,11 +189,5 @@ spec:
   sourcePodName: "demo-tracing"
   sourceSecretName: "icp4i-od-store-cred"
 EOF
-  if [ $time -gt 10 ]; then
-    echo "ERROR: Exiting installation as timeout waiting for OperationsDashboard to be created"
-    exit 1
-  fi
-  echo "INFO: Waiting up to 10 minutes for OperationsDashboard to be created. Waited ${time} minute(s)."
-  time=$((time + 1))
-  sleep 60
-done
+)
+OCApplyYAML "$namespace" "$YAML"

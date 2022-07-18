@@ -14,7 +14,10 @@
 #   With defaults values
 #     ./install-ocp-pipeline.sh
 
-cat <<EOF | oc apply -f -
+CURRENT_DIR=$(dirname $0)
+source $CURRENT_DIR/utils.sh
+
+YAML=$(cat <<EOF
 apiVersion: operators.coreos.com/v1alpha1
 kind: Subscription
 metadata:
@@ -26,9 +29,7 @@ spec:
   source: redhat-operators
   sourceNamespace: openshift-marketplace
 EOF
-
-if [ $? -ne 0 ]; then
-  exit 2
-fi
+)
+OCApplyYAML "openshift-operators" "$YAML"
 
 echo -e "\n----------------------------------------------------------------------------------------------------------------------------------------------------------\n"
