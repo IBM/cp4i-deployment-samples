@@ -13,17 +13,17 @@ export CROSS="\xE2\x9D\x8C"
 export ALL_DONE="\xF0\x9F\x92\xAF"
 export INFO="\xE2\x84\xB9"
 
-# This will retry every 5 seconds for 15 minutes
+# This will retry every 5 seconds for 10 minutes
 RETRY_INTERVAL=5
-RETRY_COUNT=180
+RETRY_COUNT=120
 
 function OCApplyYAML() {
   namespace=${1}
   yaml=${2}
 
-  # TODO Debug:
-  echo "Applying the following yaml in the ${namespace} project:"
-  echo "${yaml}"
+  # For debug output uncomment the following:
+  # echo "Applying the following yaml in the ${namespace} project:"
+  # echo "${yaml}"
 
   time=0
   until cat <<EOF | oc apply -n ${namespace} -f -; do
