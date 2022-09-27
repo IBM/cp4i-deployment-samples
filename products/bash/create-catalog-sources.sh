@@ -26,20 +26,6 @@ YAML=$(cat <<EOF
 apiVersion: operators.coreos.com/v1alpha1
 kind: CatalogSource
 metadata:
-  name: ibm-ai-wmltraining-operator-catalog
-  namespace: openshift-marketplace
-spec:
-  displayName: "WML Training Operators 1.1.1"
-  image: icr.io/cpopen/ibm-ai-wmltraining-operator-catalog@sha256:6bc72737c10c985de0f1325c50382fc2dd1ceb811fd0948bd1eef58f544d9188
-  publisher: IBM
-  sourceType: grpc
-  updateStrategy:
-    registryPoll:
-      interval: 45m
----
-apiVersion: operators.coreos.com/v1alpha1
-kind: CatalogSource
-metadata:
   name: ibm-apiconnect-catalog
   namespace: openshift-marketplace
 spec:
