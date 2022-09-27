@@ -142,16 +142,6 @@ spec:
 apiVersion: operators.coreos.com/v1alpha1
 kind: Subscription
 metadata:
-  name: ibm-ai-wmltraining-ibm-ai-wmltraining-operator-catalog-openshift-marketplace
-spec:
-  installPlanApproval: Automatic
-  name: ibm-ai-wmltraining
-  source: ibm-ai-wmltraining-operator-catalog
-  sourceNamespace: openshift-marketplace
----
-apiVersion: operators.coreos.com/v1alpha1
-kind: Subscription
-metadata:
   name: ibm-cloud-databases-redis-operator-ibm-cloud-databases-redis-catalog-openshift-marketplace
 spec:
   installPlanApproval: Automatic
