@@ -189,7 +189,7 @@ function create_org() {
                  -s -k -H "Content-Type: application/json" -H "Accept: application/json" \
                  -H "Authorization: Bearer ${token}"`
   $DEBUG && echo "[DEBUG] $(echo ${response} | jq .)"
-  main_porg_url=`echo ${response} | jq -r '.url' | sed "s/\/integration\/apis\/$NAMESPACE\/$RELEASE_NAME//"`
+  main_porg_url=`echo ${response} | jq -r '.url'`
 
   if [[ "${main_porg_url}" == "null" ]]; then
     echo "Create the ${org_name} Provider Organization"
@@ -201,7 +201,7 @@ function create_org() {
                          \"org_type\": \"provider\",
                          \"owner_url\": \"${owner_url}\" }"`
     $DEBUG && echo "[DEBUG] $(echo ${response} | jq .)"
-    main_porg_url=`echo ${response} | jq -r '.url' | sed "s/\/integration\/apis\/$NAMESPACE\/$RELEASE_NAME//"`
+    main_porg_url=`echo ${response} | jq -r '.url'`
   fi
   RESULT="$main_porg_url"
   return 0
@@ -251,7 +251,7 @@ function add_catalog() {
                  -s -k -H "Content-Type: application/json" -H "Accept: application/json" \
                  -H "Authorization: Bearer ${token}"`
   $DEBUG && echo "[DEBUG] $(echo ${response} | jq .)"
-  catalog_url=`echo ${response} | jq -r '.url' | sed "s/\/integration\/apis\/$NAMESPACE\/$RELEASE_NAME//"`
+  catalog_url=`echo ${response} | jq -r '.url'`
   if [[ "${catalog_url}" == "null" ]]; then
     echo "Create the Catalog"
     response=`curl -X POST ${porg_url}/catalogs \
@@ -260,7 +260,7 @@ function add_catalog() {
                    -d "{ \"name\": \"${catalog_name}\",
                          \"title\": \"${catalog_title}\" }"`
     $DEBUG && echo "[DEBUG] $(echo ${response} | jq .)"
-    catalog_url=`echo ${response} | jq -r '.url' | sed "s/\/integration\/apis\/$NAMESPACE\/$RELEASE_NAME//"`
+    catalog_url=`echo ${response} | jq -r '.url'`
   fi
 
   echo "Add a portal to the catalog named ${catalog_name}"
@@ -308,7 +308,7 @@ response=`curl GET https://${API_EP}/api/user-registries/admin/${provider_user_r
                -s -k -H "Content-Type: application/json" -H "Accept: application/json" \
                -H "Authorization: Bearer ${admin_token}"`
 $DEBUG && echo "[DEBUG] $(echo ${response} | jq .)"
-owner_url=`echo ${response} | jq -r '.url' | sed "s/\/integration\/apis\/$NAMESPACE\/$RELEASE_NAME//"`
+owner_url=`echo ${response} | jq -r '.url'`
 if [[ "${owner_url}" == "null" ]]; then
   echo "Create the user named ${provider_username}"
   response=`curl https://${API_EP}/api/user-registries/admin/${provider_user_registry}/users \
@@ -320,7 +320,7 @@ if [[ "${owner_url}" == "null" ]]; then
                        \"first_name\": \"${provider_firstname}\",
                        \"last_name\": \"${provider_lastname}\" }"`
   $DEBUG && echo "[DEBUG] $(echo ${response} | jq .)"
-  owner_url=`echo ${response} | jq -r '.url' | sed "s/\/integration\/apis\/$NAMESPACE\/$RELEASE_NAME//"`
+  owner_url=`echo ${response} | jq -r '.url'`
 fi
 $DEBUG && echo "owner_url=${owner_url}"
 
