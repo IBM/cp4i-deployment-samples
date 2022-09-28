@@ -305,8 +305,6 @@ RES=$(curl -kLsS https://$PLATFORM_API_EP/api/catalogs/$ORG/$CATALOG/configured-
   -H "accept: application/json" \
   -H "authorization: Bearer ${TOKEN}")
 handle_res "${RES}"
-# Workaround to remove invalid part of returned endpoints
-OUTPUT=$(echo "${OUTPUT}" | sed "s/\/integration\/apis\/$NAMESPACE\/$RELEASE//")
 
 USER_REGISTRY_URL=$(echo "${OUTPUT}" | $JQ -r ".results[0].user_registry_url")
 $DEBUG && echo "[DEBUG] User registry url: ${USER_REGISTRY_URL}"
