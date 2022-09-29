@@ -99,8 +99,8 @@ metadata:
   name: datapower-operator-catalog
   namespace: openshift-marketplace
 spec:
-  displayName: "DP Operators 1.6.2"
-  image: icr.io/cpopen/datapower-operator-catalog@sha256:e53f031d3dc118a5cb94f727ee45c6b6487f6073fb288066eb4672e4bf79f02c
+  displayName: "DP Operators 1.6.3"
+  image: icr.io/cpopen/datapower-operator-catalog@sha256:36280a7a03bdeb4dcb562b5a90f2e2fd3d4cdd05a5b816e521c3f4ba3db6620c
   publisher: IBM
   sourceType: grpc
   updateStrategy:
@@ -113,8 +113,8 @@ metadata:
   name: ibm-eventstreams-catalog
   namespace: openshift-marketplace
 spec:
-  displayName: "ES Operators v3.0.4"
-  image: icr.io/cpopen/ibm-eventstreams-catalog@sha256:c61b2302ab87c2ace44b22f9996261ad15d9d3a93e6614907a9dfc289695f980
+  displayName: "ES Operators v3.0.5"
+  image: icr.io/cpopen/ibm-eventstreams-catalog@sha256:5d6c8c5173cf1d2fe16b71b1a27362c6ac34a34c81f0b2837b227cfade6f4787
   publisher: IBM
   sourceType: grpc
   updateStrategy:
@@ -169,8 +169,8 @@ metadata:
   name: ibm-mq-operator-catalog
   namespace: openshift-marketplace
 spec:
-  displayName: "MQ Operators v2.0.2"
-  image: icr.io/cpopen/ibm-mq-operator-catalog@sha256:d4ea6013128ee0173245d6869bbdb94b6c740953cb1aec6ebd79dda2824281d4
+  displayName: "MQ Operators v2.0.3"
+  image: icr.io/cpopen/ibm-mq-operator-catalog@sha256:07ad2c29490d23e526e407c6538ff30cfd236480df2ed83ed8bf4369e3bdbd24
   publisher: IBM
   sourceType: grpc
   updateStrategy:
