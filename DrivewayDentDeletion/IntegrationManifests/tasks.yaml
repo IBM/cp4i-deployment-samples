@@ -60,6 +60,8 @@ spec:
     - name: command
       type: string
       description: The command to run
+  workspaces:
+    - name: git-source
   steps:
     - name: command
       image: quay.io/openshift/origin-cli:latest

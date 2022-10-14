@@ -33,12 +33,13 @@ spec:
       runAfter:
         - clone-git-source
       taskRef:
-        name: run-script
+        name: run-command
       params:
-        - name: script
-          value: "products/bash/fixup-dockerfiles.sh"
-        - name: params
-          value: " -n {{NAMESPACE}}"
+        - name: command
+          value: |
+            ls /workspace
+            ls /workspace/git-source
+            /workspace/git-source/products/bash/fixup-dockerfiles.sh -n $(context.taskRun.namespace)
       workspaces:
         - name: git-source
           workspace: git-source
