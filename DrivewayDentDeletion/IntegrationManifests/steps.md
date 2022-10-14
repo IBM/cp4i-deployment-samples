@@ -1,3 +1,4 @@
+# Initial setup for ROKS, create performance storage classes
 ```
 cat <<EOF | oc apply -f -
 apiVersion: storage.k8s.io/v1
@@ -51,31 +52,22 @@ EOF
 defaultStorageClass=$(oc get sc -o json | jq -r '.items[].metadata | select(.annotations["storageclass.kubernetes.io/is-default-class"] == "true") | .name')
 oc patch storageclass $defaultStorageClass -p '{"metadata": {"annotations":{"storageclass.kubernetes.io/is-default-class":"false"}}}'
 oc patch storageclass cp4i-block-performance -p '{"metadata": {"annotations":{"storageclass.kubernetes.io/is-default-class":"true"}}}'
+```
 
-
-
+# Vars to be used later
 ```
 namespace=cp4i
-file_storage=ibmc-file-gold-gid
-block_storage=ibmc-block-gold
-
+#file_storage=ibmc-file-gold-gid
+#block_storage=ibmc-block-gold
 block_storage="cp4i-block-performance"
 file_storage="cp4i-file-performance-gid"
+im_name=ddd-dev
+qm_name=mq-ddd-qm-dev
 ```
 
+# Create the ibm-entitlement-key secret
+NOTE replace TODO with a real value!!!
 ```
-../../products/bash/create-catalog-sources.sh
-
-oc new-project ${namespace}
-../../products/bash/deploy-og-sub.sh -n ${namespace}
-
-../../products/bash/release-navigator.sh -n ${namespace} -s ${file_storage}
-
-../../products/bash/release-ace-dashboard.sh -n ${namespace} -s ${file_storage}
-
-
-../../products/bash/release-psql.sh -n ${namespace}
-
 export IMAGE_REPO=cp.icr.io
 export DOCKER_REGISTRY_USER=ekey
 export DOCKER_REGISTRY_PASS="TODO"
@@ -84,10 +76,126 @@ oc create secret docker-registry ibm-entitlement-key \
     --docker-username=${DOCKER_REGISTRY_USER} \
     --docker-password=${DOCKER_REGISTRY_PASS} \
     --dry-run -o yaml | oc apply -f -
+```
 
+# Run scripts to do some setup
+```
+../../products/bash/create-catalog-sources.sh
+oc new-project ${namespace}
+../../products/bash/deploy-og-sub.sh -n ${namespace}
+../../products/bash/release-navigator.sh -n ${namespace} -s ${file_storage}
+../../products/bash/release-ace-dashboard.sh -n ${namespace} -s ${file_storage}
+../../products/bash/release-psql.sh -n ${namespace}
+```
+
+# Do initial setup and run the dev pipeline
+```
 # TODO The following currently doesn't set up the ACE config
 ./prereqs.sh -n ${namespace}
 
-# TODO Implement this!
+# TODO The following builds the ace images but doesn't deploy the ACE integration servers or the queuemanager
 ./cicd-apply-dev-pipeline.sh -n ${namespace} -f ${file_storage} -g ${block_storage} -b use-im-for-ddd -a false
+
+# NOTE Trigger the above pipeline to create the ACE images
+```
+
+# Create initial IM with unconfigured QM
+```
+cat <<EOF | oc apply -f -
+apiVersion: integration.ibm.com/v1beta1
+kind: IntegrationManifest
+metadata:
+  name: ${im_name}
+spec:
+  version: 2022.4.1
+  license:
+    accept: true
+    license: Q4-license
+    use: CloudPakForIntegrationNonProduction
+  storage:
+    readWriteOnce:
+      class: ${block_storage}
+    readWriteMany:
+      class: ${file_storage}
+  managedInstances:
+    list:
+    - kind: QueueManager
+      metadata:
+        name: ${qm_name}
+EOF
+```
+
+# Now update the queuemanager to create the queues and setup the certs
+```
+cat <<EOF | oc apply -f -
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ${qm_name}-queues
+data:
+  myqm.mqsc: |
+    DEFINE QLOCAL('AccidentIn') DEFPSIST(YES) BOTHRESH(5) REPLACE
+    DEFINE QLOCAL('AccidentOut') DEFPSIST(YES) BOTHRESH(5) REPLACE
+    DEFINE QLOCAL('BumperIn') DEFPSIST(YES) BOTHRESH(5) REPLACE
+    DEFINE QLOCAL('BumperOut') DEFPSIST(YES) BOTHRESH(5) REPLACE
+    DEFINE QLOCAL('CrumpledIn') DEFPSIST(YES) BOTHRESH(5) REPLACE
+    DEFINE QLOCAL('CrumpledOut') DEFPSIST(YES) BOTHRESH(5) REPLACE
+    SET AUTHREC PROFILE('AccidentIn') PRINCIPAL('app1') OBJTYPE(QUEUE) AUTHADD(BROWSE,GET,INQ,PUT)
+    SET AUTHREC PROFILE('AccidentOut') PRINCIPAL('app1') OBJTYPE(QUEUE) AUTHADD(BROWSE,GET,INQ,PUT)
+    SET AUTHREC PROFILE('BumperIn') PRINCIPAL('app1') OBJTYPE(QUEUE) AUTHADD(BROWSE,GET,INQ,PUT)
+    SET AUTHREC PROFILE('BumperOut') PRINCIPAL('app1') OBJTYPE(QUEUE) AUTHADD(BROWSE,GET,INQ,PUT)
+    SET AUTHREC PROFILE('CrumpledIn') PRINCIPAL('app1') OBJTYPE(QUEUE) AUTHADD(BROWSE,GET,INQ,PUT)
+    SET AUTHREC PROFILE('CrumpledOut') PRINCIPAL('app1') OBJTYPE(QUEUE) AUTHADD(BROWSE,GET,INQ,PUT)
+    REFRESH SECURITY
+    ALTER QMGR DEADQ(SYSTEM.DEAD.LETTER.QUEUE)
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: ${qm_name}-client
+spec:
+  commonName: ${namespace}.${im_name}
+  subject:
+    organizationalUnits:
+    - my-team
+  secretName: ${qm_name}-client
+  issuerRef:
+    name: ${namespace}-${im_name}-${namespace}-${qm_name}-ef09-ibm-inte-c46d # TODO This name from the issuer created by the IM
+    kind: Issuer
+    group: cert-manager.io
+---
+apiVersion: integration.ibm.com/v1beta1
+kind: IntegrationManifest
+metadata:
+  name: ${im_name}
+spec:
+  version: 2022.4.1
+  license:
+    accept: true
+    license: Q4-license
+    use: CloudPakForIntegrationNonProduction
+  storage:
+    readWriteOnce:
+      class: ${block_storage}
+    readWriteMany:
+      class: ${file_storage}
+  managedInstances:
+    list:
+    - kind: QueueManager
+      metadata:
+        name: ${qm_name}
+      spec:
+        web:
+          enabled: true
+        queueManager:
+          mqsc:
+            - configMap:
+                name: ${qm_name}-qm-default
+                items:
+                  - myqm.mqsc
+            - configMap:
+                name: ${qm_name}-queues
+                items:
+                  - myqm.mqsc
+EOF
 ```

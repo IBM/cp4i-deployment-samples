@@ -164,7 +164,7 @@ divider
 
 # create the pipeline to run tasks to build and deploy to dev
 echo -e "$INFO [INFO] Create the pipeline to run tasks for the dev pipeline of the driveway dent deletion demo in '$NAMESPACE' namespace"
-YAML=$(cat $CURRENT_DIR/cicd-dev/dev.yaml |
+YAML=$(cat $CURRENT_DIR/dev.yaml |
   sed "s#{{NAMESPACE}}#$NAMESPACE#g;" |
   sed "s#{{FORKED_REPO}}#$REPO#g;" |
   sed "s#{{BRANCH}}#$BRANCH#g;" |
