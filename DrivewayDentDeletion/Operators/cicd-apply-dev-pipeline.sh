@@ -167,6 +167,14 @@ OCApplyYAML "$NAMESPACE" "$YAML"
 
 divider
 
+# create tekton tasks for test
+echo -e "$INFO [INFO] Create tekton tasks for test for the test pipeline of the driveway dent deletion demo"
+YAML=$(cat $CURRENT_DIR/cicd-dev/cicd-tasks.yaml |
+  sed "s#{{NAMESPACE}}#$NAMESPACE#g;")
+OCApplyYAML "$NAMESPACE" "$YAML"
+
+divider
+
 # create the pipeline to run tasks to build and deploy to dev
 echo -e "$INFO [INFO] Create the pipeline to run tasks for the dev pipeline of the driveway dent deletion demo in '$NAMESPACE' namespace"
 YAML=$(cat $CURRENT_DIR/cicd-dev/cicd-pipeline.yaml |

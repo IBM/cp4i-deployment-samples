@@ -231,3 +231,23 @@ spec:
       workspaces:
         - name: git-source
           workspace: git-source
+
+    # test end-to-end API in dev namespace
+    - name: test-e2e-api-in-dev-namespace
+      retries: 2
+      runAfter:
+        - deploy-wait-ace-chris
+        - deploy-wait-mq
+        - deploy-wait-ace-api
+        - deploy-wait-ace-acme
+        - deploy-wait-ace-bernie
+      taskRef:
+        name: api-test-e2e
+      params:
+        - name: suffix
+          value: "ddd"
+        - name: dddType
+          value: "dev"
+      workspaces:
+        - name: git-source
+          workspace: git-source
