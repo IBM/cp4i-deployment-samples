@@ -51,8 +51,6 @@ EOF
 defaultStorageClass=$(oc get sc -o json | jq -r '.items[].metadata | select(.annotations["storageclass.kubernetes.io/is-default-class"] == "true") | .name')
 oc patch storageclass $defaultStorageClass -p '{"metadata": {"annotations":{"storageclass.kubernetes.io/is-default-class":"false"}}}'
 oc patch storageclass cp4i-block-performance -p '{"metadata": {"annotations":{"storageclass.kubernetes.io/is-default-class":"true"}}}'
-DEFAULT_BLOCK_STORAGE="cp4i-block-performance"
-DEFAULT_FILE_STORAGE="cp4i-file-performance-gid"
 
 
 
@@ -75,7 +73,21 @@ oc new-project ${namespace}
 
 ../../products/bash/release-ace-dashboard.sh -n ${namespace} -s ${file_storage}
 
-# TODO
+
+../../products/bash/release-psql.sh -n ${namespace}
+
+export IMAGE_REPO=cp.icr.io
+export DOCKER_REGISTRY_USER=ekey
+export DOCKER_REGISTRY_PASS="TODO"
+oc create secret docker-registry ibm-entitlement-key \
+    --docker-server=${IMAGE_REPO} \
+    --docker-username=${DOCKER_REGISTRY_USER} \
+    --docker-password=${DOCKER_REGISTRY_PASS} \
+    --dry-run -o yaml | oc apply -f -
+
+# TODO The following currently doesn't set up the ACE config
 ./prereqs.sh -n ${namespace}
-./cicd-apply-dev-pipeline.sh TODO
+
+# TODO Implement this!
+./cicd-apply-dev-pipeline.sh -n ${namespace} -f ${file_storage} -g ${block_storage} -b use-im-for-ddd -a false
 ```
