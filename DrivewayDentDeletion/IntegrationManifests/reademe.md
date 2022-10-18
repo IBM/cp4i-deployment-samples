@@ -199,3 +199,47 @@ spec:
                   - myqm.mqsc
 EOF
 ```
+
+# Generate the MQ cert files from the secrets
+cd mq-im
+./generate-test-cert.sh
+cd ..
+
+
+# Create the ACE config for dev
+NAMESPACE=${namespace}
+EACH_DEPLOY_TYPE=dev
+SUFFIX=ddd
+
+WITH_TEST_TYPE=
+if [[ "$EACH_DEPLOY_TYPE" == "test" ]]; then
+  WITH_TEST_TYPE="-t"
+fi
+DB_USER=$(echo ${NAMESPACE}_${EACH_DEPLOY_TYPE}_${SUFFIX} | sed 's/-/_/g')
+DB_NAME="db_$DB_USER"
+EXISTING_PASSWORD=$(oc -n $NAMESPACE get secret postgres-credential-$SUFFIX-$EACH_DEPLOY_TYPE -ojsonpath='{.data.password}' 2>/dev/null)
+DB_PASS=$(echo $EXISTING_PASSWORD | base64 -d)
+./create-ace-config-im.sh -n ${NAMESPACE} -g ${namespace} -u "$DB_USER" -d "$DB_NAME" -p "$DB_PASS" -s "$SUFFIX" "$WITH_TEST_TYPE"
+
+# Create the ACE integration servers
+IMAGE_TAG=$(oc get is -n $namespace ddd-ace-api -o json | jq -r .status.tags[0].tag)
+./release-ace-integration-server.sh -n $namespace -a false -r ddd-dev-ace-api -i image-registry.openshift-image-registry.svc:5000/$namespace/ddd-ace-api:$IMAGE_TAG -d policyproject-ddd-dev
+
+./release-ace-integration-server.sh -n $namespace -a false -r ddd-dev-ace-bernie -i image-registry.openshift-image-registry.svc:5000/$namespace/ddd-ace-bernie:$IMAGE_TAG -d policyproject-ddd-dev
+./release-ace-integration-server.sh -n $namespace -a false -r ddd-dev-ace-acme -i image-registry.openshift-image-registry.svc:5000/$namespace/ddd-ace-acme:$IMAGE_TAG -d policyproject-ddd-dev
+./release-ace-integration-server.sh -n $namespace -a false -r ddd-dev-ace-chris -i image-registry.openshift-image-registry.svc:5000/$namespace/ddd-ace-chris:$IMAGE_TAG -d policyproject-ddd-dev
+
+# Test
+../../DrivewayDentDeletion/Operators/test-api-e2e.sh -n $NAMESPACE -s ddd -d dev
+
+BIP2677E: Failed to make a client connection to queue manager &apos;mqdddqmdev&apos; using hostname &apos;mq-ddd-qm-dev-ibm-mq&apos; on port &apos;1414&apos;: MQCC=2; MQRC=2540.
+
+# Tidy up:
+oc delete integrationserver ddd-dev-ace-api
+oc delete configuration policyproject-ddd-dev
+oc delete configuration application.jks
+oc delete configuration application.kdb
+oc delete configuration application.sth
+oc delete configuration keystore-ddd
+oc delete configuration serverconf-ddd
+oc delete configuration setdbparms-ddd
