@@ -41,6 +41,9 @@ SERVER_CERTIFICATE=cp4i-ddd-dev-cp4i-mq-ddd-qm-dev-ef09-ibm-inte-c46d
 CLIENT_CERTIFICATE_SECRET=$(oc get certificate $CLIENT_CERTIFICATE -o json | jq -r .spec.secretName)
 SERVER_CERTIFICATE_SECRET=$(oc get certificate $SERVER_CERTIFICATE -o json | jq -r .spec.secretName)
 
+echo "CLIENT_CERTIFICATE_SECRET=${CLIENT_CERTIFICATE_SECRET}"
+echo "SERVER_CERTIFICATE_SECRET=${SERVER_CERTIFICATE_SECRET}"
+
 mkdir -p createcerts
 rm createcerts/*
 
@@ -48,7 +51,7 @@ rm createcerts/*
 # oc get secret $CLIENT_CERTIFICATE_SECRET -o json | jq -r '.data["tls.crt"]' | base64 --decode > createcerts/application.crt
 # oc get secret $CLIENT_CERTIFICATE_SECRET -o json | jq -r '.data["tls.key"]' | base64 --decode > createcerts/application.key
 
-# oc get secret $SERVER_CERTIFICATE_SECRET -o json | jq -r '.data["tls.crt"]' | base64 --decode > createcerts/server.crt
+#oc get secret $SERVER_CERTIFICATE_SECRET -o json | jq -r '.data["tls.crt"]' | base64 --decode > createcerts/server.crt
 oc get secret $SERVER_CERTIFICATE_SECRET -o json | jq -r '.data["ca.crt"]' | base64 --decode > createcerts/server.crt
 oc get secret $SERVER_CERTIFICATE_SECRET -o json | jq -r '.data["tls.crt"]' | base64 --decode > createcerts/application.crt
 oc get secret $SERVER_CERTIFICATE_SECRET -o json | jq -r '.data["tls.key"]' | base64 --decode > createcerts/application.key
@@ -61,6 +64,7 @@ docker run -e LICENSE=accept -v `pwd`/createcerts:/certs --entrypoint bash ibmco
 
 docker run -e LICENSE=accept -v `pwd`/createcerts:/certs --entrypoint bash ibmcom/mq -c 'cd /certs ; runmqckm -keydb -create -db application.kdb -pw password -type cms -stash'
 docker run -e LICENSE=accept -v `pwd`/createcerts:/certs --entrypoint bash ibmcom/mq -c 'cd /certs ; runmqckm -cert -add -db application.kdb -file server.crt -stashed'
-docker run -e LICENSE=accept -v `pwd`/createcerts:/certs --entrypoint bash ibmcom/mq -c 'cd /certs ; runmqckm -cert -import -file application.p12 -pw password -target application.kdb -target_stashed'
+#docker run -e LICENSE=accept -v `pwd`/createcerts:/certs --entrypoint bash ibmcom/mq -c 'cd /certs ; runmqckm -cert -import -file application.p12 -pw password -target application.kdb -target_stashed'
+docker run -e LICENSE=accept -v `pwd`/createcerts:/certs --entrypoint bash ibmcom/mq -c 'cd /certs ; runmqckm -cert -import -file application.p12 -pw password -type pkcs12 -target application.kdb -target_pw password -target_type cms -label "1" -new_label aceclient'
 
 rm createcerts/server.crt createcerts/application.crt createcerts/application.key createcerts/application.p12 createcerts/application.rdb
