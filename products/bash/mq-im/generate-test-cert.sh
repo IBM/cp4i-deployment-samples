@@ -47,19 +47,22 @@ echo "SERVER_CERTIFICATE_SECRET=${SERVER_CERTIFICATE_SECRET}"
 mkdir -p createcerts
 rm createcerts/*
 
-#oc get secret $SERVER_CERTIFICATE_SECRET -o json | jq -r '.data["tls.crt"]' | base64 --decode > createcerts/server.crt
-# oc get secret $CLIENT_CERTIFICATE_SECRET -o json | jq -r '.data["tls.crt"]' | base64 --decode > createcerts/application.crt
-# oc get secret $CLIENT_CERTIFICATE_SECRET -o json | jq -r '.data["tls.key"]' | base64 --decode > createcerts/application.key
+oc get secret $SERVER_CERTIFICATE_SECRET -o json | jq -r '.data["tls.crt"]' | base64 --decode > createcerts/server.crt
+oc get secret $CLIENT_CERTIFICATE_SECRET -o json | jq -r '.data["ca.crt"]' | base64 --decode > createcerts/application-ca.crt
+oc get secret $CLIENT_CERTIFICATE_SECRET -o json | jq -r '.data["tls.crt"]' | base64 --decode > createcerts/application.crt
+oc get secret $CLIENT_CERTIFICATE_SECRET -o json | jq -r '.data["tls.key"]' | base64 --decode > createcerts/application.key
 
-#oc get secret $SERVER_CERTIFICATE_SECRET -o json | jq -r '.data["tls.crt"]' | base64 --decode > createcerts/server.crt
-oc get secret $SERVER_CERTIFICATE_SECRET -o json | jq -r '.data["ca.crt"]' | base64 --decode > createcerts/server.crt
-oc get secret $SERVER_CERTIFICATE_SECRET -o json | jq -r '.data["tls.crt"]' | base64 --decode > createcerts/application.crt
-oc get secret $SERVER_CERTIFICATE_SECRET -o json | jq -r '.data["tls.key"]' | base64 --decode > createcerts/application.key
+cat createcerts/application-ca.crt > createcerts/application.pem
+cat createcerts/application.crt >> createcerts/application.pem
 
-openssl pkcs12 -export -out createcerts/application.p12 -inkey createcerts/application.key -in createcerts/application.crt -passout pass:password
+# oc get secret $SERVER_CERTIFICATE_SECRET -o json | jq -r '.data["ca.crt"]' | base64 --decode > createcerts/server.crt
+# oc get secret $SERVER_CERTIFICATE_SECRET -o json | jq -r '.data["tls.crt"]' | base64 --decode > createcerts/application.crt
+# oc get secret $SERVER_CERTIFICATE_SECRET -o json | jq -r '.data["tls.key"]' | base64 --decode > createcerts/application.key
+
+openssl pkcs12 -export -out createcerts/application.p12 -inkey createcerts/application.key -in createcerts/application.pem -passout pass:password
 
 docker run -e LICENSE=accept -v `pwd`/createcerts:/certs --entrypoint bash ibmcom/mq -c 'cd /certs ; runmqckm -keydb -create -db application.jks -type jks -pw password'
-docker run -e LICENSE=accept -v `pwd`/createcerts:/certs --entrypoint bash ibmcom/mq -c 'cd /certs ; runmqckm -cert -add -db application.jks -file application.crt -pw password'
+docker run -e LICENSE=accept -v `pwd`/createcerts:/certs --entrypoint bash ibmcom/mq -c 'cd /certs ; runmqckm -cert -add -db application.jks -file application.pem -pw password'
 docker run -e LICENSE=accept -v `pwd`/createcerts:/certs --entrypoint bash ibmcom/mq -c 'cd /certs ; runmqckm -cert -import -file application.p12 -pw password -target application.jks -target_pw password'
 
 docker run -e LICENSE=accept -v `pwd`/createcerts:/certs --entrypoint bash ibmcom/mq -c 'cd /certs ; runmqckm -keydb -create -db application.kdb -pw password -type cms -stash'
@@ -67,4 +70,4 @@ docker run -e LICENSE=accept -v `pwd`/createcerts:/certs --entrypoint bash ibmco
 #docker run -e LICENSE=accept -v `pwd`/createcerts:/certs --entrypoint bash ibmcom/mq -c 'cd /certs ; runmqckm -cert -import -file application.p12 -pw password -target application.kdb -target_stashed'
 docker run -e LICENSE=accept -v `pwd`/createcerts:/certs --entrypoint bash ibmcom/mq -c 'cd /certs ; runmqckm -cert -import -file application.p12 -pw password -type pkcs12 -target application.kdb -target_pw password -target_type cms -label "1" -new_label aceclient'
 
-rm createcerts/server.crt createcerts/application.crt createcerts/application.key createcerts/application.p12 createcerts/application.rdb
+rm createcerts/server.crt createcerts/application.crt createcerts/application-ca.crt createcerts/application.pem createcerts/application.key createcerts/application.p12 createcerts/application.rdb
