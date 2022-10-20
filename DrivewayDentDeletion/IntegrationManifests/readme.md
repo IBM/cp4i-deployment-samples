@@ -220,14 +220,15 @@ DB_NAME="db_$DB_USER"
 EXISTING_PASSWORD=$(oc -n $NAMESPACE get secret postgres-credential-$SUFFIX-$EACH_DEPLOY_TYPE -ojsonpath='{.data.password}' 2>/dev/null)
 DB_PASS=$(echo $EXISTING_PASSWORD | base64 -d)
 ./create-ace-config-im.sh -n ${NAMESPACE} -g ${namespace} -u "$DB_USER" -d "$DB_NAME" -p "$DB_PASS" -s "$SUFFIX" "$WITH_TEST_TYPE"
+<!-- ./create-ace-config-im.sh -n ${NAMESPACE} -g ${namespace} -u "$DB_USER" -p "$DB_PASS" -s "$SUFFIX" "$WITH_TEST_TYPE" -c "[keystore-ddd, policyproject-ddd-dev, serverconf-ddd, setdbparms-ddd, application.kdb, application.sth]" -->
 
 # Create the ACE integration servers
 IMAGE_TAG=$(oc get is -n $namespace ddd-ace-api -o json | jq -r .status.tags[0].tag)
-./release-ace-integration-server.sh -n $namespace -a false -r ddd-dev-ace-api -i image-registry.openshift-image-registry.svc:5000/$namespace/ddd-ace-api:$IMAGE_TAG -d policyproject-ddd-dev
 
-./release-ace-integration-server.sh -n $namespace -a false -r ddd-dev-ace-acme -i image-registry.openshift-image-registry.svc:5000/$namespace/ddd-ace-acme:$IMAGE_TAG -d policyproject-ddd-dev
-./release-ace-integration-server.sh -n $namespace -a false -r ddd-dev-ace-bernie -i image-registry.openshift-image-registry.svc:5000/$namespace/ddd-ace-bernie:$IMAGE_TAG -d policyproject-ddd-dev
-./release-ace-integration-server.sh -n $namespace -a false -r ddd-dev-ace-chris -i image-registry.openshift-image-registry.svc:5000/$namespace/ddd-ace-chris:$IMAGE_TAG -d policyproject-ddd-dev
+./release-ace-integration-server.sh -n $namespace -a false -r ddd-dev-ace-api -i image-registry.openshift-image-registry.svc:5000/$namespace/ddd-ace-api:$IMAGE_TAG -c "[keystore-ddd, policyproject-ddd-dev, serverconf-ddd, setdbparms-ddd, application.kdb, application.sth]"
+./release-ace-integration-server.sh -n $namespace -a false -r ddd-dev-ace-acme -i image-registry.openshift-image-registry.svc:5000/$namespace/ddd-ace-acme:$IMAGE_TAG -c "[keystore-ddd, policyproject-ddd-dev, serverconf-ddd, setdbparms-ddd, application.kdb, application.sth]"
+./release-ace-integration-server.sh -n $namespace -a false -r ddd-dev-ace-bernie -i image-registry.openshift-image-registry.svc:5000/$namespace/ddd-ace-bernie:$IMAGE_TAG -c "[keystore-ddd, policyproject-ddd-dev, serverconf-ddd, setdbparms-ddd, application.kdb, application.sth]"
+./release-ace-integration-server.sh -n $namespace -a false -r ddd-dev-ace-chris -i image-registry.openshift-image-registry.svc:5000/$namespace/ddd-ace-chris:$IMAGE_TAG -c "[keystore-ddd, policyproject-ddd-dev, serverconf-ddd, setdbparms-ddd, application.kdb, application.sth]"
 
 # Test
 ../../DrivewayDentDeletion/Operators/test-api-e2e.sh -n $NAMESPACE -s ddd -d dev
