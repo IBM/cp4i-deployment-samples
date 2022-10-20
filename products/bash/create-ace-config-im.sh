@@ -152,7 +152,7 @@ if [[ -z "$DEBUG" ]]; then
   DEBUG="false"
 fi
 
-DDD_SUFFIX_FOR_ACE_POLICYPROJECT=$([[ $SUFFIX == "ddd" ]] && echo "-${DDD_DEMO_TYPE}" || echo "")
+DDD_DEV_TEST_SUFFIX=$([[ $SUFFIX == "ddd" ]] && echo "-${DDD_DEMO_TYPE}" || echo "")
 
 DB_POD=$(oc get pod -n $POSTGRES_NAMESPACE -l name=postgresql -o jsonpath='{.items[].metadata.name}')
 DB_SVC="postgresql.$POSTGRES_NAMESPACE.svc.cluster.local"
@@ -163,7 +163,7 @@ echo -e "$INFO [INFO] Config directory: $CONFIG_DIR"
 echo -e "$INFO [INFO] Namespace passed: '$NAMESPACE'"
 echo -e "$INFO [INFO] Namespace passed for postgres: '$POSTGRES_NAMESPACE'"
 echo -e "$INFO [INFO] Demo suffix passed for postgres: '$SUFFIX'"
-[[ $SUFFIX == "ddd" ]] && echo -e "$INFO [INFO] Demo type for driveway dent deletion demo: '$DDD_DEMO_TYPE'" && echo -e "$INFO [INFO] Suffix for ace policyproject name for driveway dent deletion demo: '$DDD_SUFFIX_FOR_ACE_POLICYPROJECT'"
+[[ $SUFFIX == "ddd" ]] && echo -e "$INFO [INFO] Demo type for driveway dent deletion demo: '$DDD_DEMO_TYPE'" && echo -e "$INFO [INFO] Suffix for ace policyproject name for driveway dent deletion demo: '$DDD_DEV_TEST_SUFFIX'"
 echo -e "$INFO [INFO] Database username: '$DB_USER'"
 echo -e "$INFO [INFO] Database name: '$DB_NAME'"
 echo -e "$INFO [INFO] Postgres pod name in the '$POSTGRES_NAMESPACE' namespace: '$DB_POD'"
@@ -172,9 +172,9 @@ echo -e "$INFO [INFO] DEBUG mode in creating ace config: '$DEBUG'"
 
 divider
 
-TYPES=("serverconf" "keystore" "keystore" "keystore" "truststore" "policyproject" "setdbparms")
-FILES=("$CONFIG_DIR/$SUFFIX/server.conf.yaml" "$KEYSTORE" "$MQ_CERT/application.kdb" "$MQ_CERT/application.sth" "$MQ_CERT/application.jks" "$CONFIG_DIR/$SUFFIX/DefaultPolicies" "$CONFIG_DIR/$SUFFIX/setdbparms.txt")
-NAMES=("serverconf-$SUFFIX" "keystore-$SUFFIX" "application.kdb" "application.sth" "application.jks" "policyproject-${SUFFIX}${DDD_SUFFIX_FOR_ACE_POLICYPROJECT}" "setdbparms-$SUFFIX")
+TYPES=("serverconf" "keystore" "keystore" "keystore" "policyproject" "setdbparms")
+FILES=("$CONFIG_DIR/$SUFFIX/server.conf.yaml" "$KEYSTORE" "$MQ_CERT/application.kdb" "$MQ_CERT/application.sth" "$CONFIG_DIR/$SUFFIX/DefaultPolicies" "$CONFIG_DIR/$SUFFIX/setdbparms.txt")
+NAMES=("serverconf-$SUFFIX" "keystore-$SUFFIX" "application-kdb-${SUFFIX}${DDD_DEV_TEST_SUFFIX}" "application-sth-${SUFFIX}${DDD_DEV_TEST_SUFFIX}" "policyproject-${SUFFIX}${DDD_DEV_TEST_SUFFIX}" "setdbparms-$SUFFIX")
 
 # Copy all static config files & templates to default working directory (/tmp)
 cp -r $CURRENT_DIR/ace $CURRENT_DIR/mq-im $WORKING_DIR/
