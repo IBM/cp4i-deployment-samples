@@ -14,28 +14,28 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# TODO Different cert for ddd test and for eei
-CLIENT_CERTIFICATE=mq-ddd-qm-dev-client
+# TODO Different cert for ddd dev/test and for eei
+CLIENT_CERTIFICATE=qm-mq-ddd-qm-dev-client
 
 # TODO How to wait until the certificates are ready?
 
 CLIENT_CERTIFICATE_SECRET=$(oc get certificate $CLIENT_CERTIFICATE -o json | jq -r .spec.secretName)
 echo "CLIENT_CERTIFICATE_SECRET=${CLIENT_CERTIFICATE_SECRET}"
 
-mkdir -p createcerts
-rm createcerts/*
+mkdir -p mq-certs
+rm mq-certs/*
 
-oc get secret $CLIENT_CERTIFICATE_SECRET -o json | jq -r '.data["ca.crt"]' | base64 --decode > createcerts/ca.crt
-oc get secret $CLIENT_CERTIFICATE_SECRET -o json | jq -r '.data["tls.crt"]' | base64 --decode > createcerts/tls.crt
-oc get secret $CLIENT_CERTIFICATE_SECRET -o json | jq -r '.data["tls.key"]' | base64 --decode > createcerts/tls.key
+oc get secret $CLIENT_CERTIFICATE_SECRET -o json | jq -r '.data["ca.crt"]' | base64 --decode > mq-certs/ca.crt
+oc get secret $CLIENT_CERTIFICATE_SECRET -o json | jq -r '.data["tls.crt"]' | base64 --decode > mq-certs/tls.crt
+oc get secret $CLIENT_CERTIFICATE_SECRET -o json | jq -r '.data["tls.key"]' | base64 --decode > mq-certs/tls.key
 
-cat createcerts/ca.crt > createcerts/application.pem
-cat createcerts/tls.crt >> createcerts/application.pem
-openssl pkcs12 -export -out createcerts/application.p12 -inkey createcerts/tls.key -in createcerts/application.pem -passout pass:password
+cat mq-certs/ca.crt > mq-certs/application.pem
+cat mq-certs/tls.crt >> mq-certs/application.pem
+openssl pkcs12 -export -out mq-certs/application.p12 -inkey mq-certs/tls.key -in mq-certs/application.pem -passout pass:password
 
-docker run -e LICENSE=accept -v `pwd`/createcerts:/certs --entrypoint bash ibmcom/mq -c 'cd /certs
+docker run -e LICENSE=accept -v `pwd`/mq-certs:/certs --entrypoint bash ibmcom/mq -c 'cd /certs
 runmqckm -keydb -create -db application.kdb -pw password -type cms -stash
 runmqckm -cert -add -db application.kdb -file ca.crt -stashed
 runmqckm -cert -import -file application.p12 -pw password -type pkcs12 -target application.kdb -target_pw password -target_type cms -label "1" -new_label aceclient'
 
-rm createcerts/ca.crt createcerts/tls.crt createcerts/tls.key createcerts/application.pem createcerts/application.p12 createcerts/application.rdb
+rm mq-certs/ca.crt mq-certs/tls.crt mq-certs/tls.key mq-certs/application.pem mq-certs/application.p12 mq-certs/application.rdb

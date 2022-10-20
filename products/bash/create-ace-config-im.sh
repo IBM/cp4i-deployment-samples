@@ -46,7 +46,7 @@ SUFFIX="ddd"
 WORKING_DIR=/tmp
 CONFIG_DIR=$WORKING_DIR/ace
 CONFIG_YAML=$WORKING_DIR/configurations.yaml
-MQ_CERT=$WORKING_DIR/mq-im/createcerts
+MQ_CERT=$WORKING_DIR/mq-im/mq-certs
 API_USER="bruce"
 KEYSTORE_PASS=$(
   LC_ALL=C tr -dc 'A-Za-z0-9' </dev/urandom | head -c 16
@@ -172,9 +172,9 @@ echo -e "$INFO [INFO] DEBUG mode in creating ace config: '$DEBUG'"
 
 divider
 
-TYPES=("serverconf" "keystore" "keystore" "keystore" "policyproject" "setdbparms")
-FILES=("$CONFIG_DIR/$SUFFIX/server.conf.yaml" "$KEYSTORE" "$MQ_CERT/application.kdb" "$MQ_CERT/application.sth" "$CONFIG_DIR/$SUFFIX/DefaultPolicies" "$CONFIG_DIR/$SUFFIX/setdbparms.txt")
-NAMES=("serverconf-$SUFFIX" "keystore-$SUFFIX" "application-kdb-${SUFFIX}${DDD_DEV_TEST_SUFFIX}" "application-sth-${SUFFIX}${DDD_DEV_TEST_SUFFIX}" "policyproject-${SUFFIX}${DDD_DEV_TEST_SUFFIX}" "setdbparms-$SUFFIX")
+TYPES=("serverconf" "keystore" "generic" "policyproject" "setdbparms")
+FILES=("$CONFIG_DIR/$SUFFIX/server.conf.yaml" "$KEYSTORE" "$MQ_CERT" "$CONFIG_DIR/$SUFFIX/DefaultPolicies" "$CONFIG_DIR/$SUFFIX/setdbparms.txt")
+NAMES=("serverconf-$SUFFIX" "keystore-$SUFFIX" "application-${SUFFIX}${DDD_DEV_TEST_SUFFIX}" "policyproject-${SUFFIX}${DDD_DEV_TEST_SUFFIX}" "setdbparms-$SUFFIX")
 
 # Copy all static config files & templates to default working directory (/tmp)
 cp -r $CURRENT_DIR/ace $CURRENT_DIR/mq-im $WORKING_DIR/

@@ -99,39 +99,13 @@ oc new-project ${namespace}
 # NOTE Trigger the above pipeline to create the ACE images
 ```
 
-# Create initial IM with unconfigured QM
-```
-cat <<EOF | oc apply -f -
-apiVersion: integration.ibm.com/v1beta1
-kind: IntegrationManifest
-metadata:
-  name: ${im_name}
-spec:
-  version: 2022.4.1
-  license:
-    accept: true
-    license: Q4-license
-    use: CloudPakForIntegrationNonProduction
-  storage:
-    readWriteOnce:
-      class: ${block_storage}
-    readWriteMany:
-      class: ${file_storage}
-  managedInstances:
-    list:
-    - kind: QueueManager
-      metadata:
-        name: ${qm_name}
-EOF
-```
-
-# Now update the queuemanager to create the queues and setup the certs
+# Create queuemanager with queues and setup the certs
 ```
 cat <<EOF | oc apply -f -
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: ${qm_name}-queues
+  name: qm-${qm_name}-queues
 data:
   myqm.mqsc: |
     DEFINE QLOCAL('AccidentIn') DEFPSIST(YES) BOTHRESH(5) REPLACE
@@ -152,15 +126,15 @@ data:
 apiVersion: cert-manager.io/v1
 kind: Certificate
 metadata:
-  name: ${qm_name}-client
+  name: qm-${qm_name}-client
 spec:
   commonName: ${namespace}.${im_name}
   subject:
     organizationalUnits:
     - my-team
-  secretName: ${qm_name}-client
+  secretName: qm-${qm_name}-client
   issuerRef:
-    name: ${namespace}-${im_name}-${namespace}-${qm_name}-ef09-ibm-inte-c46d # TODO This name from the issuer created by the IM
+    name: qm-${qm_name}-server
     kind: Issuer
     group: cert-manager.io
 ---
@@ -190,11 +164,11 @@ spec:
         queueManager:
           mqsc:
             - configMap:
-                name: ${qm_name}-qm-default
+                name: qm-${qm_name}-default
                 items:
                   - myqm.mqsc
             - configMap:
-                name: ${qm_name}-queues
+                name: qm-${qm_name}-queues
                 items:
                   - myqm.mqsc
 EOF
@@ -220,15 +194,14 @@ DB_NAME="db_$DB_USER"
 EXISTING_PASSWORD=$(oc -n $NAMESPACE get secret postgres-credential-$SUFFIX-$EACH_DEPLOY_TYPE -ojsonpath='{.data.password}' 2>/dev/null)
 DB_PASS=$(echo $EXISTING_PASSWORD | base64 -d)
 ./create-ace-config-im.sh -n ${NAMESPACE} -g ${namespace} -u "$DB_USER" -d "$DB_NAME" -p "$DB_PASS" -s "$SUFFIX" "$WITH_TEST_TYPE"
-<!-- ./create-ace-config-im.sh -n ${NAMESPACE} -g ${namespace} -u "$DB_USER" -p "$DB_PASS" -s "$SUFFIX" "$WITH_TEST_TYPE" -c "[keystore-ddd, policyproject-ddd-dev, serverconf-ddd, setdbparms-ddd, application.kdb, application.sth]" -->
 
 # Create the ACE integration servers
 IMAGE_TAG=$(oc get is -n $namespace ddd-ace-api -o json | jq -r .status.tags[0].tag)
 
-./release-ace-integration-server.sh -n $namespace -a false -r ddd-dev-ace-api -i image-registry.openshift-image-registry.svc:5000/$namespace/ddd-ace-api:$IMAGE_TAG -c "[keystore-ddd, policyproject-ddd-dev, serverconf-ddd, setdbparms-ddd, application.kdb, application.sth]"
-./release-ace-integration-server.sh -n $namespace -a false -r ddd-dev-ace-acme -i image-registry.openshift-image-registry.svc:5000/$namespace/ddd-ace-acme:$IMAGE_TAG -c "[keystore-ddd, policyproject-ddd-dev, serverconf-ddd, setdbparms-ddd, application.kdb, application.sth]"
-./release-ace-integration-server.sh -n $namespace -a false -r ddd-dev-ace-bernie -i image-registry.openshift-image-registry.svc:5000/$namespace/ddd-ace-bernie:$IMAGE_TAG -c "[keystore-ddd, policyproject-ddd-dev, serverconf-ddd, setdbparms-ddd, application.kdb, application.sth]"
-./release-ace-integration-server.sh -n $namespace -a false -r ddd-dev-ace-chris -i image-registry.openshift-image-registry.svc:5000/$namespace/ddd-ace-chris:$IMAGE_TAG -c "[keystore-ddd, policyproject-ddd-dev, serverconf-ddd, setdbparms-ddd, application.kdb, application.sth]"
+./release-ace-integration-server.sh -n $namespace -a false -r ddd-dev-ace-api -i image-registry.openshift-image-registry.svc:5000/$namespace/ddd-ace-api:$IMAGE_TAG -c "[keystore-ddd, policyproject-ddd-dev, serverconf-ddd, setdbparms-ddd, application-ddd-dev]"
+./release-ace-integration-server.sh -n $namespace -a false -r ddd-dev-ace-acme -i image-registry.openshift-image-registry.svc:5000/$namespace/ddd-ace-acme:$IMAGE_TAG -c "[keystore-ddd, policyproject-ddd-dev, serverconf-ddd, setdbparms-ddd, application-ddd-dev]"
+./release-ace-integration-server.sh -n $namespace -a false -r ddd-dev-ace-bernie -i image-registry.openshift-image-registry.svc:5000/$namespace/ddd-ace-bernie:$IMAGE_TAG -c "[keystore-ddd, policyproject-ddd-dev, serverconf-ddd, setdbparms-ddd, application-ddd-dev]"
+./release-ace-integration-server.sh -n $namespace -a false -r ddd-dev-ace-chris -i image-registry.openshift-image-registry.svc:5000/$namespace/ddd-ace-chris:$IMAGE_TAG -c "[keystore-ddd, policyproject-ddd-dev, serverconf-ddd, setdbparms-ddd, application-ddd-dev]"
 
 # Test
 ../../DrivewayDentDeletion/Operators/test-api-e2e.sh -n $NAMESPACE -s ddd -d dev
@@ -238,14 +211,4 @@ oc delete integrationserver ddd-dev-ace-acme
 oc delete integrationserver ddd-dev-ace-api
 oc delete integrationserver ddd-dev-ace-bernie
 oc delete integrationserver ddd-dev-ace-chris
-oc delete configuration application.jks
-oc delete configuration application.kdb
-oc delete configuration application.sth
-oc delete configuration ddd-dev-ace-acme-is-adminssl
-oc delete configuration ddd-dev-ace-api-is-adminssl
-oc delete configuration ddd-dev-ace-bernie-is-adminssl
-oc delete configuration ddd-dev-ace-chris-is-adminssl
-oc delete configuration keystore-ddd
-oc delete configuration policyproject-ddd-dev
-oc delete configuration serverconf-ddd
-oc delete configuration setdbparms-ddd
+oc delete configuration --all
