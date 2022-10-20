@@ -231,3 +231,20 @@ IMAGE_TAG=$(oc get is -n $namespace ddd-ace-api -o json | jq -r .status.tags[0].
 
 # Test
 ../../DrivewayDentDeletion/Operators/test-api-e2e.sh -n $NAMESPACE -s ddd -d dev
+
+# Tidy up
+oc delete integrationserver ddd-dev-ace-acme
+oc delete integrationserver ddd-dev-ace-api
+oc delete integrationserver ddd-dev-ace-bernie
+oc delete integrationserver ddd-dev-ace-chris
+oc delete configuration application.jks
+oc delete configuration application.kdb
+oc delete configuration application.sth
+oc delete configuration ddd-dev-ace-acme-is-adminssl
+oc delete configuration ddd-dev-ace-api-is-adminssl
+oc delete configuration ddd-dev-ace-bernie-is-adminssl
+oc delete configuration ddd-dev-ace-chris-is-adminssl
+oc delete configuration keystore-ddd
+oc delete configuration policyproject-ddd-dev
+oc delete configuration serverconf-ddd
+oc delete configuration setdbparms-ddd
