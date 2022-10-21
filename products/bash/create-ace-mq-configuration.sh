@@ -1,4 +1,4 @@
-#!/bin/bash -e
+#!/bin/bash
 #******************************************************************************
 # Licensed Materials - Property of IBM
 # (c) Copyright IBM Corporation 2019. All Rights Reserved.
