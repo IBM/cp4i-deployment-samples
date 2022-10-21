@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -e
 #******************************************************************************
 # Licensed Materials - Property of IBM
 # (c) Copyright IBM Corporation 2019. All Rights Reserved.
@@ -79,9 +79,6 @@ cd $tmp
 
 zip application.zip mq-certs/*
 
-local type=$1
-local name=$2
-local file=$3
 if [[ "$OSTYPE" == "linux-gnu"* ]]; then
   echo -e "$INFO [INFO] Creating ace config - base64 command for linux"
   CONTENTS="$(base64 -w0 application.zip)"
