@@ -8,6 +8,8 @@
 # Contract with IBM Corp.
 #******************************************************************************
 
+set -e
+
 function divider() {
   echo -e "\n-------------------------------------------------------------------------------------------------------------------\n"
 }
@@ -44,15 +46,15 @@ done
 
 
 # Wait for the certificate to be ready, so the secret is ready to be used
-oc wait --for=condition=ready certificate ${CLIENT_CERTIFICATE} --timeout=60s
+oc wait --for=condition=ready certificate ${CERTIFICATE_NAME} --timeout=60s
 
 # Create a move to a temporary dir
 tmp=$(mktemp -d)
 mkdir -p ${tmp}/mq-certs
 cd ${tmp}/mq-certs
 
-echo "Get the files out of the secret"
-CLIENT_CERTIFICATE_SECRET=$(oc get certificate $CLIENT_CERTIFICATE -o json | jq -r .spec.secretName)
+echo "Get the files out of the ${CERTIFICATE_NAME} certificate's secret"
+CLIENT_CERTIFICATE_SECRET=$(oc get certificate $CERTIFICATE_NAME -o json | jq -r .spec.secretName)
 echo "CLIENT_CERTIFICATE_SECRET=${CLIENT_CERTIFICATE_SECRET}"
 oc get secret $CLIENT_CERTIFICATE_SECRET -o json | jq -r '.data["ca.crt"]' | base64 --decode > ca.crt
 oc get secret $CLIENT_CERTIFICATE_SECRET -o json | jq -r '.data["tls.crt"]' | base64 --decode > tls.crt

@@ -187,13 +187,13 @@ EOF
 
   # TODO The following includes MQ certificates, we need a new way of setting this up
 
-  # echo -e "$INFO [INFO] Creating ace postgres configuration and policy in the namespace '$NAMESPACE' with the user '$DB_USER', database name '$DB_NAME' and suffix '$SUFFIX'" && divider
-  # if ! $CURRENT_DIR/../../products/bash/create-ace-config.sh -n "$NAMESPACE" -g "$POSTGRES_NAMESPACE" -u "$DB_USER" -d "$DB_NAME" -p "$DB_PASS" -s "$SUFFIX" "$WITH_TEST_TYPE"; then
-  #   echo -e "\n$CROSS [ERROR] Failed to configure ace in the '$NAMESPACE' namespace with the user '$DB_USER', database name '$DB_NAME' and suffix '$SUFFIX'"
-  #   exit 1
-  # else
-  #   echo -e "$TICK [SUCCESS] Successfully configured ace in the '$NAMESPACE' namespace with the user '$DB_USER', database name '$DB_NAME' and suffix '$SUFFIX'"
-  # fi # create-ace-config.sh
+  echo -e "$INFO [INFO] Creating ace postgres configuration and policy in the namespace '$NAMESPACE' with the user '$DB_USER', database name '$DB_NAME' and suffix '$SUFFIX'" && divider
+  if ! $CURRENT_DIR/../../products/bash/create-ace-config-im.sh -n "$NAMESPACE" -g "$POSTGRES_NAMESPACE" -u "$DB_USER" -d "$DB_NAME" -p "$DB_PASS" -s "$SUFFIX" "$WITH_TEST_TYPE"; then
+    echo -e "\n$CROSS [ERROR] Failed to configure ace in the '$NAMESPACE' namespace with the user '$DB_USER', database name '$DB_NAME' and suffix '$SUFFIX'"
+    exit 1
+  else
+    echo -e "$TICK [SUCCESS] Successfully configured ace in the '$NAMESPACE' namespace with the user '$DB_USER', database name '$DB_NAME' and suffix '$SUFFIX'"
+  fi # create-ace-config-im.sh
 done
 
 divider
