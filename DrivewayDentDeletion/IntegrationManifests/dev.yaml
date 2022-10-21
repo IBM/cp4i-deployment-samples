@@ -29,150 +29,229 @@ spec:
           workspace: git-source
 
     # TODO Maybe this could be done as a pre-req rather than every pipeline run?
-    - name: build-command-image
+    # - name: build-command-image
+    #   retries: 2
+    #   runAfter:
+    #     - clone-git-source
+    #   taskRef:
+    #     name: build-task-no-pvc
+    #   params:
+    #     - name: imageTag
+    #       value: "latest"
+    #     - name: imageName
+    #       value: "run-command"
+    #     - name: dockerfile
+    #       value: "CommonPipelineResources/Dockerfile"
+    #     - name: contextPath
+    #       value: "CommonPipelineResources"
+    #   workspaces:
+    #     - name: git-source
+    #       workspace: git-source
+
+    - name: deploy-im
       retries: 2
       runAfter:
         - clone-git-source
       taskRef:
-        name: build-task-no-pvc
-      params:
-        - name: imageTag
-          value: "latest"
-        - name: imageName
-          value: "run-command"
-        - name: dockerfile
-          value: "CommonPipelineResources/Dockerfile"
-        - name: contextPath
-          value: "CommonPipelineResources"
+        name: run-command
       workspaces:
         - name: git-source
           workspace: git-source
+      params:
+        - name: command
+          value: |
+            namespace=cp4i
+            block_storage="cp4i-block-performance"
+            file_storage="cp4i-file-performance-gid"
+            im_name=ddd-dev
+            qm_name=mq-ddd-qm-dev
 
-    # TODO Should no longer need this
-    # # MQ build in dev namespace
-    # - name: build-mq
+            cat <<EOF | oc apply -f -
+            apiVersion: v1
+            kind: ConfigMap
+            metadata:
+              name: qm-${qm_name}-queues
+            data:
+              myqm.mqsc: |
+                DEFINE QLOCAL('AccidentIn') DEFPSIST(YES) BOTHRESH(5) REPLACE
+                DEFINE QLOCAL('AccidentOut') DEFPSIST(YES) BOTHRESH(5) REPLACE
+                DEFINE QLOCAL('BumperIn') DEFPSIST(YES) BOTHRESH(5) REPLACE
+                DEFINE QLOCAL('BumperOut') DEFPSIST(YES) BOTHRESH(5) REPLACE
+                DEFINE QLOCAL('CrumpledIn') DEFPSIST(YES) BOTHRESH(5) REPLACE
+                DEFINE QLOCAL('CrumpledOut') DEFPSIST(YES) BOTHRESH(5) REPLACE
+                SET AUTHREC PROFILE('AccidentIn') PRINCIPAL('app1') OBJTYPE(QUEUE) AUTHADD(BROWSE,GET,INQ,PUT)
+                SET AUTHREC PROFILE('AccidentOut') PRINCIPAL('app1') OBJTYPE(QUEUE) AUTHADD(BROWSE,GET,INQ,PUT)
+                SET AUTHREC PROFILE('BumperIn') PRINCIPAL('app1') OBJTYPE(QUEUE) AUTHADD(BROWSE,GET,INQ,PUT)
+                SET AUTHREC PROFILE('BumperOut') PRINCIPAL('app1') OBJTYPE(QUEUE) AUTHADD(BROWSE,GET,INQ,PUT)
+                SET AUTHREC PROFILE('CrumpledIn') PRINCIPAL('app1') OBJTYPE(QUEUE) AUTHADD(BROWSE,GET,INQ,PUT)
+                SET AUTHREC PROFILE('CrumpledOut') PRINCIPAL('app1') OBJTYPE(QUEUE) AUTHADD(BROWSE,GET,INQ,PUT)
+                REFRESH SECURITY
+                ALTER QMGR DEADQ(SYSTEM.DEAD.LETTER.QUEUE)
+            ---
+            apiVersion: cert-manager.io/v1
+            kind: Certificate
+            metadata:
+              name: qm-${qm_name}-client
+            spec:
+              commonName: ${namespace}.${im_name}
+              subject:
+                organizationalUnits:
+                - my-team
+              secretName: qm-${qm_name}-client
+              issuerRef:
+                name: qm-${qm_name}-server
+                kind: Issuer
+                group: cert-manager.io
+            ---
+            apiVersion: integration.ibm.com/v1beta1
+            kind: IntegrationManifest
+            metadata:
+              name: ${im_name}
+            spec:
+              version: 2022.4.1
+              license:
+                accept: true
+                license: Q4-license
+                use: CloudPakForIntegrationNonProduction
+              storage:
+                readWriteOnce:
+                  class: ${block_storage}
+                readWriteMany:
+                  class: ${file_storage}
+              managedInstances:
+                list:
+                - kind: QueueManager
+                  metadata:
+                    name: ${qm_name}
+                  spec:
+                    web:
+                      enabled: true
+                    queueManager:
+                      mqsc:
+                        - configMap:
+                            name: qm-${qm_name}-default
+                            items:
+                              - myqm.mqsc
+                        - configMap:
+                            name: qm-${qm_name}-queues
+                            items:
+                              - myqm.mqsc
+            EOF
+
+    - name: create-is-config
+      retries: 2
+      runAfter:
+        - deploy-im
+      taskRef:
+        name: run-command
+      workspaces:
+        - name: git-source
+          workspace: git-source
+      params:
+        - name: command
+          value: |
+            /workspace/git-source/products/bash/create-ace-mq-configuration.sh -n cp4i -c qm-mq-ddd-qm-dev-client -o application-ddd-dev
+
+    - name: wait-for-mq
+      retries: 2
+      runAfter:
+        - deploy-im
+      taskRef:
+        name: run-command
+      workspaces:
+        - name: git-source
+          workspace: git-source
+      params:
+        - name: command
+          value: |
+            namespace=cp4i
+
+
+    #
+    # # build all ace in dev namespace
+    # - name: build-ace-int-server-ace-api
     #   retries: 2
     #   runAfter:
-    #     - fixup-dockerfiles
+    #     - clone-git-source
     #   taskRef:
     #     name: build-task
     #   params:
-    #     - name: imageName
-    #       value: "mq-ddd"
     #     - name: imageTag
-    #       value: "latest"
+    #       value: "$(params.imageTag)"
+    #     - name: imageName
+    #       value: "ddd-ace-api"
     #     - name: dockerfile
-    #       value: "MQ.Dockerfile"
+    #       value: "ACE-API.Dockerfile"
     #     - name: contextPath
-    #       value: ""
+    #       value: "Bar_files/ace-api"
     #     - name: pvc
-    #       value: "buildah-mq"
+    #       value: "buildah-ace-api"
     #   workspaces:
     #     - name: git-source
     #       workspace: git-source
-
-    # TODO Deploy using IM
-    # # MQ deploy in dev namesapce
-    # - name: deploy-wait-mq
+    #
+    # - name: build-ace-int-server-ace-acme
     #   retries: 2
     #   runAfter:
-    #     - build-mq
+    #     - clone-git-source
     #   taskRef:
-    #     name: run-script
+    #     name: build-task
     #   params:
-    #     - name: script
-    #       value: "products/bash/release-mq.sh"
-    #     - name: params
-    #       # For Dev deploy with tracing enabled and no HA
-    #       value: " -n {{NAMESPACE}} -a false -b {{DEFAULT_BLOCK_STORAGE}} -r mq-ddd-qm-dev -i image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}/mq-ddd:latest {{TRACING}}"
+    #     - name: imageTag
+    #       value: "$(params.imageTag)"
+    #     - name: imageName
+    #       value: "ddd-ace-acme"
+    #     - name: dockerfile
+    #       value: "ACE-Acme.Dockerfile"
+    #     - name: contextPath
+    #       value: "Bar_files/ace-acme"
+    #     - name: pvc
+    #       value: "buildah-ace-acme"
     #   workspaces:
     #     - name: git-source
     #       workspace: git-source
-
-    # build all ace in dev namespace
-    - name: build-ace-int-server-ace-api
-      retries: 2
-      runAfter:
-        - clone-git-source
-      taskRef:
-        name: build-task
-      params:
-        - name: imageTag
-          value: "$(params.imageTag)"
-        - name: imageName
-          value: "ddd-ace-api"
-        - name: dockerfile
-          value: "ACE-API.Dockerfile"
-        - name: contextPath
-          value: "Bar_files/ace-api"
-        - name: pvc
-          value: "buildah-ace-api"
-      workspaces:
-        - name: git-source
-          workspace: git-source
-
-    - name: build-ace-int-server-ace-acme
-      retries: 2
-      runAfter:
-        - clone-git-source
-      taskRef:
-        name: build-task
-      params:
-        - name: imageTag
-          value: "$(params.imageTag)"
-        - name: imageName
-          value: "ddd-ace-acme"
-        - name: dockerfile
-          value: "ACE-Acme.Dockerfile"
-        - name: contextPath
-          value: "Bar_files/ace-acme"
-        - name: pvc
-          value: "buildah-ace-acme"
-      workspaces:
-        - name: git-source
-          workspace: git-source
-
-    - name: build-ace-int-server-ace-bernie
-      retries: 2
-      runAfter:
-        - clone-git-source
-      taskRef:
-        name: build-task
-      params:
-        - name: imageTag
-          value: "$(params.imageTag)"
-        - name: imageName
-          value: "ddd-ace-bernie"
-        - name: dockerfile
-          value: "ACE-Bernie.Dockerfile"
-        - name: contextPath
-          value: "Bar_files/ace-bernie"
-        - name: pvc
-          value: "buildah-ace-bernie"
-      workspaces:
-        - name: git-source
-          workspace: git-source
-
-    - name: build-ace-int-server-ace-chris
-      retries: 2
-      runAfter:
-        - clone-git-source
-      taskRef:
-        name: build-task
-      params:
-        - name: imageTag
-          value: "$(params.imageTag)"
-        - name: imageName
-          value: "ddd-ace-chris"
-        - name: dockerfile
-          value: "ACE-Chris.Dockerfile"
-        - name: contextPath
-          value: "Bar_files/ace-chris"
-        - name: pvc
-          value: "buildah-ace-chris"
-      workspaces:
-        - name: git-source
-          workspace: git-source
+    #
+    # - name: build-ace-int-server-ace-bernie
+    #   retries: 2
+    #   runAfter:
+    #     - clone-git-source
+    #   taskRef:
+    #     name: build-task
+    #   params:
+    #     - name: imageTag
+    #       value: "$(params.imageTag)"
+    #     - name: imageName
+    #       value: "ddd-ace-bernie"
+    #     - name: dockerfile
+    #       value: "ACE-Bernie.Dockerfile"
+    #     - name: contextPath
+    #       value: "Bar_files/ace-bernie"
+    #     - name: pvc
+    #       value: "buildah-ace-bernie"
+    #   workspaces:
+    #     - name: git-source
+    #       workspace: git-source
+    #
+    # - name: build-ace-int-server-ace-chris
+    #   retries: 2
+    #   runAfter:
+    #     - clone-git-source
+    #   taskRef:
+    #     name: build-task
+    #   params:
+    #     - name: imageTag
+    #       value: "$(params.imageTag)"
+    #     - name: imageName
+    #       value: "ddd-ace-chris"
+    #     - name: dockerfile
+    #       value: "ACE-Chris.Dockerfile"
+    #     - name: contextPath
+    #       value: "Bar_files/ace-chris"
+    #     - name: pvc
+    #       value: "buildah-ace-chris"
+    #   workspaces:
+    #     - name: git-source
+    #       workspace: git-source
 
     # TODO Avoid deploying anything via the pipeline just yet, until we've got it working outside the pipeline
 

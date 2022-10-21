@@ -30,11 +30,11 @@ spec:
         df -h /var/lib/containers
         buildah --storage-driver vfs bud \
           -f /workspace/git-source/DrivewayDentDeletion/Operators/Dockerfiles/$(params.dockerfile) \
-          -t image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}/$(params.imageName):$(params.imageTag) \
+          -t image-registry.openshift-image-registry.svc:5000/$(context.taskRun.namespace)/$(params.imageName):$(params.imageTag) \
           /workspace/git-source/DrivewayDentDeletion/$(params.contextPath)
         buildah --storage-driver vfs push \
           --tls-verify=false \
-          image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}/$(params.imageName):$(params.imageTag)
+          image-registry.openshift-image-registry.svc:5000/$(context.taskRun.namespace)/$(params.imageName):$(params.imageTag)
         df -h /var/lib/containers
       volumeMounts:
         - mountPath: /var/lib/containers
@@ -80,11 +80,11 @@ spec:
       script: |
         buildah --storage-driver vfs bud \
           -f /workspace/git-source/$(params.dockerfile) \
-          -t image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}/$(params.imageName):$(params.imageTag) \
+          -t image-registry.openshift-image-registry.svc:5000/$(context.taskRun.namespace)/$(params.imageName):$(params.imageTag) \
           /workspace/git-source/$(params.contextPath)
         buildah --storage-driver vfs push \
           --tls-verify=false \
-          image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}/$(params.imageName):$(params.imageTag)
+          image-registry.openshift-image-registry.svc:5000/$(context.taskRun.namespace)/$(params.imageName):$(params.imageTag)
 
 ---
 apiVersion: tekton.dev/v1beta1
