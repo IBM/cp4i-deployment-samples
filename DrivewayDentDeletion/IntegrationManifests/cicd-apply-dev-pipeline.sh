@@ -148,7 +148,7 @@ oc project $NAMESPACE
 
 divider
 
-echo -e "$INFO [INFO] Apply pvc for buildah tasks for the dev pipeline of the driveway dent deletion demo"
+echo -e "$INFO [INFO] Create PVCs"
 YAML=$(cat $CURRENT_DIR/pvcs.yaml |
   sed "s#{{DEFAULT_FILE_STORAGE}}#$DEFAULT_FILE_STORAGE#g;" |
   sed "s#{{DEFAULT_BLOCK_STORAGE}}#$DEFAULT_BLOCK_STORAGE#g;")
@@ -156,8 +156,8 @@ OCApplyYAML "$NAMESPACE" "$YAML"
 
 divider
 
-echo -e "$INFO [INFO] Create tekton tasks for the dev pipeline of the driveway dent deletion demo"
-YAML=$(cat $CURRENT_DIR/tasks.yaml)
+echo -e "$INFO [INFO] Create common tasks"
+YAML=$(cat $CURRENT_DIR/../../CommonPipelineResources/cicd-tasks.yaml)
 OCApplyYAML "$NAMESPACE" "$YAML"
 
 divider
