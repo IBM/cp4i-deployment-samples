@@ -45,10 +45,10 @@ done
 
 
 
-# Wait for the certificate to be ready, so the secret is ready to be used
-oc wait --for=condition=ready certificate ${CERTIFICATE_NAME} --timeout=60s
+echo "Wait for the ${CERTIFICATE_NAME} certificate to be ready, so the secret is ready to be used"
+oc wait --for=condition=ready -n ${NAMESPACE} certificate ${CERTIFICATE_NAME} --timeout=60s
 
-# Create a move to a temporary dir
+echo "Create and move to a temporary dir"
 tmp=$(mktemp -d)
 mkdir -p ${tmp}/mq-certs
 cd ${tmp}/mq-certs
@@ -56,16 +56,16 @@ cd ${tmp}/mq-certs
 echo "Get the files out of the ${CERTIFICATE_NAME} certificate's secret"
 CLIENT_CERTIFICATE_SECRET=$(oc get certificate $CERTIFICATE_NAME -o json | jq -r .spec.secretName)
 echo "CLIENT_CERTIFICATE_SECRET=${CLIENT_CERTIFICATE_SECRET}"
-oc get secret $CLIENT_CERTIFICATE_SECRET -o json | jq -r '.data["ca.crt"]' | base64 --decode > ca.crt
-oc get secret $CLIENT_CERTIFICATE_SECRET -o json | jq -r '.data["tls.crt"]' | base64 --decode > tls.crt
-oc get secret $CLIENT_CERTIFICATE_SECRET -o json | jq -r '.data["tls.key"]' | base64 --decode > tls.key
+oc get -n ${NAMESPACE} secret $CLIENT_CERTIFICATE_SECRET -o json | jq -r '.data["ca.crt"]' | base64 --decode > ca.crt
+oc get -n ${NAMESPACE} secret $CLIENT_CERTIFICATE_SECRET -o json | jq -r '.data["tls.crt"]' | base64 --decode > tls.crt
+oc get -n ${NAMESPACE} secret $CLIENT_CERTIFICATE_SECRET -o json | jq -r '.data["tls.key"]' | base64 --decode > tls.key
 
 echo "Create a pem with the ca and cert"
 cat ca.crt > application.pem
 cat tls.crt >> application.pem
 
 echo "Export the pem to a p12"
-openssl pkcs12 -export -out mq-certs/application.p12 -inkey mq-certs/tls.key -in mq-certs/application.pem -passout pass:password
+openssl pkcs12 -export -out application.p12 -inkey tls.key -in application.pem -passout pass:password
 
 echo "Create the .kdb with the ca.crt and labelled application.p12"
 runmqckm -keydb -create -db application.kdb -pw password -type cms -stash
