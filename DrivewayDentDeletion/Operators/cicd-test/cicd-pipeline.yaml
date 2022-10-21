@@ -58,7 +58,7 @@ spec:
         - name: dockerfile
           value: "MQ.Dockerfile"
         - name: contextPath
-          value: ""
+          value: "DrivewayDentDeletion"
         - name: pvc
           value: "buildah-mq"
       workspaces:
@@ -97,7 +97,7 @@ spec:
         - name: dockerfile
           value: "ACE-API.Dockerfile"
         - name: contextPath
-          value: "Bar_files/ace-api"
+          value: "DrivewayDentDeletion/Bar_files/ace-api"
         - name: pvc
           value: "buildah-ace-api"
       workspaces:
@@ -118,7 +118,7 @@ spec:
         - name: dockerfile
           value: "ACE-Acme.Dockerfile"
         - name: contextPath
-          value: "Bar_files/ace-acme"
+          value: "DrivewayDentDeletion/Bar_files/ace-acme"
         - name: pvc
           value: "buildah-ace-acme"
       workspaces:
@@ -139,7 +139,7 @@ spec:
         - name: dockerfile
           value: "ACE-Bernie.Dockerfile"
         - name: contextPath
-          value: "Bar_files/ace-bernie"
+          value: "DrivewayDentDeletion/Bar_files/ace-bernie"
         - name: pvc
           value: "buildah-ace-bernie"
       workspaces:
@@ -160,7 +160,7 @@ spec:
         - name: dockerfile
           value: "ACE-Chris.Dockerfile"
         - name: contextPath
-          value: "Bar_files/ace-chris"
+          value: "DrivewayDentDeletion/Bar_files/ace-chris"
         - name: pvc
           value: "buildah-ace-chris"
       workspaces:

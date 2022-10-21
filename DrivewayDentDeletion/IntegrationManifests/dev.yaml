@@ -28,7 +28,6 @@ spec:
         - name: output
           workspace: git-source
 
-    # TODO Maybe this could be done as a pre-req rather than every pipeline run?
     - name: build-command-image
       retries: 2
       runAfter:
@@ -60,7 +59,7 @@ spec:
       params:
         - name: command
           value: |
-            namespace=cp4i
+            namespace={{NAMESPACE}}
             block_storage="cp4i-block-performance"
             file_storage="cp4i-file-performance-gid"
             im_name=ddd-dev
@@ -152,7 +151,7 @@ spec:
           value: |
             /workspace/git-source/products/bash/create-ace-mq-configuration.sh -n cp4i -c qm-mq-ddd-qm-dev-client -o application-ddd-dev
 
-    - name: wait-for-mq
+    - name: wait-for-im
       retries: 2
       runAfter:
         - deploy-im
@@ -164,181 +163,182 @@ spec:
       params:
         - name: command
           value: |
-            namespace=cp4i
+            namespace={{NAMESPACE}}
+            oc wait --for=condition=ready -n ${namespace} im ddd-dev --timeout 10m
 
+    # build all ace in dev namespace
+    - name: build-ace-int-server-ace-api
+      retries: 2
+      runAfter:
+        - clone-git-source
+      taskRef:
+        name: build-task
+      params:
+        - name: imageTag
+          value: "$(params.imageTag)"
+        - name: imageName
+          value: "ddd-ace-api"
+        - name: dockerfile
+          value: "DrivewayDentDeletion/IntegrationManifests/Dockerfiles/ACE-API.Dockerfile"
+        - name: contextPath
+          value: "DrivewayDentDeletion/Bar_files/ace-api"
+        - name: pvc
+          value: "buildah-ace-api"
+      workspaces:
+        - name: git-source
+          workspace: git-source
 
-    #
-    # # build all ace in dev namespace
-    # - name: build-ace-int-server-ace-api
-    #   retries: 2
-    #   runAfter:
-    #     - clone-git-source
-    #   taskRef:
-    #     name: build-task
-    #   params:
-    #     - name: imageTag
-    #       value: "$(params.imageTag)"
-    #     - name: imageName
-    #       value: "ddd-ace-api"
-    #     - name: dockerfile
-    #       value: "ACE-API.Dockerfile"
-    #     - name: contextPath
-    #       value: "Bar_files/ace-api"
-    #     - name: pvc
-    #       value: "buildah-ace-api"
-    #   workspaces:
-    #     - name: git-source
-    #       workspace: git-source
-    #
-    # - name: build-ace-int-server-ace-acme
-    #   retries: 2
-    #   runAfter:
-    #     - clone-git-source
-    #   taskRef:
-    #     name: build-task
-    #   params:
-    #     - name: imageTag
-    #       value: "$(params.imageTag)"
-    #     - name: imageName
-    #       value: "ddd-ace-acme"
-    #     - name: dockerfile
-    #       value: "ACE-Acme.Dockerfile"
-    #     - name: contextPath
-    #       value: "Bar_files/ace-acme"
-    #     - name: pvc
-    #       value: "buildah-ace-acme"
-    #   workspaces:
-    #     - name: git-source
-    #       workspace: git-source
-    #
-    # - name: build-ace-int-server-ace-bernie
-    #   retries: 2
-    #   runAfter:
-    #     - clone-git-source
-    #   taskRef:
-    #     name: build-task
-    #   params:
-    #     - name: imageTag
-    #       value: "$(params.imageTag)"
-    #     - name: imageName
-    #       value: "ddd-ace-bernie"
-    #     - name: dockerfile
-    #       value: "ACE-Bernie.Dockerfile"
-    #     - name: contextPath
-    #       value: "Bar_files/ace-bernie"
-    #     - name: pvc
-    #       value: "buildah-ace-bernie"
-    #   workspaces:
-    #     - name: git-source
-    #       workspace: git-source
-    #
-    # - name: build-ace-int-server-ace-chris
-    #   retries: 2
-    #   runAfter:
-    #     - clone-git-source
-    #   taskRef:
-    #     name: build-task
-    #   params:
-    #     - name: imageTag
-    #       value: "$(params.imageTag)"
-    #     - name: imageName
-    #       value: "ddd-ace-chris"
-    #     - name: dockerfile
-    #       value: "ACE-Chris.Dockerfile"
-    #     - name: contextPath
-    #       value: "Bar_files/ace-chris"
-    #     - name: pvc
-    #       value: "buildah-ace-chris"
-    #   workspaces:
-    #     - name: git-source
-    #       workspace: git-source
+    - name: build-ace-int-server-ace-acme
+      retries: 2
+      runAfter:
+        - clone-git-source
+      taskRef:
+        name: build-task
+      params:
+        - name: imageTag
+          value: "$(params.imageTag)"
+        - name: imageName
+          value: "ddd-ace-acme"
+        - name: dockerfile
+          value: "DrivewayDentDeletion/IntegrationManifests/Dockerfiles/ACE-Acme.Dockerfile"
+        - name: contextPath
+          value: "DrivewayDentDeletion/Bar_files/ace-acme"
+        - name: pvc
+          value: "buildah-ace-acme"
+      workspaces:
+        - name: git-source
+          workspace: git-source
 
-    # TODO Avoid deploying anything via the pipeline just yet, until we've got it working outside the pipeline
+    - name: build-ace-int-server-ace-bernie
+      retries: 2
+      runAfter:
+        - clone-git-source
+      taskRef:
+        name: build-task
+      params:
+        - name: imageTag
+          value: "$(params.imageTag)"
+        - name: imageName
+          value: "ddd-ace-bernie"
+        - name: dockerfile
+          value: "DrivewayDentDeletion/IntegrationManifests/Dockerfiles/ACE-Bernie.Dockerfile"
+        - name: contextPath
+          value: "DrivewayDentDeletion/Bar_files/ace-bernie"
+        - name: pvc
+          value: "buildah-ace-bernie"
+      workspaces:
+        - name: git-source
+          workspace: git-source
 
-    # # deploy all ace in dev namespace
-    # - name: deploy-wait-ace-api
-    #   retries: 2
-    #   runAfter:
-    #     - build-ace-int-server-ace-api
-    #   taskRef:
-    #     name: run-script
-    #   params:
-    #     - name: script
-    #       value: "products/bash/release-ace-integration-server.sh"
-    #     - name: params
-    #       # For Dev deploy with tracing enabled and no HA
-    #       value: "-n {{NAMESPACE}} -a false -r ddd-dev-ace-api -i image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}/ddd-ace-api:$(params.imageTag) {{TRACING}} -d policyproject-ddd-dev"
-    #   workspaces:
-    #     - name: git-source
-    #       workspace: git-source
-    #
-    # - name: deploy-wait-ace-bernie
-    #   retries: 2
-    #   runAfter:
-    #     - build-ace-int-server-ace-bernie
-    #   taskRef:
-    #     name: run-script
-    #   params:
-    #     - name: script
-    #       value: "products/bash/release-ace-integration-server.sh"
-    #     - name: params
-    #       # For Dev deploy with tracing enabled and no HA
-    #       value: "-n {{NAMESPACE}} -a false -r ddd-dev-ace-bernie -i image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}/ddd-ace-bernie:$(params.imageTag) {{TRACING}} -d policyproject-ddd-dev"
-    #   workspaces:
-    #     - name: git-source
-    #       workspace: git-source
-    #
-    # - name: deploy-wait-ace-acme
-    #   retries: 2
-    #   runAfter:
-    #     - build-ace-int-server-ace-acme
-    #   taskRef:
-    #     name: run-script
-    #   params:
-    #     - name: script
-    #       value: "products/bash/release-ace-integration-server.sh"
-    #     - name: params
-    #       # For Dev deploy with tracing enabled and no HA
-    #       value: "-n {{NAMESPACE}} -a false -r ddd-dev-ace-acme -i image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}/ddd-ace-acme:$(params.imageTag) {{TRACING}} -d policyproject-ddd-dev"
-    #   workspaces:
-    #     - name: git-source
-    #       workspace: git-source
-    #
-    # - name: deploy-wait-ace-chris
-    #   retries: 2
-    #   runAfter:
-    #     - build-ace-int-server-ace-chris
-    #   taskRef:
-    #     name: run-script
-    #   params:
-    #     - name: script
-    #       value: "products/bash/release-ace-integration-server.sh"
-    #     - name: params
-    #       # For Dev deploy with tracing enabled and no HA
-    #       value: "-n {{NAMESPACE}} -a false -r ddd-dev-ace-chris -i image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}/ddd-ace-chris:$(params.imageTag) {{TRACING}} -d policyproject-ddd-dev"
-    #   workspaces:
-    #     - name: git-source
-    #       workspace: git-source
-    #
-    # # test end-to-end API in dev namespace
-    # - name: test-e2e-api-in-dev-namespace
-    #   retries: 2
-    #   runAfter:
-    #     - deploy-wait-ace-chris
-    #     - deploy-wait-mq
-    #     - deploy-wait-ace-api
-    #     - deploy-wait-ace-acme
-    #     - deploy-wait-ace-bernie
-    #   taskRef:
-    #     name: api-test-e2e
-    #   params:
-    #     - name: suffix
-    #       value: "ddd"
-    #     - name: dddType
-    #       value: "dev"
-    #   workspaces:
-    #     - name: git-source
-    #       workspace: git-source
+    - name: build-ace-int-server-ace-chris
+      retries: 2
+      runAfter:
+        - clone-git-source
+      taskRef:
+        name: build-task
+      params:
+        - name: imageTag
+          value: "$(params.imageTag)"
+        - name: imageName
+          value: "ddd-ace-chris"
+        - name: dockerfile
+          value: "DrivewayDentDeletion/IntegrationManifests/Dockerfiles/ACE-Chris.Dockerfile"
+        - name: contextPath
+          value: "DrivewayDentDeletion/Bar_files/ace-chris"
+        - name: pvc
+          value: "buildah-ace-chris"
+      workspaces:
+        - name: git-source
+          workspace: git-source
+
+    # deploy all ace in dev namespace
+    - name: deploy-wait-ace-api
+      retries: 2
+      runAfter:
+        - build-ace-int-server-ace-api
+        - create-is-config
+      taskRef:
+        name: run-script
+      params:
+        - name: script
+          value: "products/bash/release-ace-integration-server.sh"
+        - name: params
+          # For Dev deploy with tracing enabled and no HA
+          value: "-n {{NAMESPACE}} -a false -r ddd-dev-ace-api -i image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}/ddd-ace-api:$(params.imageTag) {{TRACING}} -d policyproject-ddd-dev"
+      workspaces:
+        - name: git-source
+          workspace: git-source
+
+    - name: deploy-wait-ace-bernie
+      retries: 2
+      runAfter:
+        - build-ace-int-server-ace-bernie
+        - create-is-config
+      taskRef:
+        name: run-script
+      params:
+        - name: script
+          value: "products/bash/release-ace-integration-server.sh"
+        - name: params
+          # For Dev deploy with tracing enabled and no HA
+          value: "-n {{NAMESPACE}} -a false -r ddd-dev-ace-bernie -i image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}/ddd-ace-bernie:$(params.imageTag) {{TRACING}} -d policyproject-ddd-dev"
+      workspaces:
+        - name: git-source
+          workspace: git-source
+
+    - name: deploy-wait-ace-acme
+      retries: 2
+      runAfter:
+        - build-ace-int-server-ace-acme
+        - create-is-config
+      taskRef:
+        name: run-script
+      params:
+        - name: script
+          value: "products/bash/release-ace-integration-server.sh"
+        - name: params
+          # For Dev deploy with tracing enabled and no HA
+          value: "-n {{NAMESPACE}} -a false -r ddd-dev-ace-acme -i image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}/ddd-ace-acme:$(params.imageTag) {{TRACING}} -d policyproject-ddd-dev"
+      workspaces:
+        - name: git-source
+          workspace: git-source
+
+    - name: deploy-wait-ace-chris
+      retries: 2
+      runAfter:
+        - build-ace-int-server-ace-chris
+        - create-is-config
+      taskRef:
+        name: run-script
+      params:
+        - name: script
+          value: "products/bash/release-ace-integration-server.sh"
+        - name: params
+          # For Dev deploy with tracing enabled and no HA
+          value: "-n {{NAMESPACE}} -a false -r ddd-dev-ace-chris -i image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}/ddd-ace-chris:$(params.imageTag) {{TRACING}} -d policyproject-ddd-dev"
+      workspaces:
+        - name: git-source
+          workspace: git-source
+
+    # test end-to-end API in dev namespace
+    - name: test-e2e-api-in-dev-namespace
+      retries: 2
+      runAfter:
+        - deploy-wait-ace-chris
+        - wait-for-im
+        - deploy-wait-ace-api
+        - deploy-wait-ace-acme
+        - deploy-wait-ace-bernie
+      taskRef:
+        name: api-test-e2e
+      params:
+        - name: suffix
+          value: "ddd"
+        - name: dddType
+          value: "dev"
+      workspaces:
+        - name: git-source
+          workspace: git-source
 ---
 apiVersion: triggers.tekton.dev/v1alpha1
 kind: EventListener

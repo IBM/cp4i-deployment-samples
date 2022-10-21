@@ -56,9 +56,9 @@ spec:
         - name: imageTag
           value: "latest"
         - name: dockerfile
-          value: "MQ.Dockerfile"
+          value: "DrivewayDentDeletion/Operators/Dockerfiles/MQ.Dockerfile"
         - name: contextPath
-          value: ""
+          value: "DrivewayDentDeletion"
         - name: pvc
           value: "buildah-mq"
       workspaces:
@@ -95,9 +95,9 @@ spec:
         - name: imageName
           value: "ddd-ace-api"
         - name: dockerfile
-          value: "ACE-API.Dockerfile"
+          value: "DrivewayDentDeletion/Operators/Dockerfiles/ACE-API.Dockerfile"
         - name: contextPath
-          value: "Bar_files/ace-api"
+          value: "DrivewayDentDeletion/Bar_files/ace-api"
         - name: pvc
           value: "buildah-ace-api"
       workspaces:
@@ -116,9 +116,9 @@ spec:
         - name: imageName
           value: "ddd-ace-acme"
         - name: dockerfile
-          value: "ACE-Acme.Dockerfile"
+          value: "DrivewayDentDeletion/Operators/Dockerfiles/ACE-Acme.Dockerfile"
         - name: contextPath
-          value: "Bar_files/ace-acme"
+          value: "DrivewayDentDeletion/Bar_files/ace-acme"
         - name: pvc
           value: "buildah-ace-acme"
       workspaces:
@@ -137,9 +137,9 @@ spec:
         - name: imageName
           value: "ddd-ace-bernie"
         - name: dockerfile
-          value: "ACE-Bernie.Dockerfile"
+          value: "DrivewayDentDeletion/Operators/Dockerfiles/ACE-Bernie.Dockerfile"
         - name: contextPath
-          value: "Bar_files/ace-bernie"
+          value: "DrivewayDentDeletion/Bar_files/ace-bernie"
         - name: pvc
           value: "buildah-ace-bernie"
       workspaces:
@@ -158,9 +158,9 @@ spec:
         - name: imageName
           value: "ddd-ace-chris"
         - name: dockerfile
-          value: "ACE-Chris.Dockerfile"
+          value: "DrivewayDentDeletion/Operators/Dockerfiles/ACE-Chris.Dockerfile"
         - name: contextPath
-          value: "Bar_files/ace-chris"
+          value: "DrivewayDentDeletion/Bar_files/ace-chris"
         - name: pvc
           value: "buildah-ace-chris"
       workspaces:
