@@ -29,24 +29,24 @@ spec:
           workspace: git-source
 
     # TODO Maybe this could be done as a pre-req rather than every pipeline run?
-    # - name: build-command-image
-    #   retries: 2
-    #   runAfter:
-    #     - clone-git-source
-    #   taskRef:
-    #     name: build-task-no-pvc
-    #   params:
-    #     - name: imageTag
-    #       value: "latest"
-    #     - name: imageName
-    #       value: "run-command"
-    #     - name: dockerfile
-    #       value: "CommonPipelineResources/Dockerfile"
-    #     - name: contextPath
-    #       value: "CommonPipelineResources"
-    #   workspaces:
-    #     - name: git-source
-    #       workspace: git-source
+    - name: build-command-image
+      retries: 2
+      runAfter:
+        - clone-git-source
+      taskRef:
+        name: build-task-no-pvc
+      params:
+        - name: imageTag
+          value: "latest"
+        - name: imageName
+          value: "run-command"
+        - name: dockerfile
+          value: "CommonPipelineResources/Dockerfile"
+        - name: contextPath
+          value: "CommonPipelineResources"
+      workspaces:
+        - name: git-source
+          workspace: git-source
 
     - name: deploy-im
       retries: 2
