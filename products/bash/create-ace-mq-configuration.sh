@@ -98,6 +98,5 @@ spec:
   contents: ${CONTENTS}
 EOF
 )
-YAML=$(cat $CONFIG_YAML)
 OCApplyYAML "$NAMESPACE" "$YAML"
 echo -e "\n$TICK [SUCCESS] Successfully applied the configuration yaml"
