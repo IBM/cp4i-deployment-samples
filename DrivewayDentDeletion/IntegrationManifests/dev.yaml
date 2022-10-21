@@ -28,18 +28,22 @@ spec:
         - name: output
           workspace: git-source
 
-    - name: fixup-dockerfiles
+    # TODO Maybe this could be done as a pre-req rather than every pipeline run?
+    - name: build-command-image
       retries: 2
       runAfter:
         - clone-git-source
       taskRef:
-        name: run-command
+        name: build-task-no-pvc
       params:
-        - name: command
-          value: |
-            ls /workspace
-            ls /workspace/git-source
-            /workspace/git-source/products/bash/fixup-dockerfiles.sh -n $(context.taskRun.namespace)
+        - name: imageTag
+          value: "latest"
+        - name: imageName
+          value: "run-command"
+        - name: dockerfile
+          value: "CommonPipelineResources/Dockerfile"
+        - name: contextPath
+          value: "CommonPipelineResources"
       workspaces:
         - name: git-source
           workspace: git-source
@@ -89,7 +93,7 @@ spec:
     - name: build-ace-int-server-ace-api
       retries: 2
       runAfter:
-        - fixup-dockerfiles
+        - clone-git-source
       taskRef:
         name: build-task
       params:
@@ -110,7 +114,7 @@ spec:
     - name: build-ace-int-server-ace-acme
       retries: 2
       runAfter:
-        - fixup-dockerfiles
+        - clone-git-source
       taskRef:
         name: build-task
       params:
@@ -131,7 +135,7 @@ spec:
     - name: build-ace-int-server-ace-bernie
       retries: 2
       runAfter:
-        - fixup-dockerfiles
+        - clone-git-source
       taskRef:
         name: build-task
       params:
@@ -152,7 +156,7 @@ spec:
     - name: build-ace-int-server-ace-chris
       retries: 2
       runAfter:
-        - fixup-dockerfiles
+        - clone-git-source
       taskRef:
         name: build-task
       params:

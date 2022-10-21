@@ -105,3 +105,24 @@ spec:
     - name: oc
       image: quay.io/openshift/origin-cli:latest
       script: "/workspace/git-source/$(params.script) $(params.params)"
+---
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: run-command
+spec:
+  params:
+    - name: command
+      type: string
+      description: The command to run
+  workspaces:
+    - name: git-source
+  steps:
+    - name: command
+      image: image-registry.openshift-image-registry.svc:5000/$(context.taskRun.namespace)/run-command:latest
+      script: |
+        #!/usr/bin/env bash
+        set -e
+        echo "Running in bash with \"set -e\""
+        echo "Starting command:"
+        $(params.command)
