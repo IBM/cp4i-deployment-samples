@@ -10,7 +10,7 @@ spec:
   workspaces:
     - name: git-source
   tasks:
-    - name: clone-git-source
+    - name: clone-git-src
       retries: 2
       taskRef:
         kind: ClusterTask
@@ -31,7 +31,7 @@ spec:
     - name: bld-cmd-image
       retries: 2
       runAfter:
-        - clone-git-source
+        - clone-git-src
       taskRef:
         name: build-task-no-pvc
       params:
@@ -50,7 +50,7 @@ spec:
     - name: d-im-dev
       retries: 2
       runAfter:
-        - clone-git-source
+        - clone-git-src
       taskRef:
         name: run-command
       params:
@@ -89,7 +89,7 @@ spec:
     - name: bld-is-api
       retries: 2
       runAfter:
-        - clone-git-source
+        - clone-git-src
       taskRef:
         name: build-task
       params:
@@ -110,7 +110,7 @@ spec:
     - name: bld-is-acme
       retries: 2
       runAfter:
-        - clone-git-source
+        - clone-git-src
       taskRef:
         name: build-task
       params:
@@ -131,7 +131,7 @@ spec:
     - name: bld-is-bernie
       retries: 2
       runAfter:
-        - clone-git-source
+        - clone-git-src
       taskRef:
         name: build-task
       params:
@@ -152,7 +152,7 @@ spec:
     - name: bld-is-chris
       retries: 2
       runAfter:
-        - clone-git-source
+        - clone-git-src
       taskRef:
         name: build-task
       params:
