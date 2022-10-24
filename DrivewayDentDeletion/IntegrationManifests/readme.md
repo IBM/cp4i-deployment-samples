@@ -91,6 +91,8 @@ oc new-project ${namespace}
 ./prereqs.sh -n ${namespace}
 
 ./cicd-apply-dev-pipeline.sh -n ${namespace} -f ${file_storage} -g ${block_storage} -b use-im-for-ddd -a false
+./cicd-apply-test-pipeline.sh -n ${namespace} -f ${file_storage} -g ${block_storage} -b use-im-for-ddd -a false
+./cicd-apply-apic-pipeline.sh -n ${namespace} -f ${file_storage} -g ${block_storage} -b use-im-for-ddd -a false
 
 # NOTE Trigger the above pipeline to create the ACE images
 ```
