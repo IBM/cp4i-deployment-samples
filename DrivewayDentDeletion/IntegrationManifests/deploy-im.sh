@@ -48,8 +48,8 @@ while getopts "b:f:n:t" opt; do
   esac
 done
 
-IM_NAME=ddd-dev
-QM_NAME=mq-ddd-qm-dev
+IM_NAME=ddd-${DDD_DEMO_TYPE}
+QM_NAME=mq-ddd-qm-${DDD_DEMO_TYPE}
 
 YAML=$(cat <<EOF
 apiVersion: v1
