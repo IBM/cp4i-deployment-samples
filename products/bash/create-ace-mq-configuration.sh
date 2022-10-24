@@ -43,7 +43,15 @@ while getopts "c:n:o:" opt; do
   esac
 done
 
+set +e
 
+echo "Wait for the ${CERTIFICATE_NAME} certificate to be created"
+while ! oc get -n ${NAMESPACE} certificate ${CERTIFICATE_NAME} 2>/dev/null ; do
+  echo "Certificate ${CERTIFICATE_NAME} doesn't exist yet"
+  sleep 5
+done
+
+set -e
 
 echo "Wait for the ${CERTIFICATE_NAME} certificate to be ready, so the secret is ready to be used"
 oc wait --for=condition=ready -n ${NAMESPACE} certificate ${CERTIFICATE_NAME} --timeout=60s

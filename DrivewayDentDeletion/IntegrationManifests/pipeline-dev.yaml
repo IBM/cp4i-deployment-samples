@@ -79,12 +79,12 @@ spec:
         - d-im-dev
       taskRef:
         name: run-command
-      workspaces:
-        - name: git-source
-          workspace: git-source
       params:
         - name: command
           value: oc wait --for=condition=ready -n {{NAMESPACE}} im ddd-dev --timeout 10m
+      workspaces:
+        - name: git-source
+          workspace: git-source
 
     - name: bld-is-api
       retries: 2
@@ -217,9 +217,7 @@ spec:
         name: run-command
       params:
         - name: command
-          value: /workspace/git-source/products/bash/release-ace-integration-server.sh
-        - name: params
-          value: '-n {{NAMESPACE}} -a false -r ddd-dev-ace-chris -i image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}/ddd-ace-chris:$(params.imageTag) {{TRACING}} -c "[keystore-ddd, policyproject-ddd-dev, serverconf-ddd, setdbparms-ddd, application-ddd-dev]"'
+          value: /workspace/git-source/products/bash/release-ace-integration-server.sh -n {{NAMESPACE}} -a false -r ddd-dev-ace-chris -i image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}/ddd-ace-chris:$(params.imageTag) {{TRACING}} -c "[keystore-ddd, policyproject-ddd-dev, serverconf-ddd, setdbparms-ddd, application-ddd-dev]"
       workspaces:
         - name: git-source
           workspace: git-source
