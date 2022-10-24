@@ -61,8 +61,6 @@ namespace=cp4i
 #block_storage=ibmc-block-gold
 block_storage="cp4i-block-performance"
 file_storage="cp4i-file-performance-gid"
-im_name=ddd-dev
-qm_name=mq-ddd-qm-dev
 ```
 
 # Create the ibm-entitlement-key secret
