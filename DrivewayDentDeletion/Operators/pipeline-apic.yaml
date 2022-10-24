@@ -1,7 +1,7 @@
 apiVersion: tekton.dev/v1beta1
 kind: Pipeline
 metadata:
-  name: apic-pipeline
+  name: test-apic-pipeline
 spec:
   params:
     - name: imageTag
@@ -28,25 +28,6 @@ spec:
         - name: output
           workspace: git-source
 
-    - name: bld-cmd-image
-      retries: 2
-      runAfter:
-        - clone-git-src
-      taskRef:
-        name: build-task-no-pvc
-      params:
-        - name: imageTag
-          value: "latest"
-        - name: imageName
-          value: "run-command"
-        - name: dockerfile
-          value: "CommonPipelineResources/Dockerfile"
-        - name: contextPath
-          value: "CommonPipelineResources"
-      workspaces:
-        - name: git-source
-          workspace: git-source
-
     - name: d-im-dev
       retries: 2
       runAfter:
@@ -55,7 +36,7 @@ spec:
         name: run-command
       params:
         - name: command
-          value: /workspace/git-source/DrivewayDentDeletion/IntegrationManifests/deploy-im.sh -n cp4i -b {{DEFAULT_BLOCK_STORAGE}} -f {{DEFAULT_FILE_STORAGE}}
+          value: /workspace/git-source/DrivewayDentDeletion/Operators/deploy-im.sh -n cp4i -b {{DEFAULT_BLOCK_STORAGE}} -f {{DEFAULT_FILE_STORAGE}}
       workspaces:
         - name: git-source
           workspace: git-source
@@ -98,7 +79,7 @@ spec:
         - name: imageName
           value: "ddd-ace-api"
         - name: dockerfile
-          value: "DrivewayDentDeletion/IntegrationManifests/Dockerfiles/ACE-API.Dockerfile"
+          value: "DrivewayDentDeletion/Operators/Dockerfiles/ACE-API.Dockerfile"
         - name: contextPath
           value: "DrivewayDentDeletion/Bar_files/ace-api"
         - name: pvc
@@ -119,7 +100,7 @@ spec:
         - name: imageName
           value: "ddd-ace-acme"
         - name: dockerfile
-          value: "DrivewayDentDeletion/IntegrationManifests/Dockerfiles/ACE-Acme.Dockerfile"
+          value: "DrivewayDentDeletion/Operators/Dockerfiles/ACE-Acme.Dockerfile"
         - name: contextPath
           value: "DrivewayDentDeletion/Bar_files/ace-acme"
         - name: pvc
@@ -140,7 +121,7 @@ spec:
         - name: imageName
           value: "ddd-ace-bernie"
         - name: dockerfile
-          value: "DrivewayDentDeletion/IntegrationManifests/Dockerfiles/ACE-Bernie.Dockerfile"
+          value: "DrivewayDentDeletion/Operators/Dockerfiles/ACE-Bernie.Dockerfile"
         - name: contextPath
           value: "DrivewayDentDeletion/Bar_files/ace-bernie"
         - name: pvc
@@ -161,7 +142,7 @@ spec:
         - name: imageName
           value: "ddd-ace-chris"
         - name: dockerfile
-          value: "DrivewayDentDeletion/IntegrationManifests/Dockerfiles/ACE-Chris.Dockerfile"
+          value: "DrivewayDentDeletion/Operators/Dockerfiles/ACE-Chris.Dockerfile"
         - name: contextPath
           value: "DrivewayDentDeletion/Bar_files/ace-chris"
         - name: pvc
@@ -314,7 +295,7 @@ spec:
         name: run-command
       params:
         - name: command
-          value: /workspace/git-source/DrivewayDentDeletion/IntegrationManifests/deploy-im.sh -n cp4i -b {{DEFAULT_BLOCK_STORAGE}} -f {{DEFAULT_FILE_STORAGE}} -t
+          value: /workspace/git-source/DrivewayDentDeletion/Operators/deploy-im.sh -n cp4i -b {{DEFAULT_BLOCK_STORAGE}} -f {{DEFAULT_FILE_STORAGE}} -t
       workspaces:
         - name: git-source
           workspace: git-source
