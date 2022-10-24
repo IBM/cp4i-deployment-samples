@@ -18,8 +18,10 @@ function usage() {
   exit 1
 }
 
+set -e
+
 CURRENT_DIR=$(dirname $0)
-source $CURRENT_DIR/utils.sh
+source $CURRENT_DIR/../../products/bash/utils.sh
 
 NAMESPACE="cp4i"
 DDD_DEMO_TYPE="dev"
