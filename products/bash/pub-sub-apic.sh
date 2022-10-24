@@ -56,7 +56,7 @@ TARGET_URL=""
 PRODUCT_YAML_TEMPLATE="DrivewayDentDeletion/Operators/apic-resources/apic-product-ddd.yaml"
 SWAGGER_YAML_TEMPLATE="DrivewayDentDeletion/Operators/apic-resources/apic-api-ddd.yaml"
 # TODO
-DEBUG=false
+DEBUG=true
 
 function usage() {
   echo "Usage: $0 -e <ENVIRONMENT> -n <MAIN_NAMESPACE> -r <RELEASE> -d <DEMO_NAME> -t <TARGET_URL> -p <PRODUCT_YAML_TEMPLATE> -s <SWAGGER_YAML_TEMPLATE>"
