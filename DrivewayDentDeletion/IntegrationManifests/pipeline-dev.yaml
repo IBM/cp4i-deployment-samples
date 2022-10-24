@@ -28,7 +28,7 @@ spec:
         - name: output
           workspace: git-source
 
-    - name: build-command-image
+    - name: bld-cmd-image
       retries: 2
       runAfter:
         - clone-git-source
@@ -47,7 +47,7 @@ spec:
         - name: git-source
           workspace: git-source
 
-    - name: deploy-im
+    - name: d-im-dev
       retries: 2
       runAfter:
         - clone-git-source
@@ -59,88 +59,12 @@ spec:
       params:
         - name: command
           value: |
-            namespace={{NAMESPACE}}
-            block_storage="cp4i-block-performance"
-            file_storage="cp4i-file-performance-gid"
-            im_name=ddd-dev
-            qm_name=mq-ddd-qm-dev
+            /workspace/git-source/DrivewayDentDeletion/IntegrationManifests/deploy-im.sh -n cp4i -b {{DEFAULT_BLOCK_STORAGE}} -f {{DEFAULT_FILE_STORAGE}}
 
-            cat <<EOF | oc apply -f -
-            apiVersion: v1
-            kind: ConfigMap
-            metadata:
-              name: qm-${qm_name}-queues
-            data:
-              myqm.mqsc: |
-                DEFINE QLOCAL('AccidentIn') DEFPSIST(YES) BOTHRESH(5) REPLACE
-                DEFINE QLOCAL('AccidentOut') DEFPSIST(YES) BOTHRESH(5) REPLACE
-                DEFINE QLOCAL('BumperIn') DEFPSIST(YES) BOTHRESH(5) REPLACE
-                DEFINE QLOCAL('BumperOut') DEFPSIST(YES) BOTHRESH(5) REPLACE
-                DEFINE QLOCAL('CrumpledIn') DEFPSIST(YES) BOTHRESH(5) REPLACE
-                DEFINE QLOCAL('CrumpledOut') DEFPSIST(YES) BOTHRESH(5) REPLACE
-                SET AUTHREC PROFILE('AccidentIn') PRINCIPAL('app1') OBJTYPE(QUEUE) AUTHADD(BROWSE,GET,INQ,PUT)
-                SET AUTHREC PROFILE('AccidentOut') PRINCIPAL('app1') OBJTYPE(QUEUE) AUTHADD(BROWSE,GET,INQ,PUT)
-                SET AUTHREC PROFILE('BumperIn') PRINCIPAL('app1') OBJTYPE(QUEUE) AUTHADD(BROWSE,GET,INQ,PUT)
-                SET AUTHREC PROFILE('BumperOut') PRINCIPAL('app1') OBJTYPE(QUEUE) AUTHADD(BROWSE,GET,INQ,PUT)
-                SET AUTHREC PROFILE('CrumpledIn') PRINCIPAL('app1') OBJTYPE(QUEUE) AUTHADD(BROWSE,GET,INQ,PUT)
-                SET AUTHREC PROFILE('CrumpledOut') PRINCIPAL('app1') OBJTYPE(QUEUE) AUTHADD(BROWSE,GET,INQ,PUT)
-                REFRESH SECURITY
-                ALTER QMGR DEADQ(SYSTEM.DEAD.LETTER.QUEUE)
-            ---
-            apiVersion: cert-manager.io/v1
-            kind: Certificate
-            metadata:
-              name: qm-${qm_name}-client
-            spec:
-              commonName: ${namespace}.${im_name}
-              subject:
-                organizationalUnits:
-                - my-team
-              secretName: qm-${qm_name}-client
-              issuerRef:
-                name: qm-${qm_name}-server
-                kind: Issuer
-                group: cert-manager.io
-            ---
-            apiVersion: integration.ibm.com/v1beta1
-            kind: IntegrationManifest
-            metadata:
-              name: ${im_name}
-            spec:
-              version: 2022.4.1
-              license:
-                accept: true
-                license: Q4-license
-                use: CloudPakForIntegrationNonProduction
-              storage:
-                readWriteOnce:
-                  class: ${block_storage}
-                readWriteMany:
-                  class: ${file_storage}
-              managedInstances:
-                list:
-                - kind: QueueManager
-                  metadata:
-                    name: ${qm_name}
-                  spec:
-                    web:
-                      enabled: true
-                    queueManager:
-                      mqsc:
-                        - configMap:
-                            name: qm-${qm_name}-default
-                            items:
-                              - myqm.mqsc
-                        - configMap:
-                            name: qm-${qm_name}-queues
-                            items:
-                              - myqm.mqsc
-            EOF
-
-    - name: create-is-config
+    - name: is-cfg-dev
       retries: 2
       runAfter:
-        - deploy-im
+        - d-im-dev
       taskRef:
         name: run-command
       workspaces:
@@ -151,10 +75,10 @@ spec:
           value: |
             /workspace/git-source/products/bash/create-ace-mq-configuration.sh -n cp4i -c qm-mq-ddd-qm-dev-client -o application-ddd-dev
 
-    - name: wait-for-im
+    - name: wait-im-dev
       retries: 2
       runAfter:
-        - deploy-im
+        - d-im-dev
       taskRef:
         name: run-command
       workspaces:
@@ -167,7 +91,7 @@ spec:
             oc wait --for=condition=ready -n ${namespace} im ddd-dev --timeout 10m
 
     # build all ace in dev namespace
-    - name: build-ace-int-server-ace-api
+    - name: bld-is-api
       retries: 2
       runAfter:
         - clone-git-source
@@ -188,7 +112,7 @@ spec:
         - name: git-source
           workspace: git-source
 
-    - name: build-ace-int-server-ace-acme
+    - name: bld-is-acme
       retries: 2
       runAfter:
         - clone-git-source
@@ -209,7 +133,7 @@ spec:
         - name: git-source
           workspace: git-source
 
-    - name: build-ace-int-server-ace-bernie
+    - name: bld-is-bernie
       retries: 2
       runAfter:
         - clone-git-source
@@ -230,7 +154,7 @@ spec:
         - name: git-source
           workspace: git-source
 
-    - name: build-ace-int-server-ace-chris
+    - name: bld-is-chris
       retries: 2
       runAfter:
         - clone-git-source
@@ -252,11 +176,10 @@ spec:
           workspace: git-source
 
     # deploy all ace in dev namespace
-    - name: deploy-wait-ace-api
+    - name: d-api-dev
       retries: 2
       runAfter:
-        - build-ace-int-server-ace-api
-        - create-is-config
+        - bld-is-api
       taskRef:
         name: run-script
       params:
@@ -264,16 +187,15 @@ spec:
           value: "products/bash/release-ace-integration-server.sh"
         - name: params
           # For Dev deploy with tracing enabled and no HA
-          value: "-n {{NAMESPACE}} -a false -r ddd-dev-ace-api -i image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}/ddd-ace-api:$(params.imageTag) {{TRACING}} -d policyproject-ddd-dev"
+          value: '-n {{NAMESPACE}} -a false -r ddd-dev-ace-api -i image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}/ddd-ace-api:$(params.imageTag) {{TRACING}} -c "[keystore-ddd, policyproject-ddd-dev, serverconf-ddd, setdbparms-ddd, application-ddd-dev]"'
       workspaces:
         - name: git-source
           workspace: git-source
 
-    - name: deploy-wait-ace-bernie
+    - name: d-bernie-dev
       retries: 2
       runAfter:
-        - build-ace-int-server-ace-bernie
-        - create-is-config
+        - bld-is-bernie
       taskRef:
         name: run-script
       params:
@@ -281,16 +203,15 @@ spec:
           value: "products/bash/release-ace-integration-server.sh"
         - name: params
           # For Dev deploy with tracing enabled and no HA
-          value: "-n {{NAMESPACE}} -a false -r ddd-dev-ace-bernie -i image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}/ddd-ace-bernie:$(params.imageTag) {{TRACING}} -d policyproject-ddd-dev"
+          value: '-n {{NAMESPACE}} -a false -r ddd-dev-ace-bernie -i image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}/ddd-ace-bernie:$(params.imageTag) {{TRACING}} -c "[keystore-ddd, policyproject-ddd-dev, serverconf-ddd, setdbparms-ddd, application-ddd-dev]"'
       workspaces:
         - name: git-source
           workspace: git-source
 
-    - name: deploy-wait-ace-acme
+    - name: d-acme-dev
       retries: 2
       runAfter:
-        - build-ace-int-server-ace-acme
-        - create-is-config
+        - bld-is-acme
       taskRef:
         name: run-script
       params:
@@ -298,16 +219,15 @@ spec:
           value: "products/bash/release-ace-integration-server.sh"
         - name: params
           # For Dev deploy with tracing enabled and no HA
-          value: "-n {{NAMESPACE}} -a false -r ddd-dev-ace-acme -i image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}/ddd-ace-acme:$(params.imageTag) {{TRACING}} -d policyproject-ddd-dev"
+          value: '-n {{NAMESPACE}} -a false -r ddd-dev-ace-acme -i image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}/ddd-ace-acme:$(params.imageTag) {{TRACING}} -c "[keystore-ddd, policyproject-ddd-dev, serverconf-ddd, setdbparms-ddd, application-ddd-dev]"'
       workspaces:
         - name: git-source
           workspace: git-source
 
-    - name: deploy-wait-ace-chris
+    - name: d-chris-dev
       retries: 2
       runAfter:
-        - build-ace-int-server-ace-chris
-        - create-is-config
+        - bld-is-chris
       taskRef:
         name: run-script
       params:
@@ -315,27 +235,26 @@ spec:
           value: "products/bash/release-ace-integration-server.sh"
         - name: params
           # For Dev deploy with tracing enabled and no HA
-          value: "-n {{NAMESPACE}} -a false -r ddd-dev-ace-chris -i image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}/ddd-ace-chris:$(params.imageTag) {{TRACING}} -d policyproject-ddd-dev"
+          value: '-n {{NAMESPACE}} -a false -r ddd-dev-ace-chris -i image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}/ddd-ace-chris:$(params.imageTag) {{TRACING}} -c "[keystore-ddd, policyproject-ddd-dev, serverconf-ddd, setdbparms-ddd, application-ddd-dev]"'
       workspaces:
         - name: git-source
           workspace: git-source
 
     # test end-to-end API in dev namespace
-    - name: test-e2e-api-in-dev-namespace
+    - name: test-dev
       retries: 2
       runAfter:
-        - deploy-wait-ace-chris
-        - wait-for-im
-        - deploy-wait-ace-api
-        - deploy-wait-ace-acme
-        - deploy-wait-ace-bernie
+        - wait-im-dev
+        - d-api-dev
+        - d-acme-dev
+        - d-bernie-dev
+        - d-chris-dev
       taskRef:
-        name: api-test-e2e
+        name: run-command
       params:
-        - name: suffix
-          value: "ddd"
-        - name: dddType
-          value: "dev"
+        - name: command
+          value: |
+            /workspace/git-source/DrivewayDentDeletion/Operators/test-api-e2e.sh -n {{NAMESPACE}} -s ddd -d dev
       workspaces:
         - name: git-source
           workspace: git-source

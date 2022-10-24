@@ -14,19 +14,6 @@ spec:
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: buildah-mq
-spec:
-  storageClassName: "{{DEFAULT_BLOCK_STORAGE}}"
-  accessModes:
-    - ReadWriteOnce
-  resources:
-    requests:
-      storage: 100Gi
-
----
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
   name: buildah-ace-api
 spec:
   storageClassName: "{{DEFAULT_BLOCK_STORAGE}}"

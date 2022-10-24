@@ -20,10 +20,10 @@
 #   -a : <HA_ENABLED>, default to 'true'
 #
 #   With defaults values
-#     ./cicd-apply-dev-pipeline.sh
+#     ./cicd-apply-test-pipeline.sh
 #
 #   With overridden values
-#     ./cicd-apply-dev-pipeline.sh -n <NAMESPACE> -r <REPO> -b <BRANCH> -f <DEFAULT_FILE_STORAGE> -g <DEFAULT_BLOCK_STORAGE> -a <HA_ENABLED>
+#     ./cicd-apply-test-pipeline.sh -n <NAMESPACE> -r <REPO> -b <BRANCH> -f <DEFAULT_FILE_STORAGE> -g <DEFAULT_BLOCK_STORAGE> -a <HA_ENABLED>
 
 function divider() {
   echo -e "\n-------------------------------------------------------------------------------------------------------------------\n"
@@ -162,11 +162,11 @@ OCApplyYAML "$NAMESPACE" "$YAML"
 
 divider
 
-# create the pipeline to run tasks to build and deploy to dev
+# create the pipeline to run tasks to build and deploy to test
 TRACING=""
 # TRACING="-t -z $NAMESPACE"
 echo -e "$INFO [INFO] Create the pipeline in '$NAMESPACE' namespace"
-YAML=$(cat $CURRENT_DIR/pipeline-dev.yaml |
+YAML=$(cat $CURRENT_DIR/pipeline-test.yaml |
   sed "s#{{NAMESPACE}}#$NAMESPACE#g;" |
   sed "s#{{FORKED_REPO}}#$REPO#g;" |
   sed "s#{{BRANCH}}#$BRANCH#g;" |
@@ -209,6 +209,6 @@ echo -e "$INFO [INFO] Your trigger route for the github webhook: $WEBHOOK_ROUTE"
 echo -e "$INFO [INFO] The next step is to add the trigger URL to the forked repository as a webhook with the Content type as 'application/json', which triggers an initial run of the pipeline."
 echo -e "$INFO [INFO] To manually trigger a run of the pipeline use:"
 echo -e "$INFO [INFO]    curl -X POST $WEBHOOK_ROUTE --header \"Content-Type: application/json\" --data '{\"message\":\"Test run\"}'\n"
-echo -e "$TICK  $ALL_DONE Successfully applied all the cicd pipeline resources and requirements in the '$NAMESPACE' namespace for the dev pipeline of the driveway dent deletion demo"
+echo -e "$TICK  $ALL_DONE Successfully applied all the cicd pipeline resources and requirements in the '$NAMESPACE' namespace for the test pipeline of the driveway dent deletion demo"
 
 divider
