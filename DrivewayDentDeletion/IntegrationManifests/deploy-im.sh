@@ -26,7 +26,7 @@ DDD_DEMO_TYPE="dev"
 BLOCK_STORAGE_CLASS="cp4i-block-performance"
 FILE_STORAGE_CLASS="cp4i-file-performance-gid"
 
-while getopts "n:t" opt; do
+while getopts "b:f:n:t" opt; do
   case ${opt} in
     b)
       BLOCK_STORAGE_CLASS="$OPTARG"

@@ -13,8 +13,8 @@ spec:
     - name: clone-git-source
       retries: 2
       taskRef:
-        name: git-clone
         kind: ClusterTask
+        name: git-clone
       params:
         - name: url
           value: "{{FORKED_REPO}}"
@@ -53,13 +53,12 @@ spec:
         - clone-git-source
       taskRef:
         name: run-command
+      params:
+        - name: command
+          value: /workspace/git-source/DrivewayDentDeletion/IntegrationManifests/deploy-im.sh -n cp4i -b {{DEFAULT_BLOCK_STORAGE}} -f {{DEFAULT_FILE_STORAGE}}
       workspaces:
         - name: git-source
           workspace: git-source
-      params:
-        - name: command
-          value: |
-            /workspace/git-source/DrivewayDentDeletion/IntegrationManifests/deploy-im.sh -n cp4i -b {{DEFAULT_BLOCK_STORAGE}} -f {{DEFAULT_FILE_STORAGE}}
 
     - name: is-cfg-dev
       retries: 2
@@ -67,13 +66,12 @@ spec:
         - d-im-dev
       taskRef:
         name: run-command
+      params:
+        - name: command
+          value: /workspace/git-source/products/bash/create-ace-mq-configuration.sh -n cp4i -c qm-mq-ddd-qm-dev-client -o application-ddd-dev
       workspaces:
         - name: git-source
           workspace: git-source
-      params:
-        - name: command
-          value: |
-            /workspace/git-source/products/bash/create-ace-mq-configuration.sh -n cp4i -c qm-mq-ddd-qm-dev-client -o application-ddd-dev
 
     - name: wait-im-dev
       retries: 2
@@ -86,11 +84,8 @@ spec:
           workspace: git-source
       params:
         - name: command
-          value: |
-            namespace={{NAMESPACE}}
-            oc wait --for=condition=ready -n ${namespace} im ddd-dev --timeout 10m
+          value: oc wait --for=condition=ready -n {{NAMESPACE}} im ddd-dev --timeout 10m
 
-    # build all ace in dev namespace
     - name: bld-is-api
       retries: 2
       runAfter:
@@ -175,35 +170,15 @@ spec:
         - name: git-source
           workspace: git-source
 
-    # deploy all ace in dev namespace
     - name: d-api-dev
       retries: 2
       runAfter:
         - bld-is-api
       taskRef:
-        name: run-script
+        name: run-command
       params:
-        - name: script
-          value: "products/bash/release-ace-integration-server.sh"
-        - name: params
-          # For Dev deploy with tracing enabled and no HA
-          value: '-n {{NAMESPACE}} -a false -r ddd-dev-ace-api -i image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}/ddd-ace-api:$(params.imageTag) {{TRACING}} -c "[keystore-ddd, policyproject-ddd-dev, serverconf-ddd, setdbparms-ddd, application-ddd-dev]"'
-      workspaces:
-        - name: git-source
-          workspace: git-source
-
-    - name: d-bernie-dev
-      retries: 2
-      runAfter:
-        - bld-is-bernie
-      taskRef:
-        name: run-script
-      params:
-        - name: script
-          value: "products/bash/release-ace-integration-server.sh"
-        - name: params
-          # For Dev deploy with tracing enabled and no HA
-          value: '-n {{NAMESPACE}} -a false -r ddd-dev-ace-bernie -i image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}/ddd-ace-bernie:$(params.imageTag) {{TRACING}} -c "[keystore-ddd, policyproject-ddd-dev, serverconf-ddd, setdbparms-ddd, application-ddd-dev]"'
+        - name: command
+          value: /workspace/git-source/products/bash/release-ace-integration-server.sh -n {{NAMESPACE}} -a false -r ddd-dev-ace-api -i image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}/ddd-ace-api:$(params.imageTag) {{TRACING}} -c "[keystore-ddd, policyproject-ddd-dev, serverconf-ddd, setdbparms-ddd, application-ddd-dev]"
       workspaces:
         - name: git-source
           workspace: git-source
@@ -213,13 +188,23 @@ spec:
       runAfter:
         - bld-is-acme
       taskRef:
-        name: run-script
+        name: run-command
       params:
-        - name: script
-          value: "products/bash/release-ace-integration-server.sh"
-        - name: params
-          # For Dev deploy with tracing enabled and no HA
-          value: '-n {{NAMESPACE}} -a false -r ddd-dev-ace-acme -i image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}/ddd-ace-acme:$(params.imageTag) {{TRACING}} -c "[keystore-ddd, policyproject-ddd-dev, serverconf-ddd, setdbparms-ddd, application-ddd-dev]"'
+        - name: command
+          value: /workspace/git-source/products/bash/release-ace-integration-server.sh -n {{NAMESPACE}} -a false -r ddd-dev-ace-acme -i image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}/ddd-ace-acme:$(params.imageTag) {{TRACING}} -c "[keystore-ddd, policyproject-ddd-dev, serverconf-ddd, setdbparms-ddd, application-ddd-dev]"
+      workspaces:
+        - name: git-source
+          workspace: git-source
+
+    - name: d-bernie-dev
+      retries: 2
+      runAfter:
+        - bld-is-bernie
+      taskRef:
+        name: run-command
+      params:
+        - name: command
+          value: /workspace/git-source/products/bash/release-ace-integration-server.sh -n {{NAMESPACE}} -a false -r ddd-dev-ace-bernie -i image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}/ddd-ace-bernie:$(params.imageTag) {{TRACING}} -c "[keystore-ddd, policyproject-ddd-dev, serverconf-ddd, setdbparms-ddd, application-ddd-dev]"
       workspaces:
         - name: git-source
           workspace: git-source
@@ -229,21 +214,20 @@ spec:
       runAfter:
         - bld-is-chris
       taskRef:
-        name: run-script
+        name: run-command
       params:
-        - name: script
-          value: "products/bash/release-ace-integration-server.sh"
+        - name: command
+          value: /workspace/git-source/products/bash/release-ace-integration-server.sh
         - name: params
-          # For Dev deploy with tracing enabled and no HA
           value: '-n {{NAMESPACE}} -a false -r ddd-dev-ace-chris -i image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}/ddd-ace-chris:$(params.imageTag) {{TRACING}} -c "[keystore-ddd, policyproject-ddd-dev, serverconf-ddd, setdbparms-ddd, application-ddd-dev]"'
       workspaces:
         - name: git-source
           workspace: git-source
 
-    # test end-to-end API in dev namespace
     - name: test-dev
       retries: 2
       runAfter:
+        - is-cfg-dev
         - wait-im-dev
         - d-api-dev
         - d-acme-dev
@@ -253,8 +237,7 @@ spec:
         name: run-command
       params:
         - name: command
-          value: |
-            /workspace/git-source/DrivewayDentDeletion/Operators/test-api-e2e.sh -n {{NAMESPACE}} -s ddd -d dev
+          value: /workspace/git-source/DrivewayDentDeletion/Operators/test-api-e2e.sh -n {{NAMESPACE}} -s ddd -d dev
       workspaces:
         - name: git-source
           workspace: git-source
