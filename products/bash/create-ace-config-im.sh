@@ -251,11 +251,14 @@ cat $CONFIG_DIR/PostgresqlPolicy.policyxml.template |
 divider
 
 echo -e "$INFO [INFO] Templating mq policy"
-#QM_NAME=mq-ddd-qm-dev
-QM_NAME=mqdddqmdev
-QM_HOST=$([[ $SUFFIX == "ddd" ]] && echo "mq-ddd-qm-${DDD_DEMO_TYPE}-ibm-mq" || echo "mq-eei-ibm-mq")
+if [[ $SUFFIX == "ddd" ]]; then
+  QM_NAME=mqdddqm${DDD_DEMO_TYPE}
+  QM_HOST="mq-ddd-qm-${DDD_DEMO_TYPE}-ibm-mq"
+else
+  QM_NAME=mqeeiqm
+  QM_HOST="mq-eei-ibm-mq"
+fi
 QM_CHANNEL=MTLSQMCHL
-#QM_CHANNEL=ACE_SVRCONN
 cat $CONFIG_DIR/MQEndpointPolicy.policyxml.template |
   sed "s#ACE_SVRCONN#$QM_CHANNEL#g;" |
   sed "s#{{QM_NAME}}#$QM_NAME#g;" |
