@@ -361,6 +361,12 @@ echo "TODO Wait for the PVCs to be bound"
 
 divider
 
+if ! $CURRENT_DIR/../../CommonPipelineResources/setup.sh -n "$NAMESPACE" ; then
+  exit 1
+fi
+
+divider
+
 echo -e "$INFO [INFO] Building and deploying the EEI apps ..."
 if ! $CURRENT_DIR/build/build.sh -n $NAMESPACE -r $REPO -b $BRANCH -t $TKN -f "$DEFAULT_FILE_STORAGE" -g "$DEFAULT_BLOCK_STORAGE"; then
   echo -e "\n$CROSS [ERROR] Failed to build/deploy the EEI apps in the '$NAMESPACE' namespace"

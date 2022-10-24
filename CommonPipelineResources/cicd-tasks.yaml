@@ -1,4 +1,3 @@
-#!/bin/bash
 #******************************************************************************
 # Licensed Materials - Property of IBM
 # (c) Copyright IBM Corporation 2019. All Rights Reserved.
@@ -7,8 +6,6 @@
 # Use, duplication or disclosure restricted by GSA ADP Schedule
 # Contract with IBM Corp.
 #****
-
-
 apiVersion: tekton.dev/v1beta1
 kind: Task
 metadata:
@@ -97,25 +94,6 @@ spec:
           --tls-verify=false \
           image-registry.openshift-image-registry.svc:5000/$(context.taskRun.namespace)/$(params.imageName):$(params.imageTag)
 
----
-apiVersion: tekton.dev/v1beta1
-kind: Task
-metadata:
-  name: run-script
-spec:
-  params:
-    - name: script
-      type: string
-      description: The full path to the script relative to the git workspace
-    - name: params
-      type: string
-      description: The parameters to pass to the script when calling
-  workspaces:
-    - name: git-source
-  steps:
-    - name: oc
-      image: quay.io/openshift/origin-cli:latest
-      script: "/workspace/git-source/$(params.script) $(params.params)"
 ---
 apiVersion: tekton.dev/v1beta1
 kind: Task

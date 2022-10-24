@@ -13,7 +13,6 @@
 #
 # PARAMETERS:
 #   -n : <NAMESPACE> (string), Defaults to 'cp4i'
-#   -r : <NAV_REPLICAS> (string), Defaults to '2'
 #   -p : <POSTGRES_NAMESPACE> (string), Namespace where postgres is setup, Defaults to the value of <NAMESPACE>
 #   -o : <OMIT_INITIAL_SETUP> (optional), Parameter to decide if initial setup is to be done or not, Defaults to false
 #
@@ -21,14 +20,14 @@
 #     ./prereqs.sh
 #
 #   With overridden values
-#     ./prereqs.sh -n <NAMESPACE> -r <NAV_REPLICAS> -p <POSTGRES_NAMESPACE> -o
+#     ./prereqs.sh -n <NAMESPACE> -p <POSTGRES_NAMESPACE> -o
 
 function divider() {
   echo -e "\n-------------------------------------------------------------------------------------------------------------------\n"
 }
 
 function usage() {
-  echo "Usage: $0 -n <NAMESPACE> -r <NAV_REPLICAS> -p <POSTGRES_NAMESPACE> [-o]"
+  echo "Usage: $0 -n <NAMESPACE> -p <POSTGRES_NAMESPACE> [-o]"
   divider
   exit 1
 }
@@ -36,7 +35,6 @@ function usage() {
 CURRENT_DIR=$(dirname $0)
 source $CURRENT_DIR/../../products/bash/utils.sh
 NAMESPACE="cp4i"
-NAV_REPLICAS="2"
 SUFFIX="ddd"
 POSTGRES_NAMESPACE=
 MISSING_PARAMS="false"
@@ -48,7 +46,7 @@ export TEST_DEPLOY_NAME="test"
 
 declare -a DEPLOY_NAMES=("$DEV_DEPLOY_NAME" "$TEST_DEPLOY_NAME")
 
-while getopts "n:op:r:" opt; do
+while getopts "n:op:" opt; do
   case ${opt} in
   n)
     NAMESPACE="$OPTARG"
@@ -58,9 +56,6 @@ while getopts "n:op:r:" opt; do
     ;;
   p)
     POSTGRES_NAMESPACE="$OPTARG"
-    ;;
-  r)
-    NAV_REPLICAS="$OPTARG"
     ;;
   \?)
     usage
@@ -77,11 +72,6 @@ fi
 
 if [[ -z "${POSTGRES_NAMESPACE// /}" ]]; then
   echo -e "$CROSS [ERROR] Namespace for postgres for driveway dent deletion demo is empty. Please provide a value for '-p' parameter."
-  MISSING_PARAMS="true"
-fi
-
-if [[ -z "${NAV_REPLICAS// /}" ]]; then
-  echo -e "$CROSS [ERROR] Number of replicas for the platform navigator for driveway dent deletion demo is empty. Please provide a value for '-r' parameter."
   MISSING_PARAMS="true"
 fi
 
@@ -201,8 +191,12 @@ EOF
     exit 1
   else
     echo -e "$TICK [SUCCESS] Successfully configured ace in the '$NAMESPACE' namespace with the user '$DB_USER', database name '$DB_NAME' and suffix '$SUFFIX'"
-  fi # create-ace-config.sh
+  fi # create-ace-config-im.sh
 done
+
+if ! $CURRENT_DIR/../../CommonPipelineResources/setup.sh -n "$NAMESPACE" ; then
+  exit 1
+fi
 
 divider
 echo -e "$TICK $ALL_DONE [SUCCESS] All prerequisites for the driveway dent deletion demo have been applied successfully $ALL_DONE $TICK"

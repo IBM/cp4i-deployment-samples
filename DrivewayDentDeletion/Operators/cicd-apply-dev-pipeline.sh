@@ -79,27 +79,27 @@ if [[ -z "${NAMESPACE// /}" ]]; then
 fi
 
 if [[ -z "${REPO// /}" ]]; then
-  echo -e "$CROSS [ERROR] Repository name parameter for dev pipeline of driveway dent deletion demo is empty. Please provide a value for '-r' parameter."
+  echo -e "$CROSS [ERROR] Repository name parameter is empty. Please provide a value for '-r' parameter."
   MISSING_PARAMS="true"
 fi
 
 if [[ -z "${BRANCH// /}" ]]; then
-  echo -e "$CROSS [ERROR] Branch name parameter for dev pipeline of driveway dent deletion demo is empty. Please provide a value for '-b' parameter."
+  echo -e "$CROSS [ERROR] Branch name parameter is empty. Please provide a value for '-b' parameter."
   MISSING_PARAMS="true"
 fi
 
 if [[ -z "${DEFAULT_FILE_STORAGE// /}" ]]; then
-  echo -e "$CROSS [ERROR] File storage type for dev pipeline of driveway dent deletion demo is empty. Please provide a value for '-f' parameter."
+  echo -e "$CROSS [ERROR] File storage type is empty. Please provide a value for '-f' parameter."
   MISSING_PARAMS="true"
 fi
 
 if [[ -z "${DEFAULT_BLOCK_STORAGE// /}" ]]; then
-  echo -e "$CROSS [ERROR] Block storage type for dev pipeline of driveway dent deletion demo is empty. Please provide a value for '-g' parameter."
+  echo -e "$CROSS [ERROR] Block storage type is empty. Please provide a value for '-g' parameter."
   MISSING_PARAMS="true"
 fi
 
 if [[ -z "${HA_ENABLED// /}" ]]; then
-  echo -e "$CROSS [ERROR] HA_ENABLED parameter for dev pipeline of driveway dent deletion demo is empty. Please provide a value for '-a' parameter."
+  echo -e "$CROSS [ERROR] HA_ENABLED parameter is empty. Please provide a value for '-a' parameter."
   MISSING_PARAMS="true"
 fi
 
@@ -108,13 +108,13 @@ if [[ "$MISSING_PARAMS" == "true" ]]; then
   usage
 fi
 
-echo -e "$INFO [INFO] Current directory for the dev pipeline of the driveway dent deletion demo: '$CURRENT_DIR'"
-echo -e "$INFO [INFO] Namespace provided for the dev pipeline of the driveway dent deletion demo: '$NAMESPACE'"
-echo -e "$INFO [INFO] Branch name for the dev pipeline of the driveway dent deletion demo: '$BRANCH'"
-echo -e "$INFO [INFO] Repository name for the dev pipeline of the driveway dent deletion demo: '$REPO'"
-echo -e "$INFO [INFO] Block storage class for the dev pipeline of the driveway dent deletion demo: '$DEFAULT_BLOCK_STORAGE'"
-echo -e "$INFO [INFO] File storage class for the dev pipeline of the driveway dent deletion demo: '$DEFAULT_FILE_STORAGE'"
-echo -e "$INFO [INFO] HA is enabled for the dev pipeline of the driveway dent deletion demo: '$HA_ENABLED'"
+echo -e "$INFO [INFO] Current directory: '$CURRENT_DIR'"
+echo -e "$INFO [INFO] Namespace: '$NAMESPACE'"
+echo -e "$INFO [INFO] Branch name: '$BRANCH'"
+echo -e "$INFO [INFO] Repository name: '$REPO'"
+echo -e "$INFO [INFO] Block storage class: '$DEFAULT_BLOCK_STORAGE'"
+echo -e "$INFO [INFO] File storage class: '$DEFAULT_FILE_STORAGE'"
+echo -e "$INFO [INFO] HA is enabled: '$HA_ENABLED'"
 
 divider
 
@@ -135,10 +135,10 @@ echo -e "$TICK [SUCCESS] Storage classes \"$DEFAULT_BLOCK_STORAGE\" and \"$DEFAU
 divider
 
 if ! oc project $NAMESPACE >/dev/null 2>&1; then
-  echo -e "$CROSS [ERROR] The dev and the test namespace '$NAMESPACE' does not exist"
+  echo -e "$CROSS [ERROR] The namespace '$NAMESPACE' does not exist"
   exit 1
 else
-  echo -e "$TICK [SUCCESS] The dev and the test namespace '$NAMESPACE' exists"
+  echo -e "$TICK [SUCCESS] The namespace '$NAMESPACE' exists"
 fi
 
 divider
@@ -148,65 +148,36 @@ oc project $NAMESPACE
 
 divider
 
-# apply pvc for buildah tasks
-echo -e "$INFO [INFO] Apply pvc for buildah tasks for the dev pipeline of the driveway dent deletion demo"
-YAML=$(cat $CURRENT_DIR/cicd-dev/cicd-pvc.yaml |
+echo -e "$INFO [INFO] Create PVCs"
+YAML=$(cat $CURRENT_DIR/pvcs.yaml |
   sed "s#{{DEFAULT_FILE_STORAGE}}#$DEFAULT_FILE_STORAGE#g;" |
   sed "s#{{DEFAULT_BLOCK_STORAGE}}#$DEFAULT_BLOCK_STORAGE#g;")
 OCApplyYAML "$NAMESPACE" "$YAML"
 
 divider
 
-# create tekton tasks
-TRACING="-t -z $NAMESPACE"
-echo -e "$INFO [INFO] Create tekton tasks for the dev pipeline of the driveway dent deletion demo"
-YAML=$(cat $CURRENT_DIR/../../CommonPipelineResources/cicd-tasks.yaml |
+# create the pipeline to run tasks to build and deploy to dev
+TRACING=""
+# TRACING="-t -z $NAMESPACE"
+echo -e "$INFO [INFO] Create the pipeline in '$NAMESPACE' namespace"
+YAML=$(cat $CURRENT_DIR/pipeline-dev.yaml |
   sed "s#{{NAMESPACE}}#$NAMESPACE#g;" |
+  sed "s#{{FORKED_REPO}}#$REPO#g;" |
+  sed "s#{{BRANCH}}#$BRANCH#g;" |
+  sed "s#{{HA_ENABLED}}#$HA_ENABLED#g;" |
+  sed "s#{{DEFAULT_FILE_STORAGE}}#$DEFAULT_FILE_STORAGE#g;" |
+  sed "s#{{DEFAULT_BLOCK_STORAGE}}#$DEFAULT_BLOCK_STORAGE#g;" |
   sed "s#{{TRACING}}#$TRACING#g;")
 OCApplyYAML "$NAMESPACE" "$YAML"
 
 divider
 
-# create tekton tasks for test
-echo -e "$INFO [INFO] Create tekton tasks for test for the test pipeline of the driveway dent deletion demo"
-YAML=$(cat $CURRENT_DIR/cicd-dev/cicd-tasks.yaml |
-  sed "s#{{NAMESPACE}}#$NAMESPACE#g;")
-OCApplyYAML "$NAMESPACE" "$YAML"
-
-divider
-
-# create the pipeline to run tasks to build and deploy to dev
-echo -e "$INFO [INFO] Create the pipeline to run tasks for the dev pipeline of the driveway dent deletion demo in '$NAMESPACE' namespace"
-YAML=$(cat $CURRENT_DIR/cicd-dev/cicd-pipeline.yaml |
-  sed "s#{{NAMESPACE}}#$NAMESPACE#g;" |
-  sed "s#{{FORKED_REPO}}#$REPO#g;" |
-  sed "s#{{BRANCH}}#$BRANCH#g;" |
-  sed "s#{{HA_ENABLED}}#$HA_ENABLED#g;" |
-  sed "s#{{DEFAULT_BLOCK_STORAGE}}#$DEFAULT_BLOCK_STORAGE#g;")
-OCApplyYAML "$NAMESPACE" "$YAML"
-
-divider
-
-# create the trigger template containing the pipelinerun
-echo -e "$INFO [INFO] Create the trigger template for the dev pipeline of the driveway dent deletion demo in the '$NAMESPACE' namespace"
-YAML=$(cat $CURRENT_DIR/cicd-dev/cicd-trigger-template.yaml)
-OCApplyYAML "$NAMESPACE" "$YAML"
-
-divider
-
-# create the event listener and route for webhook
-echo "INFO : Create the event listener and route for webhook for the dev pipeline of the driveway dent deletion demo in the '$NAMESPACE' namespace"
-YAML=$(cat $CURRENT_DIR/cicd-dev/cicd-events-routes.yaml)
-OCApplyYAML "$NAMESPACE" "$YAML"
-
-divider
-
-echo -e "$INFO [INFO] Waiting for webhook to appear in the '$NAMESPACE' namespace for the dev pipeline of the driveway dent deletion demo..."
+echo -e "$INFO [INFO] Waiting for webhook to appear in the '$NAMESPACE' namespace..."
 
 time=0
 while ! oc get route -n $NAMESPACE el-main-trigger-route --template='http://{{.spec.host}}'; do
   if [ $time -gt 5 ]; then
-    echo -e "\n$CROSS [ERROR] Timed-out trying to wait for webhook to appear in the '$NAMESPACE' namespace for the dev pipeline of the driveway dent deletion demo"
+    echo -e "\n$CROSS [ERROR] Timed-out trying to wait for webhook to appear in the '$NAMESPACE' namespace"
     divider
     exit 1
   fi
@@ -216,19 +187,19 @@ while ! oc get route -n $NAMESPACE el-main-trigger-route --template='http://{{.s
 done
 
 WEBHOOK_ROUTE=$(oc get route -n $NAMESPACE el-main-trigger-route --template='http://{{.spec.host}}')
-echo -e "\n\n$TICK [INFO] Webhook route in the '$NAMESPACE' namespace for the dev pipeline of the driveway dent deletion demo: $WEBHOOK_ROUTE"
+echo -e "\n\n$TICK [INFO] Webhook route in the '$NAMESPACE' namespace: $WEBHOOK_ROUTE"
 
 if [[ -z $WEBHOOK_ROUTE ]]; then
-  echo -e "\n$CROSS [ERROR] Failed to get route for the webhook in the '$NAMESPACE' namespace for the dev pipeline of the driveway dent deletion demo"
+  echo -e "\n$CROSS [ERROR] Failed to get route for the webhook in the '$NAMESPACE' namespace"
   exit 1
 fi
 
-echo -e "\n$TICK [SUCCESS] Successfully got route for the webhook in the '$NAMESPACE' namespace for the dev pipeline of the driveway dent deletion demo"
+echo -e "\n$TICK [SUCCESS] Successfully got route for the webhook in the '$NAMESPACE' namespace"
 
 divider
 
 # print route for webhook
-echo -e "$INFO [INFO] Your trigger route for the github webhook for the dev pipeline of the driveway dent deletion demo is: $WEBHOOK_ROUTE"
+echo -e "$INFO [INFO] Your trigger route for the github webhook: $WEBHOOK_ROUTE"
 echo -e "$INFO [INFO] The next step is to add the trigger URL to the forked repository as a webhook with the Content type as 'application/json', which triggers an initial run of the pipeline."
 echo -e "$INFO [INFO] To manually trigger a run of the pipeline use:"
 echo -e "$INFO [INFO]    curl -X POST $WEBHOOK_ROUTE --header \"Content-Type: application/json\" --data '{\"message\":\"Test run\"}'\n"

@@ -84,6 +84,8 @@ oc new-project ${namespace}
 ../../products/bash/release-navigator.sh -n ${namespace} -s ${file_storage}
 ../../products/bash/release-ace-dashboard.sh -n ${namespace} -s ${file_storage}
 ../../products/bash/release-psql.sh -n ${namespace}
+../../products/bash/release-apic.sh -n ${namespace}
+../../products/bash/configure-apic-v10.sh -n ${namespace}
 ```
 
 # Do initial setup and run the dev pipeline
