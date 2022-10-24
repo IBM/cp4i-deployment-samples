@@ -405,7 +405,7 @@ spec:
         name: run-command
       params:
         - name: command
-          value: /workspace/git-source/DrivewayDentDeletion/Operators/test-api-e2e.sh -n {{NAMESPACE}} -s ddd -d test
+          value: /workspace/git-source/DrivewayDentDeletion/Operators/test-api-e2e.sh -n {{NAMESPACE}} -s ddd -d test -a
       workspaces:
         - name: git-source
           workspace: git-source

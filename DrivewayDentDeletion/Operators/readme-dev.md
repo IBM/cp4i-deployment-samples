@@ -56,7 +56,7 @@ oc patch storageclass cp4i-block-performance -p '{"metadata": {"annotations":{"s
 
 # Vars to be used later
 ```
-namespace=cp4i
+namespace=ddd
 #file_storage=ibmc-file-gold-gid
 #block_storage=ibmc-block-gold
 block_storage="cp4i-block-performance"
