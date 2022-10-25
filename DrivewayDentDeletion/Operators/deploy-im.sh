@@ -30,15 +30,15 @@ FILE_STORAGE_CLASS="cp4i-file-performance-gid"
 
 while getopts "b:f:n:t" opt; do
   case ${opt} in
-    b)
-      BLOCK_STORAGE_CLASS="$OPTARG"
-      ;;
-    f)
-      FILE_STORAGE_CLASS="$OPTARG"
-      ;;
-    n)
-      NAMESPACE="$OPTARG"
-      ;;
+  b)
+    BLOCK_STORAGE_CLASS="$OPTARG"
+    ;;
+  f)
+    FILE_STORAGE_CLASS="$OPTARG"
+    ;;
+  n)
+    NAMESPACE="$OPTARG"
+    ;;
   t)
     DDD_DEMO_TYPE="test"
     ;;
