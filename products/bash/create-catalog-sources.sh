@@ -113,8 +113,8 @@ metadata:
   name: ibm-eventstreams-catalog
   namespace: openshift-marketplace
 spec:
-  displayName: "ES Operators v3.0.5"
-  image: icr.io/cpopen/ibm-eventstreams-catalog@sha256:5d6c8c5173cf1d2fe16b71b1a27362c6ac34a34c81f0b2837b227cfade6f4787
+  displayName: "ES Operators latest cd"
+  image: cp.stg.icr.io/cp/ibm-eventstreams-catalog:latest-cd
   publisher: IBM
   sourceType: grpc
   updateStrategy:
@@ -155,8 +155,8 @@ metadata:
   name: ibm-integration-platform-navigator-catalog
   namespace: openshift-marketplace
 spec:
-  displayName: "PN Operators 7.0.0"
-  image: cp.stg.icr.io/cp/ibm-integration-platform-navigator-catalog:7.0.0-2022-10-13-0753-4ba40bb3-license-use-webhook@sha256:4fd4538b4460c198aafb2ce9ca499f492896661f02873e28e06f21b0013d87b3
+  displayName: "PN Operators latest-cd"
+  image: cp.stg.icr.io/cp/ibm-integration-platform-navigator-catalog:latest-cd
   publisher: IBM
   sourceType: grpc
   updateStrategy:
@@ -170,7 +170,7 @@ metadata:
   namespace: openshift-marketplace
 spec:
   displayName: "MQ Operators v2.0.3"
-  image: icr.io/cpopen/ibm-mq-operator-catalog@sha256:07ad2c29490d23e526e407c6538ff30cfd236480df2ed83ed8bf4369e3bdbd24
+  image: cp.stg.icr.io/cp/ibm-mq-operator-catalog:latest-cd
   publisher: IBM
   sourceType: grpc
   updateStrategy:
