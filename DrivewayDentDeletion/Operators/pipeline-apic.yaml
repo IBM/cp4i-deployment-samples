@@ -49,7 +49,7 @@ spec:
         name: run-command
       params:
         - name: command
-          value: /workspace/git-source/products/bash/create-ace-mq-configuration.sh -n {{NAMESPACE}} -c qm-mq-ddd-qm-dev-client -o application-ddd-dev
+          value: /workspace/git-source/products/bash/create-ace-mq-configuration.sh -n {{NAMESPACE}} -c qm-mq-ddd-qm-dev-client -o application-eei
       workspaces:
         - name: git-source
           workspace: git-source
@@ -206,7 +206,7 @@ spec:
     - name: apic-dev
       retries: 2
       runAfter:
-        - clone-git-src
+        - d-api-dev
       taskRef:
         name: run-command
       params:
@@ -381,7 +381,7 @@ spec:
     - name: apic-test
       retries: 2
       runAfter:
-        - test-apic-dev
+        - d-api-test
       taskRef:
         name: run-command
       params:
