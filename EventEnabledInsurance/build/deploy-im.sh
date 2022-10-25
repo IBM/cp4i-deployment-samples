@@ -53,6 +53,7 @@ kind: ConfigMap
 metadata:
   name: qm-${QM_NAME}-queues
 data:
+  myqm.mqsc: |
     DEFINE QLOCAL('QuoteBO') DEFPSIST(YES) BOTHRESH(5) REPLACE
     DEFINE QLOCAL('Quote') DEFPSIST(YES) BOTHRESH(5) REPLACE
     SET AUTHREC PROFILE('QuoteBO') PRINCIPAL('app1') OBJTYPE(QUEUE) AUTHADD(BROWSE,GET,INQ,PUT)

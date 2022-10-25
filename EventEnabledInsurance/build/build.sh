@@ -116,6 +116,8 @@ if cat $CURRENT_DIR/pipeline.yaml |
   sed "s#{{CONFIGURATIONS}}#'$CONFIGURATIONS'#g;" |
   sed "s#{{FORKED_REPO}}#$REPO#g;" |
   sed "s#{{BRANCH}}#$BRANCH#g;" |
+  sed "s#{{DEFAULT_FILE_STORAGE}}#$DEFAULT_FILE_STORAGE#g;" |
+  sed "s#{{DEFAULT_BLOCK_STORAGE}}#$DEFAULT_BLOCK_STORAGE#g;" |
   oc apply -n ${namespace} -f -; then
   echo -e "\n$tick INFO: Successfully applied the pipeline to build and deploy the EEI apps in '$namespace' namespace"
 else
