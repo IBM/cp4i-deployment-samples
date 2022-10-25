@@ -73,21 +73,6 @@ data:
     REFRESH SECURITY
     ALTER QMGR DEADQ(SYSTEM.DEAD.LETTER.QUEUE)
 ---
-apiVersion: cert-manager.io/v1
-kind: Certificate
-metadata:
-  name: qm-${QM_NAME}-client
-spec:
-  commonName: ${NAMESPACE}.${IM_NAME}
-  subject:
-    organizationalUnits:
-    - my-team
-  secretName: qm-${QM_NAME}-client
-  issuerRef:
-    name: qm-${QM_NAME}-server
-    kind: Issuer
-    group: cert-manager.io
----
 apiVersion: integration.ibm.com/v1beta1
 kind: IntegrationManifest
 metadata:
@@ -125,3 +110,25 @@ EOF
 )
 OCApplyYAML "$NAMESPACE" "$YAML"
 echo -e "\n$TICK [SUCCESS] Successfully applied the Integration Manifest yaml"
+
+# Apply the certificate separately. This gives a chance for the nav operator to create the operand
+# request for CS Certificate Manager.
+YAML=$(cat <<EOF
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: qm-${QM_NAME}-client
+spec:
+  commonName: ${NAMESPACE}.${IM_NAME}
+  subject:
+    organizationalUnits:
+    - my-team
+  secretName: qm-${QM_NAME}-client
+  issuerRef:
+    name: qm-${QM_NAME}-server
+    kind: Issuer
+    group: cert-manager.io
+EOF
+)
+OCApplyYAML "$NAMESPACE" "$YAML"
+echo -e "\n$TICK [SUCCESS] Successfully applied the client certificate yaml"
