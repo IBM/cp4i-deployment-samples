@@ -106,14 +106,7 @@ spec:
                 name: qm-${QM_NAME}-queues
                 items:
                   - myqm.mqsc
-EOF
-)
-OCApplyYAML "$NAMESPACE" "$YAML"
-echo -e "\n$TICK [SUCCESS] Successfully applied the Integration Manifest yaml"
-
-# Apply the certificate separately. This gives a chance for the nav operator to create the operand
-# request for CS Certificate Manager.
-YAML=$(cat <<EOF
+---
 apiVersion: cert-manager.io/v1
 kind: Certificate
 metadata:
@@ -131,4 +124,4 @@ spec:
 EOF
 )
 OCApplyYAML "$NAMESPACE" "$YAML"
-echo -e "\n$TICK [SUCCESS] Successfully applied the client certificate yaml"
+echo -e "\n$TICK [SUCCESS] Successfully applied the Integration Manifest yaml"
