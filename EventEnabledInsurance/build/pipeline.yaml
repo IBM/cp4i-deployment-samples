@@ -30,7 +30,7 @@ spec:
     - name: bld-simulator
       retries: 2
       runAfter:
-        - git-clone
+        - clone-git-src
       taskRef:
         name: build-task-no-pvc
       params:
@@ -62,7 +62,7 @@ spec:
     - name: bld-p-claims
       retries: 2
       runAfter:
-        - git-clone
+        - clone-git-src
       taskRef:
         name: build-task-no-pvc
       params:
@@ -91,11 +91,10 @@ spec:
         - name: git-source
           workspace: git-source
 
-    # TODO!!!
     - name: deploy-im
       retries: 2
       runAfter:
-        - git-clone
+        - clone-git-src
       taskRef:
         name: run-command
       params:
@@ -134,7 +133,7 @@ spec:
     - name: bld-ace-rest
       retries: 2
       runAfter:
-        - run-command
+        - clone-git-src
       taskRef:
         name: build-task
       params:
@@ -155,7 +154,7 @@ spec:
     - name: bld-db-writer
       retries: 2
       runAfter:
-        - run-command
+        - clone-git-src
       taskRef:
         name: build-task
       params:
