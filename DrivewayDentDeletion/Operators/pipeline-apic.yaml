@@ -36,7 +36,7 @@ spec:
         name: run-command
       params:
         - name: command
-          value: /workspace/git-source/DrivewayDentDeletion/Operators/deploy-im.sh -n cp4i -b {{DEFAULT_BLOCK_STORAGE}} -f {{DEFAULT_FILE_STORAGE}}
+          value: /workspace/git-source/DrivewayDentDeletion/Operators/deploy-im.sh -n {{NAMESPACE}} -b {{DEFAULT_BLOCK_STORAGE}} -f {{DEFAULT_FILE_STORAGE}}
       workspaces:
         - name: git-source
           workspace: git-source
@@ -49,7 +49,7 @@ spec:
         name: run-command
       params:
         - name: command
-          value: /workspace/git-source/products/bash/create-ace-mq-configuration.sh -n cp4i -c qm-mq-ddd-qm-dev-client -o application-ddd-dev
+          value: /workspace/git-source/products/bash/create-ace-mq-configuration.sh -n {{NAMESPACE}} -c qm-mq-ddd-qm-dev-client -o application-ddd-dev
       workspaces:
         - name: git-source
           workspace: git-source
@@ -295,7 +295,7 @@ spec:
         name: run-command
       params:
         - name: command
-          value: /workspace/git-source/DrivewayDentDeletion/Operators/deploy-im.sh -n cp4i -b {{DEFAULT_BLOCK_STORAGE}} -f {{DEFAULT_FILE_STORAGE}} -t
+          value: /workspace/git-source/DrivewayDentDeletion/Operators/deploy-im.sh -n {{NAMESPACE}} -b {{DEFAULT_BLOCK_STORAGE}} -f {{DEFAULT_FILE_STORAGE}} -t
       workspaces:
         - name: git-source
           workspace: git-source
@@ -308,7 +308,7 @@ spec:
         name: run-command
       params:
         - name: command
-          value: /workspace/git-source/products/bash/create-ace-mq-configuration.sh -n cp4i -c qm-mq-ddd-qm-test-client -o application-ddd-test
+          value: /workspace/git-source/products/bash/create-ace-mq-configuration.sh -n {{NAMESPACE}} -c qm-mq-ddd-qm-test-client -o application-ddd-test
       workspaces:
         - name: git-source
           workspace: git-source
