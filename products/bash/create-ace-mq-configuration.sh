@@ -84,9 +84,8 @@ echo "Tidy up the intermediate files, only want .kdb and .sth"
 rm ca.crt tls.crt tls.key application.pem application.p12 application.rdb
 ls -al
 
-echo "TODO Create the configuration"
+echo "Create the configuration zip file"
 cd $tmp
-
 zip application.zip mq-certs/*
 
 if [[ "$OSTYPE" == "linux-gnu"* ]]; then
