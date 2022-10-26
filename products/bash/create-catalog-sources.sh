@@ -155,9 +155,10 @@ metadata:
   name: ibm-integration-platform-navigator-catalog
   namespace: openshift-marketplace
 spec:
-  displayName: "PN Operators main Build 604"
+  displayName: "PN Operators PR 2930 build 11"
   # image: cp.stg.icr.io/cp/ibm-integration-platform-navigator-catalog:latest-cd
-  image: cp.stg.icr.io/cp/ibm-integration-platform-navigator-catalog:7.0.0-2022-10-25-1348-1477e540@sha256:62f28e6160166ad040bb11a2b14a12b2d43b9e990ba26562668b92352c160661
+  # From https://hyc-cip-jenkins.swg-devops.com/job/cp4i/job/cp4i-navigator-operator/view/change-requests/job/PR-2930/11/
+  image: cp.stg.icr.io/cp/ibm-integration-platform-navigator-catalog:7.0.0-2022-10-24-1734-dbdb47f3-predictable-im-child-crs@sha256:fb646136ab73c4f290067b030644c65bddfba3b304327fbe790bb3a8a9684c71
   publisher: IBM
   sourceType: grpc
   updateStrategy:
