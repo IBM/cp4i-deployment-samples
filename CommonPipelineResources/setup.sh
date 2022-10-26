@@ -43,15 +43,17 @@ OCApplyYAML "$NAMESPACE" "$YAML"
 echo -e "$INFO [INFO] Build command image"
 
 echo -e "[INFO] Checking if tekton-cli is pre-installed...\n"
+set +e
 tknInstalled=false
 TKN=tkn
 $TKN version
-
 if [ $? -ne 0 ]; then
   tknInstalled=false
 else
   tknInstalled=true
 fi
+
+set -e
 
 if [[ "$tknInstalled" == "false" ]]; then
   echo -e "$INFO [INFO] Installing tekton cli..."
