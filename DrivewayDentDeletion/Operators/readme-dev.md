@@ -56,7 +56,7 @@ oc patch storageclass cp4i-block-performance -p '{"metadata": {"annotations":{"s
 
 # Vars to be used later
 ```
-namespace=ddd-2
+namespace=demos
 #file_storage=ibmc-file-gold-gid
 #block_storage=ibmc-block-gold
 block_storage="cp4i-block-performance"
@@ -66,6 +66,7 @@ file_storage="cp4i-file-performance-gid"
 # Create the ibm-entitlement-key secret
 NOTE replace TODO with a real value!!!
 ```
+oc new-project ${namespace}
 export IMAGE_REPO=cp.icr.io
 export DOCKER_REGISTRY_USER=ekey
 export DOCKER_REGISTRY_PASS="TODO"
@@ -79,7 +80,6 @@ oc create secret docker-registry ibm-entitlement-key \
 # Run scripts to do some setup
 ```
 ../../products/bash/create-catalog-sources.sh
-oc new-project ${namespace}
 ../../products/bash/deploy-og-sub.sh -n ${namespace}
 ../../products/bash/release-navigator.sh -n ${namespace} -s ${file_storage}
 ../../products/bash/release-ace-dashboard.sh -n ${namespace} -s ${file_storage}
@@ -95,6 +95,4 @@ oc new-project ${namespace}
 ./cicd-apply-dev-pipeline.sh -n ${namespace} -f ${file_storage} -g ${block_storage} -b use-im-for-ddd -a false
 ./cicd-apply-test-pipeline.sh -n ${namespace} -f ${file_storage} -g ${block_storage} -b use-im-for-ddd -a false
 ./cicd-apply-test-apic-pipeline.sh -n ${namespace} -f ${file_storage} -g ${block_storage} -b use-im-for-ddd -a false
-
-# NOTE Trigger the above pipeline to create the ACE images
 ```
