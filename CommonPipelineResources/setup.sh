@@ -86,7 +86,9 @@ if [[ "$tknInstalled" == "false" ]]; then
 fi
 
 echo "INFO: Delete the old pipelineruns"
+set +e
 oc get pipelinerun -n ${namespace} --no-headers=true 2>/dev/null | awk '/common-build-pipelinerun/{print $1}' | xargs  oc delete pipelinerun -n ${namespace}
+set -e
 
 PIPELINERUN_UID=$(
   LC_ALL=C tr -dc 'a-z0-9' </dev/urandom | head -c 5
