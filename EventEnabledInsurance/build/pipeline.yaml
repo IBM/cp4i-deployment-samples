@@ -9,7 +9,7 @@ spec:
   workspaces:
     - name: git-source
   tasks:
-    - name: git-clone-eei
+    - name: clone-git-src
       retries: 2
       taskRef:
         name: git-clone
@@ -27,26 +27,10 @@ spec:
         - name: output
           workspace: git-source
 
-    - name: fixup-dockerfiles
+    - name: bld-simulator
       retries: 2
       runAfter:
-        - git-clone-eei
-      taskRef:
-        name: run-script
-      params:
-        - name: script
-          value: "products/bash/fixup-dockerfiles.sh"
-        - name: params
-          value: " -n {{NAMESPACE}}"
-      workspaces:
-        - name: git-source
-          workspace: git-source
-
-    # build simulator app image
-    - name: build-simulator-image
-      retries: 2
-      runAfter:
-        - fixup-dockerfiles
+        - clone-git-src
       taskRef:
         name: build-task-no-pvc
       params:
@@ -62,27 +46,23 @@ spec:
         - name: git-source
           workspace: git-source
 
-    # deploy simulator app image
-    - name: deploy-simulator-app
+    - name: deploy-simulator
       retries: 2
       runAfter:
-        - build-simulator-image
+        - bld-simulator
       taskRef:
-        name: run-script
+        name: run-command
       params:
-        - name: script
-          value: "EventEnabledInsurance/QuoteLifecycleSimulator/deploy.sh"
-        - name: params
-          value: " -n {{NAMESPACE}}"
+        - name: command
+          value: /workspace/git-source/EventEnabledInsurance/QuoteLifecycleSimulator/deploy.sh -n {{NAMESPACE}}
       workspaces:
         - name: git-source
           workspace: git-source
 
-    # build projection claim app image
-    - name: build-projection-claims-image
+    - name: bld-p-claims
       retries: 2
       runAfter:
-        - fixup-dockerfiles
+        - clone-git-src
       taskRef:
         name: build-task-no-pvc
       params:
@@ -98,63 +78,62 @@ spec:
         - name: git-source
           workspace: git-source
 
-    # deploy projection claim app image
-    - name: deploy-projection-claims-app
+    - name: deploy-p-claims
       retries: 2
       runAfter:
-        - build-projection-claims-image
+        - bld-p-claims
       taskRef:
-        name: run-script
+        name: run-command
       params:
-        - name: script
-          value: "EventEnabledInsurance/ProjectionClaims/deploy.sh"
-        - name: params
-          value: " -n {{NAMESPACE}}"
+        - name: command
+          value: /workspace/git-source/EventEnabledInsurance/ProjectionClaims/deploy.sh -n {{NAMESPACE}}
       workspaces:
         - name: git-source
           workspace: git-source
 
-    # build mq image
-    - name: build-mq-image
+    - name: deploy-im
       retries: 2
       runAfter:
-        - fixup-dockerfiles
+        - clone-git-src
       taskRef:
-        name: build-task-no-pvc
+        name: run-command
       params:
-        - name: imageTag
-          value: "latest"
-        - name: imageName
-          value: "mq-eei"
-        - name: dockerfile
-          value: "EventEnabledInsurance/MQ/Dockerfile"
-        - name: contextPath
-          value: "EventEnabledInsurance/MQ"
+        - name: command
+          value: /workspace/git-source/EventEnabledInsurance/build/deploy-im.sh -n {{NAMESPACE}} -b {{DEFAULT_BLOCK_STORAGE}} -f {{DEFAULT_FILE_STORAGE}}
       workspaces:
         - name: git-source
           workspace: git-source
 
-    # deploy mq image
-    - name: deploy-mq
+    - name: is-cfg
       retries: 2
       runAfter:
-        - build-mq-image
+        - deploy-im
       taskRef:
-        name: run-script
+        name: run-command
       params:
-        - name: script
-          value: "products/bash/release-mq.sh"
-        - name: params
-          value: " -n {{NAMESPACE}} -r mq-eei -i image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}/mq-eei:latest -q eei"
+        - name: command
+          value: /workspace/git-source/products/bash/create-ace-mq-configuration.sh -n {{NAMESPACE}} -c qm-mq-eei-qm-client -o application-eei
       workspaces:
         - name: git-source
           workspace: git-source
 
-    # build ace rest
-    - name: build-ace-rest
+    - name: wait-im
       retries: 2
       runAfter:
-        - fixup-dockerfiles
+        - deploy-im
+      taskRef:
+        name: run-command
+      params:
+        - name: command
+          value: oc wait --for=condition=ready -n {{NAMESPACE}} im eei --timeout 10m
+      workspaces:
+        - name: git-source
+          workspace: git-source
+
+    - name: bld-ace-rest
+      retries: 2
+      runAfter:
+        - clone-git-src
       taskRef:
         name: build-task
       params:
@@ -163,20 +142,19 @@ spec:
         - name: imageName
           value: "ace-rest-eei"
         - name: dockerfile
-          value: "../../../EventEnabledInsurance/ACE/REST.Dockerfile"
+          value: "EventEnabledInsurance/ACE/REST.Dockerfile"
         - name: contextPath
-          value: "../EventEnabledInsurance/ACE/BarFiles"
+          value: "EventEnabledInsurance/ACE/BarFiles"
         - name: pvc
           value: "buildah-ace-rest-eei"
       workspaces:
         - name: git-source
           workspace: git-source
 
-    # build ace db-writer
-    - name: build-ace-db-writer
+    - name: bld-db-writer
       retries: 2
       runAfter:
-        - fixup-dockerfiles
+        - clone-git-src
       taskRef:
         name: build-task
       params:
@@ -185,43 +163,37 @@ spec:
         - name: imageName
           value: "ace-db-writer-eei"
         - name: dockerfile
-          value: "../../../EventEnabledInsurance/ACE/DB-WRITER.Dockerfile"
+          value: "EventEnabledInsurance/ACE/DB-WRITER.Dockerfile"
         - name: contextPath
-          value: "../EventEnabledInsurance/ACE/BarFiles"
+          value: "EventEnabledInsurance/ACE/BarFiles"
         - name: pvc
           value: "buildah-ace-db-writer-eei"
       workspaces:
         - name: git-source
           workspace: git-source
 
-    # deploy ace rest
-    - name: deploy-ace-rest
+    - name: d-ace-rest
       retries: 2
       runAfter:
-        - build-ace-rest
+        - bld-ace-rest
       taskRef:
-        name: run-script
+        name: run-command
       params:
-        - name: script
-          value: "products/bash/release-ace-integration-server.sh"
-        - name: params
-          value: " -n '{{NAMESPACE}}' -r 'ace-rest-int-srv-eei' -i image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}/ace-rest-eei:latest -c {{CONFIGURATIONS}} -p 1"
+        - name: command
+          value: /workspace/git-source/products/bash/release-ace-integration-server.sh -n '{{NAMESPACE}}' -r 'ace-rest-int-srv-eei' -i image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}/ace-rest-eei:latest -c {{CONFIGURATIONS}} -p 1
       workspaces:
         - name: git-source
           workspace: git-source
 
-    # deploy ace db_writer
-    - name: deploy-db-writer
+    - name: d-db-writer
       retries: 2
       runAfter:
-        - build-ace-db-writer
+        - bld-db-writer
       taskRef:
-        name: run-script
+        name: run-command
       params:
-        - name: script
-          value: "products/bash/release-ace-integration-server.sh"
-        - name: params
-          value: " -n '{{NAMESPACE}}' -r 'ace-db-writer-int-srv-eei' -i image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}/ace-db-writer-eei:latest -c {{CONFIGURATIONS}} -p 1"
+        - name: command
+          value: /workspace/git-source/products/bash/release-ace-integration-server.sh -n '{{NAMESPACE}}' -r 'ace-db-writer-int-srv-eei' -i image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}/ace-db-writer-eei:latest -c {{CONFIGURATIONS}} -p 1
       workspaces:
         - name: git-source
           workspace: git-source
@@ -229,14 +201,12 @@ spec:
     - name: push-to-apic
       retries: 2
       runAfter:
-        - fixup-dockerfiles
+        - d-ace-rest
       taskRef:
-        name: run-script
+        name: run-command
       params:
-        - name: script
-          value: "products/bash/pub-sub-apic.sh"
-        - name: params
-          value: " -n '{{NAMESPACE}}' -d eei -t https://ace-rest-int-srv-eei-is:7843 -p EventEnabledInsurance/apic/apic-product-eei.yaml -s EventEnabledInsurance/apic/apic-api-eei.yaml"
+        - name: command
+          value: /workspace/git-source/products/bash/pub-sub-apic.sh -n '{{NAMESPACE}}' -d eei -t https://ace-rest-int-srv-eei-is:7843 -p EventEnabledInsurance/apic/apic-product-eei.yaml -s EventEnabledInsurance/apic/apic-api-eei.yaml
       workspaces:
         - name: git-source
           workspace: git-source
