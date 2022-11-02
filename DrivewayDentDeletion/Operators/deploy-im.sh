@@ -70,11 +70,13 @@ data:
     SET AUTHREC PROFILE('BumperOut') PRINCIPAL('app1') OBJTYPE(QUEUE) AUTHADD(BROWSE,GET,INQ,PUT)
     SET AUTHREC PROFILE('CrumpledIn') PRINCIPAL('app1') OBJTYPE(QUEUE) AUTHADD(BROWSE,GET,INQ,PUT)
     SET AUTHREC PROFILE('CrumpledOut') PRINCIPAL('app1') OBJTYPE(QUEUE) AUTHADD(BROWSE,GET,INQ,PUT)
+    SET CHLAUTH('MTLS.SVRCONN') TYPE(SSLPEERMAP) SSLPEER('CN=demos.example,OU=my-team') USERSRC(MAP) MCAUSER('app1') ACTION(ADD)
+    SET AUTHREC PRINCIPAL('app1') OBJTYPE(QMGR) AUTHADD(CONNECT,INQ)
     REFRESH SECURITY
     ALTER QMGR DEADQ(SYSTEM.DEAD.LETTER.QUEUE)
 ---
 apiVersion: integration.ibm.com/v1beta1
-kind: IntegrationManifest
+kind: IntegrationAssembly
 metadata:
   name: ${IM_NAME}
 spec:
@@ -124,4 +126,4 @@ spec:
 EOF
 )
 OCApplyYAML "$NAMESPACE" "$YAML"
-echo -e "\n$TICK [SUCCESS] Successfully applied the Integration Manifest yaml"
+echo -e "\n$TICK [SUCCESS] Successfully applied the Integration Assembly yaml"
