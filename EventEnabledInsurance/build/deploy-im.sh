@@ -62,7 +62,7 @@ data:
     ALTER QMGR DEADQ(SYSTEM.DEAD.LETTER.QUEUE)
 ---
 apiVersion: integration.ibm.com/v1beta1
-kind: IntegrationManifest
+kind: IntegrationAssembly
 metadata:
   name: ${IM_NAME}
 spec:
@@ -112,4 +112,4 @@ spec:
 EOF
 )
 OCApplyYAML "$NAMESPACE" "$YAML"
-echo -e "\n$TICK [SUCCESS] Successfully applied the Integration Manifest yaml"
+echo -e "\n$TICK [SUCCESS] Successfully applied the Integration Assembly yaml"
