@@ -258,7 +258,7 @@ else
   QM_NAME=mqeeiqm
   QM_HOST="mq-eei-ibm-mq"
 fi
-QM_CHANNEL=MTLSQMCHL
+QM_CHANNEL="MTLS.SVRCONN"
 cat $CONFIG_DIR/MQEndpointPolicy.policyxml.template |
   sed "s#ACE_SVRCONN#$QM_CHANNEL#g;" |
   sed "s#{{QM_NAME}}#$QM_NAME#g;" |
