@@ -62,7 +62,7 @@ spec:
         name: run-command
       params:
         - name: command
-          value: oc wait --for=condition=ready -n {{NAMESPACE}} im ddd-dev --timeout 10m
+          value: oc wait --for=condition=ready -n {{NAMESPACE}} ia ddd-dev --timeout 10m
       workspaces:
         - name: git-source
           workspace: git-source
@@ -321,7 +321,7 @@ spec:
         name: run-command
       params:
         - name: command
-          value: oc wait --for=condition=ready -n {{NAMESPACE}} im ddd-test --timeout 10m
+          value: oc wait --for=condition=ready -n {{NAMESPACE}} ia ddd-test --timeout 10m
       workspaces:
         - name: git-source
           workspace: git-source
