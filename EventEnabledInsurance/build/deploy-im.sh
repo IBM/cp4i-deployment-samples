@@ -106,7 +106,7 @@ spec:
     - my-team
   secretName: qm-${QM_NAME}-client
   issuerRef:
-    name: qm-${QM_NAME}-server
+    name: qm-${QM_NAME}-issuer
     kind: Issuer
     group: cert-manager.io
 EOF
