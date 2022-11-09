@@ -62,7 +62,7 @@ data:
     ALTER QMGR DEADQ(SYSTEM.DEAD.LETTER.QUEUE)
 ---
 apiVersion: integration.ibm.com/v1beta1
-kind: IntegrationManifest
+kind: IntegrationAssembly
 metadata:
   name: ${IM_NAME}
 spec:
@@ -106,10 +106,10 @@ spec:
     - my-team
   secretName: qm-${QM_NAME}-client
   issuerRef:
-    name: qm-${QM_NAME}-server
+    name: qm-${QM_NAME}-issuer
     kind: Issuer
     group: cert-manager.io
 EOF
 )
 OCApplyYAML "$NAMESPACE" "$YAML"
-echo -e "\n$TICK [SUCCESS] Successfully applied the Integration Manifest yaml"
+echo -e "\n$TICK [SUCCESS] Successfully applied the Integration Assembly yaml"

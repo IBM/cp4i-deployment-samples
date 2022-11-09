@@ -69,7 +69,7 @@ oc get -n ${NAMESPACE} secret $CLIENT_CERTIFICATE_SECRET -o json | jq -r '.data[
 oc get -n ${NAMESPACE} secret $CLIENT_CERTIFICATE_SECRET -o json | jq -r '.data["tls.key"]' | base64 --decode > tls.key
 
 echo "Create a pem with the ca and cert"
-cat ca.crt > application.pem
+#cat ca.crt > application.pem
 cat tls.crt >> application.pem
 
 echo "Export the pem to a p12"

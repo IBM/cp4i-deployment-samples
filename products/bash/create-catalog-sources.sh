@@ -155,10 +155,13 @@ metadata:
   name: ibm-integration-platform-navigator-catalog
   namespace: openshift-marketplace
 spec:
-  displayName: "PN Operators PR 2930 build 11"
+  displayName: "PN Operators update mqsc"
   # image: cp.stg.icr.io/cp/ibm-integration-platform-navigator-catalog:latest-cd
-  # From https://hyc-cip-jenkins.swg-devops.com/job/cp4i/job/cp4i-navigator-operator/view/change-requests/job/PR-2930/11/
-  image: cp.stg.icr.io/cp/ibm-integration-platform-navigator-catalog:7.0.0-2022-10-24-1734-dbdb47f3-predictable-im-child-crs@sha256:fb646136ab73c4f290067b030644c65bddfba3b304327fbe790bb3a8a9684c71
+  # image: hyc-cip-docker-local.artifactory.swg-devops.com/builds/ibm-integration-platform-navigator-catalog:7.0.0-2022-11-02-1205-72d06a0a-update-mqsc
+
+  # From https://hyc-cip-jenkins.swg-devops.com/job/cp4i/job/cp4i-navigator-operator/job/update-mqsc/5/
+  image: cp.stg.icr.io/cp/ibm-integration-platform-navigator-catalog:7.0.0-2022-11-04-0844-26bcc37f-update-mqsc@sha256:88dcbf5e86015015689d491ad0f63b815ca1e39dcdf97bc303cd9da04c9aef03
+
   publisher: IBM
   sourceType: grpc
   updateStrategy:
