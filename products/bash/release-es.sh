@@ -137,7 +137,7 @@ spec:
         class: ${storageClass}
         size: 2Gi
         type: persistent-claim
-  version: 11.0.2
+  version: latest
 EOF
 )
 else
@@ -203,7 +203,7 @@ spec:
       replicas: 3
       storage:
         type: ephemeral
-  version: 11.0.2
+  version: latest
 EOF
 )
 fi

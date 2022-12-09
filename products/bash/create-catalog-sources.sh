@@ -58,7 +58,7 @@ metadata:
   namespace: openshift-marketplace
 spec:
   displayName: "Aspera Operators latest"
-  image: icr.io/cpopen/aspera-hsts-catalog@sha256:56f539747689c755edb01ffd3266e3f438bfa978ee36fb2a872b41951d3301aa
+  image: icr.io/cpopen/aspera-hsts-catalog@sha256:a1c401135c5a4a9f3c88e2ac9b75299b9be376d6f97f34d7f68f2a31f0c726cd
   publisher: IBM
   sourceType: grpc
   updateStrategy:

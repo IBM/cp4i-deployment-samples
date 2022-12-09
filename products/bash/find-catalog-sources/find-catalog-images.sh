@@ -19,7 +19,7 @@ for CASE_NAME in ${CASE_NAMES}; do
   EXTRA_FLAGS=""
   retry_count=0
   if [[ "${CASE_NAME}" == "ibm-cp-common-services" ]]; then
-    echo "Using version 1.15 of the CS case, which should be 3.22.x of the operator"
+    echo "Using version 1.18 of the CS case, which should be 3.22.x of the operator"
     EXTRA_FLAGS="--version 1.18"
   fi
   echo "Saving case for ${CASE_NAME}"
