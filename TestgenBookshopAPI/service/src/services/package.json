@@ -16,7 +16,7 @@
     "@opentelemetry/propagator-jaeger": "^0.20.0",
     "@opentelemetry/tracing": "^0.20.0",
     "axios": "^0.21.1",
-    "express": "^4.17.1",
+    "express": "^4.17.3",
     "http-errors": "^1.8.0",
     "requesterror": "file:../libs/RequestError",
     "uuid": "^8.3.2"
