@@ -58,8 +58,8 @@ for row in ${rows}; do
         echo "The csv named [${current_csv}] in the [$(_jq '.namespace')] namespace needs to be deleted."
       fi
     fi
-    SUBSCRIPTION_JSON="$(oc get subscription -n ${subscription_namespace} ${subscription_name} -o json | jq 'del(.status) | del(.metadata.managedFields) | del(.metadata.creationTimestamp) | del(.metadata.uid) | del(.metadata.resourceVersion)')"
     if [[ "${DRY_RUN}" == "false" ]]; then
+      SUBSCRIPTION_JSON="$(oc get subscription -n ${subscription_namespace} ${subscription_name} -o json | jq 'del(.status) | del(.metadata.managedFields) | del(.metadata.creationTimestamp) | del(.metadata.uid) | del(.metadata.resourceVersion)')"
       oc delete subscription -n ${subscription_namespace} ${subscription_name}
 
       sleep 5
@@ -69,8 +69,6 @@ ${SUBSCRIPTION_JSON}
 EOF
     else
       echo "The subscription named [${subscription_name}] in the [${subscription_namespace}] namespace needs to be deleted and recreated."
-      echo "Use this json:"
-      echo "$SUBSCRIPTION_JSON"
     fi
   else
     echo "The operator named [${subscription_name}] in the [${subscription_namespace}] namespace needs to be deleted and re-installed."
