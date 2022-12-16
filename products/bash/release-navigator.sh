@@ -87,8 +87,10 @@ while [[ "$(oc get PlatformNavigator -n ${namespace} ${namespace}-navigator -o j
   fi
   echo "INFO: Waiting up to 90 minutes for platform navigator object to be ready. Waited ${time} minute(s)."
 
-  # TODO Remove this workaround when no longer needed
+  # TODO Remove these workarounds when no longer needed
   ${SCRIPT_DIR}/fix-usermgmt.sh -n ${namespace}
+  ${SCRIPT_DIR}/fixup-olm.sh -n $namespace
+
   time=$((time + 1))
   sleep 60
 done
