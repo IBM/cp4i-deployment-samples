@@ -62,8 +62,15 @@ for row in ${rows}; do
       # Check the creation time against the current time and only delete if it's had > 1 minute
       CREATION_TIMESTAMP=$(oc get subscription -n ${subscription_namespace} ${subscription_name} -o json | jq -r .metadata.creationTimestamp)
       CURRENT_TIMESTAMP=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
-      CREATION_TIMESTAMP_SECS=$(date -jf "%Y-%m-%dT%H:%M:%SZ" "${CREATION_TIMESTAMP}" +%s)
-      CURRENT_TIMESTAMP_SECS=$(date -jf "%Y-%m-%dT%H:%M:%SZ" "${CURRENT_TIMESTAMP}" +%s)
+
+      if [[ "$OSTYPE" == "darwin"* ]]; then
+        CREATION_TIMESTAMP_SECS=$(date -jf "%Y-%m-%dT%H:%M:%SZ" "${CREATION_TIMESTAMP}" +%s)
+        CURRENT_TIMESTAMP_SECS=$(date -jf "%Y-%m-%dT%H:%M:%SZ" "${CURRENT_TIMESTAMP}" +%s)
+      else
+        CREATION_TIMESTAMP_SECS=$(date -d"${CREATION_TIMESTAMP}" +%s)
+        CURRENT_TIMESTAMP_SECS=$(date -d"${CURRENT_TIMESTAMP}" +%s)
+      fi
+
       AGE="$(($CURRENT_TIMESTAMP_SECS-$CREATION_TIMESTAMP_SECS))"
       if [ "$AGE" -ge "60" ]; then
         SUBSCRIPTION_JSON="$(oc get subscription -n ${subscription_namespace} ${subscription_name} -o json | jq 'del(.status) | del(.metadata.managedFields) | del(.metadata.creationTimestamp) | del(.metadata.uid) | del(.metadata.resourceVersion)')"
