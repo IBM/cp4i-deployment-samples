@@ -59,14 +59,22 @@ for row in ${rows}; do
       fi
     fi
     if [[ "${DRY_RUN}" == "false" ]]; then
-      SUBSCRIPTION_JSON="$(oc get subscription -n ${subscription_namespace} ${subscription_name} -o json | jq 'del(.status) | del(.metadata.managedFields) | del(.metadata.creationTimestamp) | del(.metadata.uid) | del(.metadata.resourceVersion)')"
-      oc delete subscription -n ${subscription_namespace} ${subscription_name}
+      # Check the creation time against the current time and only delete if it's had > 1 minute
+      CREATION_TIMESTAMP=$(oc get subscription -n ${subscription_namespace} ${subscription_name} -o json | jq -r .metadata.creationTimestamp)
+      CURRENT_TIMESTAMP=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+      CREATION_TIMESTAMP_SECS=$(date -jf "%Y-%m-%dT%H:%M:%SZ" "${CREATION_TIMESTAMP}" +%s)
+      CURRENT_TIMESTAMP_SECS=$(date -jf "%Y-%m-%dT%H:%M:%SZ" "${CURRENT_TIMESTAMP}" +%s)
+      AGE="$(($CURRENT_TIMESTAMP_SECS-$CREATION_TIMESTAMP_SECS))"
+      if [ "$AGE" -ge "60" ]; then
+        SUBSCRIPTION_JSON="$(oc get subscription -n ${subscription_namespace} ${subscription_name} -o json | jq 'del(.status) | del(.metadata.managedFields) | del(.metadata.creationTimestamp) | del(.metadata.uid) | del(.metadata.resourceVersion)')"
+        oc delete subscription -n ${subscription_namespace} ${subscription_name}
 
-      sleep 5
+        sleep 5
 
-      cat <<EOF | oc apply -f -
+        cat <<EOF | oc apply -f -
 ${SUBSCRIPTION_JSON}
 EOF
+      fi
     else
       echo "The subscription named [${subscription_name}] in the [${subscription_namespace}] namespace needs to be deleted and recreated."
     fi
