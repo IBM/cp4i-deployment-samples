@@ -22,6 +22,9 @@
 #
 #   Overriding the namespace and release-name
 #     ./release-ar.sh -n cp4i-prod -r prod
+#   Add back into the spec of the cr when gofa can be used again
+#   designerAIFeatures:
+#     enabled: true
 
 function usage() {
   echo "Usage: $0 -n <namespace> -r <release-name> -a <assets storage class (file)> -c <couch storage class (block)>"
@@ -78,8 +81,6 @@ metadata:
       uid: ${METADATA_UID}"
   fi)
 spec:
-  designerAIFeatures:
-    enabled: true
   license:
     accept: true
     license: $(getARLicense $namespace)
