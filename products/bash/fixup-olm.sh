@@ -94,3 +94,20 @@ EOF
     echo "The operator named [${subscription_name}] in the [${subscription_namespace}] namespace needs to be deleted and re-installed."
   fi
 done
+
+NAMESPACES="$CP4I_NAMESPACE $CS_NAMESPACE"
+echo "Checking for orphaned CSVs in the following namespaces: [$NAMESPACES]"
+for NAMESPACE in ${NAMESPACES}; do
+  SUBSCRIPTION_CSVS=$(oc get subscriptions -n $NAMESPACE -o json | jq -r ".items[].status.currentCSV | select(. != null)")
+  CSVS=$(oc get csv -n $NAMESPACE -o json | jq -r ".items[].metadata.name")
+  for CSV in ${CSVS}; do
+    echo $SUBSCRIPTION_CSVS | grep -w -q $CSV
+    if [[ $? != 0 ]]; then
+      if [[ "${DRY_RUN}" == "false" ]]; then
+        oc delete csv -n $NAMESPACE $CSV
+      else
+        echo "The CSV named [$CSV] needs to be deleted from the [$NAMESPACE] namespace."
+      fi
+    fi
+  done
+done
