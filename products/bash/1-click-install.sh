@@ -505,6 +505,10 @@ divider
 
 if ! $CURRENT_DIR/deploy-og-sub.sh -n "$DEPLOY_OPERATOR_NAMESPACE"; then
   echo -e "$CROSS [ERROR] Failed to deploy the operator group and subscriptions"
+
+  echo 'Output of "oc get nodes" for info:'
+  oc get nodes
+
   divider
   exit 1
 else
