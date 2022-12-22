@@ -147,25 +147,6 @@ OCApplyYAML "$namespace" "$YAML"
 echo "INFO: Wait for all subscriptions to succeed"
 wait_for_all_subscriptions "${namespace}"
 
-# TODO No longer want this!
-# YAML=$(cat <<EOF
-# apiVersion: operators.coreos.com/v1alpha1
-# kind: Subscription
-# metadata:
-#   name: ibm-ai-wmltraining-ibm-ai-wmltraining-operator-catalog-openshift-marketplace
-# spec:
-#   installPlanApproval: Automatic
-#   name: ibm-ai-wmltraining
-#   source: ibm-ai-wmltraining-operator-catalog
-#   sourceNamespace: openshift-marketplace
-# EOF
-# )
-# echo "namespace=$namespace"
-# OCApplyYAML "$namespace" "$YAML"
-#
-# echo "INFO: Wait for all subscriptions to succeed"
-# wait_for_all_subscriptions "${namespace}"
-
 YAML=$(cat <<EOF
 apiVersion: operators.coreos.com/v1alpha1
 kind: Subscription
