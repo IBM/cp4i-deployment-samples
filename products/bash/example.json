@@ -1,0 +1,1 @@
+{"version":"2022.2.1","conditions":[{"lastTransitionTime":"2022-12-22T11:36:44.UTC","message":"Secret 'ibm-entitlement-key' not found in 'cp4i' namespace","reason":"Getting","status":"True","type":"Error"}],"phase":"Failed","demos":[],"addons":[],"products":[],"namespaces":[{"name":"cp4i"}]}
