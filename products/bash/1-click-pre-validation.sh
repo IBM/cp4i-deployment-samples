@@ -252,6 +252,9 @@ if [ "$OCP_VERSION_OK" == "true" ]; then
   echo -e "$tick INFO: The Openshift version (${OCP_VERSION}) is supported. Minimum version is ${MIN_OCP_VERSION} and maximum version is ${MAX_OCP_VERSION}"
 fi
 
+echo 'Output of "oc get nodes" for info:'
+oc get nodes
+
 divider
 
 if [[ $check -ne 0 ]]; then
