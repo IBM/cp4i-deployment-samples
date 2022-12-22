@@ -2,28 +2,27 @@
   "apiVersion": "integration.ibm.com/v1beta1",
   "kind": "Demo",
   "metadata": {
-    "namespace": "JOB_NAMESPACE",
+    "namespace": "cp4i",
     "name": "demos"
   },
   "spec": {
     "general": {
       "storage": {
         "block": {
-          "class": "DEFAULT_BLOCK_STORAGE"
+          "class": "cp4i-block-performance"
         },
         "file": {
-          "class": "DEFAULT_FILE_STORAGE"
+          "class": "cp4i-file-performance-gid"
         }
       },
       "samplesRepoBranch": "DEMO_DEPLOYMENT_BRANCH"
     },
     "demos": {
-      "all": "DEMO_PREPARATION",
-      "cognitiveCarRepair": "COGNITIVE_CAR_REPAIR_DEMO",
-      "drivewayDentDeletion": "DRIVEWAY_DENT_DELETION_DEMO",
-      "eventEnabledInsurance": "EVENT_ENABLED_INSURANCE_DEMO",
-      "mappingAssist": "MAPPING_ASSIST_DEMO",
-      "weatherChatbot": "WEATHER_CHATBOT_DEMO"
+      "cognitiveCarRepair": true,
+      "drivewayDentDeletion": true,
+      "eventEnabledInsurance": true,
+      "mappingAssist": true,
+      "weatherChatbot": true
     }
   }
 }
