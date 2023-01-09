@@ -69,7 +69,7 @@ spec:
   version: 2022.4.1
   license:
     accept: true
-    license: Q4-license
+    license: L-RJON-CJR2RX
     use: CloudPakForIntegrationNonProduction
   storage:
     readWriteOnce:
