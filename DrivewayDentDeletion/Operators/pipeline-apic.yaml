@@ -222,7 +222,6 @@ spec:
         - apic-dev
         - is-cfg-dev
         - wait-im-dev
-        - d-api-dev
         - d-acme-dev
         - d-bernie-dev
         - d-chris-dev
@@ -397,7 +396,6 @@ spec:
         - apic-test
         - is-cfg-test
         - wait-im-test
-        - d-api-test
         - d-acme-test
         - d-bernie-test
         - d-chris-test
