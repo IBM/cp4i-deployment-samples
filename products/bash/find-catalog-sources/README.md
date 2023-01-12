@@ -14,6 +14,8 @@ MQ_CATALOG_DISPLAY_NAME="MQ Operators 1.8.1"
 This list needs to be re-calculated for each new release of CP4I and doing this manually is a pain,
 so this dir provides some scripts to help do this.
 
+Please note that in order to make the catalog sources match for upgrade you need to manually change the catalog source name for appconnect to `ibm-appconnect-catalog`, aspera to `ibm-aspera-hsts-operator-catalog` and datapower to `ibm-datapower-operator-catalog`
+
 ## find-catalog-images.sh
 This is the main script which finds the latest catalog images for all CP4I cases. I.e.:
 ```
