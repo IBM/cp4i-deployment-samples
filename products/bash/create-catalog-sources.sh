@@ -40,7 +40,7 @@ spec:
 apiVersion: operators.coreos.com/v1alpha1
 kind: CatalogSource
 metadata:
-  name: appconnect-operator-catalog
+  name: ibm-appconnect-catalog
   namespace: openshift-marketplace
 spec:
   displayName: "ACE Operators 6.2.0"
@@ -54,7 +54,7 @@ spec:
 apiVersion: operators.coreos.com/v1alpha1
 kind: CatalogSource
 metadata:
-  name: aspera-hsts-catalog
+  name: ibm-aspera-hsts-operator-catalog
   namespace: openshift-marketplace
 spec:
   displayName: "Aspera Operators latest"
@@ -96,7 +96,7 @@ spec:
 apiVersion: operators.coreos.com/v1alpha1
 kind: CatalogSource
 metadata:
-  name: datapower-operator-catalog
+  name: ibm-datapower-operator-catalog
   namespace: openshift-marketplace
 spec:
   displayName: "DP Operators 1.6.4"
