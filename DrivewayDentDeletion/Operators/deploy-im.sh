@@ -75,6 +75,70 @@ data:
     REFRESH SECURITY
     ALTER QMGR DEADQ(SYSTEM.DEAD.LETTER.QUEUE)
 ---
+apiVersion: cert-manager.io/v1
+kind: Issuer
+metadata:
+  name: ia-${NAMESPACE}-${IM_NAME}-ca
+  labels:
+    app.kubernetes.io/component: ibm-mq
+    app.kubernetes.io/instance: ${NAMESPACE}.ddd-dev
+    app.kubernetes.io/managed-by: ibm-integration-platform-navigator-operator
+    app.kubernetes.io/name: integration-assembly
+    app.kubernetes.io/part-of: ${NAMESPACE}.ddd-dev
+spec:
+  selfSigned: {}
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: ia-${NAMESPACE}-${IM_NAME}-ca
+  labels:
+    app.kubernetes.io/component: ibm-mq
+    app.kubernetes.io/instance: ${NAMESPACE}.ddd-dev
+    app.kubernetes.io/managed-by: ibm-integration-platform-navigator-operator
+    app.kubernetes.io/name: integration-assembly
+    app.kubernetes.io/part-of: ${NAMESPACE}.ddd-dev
+spec:
+  commonName: ca
+  isCA: true
+  issuerRef:
+    group: cert-manager.io
+    kind: Issuer
+    name: ia-${NAMESPACE}-${IM_NAME}-ca
+  secretName: ia-${NAMESPACE}-${IM_NAME}-ca
+---
+apiVersion: cert-manager.io/v1
+kind: Issuer
+metadata:
+  name: qm-${QM_NAME}-issuer
+  labels:
+    app.kubernetes.io/component: ibm-mq
+    app.kubernetes.io/instance: ${NAMESPACE}.ddd-dev
+    app.kubernetes.io/managed-by: ibm-integration-platform-navigator-operator
+    app.kubernetes.io/name: integration-assembly
+    app.kubernetes.io/part-of: ${NAMESPACE}.ddd-dev
+spec:
+  ca:
+    secretName: ia-${NAMESPACE}-${IM_NAME}-ca
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: qm-${QM_NAME}-server
+  labels:
+    app.kubernetes.io/component: ibm-mq
+    app.kubernetes.io/instance: ${NAMESPACE}.ddd-dev
+    app.kubernetes.io/managed-by: ibm-integration-platform-navigator-operator
+    app.kubernetes.io/name: integration-assembly
+    app.kubernetes.io/part-of: ${NAMESPACE}.ddd-dev
+spec:
+  commonName: cert
+  issuerRef:
+    group: cert-manager.io
+    kind: Issuer
+    name: qm-${QM_NAME}-issuer
+  secretName: qm-${QM_NAME}-server
+---
 apiVersion: integration.ibm.com/v1beta1
 kind: IntegrationAssembly
 metadata:
@@ -98,6 +162,20 @@ spec:
       spec:
         web:
           enabled: true
+        pki:
+          keys:
+          - name: default
+            secret:
+              items:
+              - tls.key
+              - tls.crt
+              secretName: qm-${QM_NAME}-server
+          trust:
+          - name: rootca
+            secret:
+              items:
+              - ca.crt
+              secretName: qm-${QM_NAME}-server
         queueManager:
           mqsc:
             - configMap:
