@@ -62,7 +62,7 @@ function buildConfigurationCR() {
     COMMAND="base64 -w0 $file"
   elif [[ "$OSTYPE" == "darwin"* ]]; then
     echo -e "$INFO [INFO] Creating ace config base64 command for MAC"
-    COMMAND="base64 $file"
+    COMMAND="base64 -i $file"
   fi
   CONTENTS="$($COMMAND)"
   if [[ "$?" != "0" ]]; then
@@ -256,7 +256,7 @@ if [[ $SUFFIX == "ddd" ]]; then
   QM_HOST="mq-ddd-qm-${DDD_DEMO_TYPE}-ibm-mq"
 else
   QM_NAME=mqeeiqm
-  QM_HOST="mq-eei-ibm-mq"
+  QM_HOST="mq-eei-qm-ibm-mq"
 fi
 QM_CHANNEL="MTLS.SVRCONN"
 cat $CONFIG_DIR/MQEndpointPolicy.policyxml.template |
