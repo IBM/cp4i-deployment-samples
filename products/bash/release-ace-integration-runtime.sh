@@ -79,41 +79,29 @@ echo -e "INFO: Going ahead to apply the CR for '$release_name'"
 divider
 
 YAML=$(cat <<EOF
-apiVersion: integration.ibm.com/v1beta1
-kind: IntegrationAssembly
+apiVersion: appconnect.ibm.com/v1beta1
+kind: IntegrationRuntime
 metadata:
-  name: ${release_name}-ia
+  name: ${release_name}
+  namespace: ${namespace}
 spec:
-  version: next
   license:
     accept: true
-    license: L-RJON-CJR2RX
-    use: CloudPakForIntegrationNonProduction
-  storage:
-    readWriteOnce:
-      class: ${BLOCK_STORAGE_CLASS}
-    readWriteMany:
-      class: ${FILE_STORAGE_CLASS}
-  managedIntegrations:
-    list:
-    - kind: IntegrationRuntime
-      metadata:
-        name: ${release_name}
-      spec:
-        template:
-          spec:
-            containers:
-              - name: runtime
-                resources:
-                  requests:
-                    cpu: 300m
-                    memory: 368Mi
-        logFormat: basic
-        barURL: ${bar_file_urls}
-        configurations: $configurations
-        version: '12.0'
-        replicas: ${replicas}
-
+    license: $(getACELicense $namespace)
+    use: ${license_use}
+  template:
+    spec:
+      containers:
+        - name: runtime
+          resources:
+            requests:
+              cpu: 300m
+              memory: 368Mi
+  logFormat: basic
+  barURL: ${bar_file_urls}
+  configurations: $configurations
+  version: '12.0'
+  replicas: ${replicas}
 EOF
 )
 OCApplyYAML "$namespace" "$YAML"
