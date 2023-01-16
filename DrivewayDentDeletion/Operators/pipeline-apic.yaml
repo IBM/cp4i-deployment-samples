@@ -62,91 +62,7 @@ spec:
         name: run-command
       params:
         - name: command
-          value: oc wait --for=condition=ready -n {{NAMESPACE}} ia ddd-dev --timeout 10m
-      workspaces:
-        - name: git-source
-          workspace: git-source
-
-    - name: bld-is-api
-      retries: 2
-      runAfter:
-        - clone-git-src
-      taskRef:
-        name: build-task
-      params:
-        - name: imageTag
-          value: "$(params.imageTag)"
-        - name: imageName
-          value: "ddd-ace-api"
-        - name: dockerfile
-          value: "DrivewayDentDeletion/Operators/Dockerfiles/ACE-API.Dockerfile"
-        - name: contextPath
-          value: "DrivewayDentDeletion/Bar_files/ace-api"
-        - name: pvc
-          value: "buildah-ace-api"
-      workspaces:
-        - name: git-source
-          workspace: git-source
-
-    - name: bld-is-acme
-      retries: 2
-      runAfter:
-        - clone-git-src
-      taskRef:
-        name: build-task
-      params:
-        - name: imageTag
-          value: "$(params.imageTag)"
-        - name: imageName
-          value: "ddd-ace-acme"
-        - name: dockerfile
-          value: "DrivewayDentDeletion/Operators/Dockerfiles/ACE-Acme.Dockerfile"
-        - name: contextPath
-          value: "DrivewayDentDeletion/Bar_files/ace-acme"
-        - name: pvc
-          value: "buildah-ace-acme"
-      workspaces:
-        - name: git-source
-          workspace: git-source
-
-    - name: bld-is-bernie
-      retries: 2
-      runAfter:
-        - clone-git-src
-      taskRef:
-        name: build-task
-      params:
-        - name: imageTag
-          value: "$(params.imageTag)"
-        - name: imageName
-          value: "ddd-ace-bernie"
-        - name: dockerfile
-          value: "DrivewayDentDeletion/Operators/Dockerfiles/ACE-Bernie.Dockerfile"
-        - name: contextPath
-          value: "DrivewayDentDeletion/Bar_files/ace-bernie"
-        - name: pvc
-          value: "buildah-ace-bernie"
-      workspaces:
-        - name: git-source
-          workspace: git-source
-
-    - name: bld-is-chris
-      retries: 2
-      runAfter:
-        - clone-git-src
-      taskRef:
-        name: build-task
-      params:
-        - name: imageTag
-          value: "$(params.imageTag)"
-        - name: imageName
-          value: "ddd-ace-chris"
-        - name: dockerfile
-          value: "DrivewayDentDeletion/Operators/Dockerfiles/ACE-Chris.Dockerfile"
-        - name: contextPath
-          value: "DrivewayDentDeletion/Bar_files/ace-chris"
-        - name: pvc
-          value: "buildah-ace-chris"
+          value: oc wait --for=condition=ready -n {{NAMESPACE}} IntegrationAssembly ddd-dev --timeout 10m
       workspaces:
         - name: git-source
           workspace: git-source
@@ -154,12 +70,17 @@ spec:
     - name: d-api-dev
       retries: 2
       runAfter:
-        - bld-is-api
+        - clone-git-src
       taskRef:
         name: run-command
       params:
         - name: command
-          value: /workspace/git-source/products/bash/release-ace-integration-server.sh -n {{NAMESPACE}} -a false -r ddd-dev-ace-api -i image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}/ddd-ace-api:$(params.imageTag) {{TRACING}} -c "[keystore-ddd, policyproject-ddd-dev, serverconf-ddd, setdbparms-ddd, application-ddd-dev]"
+          value: |
+            FORKED_REPO={{FORKED_REPO}}
+            BRANCH={{BRANCH}}
+            BAR_FILES='["'${FORKED_REPO%.*}/raw/${BRANCH}/DrivewayDentDeletion/Bar_files/ace-api/DrivewayDemo.bar'"]'
+            CONFIGURATIONS="[keystore-ddd, policyproject-ddd-dev, serverconf-ddd, setdbparms-ddd, application-ddd-dev, barauth-empty]"
+            /workspace/git-source/products/bash/release-ace-integration-runtime.sh -n {{NAMESPACE}} -r ddd-dev-ace-api -b "${BAR_FILES}" -c "${CONFIGURATIONS}"
       workspaces:
         - name: git-source
           workspace: git-source
@@ -167,12 +88,17 @@ spec:
     - name: d-acme-dev
       retries: 2
       runAfter:
-        - bld-is-acme
+        - clone-git-src
       taskRef:
         name: run-command
       params:
         - name: command
-          value: /workspace/git-source/products/bash/release-ace-integration-server.sh -n {{NAMESPACE}} -a false -r ddd-dev-ace-acme -i image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}/ddd-ace-acme:$(params.imageTag) {{TRACING}} -c "[keystore-ddd, policyproject-ddd-dev, serverconf-ddd, setdbparms-ddd, application-ddd-dev]"
+          value: |
+            FORKED_REPO={{FORKED_REPO}}
+            BRANCH={{BRANCH}}
+            BAR_FILES='["'${FORKED_REPO%.*}/raw/${BRANCH}/DrivewayDentDeletion/Bar_files/ace-acme/AcmeV1.bar'"]'
+            CONFIGURATIONS="[keystore-ddd, policyproject-ddd-dev, serverconf-ddd, setdbparms-ddd, application-ddd-dev, barauth-empty]"
+            /workspace/git-source/products/bash/release-ace-integration-runtime.sh -n {{NAMESPACE}} -r ddd-dev-ace-acme -b "${BAR_FILES}" -c "${CONFIGURATIONS}"
       workspaces:
         - name: git-source
           workspace: git-source
@@ -180,12 +106,17 @@ spec:
     - name: d-bernie-dev
       retries: 2
       runAfter:
-        - bld-is-bernie
+        - clone-git-src
       taskRef:
         name: run-command
       params:
         - name: command
-          value: /workspace/git-source/products/bash/release-ace-integration-server.sh -n {{NAMESPACE}} -a false -r ddd-dev-ace-bernie -i image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}/ddd-ace-bernie:$(params.imageTag) {{TRACING}} -c "[keystore-ddd, policyproject-ddd-dev, serverconf-ddd, setdbparms-ddd, application-ddd-dev]"
+          value: |
+            FORKED_REPO={{FORKED_REPO}}
+            BRANCH={{BRANCH}}
+            BAR_FILES='["'${FORKED_REPO%.*}/raw/${BRANCH}/DrivewayDentDeletion/Bar_files/ace-bernie/BernieV1.bar'"]'
+            CONFIGURATIONS="[keystore-ddd, policyproject-ddd-dev, serverconf-ddd, setdbparms-ddd, application-ddd-dev, barauth-empty]"
+            /workspace/git-source/products/bash/release-ace-integration-runtime.sh -n {{NAMESPACE}} -r ddd-dev-ace-bernie -b "${BAR_FILES}" -c "${CONFIGURATIONS}"
       workspaces:
         - name: git-source
           workspace: git-source
@@ -193,12 +124,17 @@ spec:
     - name: d-chris-dev
       retries: 2
       runAfter:
-        - bld-is-chris
+        - clone-git-src
       taskRef:
         name: run-command
       params:
         - name: command
-          value: /workspace/git-source/products/bash/release-ace-integration-server.sh -n {{NAMESPACE}} -a false -r ddd-dev-ace-chris -i image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}/ddd-ace-chris:$(params.imageTag) {{TRACING}} -c "[keystore-ddd, policyproject-ddd-dev, serverconf-ddd, setdbparms-ddd, application-ddd-dev]"
+          value: |
+            FORKED_REPO={{FORKED_REPO}}
+            BRANCH={{BRANCH}}
+            BAR_FILES='["'${FORKED_REPO%.*}/raw/${BRANCH}/DrivewayDentDeletion/Bar_files/ace-chris/CrumpledV1.bar'"]'
+            CONFIGURATIONS="[keystore-ddd, policyproject-ddd-dev, serverconf-ddd, setdbparms-ddd, application-ddd-dev, barauth-empty]"
+            /workspace/git-source/products/bash/release-ace-integration-runtime.sh -n {{NAMESPACE}} -r ddd-dev-ace-chris -b "${BAR_FILES}" -c "${CONFIGURATIONS}"
       workspaces:
         - name: git-source
           workspace: git-source
@@ -211,7 +147,9 @@ spec:
         name: run-command
       params:
         - name: command
-          value: /workspace/git-source/products/bash/pub-sub-apic.sh -n {{NAMESPACE}} -r ademo -e dev
+          value: |
+            TARGET_URL="https://ddd-dev-ace-api-ir.{{NAMESPACE}}.svc.cluster.local:7843"
+            /workspace/git-source/products/bash/pub-sub-apic.sh -n {{NAMESPACE}} -r ademo -e dev -t ${TARGET_URL}
       workspaces:
         - name: git-source
           workspace: git-source
@@ -230,58 +168,6 @@ spec:
       params:
         - name: command
           value: /workspace/git-source/DrivewayDentDeletion/Operators/test-api-e2e.sh -n {{NAMESPACE}} -s ddd -d dev -a
-      workspaces:
-        - name: git-source
-          workspace: git-source
-
-    - name: api-to-test
-      retries: 2
-      runAfter:
-        - test-apic-dev
-      taskRef:
-        name: run-command
-      params:
-        - name: command
-          value: oc tag -n {{NAMESPACE}} ddd-ace-api:$(params.imageTag) ddd-ace-api:$(params.imageTag)-test
-      workspaces:
-        - name: git-source
-          workspace: git-source
-
-    - name: acme-to-test
-      retries: 2
-      runAfter:
-        - test-apic-dev
-      taskRef:
-        name: run-command
-      params:
-        - name: command
-          value: oc tag -n {{NAMESPACE}} ddd-ace-acme:$(params.imageTag) ddd-ace-acme:$(params.imageTag)-test
-      workspaces:
-        - name: git-source
-          workspace: git-source
-
-    - name: bernie-to-test
-      retries: 2
-      runAfter:
-        - test-apic-dev
-      taskRef:
-        name: run-command
-      params:
-        - name: command
-          value: oc tag -n {{NAMESPACE}} ddd-ace-bernie:$(params.imageTag) ddd-ace-bernie:$(params.imageTag)-test
-      workspaces:
-        - name: git-source
-          workspace: git-source
-
-    - name: chris-to-test
-      retries: 2
-      runAfter:
-        - test-apic-dev
-      taskRef:
-        name: run-command
-      params:
-        - name: command
-          value: oc tag -n {{NAMESPACE}} ddd-ace-chris:$(params.imageTag) ddd-ace-chris:$(params.imageTag)-test
       workspaces:
         - name: git-source
           workspace: git-source
@@ -320,7 +206,7 @@ spec:
         name: run-command
       params:
         - name: command
-          value: oc wait --for=condition=ready -n {{NAMESPACE}} ia ddd-test --timeout 10m
+          value: oc wait --for=condition=ready -n {{NAMESPACE}} IntegrationAssembly ddd-test --timeout 10m
       workspaces:
         - name: git-source
           workspace: git-source
@@ -328,12 +214,17 @@ spec:
     - name: d-api-test
       retries: 2
       runAfter:
-        - api-to-test
+        - test-apic-dev
       taskRef:
         name: run-command
       params:
         - name: command
-          value: /workspace/git-source/products/bash/release-ace-integration-server.sh -n {{NAMESPACE}} -a false -r ddd-test-ace-api -i image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}/ddd-ace-api:$(params.imageTag) {{TRACING}} -c "[keystore-ddd, policyproject-ddd-test, serverconf-ddd, setdbparms-ddd, application-ddd-test]"
+          value: |
+            FORKED_REPO={{FORKED_REPO}}
+            BRANCH={{BRANCH}}
+            BAR_FILES='["'${FORKED_REPO%.*}/raw/${BRANCH}/DrivewayDentDeletion/Bar_files/ace-api/DrivewayDemo.bar'"]'
+            CONFIGURATIONS="[keystore-ddd, policyproject-ddd-test, serverconf-ddd, setdbparms-ddd, application-ddd-test, barauth-empty]"
+            /workspace/git-source/products/bash/release-ace-integration-runtime.sh -n {{NAMESPACE}} -r ddd-test-ace-api -b "${BAR_FILES}" -c "${CONFIGURATIONS}"
       workspaces:
         - name: git-source
           workspace: git-source
@@ -341,12 +232,17 @@ spec:
     - name: d-acme-test
       retries: 2
       runAfter:
-        - acme-to-test
+        - test-apic-dev
       taskRef:
         name: run-command
       params:
         - name: command
-          value: /workspace/git-source/products/bash/release-ace-integration-server.sh -n {{NAMESPACE}} -a false -r ddd-test-ace-acme -i image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}/ddd-ace-acme:$(params.imageTag) {{TRACING}} -c "[keystore-ddd, policyproject-ddd-test, serverconf-ddd, setdbparms-ddd, application-ddd-test]"
+          value: |
+            FORKED_REPO={{FORKED_REPO}}
+            BRANCH={{BRANCH}}
+            BAR_FILES='["'${FORKED_REPO%.*}/raw/${BRANCH}/DrivewayDentDeletion/Bar_files/ace-acme/AcmeV1.bar'"]'
+            CONFIGURATIONS="[keystore-ddd, policyproject-ddd-test, serverconf-ddd, setdbparms-ddd, application-ddd-test, barauth-empty]"
+            /workspace/git-source/products/bash/release-ace-integration-runtime.sh -n {{NAMESPACE}} -r ddd-test-ace-acme -b "${BAR_FILES}" -c "${CONFIGURATIONS}"
       workspaces:
         - name: git-source
           workspace: git-source
@@ -354,12 +250,17 @@ spec:
     - name: d-bernie-test
       retries: 2
       runAfter:
-        - bernie-to-test
+        - test-apic-dev
       taskRef:
         name: run-command
       params:
         - name: command
-          value: /workspace/git-source/products/bash/release-ace-integration-server.sh -n {{NAMESPACE}} -a false -r ddd-test-ace-bernie -i image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}/ddd-ace-bernie:$(params.imageTag) {{TRACING}} -c "[keystore-ddd, policyproject-ddd-test, serverconf-ddd, setdbparms-ddd, application-ddd-test]"
+          value: |
+            FORKED_REPO={{FORKED_REPO}}
+            BRANCH={{BRANCH}}
+            BAR_FILES='["'${FORKED_REPO%.*}/raw/${BRANCH}/DrivewayDentDeletion/Bar_files/ace-bernie/BernieV1.bar'"]'
+            CONFIGURATIONS="[keystore-ddd, policyproject-ddd-test, serverconf-ddd, setdbparms-ddd, application-ddd-test, barauth-empty]"
+            /workspace/git-source/products/bash/release-ace-integration-runtime.sh -n {{NAMESPACE}} -r ddd-test-ace-bernie -b "${BAR_FILES}" -c "${CONFIGURATIONS}"
       workspaces:
         - name: git-source
           workspace: git-source
@@ -367,12 +268,17 @@ spec:
     - name: d-chris-test
       retries: 2
       runAfter:
-        - chris-to-test
+        - test-apic-dev
       taskRef:
         name: run-command
       params:
         - name: command
-          value: /workspace/git-source/products/bash/release-ace-integration-server.sh -n {{NAMESPACE}} -a false -r ddd-test-ace-chris -i image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}/ddd-ace-chris:$(params.imageTag) {{TRACING}} -c "[keystore-ddd, policyproject-ddd-test, serverconf-ddd, setdbparms-ddd, application-ddd-test]"
+          value: |
+            FORKED_REPO={{FORKED_REPO}}
+            BRANCH={{BRANCH}}
+            BAR_FILES='["'${FORKED_REPO%.*}/raw/${BRANCH}/DrivewayDentDeletion/Bar_files/ace-chris/CrumpledV1.bar'"]'
+            CONFIGURATIONS="[keystore-ddd, policyproject-ddd-test, serverconf-ddd, setdbparms-ddd, application-ddd-test, barauth-empty]"
+            /workspace/git-source/products/bash/release-ace-integration-runtime.sh -n {{NAMESPACE}} -r ddd-test-ace-chris -b "${BAR_FILES}" -c "${CONFIGURATIONS}"
       workspaces:
         - name: git-source
           workspace: git-source
@@ -385,7 +291,9 @@ spec:
         name: run-command
       params:
         - name: command
-          value: /workspace/git-source/products/bash/pub-sub-apic.sh -n {{NAMESPACE}} -r ademo -e test
+          value: |
+            TARGET_URL="https://ddd-test-ace-api-ir.{{NAMESPACE}}.svc.cluster.local:7843"
+            /workspace/git-source/products/bash/pub-sub-apic.sh -n {{NAMESPACE}} -r ademo -e test -t ${TARGET_URL}
       workspaces:
         - name: git-source
           workspace: git-source
