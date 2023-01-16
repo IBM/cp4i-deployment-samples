@@ -158,7 +158,7 @@ spec:
           value: |
             FORKED_REPO={{FORKED_REPO}}
             BRANCH={{BRANCH}}
-            BAR_FILES='["'${FORKED_REPO%.*}/raw/${BRANCH}/EventEnabledInsurance/ACE/BarFiles/DB_WRITER.bar'"]'
+            BAR_FILES='["'${FORKED_REPO%.*}/raw/${BRANCH}/EventEnabledInsurance/ACE/BarFiles/DB-WRITER.bar'"]'
             /workspace/git-source/products/bash/release-ace-integration-runtime.sh -n '{{NAMESPACE}}' -r 'ace-db-writer-int-srv-eei' -b "${BAR_FILES}" -c {{CONFIGURATIONS}}
       workspaces:
         - name: git-source
