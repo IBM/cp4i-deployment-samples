@@ -167,6 +167,7 @@ spec:
       metadata:
         name: ${QM_NAME}
       spec:
+        version: 9.3.1.0-r3
         web:
           enabled: true
         pki:
