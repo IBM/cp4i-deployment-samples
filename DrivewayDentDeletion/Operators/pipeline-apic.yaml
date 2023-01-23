@@ -62,7 +62,7 @@ spec:
         name: run-command
       params:
         - name: command
-          value: oc wait --for=condition=ready -n {{NAMESPACE}} ia ddd-dev --timeout 10m
+          value: oc wait --for=condition=ready -n {{NAMESPACE}} IntegrationAssembly ddd-dev --timeout 10m
       workspaces:
         - name: git-source
           workspace: git-source
@@ -222,7 +222,6 @@ spec:
         - apic-dev
         - is-cfg-dev
         - wait-im-dev
-        - d-api-dev
         - d-acme-dev
         - d-bernie-dev
         - d-chris-dev
@@ -321,7 +320,7 @@ spec:
         name: run-command
       params:
         - name: command
-          value: oc wait --for=condition=ready -n {{NAMESPACE}} ia ddd-test --timeout 10m
+          value: oc wait --for=condition=ready -n {{NAMESPACE}} IntegrationAssembly ddd-test --timeout 10m
       workspaces:
         - name: git-source
           workspace: git-source
@@ -397,7 +396,6 @@ spec:
         - apic-test
         - is-cfg-test
         - wait-im-test
-        - d-api-test
         - d-acme-test
         - d-bernie-test
         - d-chris-test

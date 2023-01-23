@@ -119,7 +119,7 @@ spec:
     size: 5Gi
     type: persistent-claim
   useCommonServices: true
-  version: '12.0-lts'
+  version: '12.0'
 EOF
 )
 OCApplyYAML "$namespace" "$YAML"

@@ -365,6 +365,8 @@ $DEBUG && echo $JSON | jq . && divider
 #-------------------------------------------------------------------------------------------------------------------
 # Extract information from the yaml
 #-------------------------------------------------------------------------------------------------------------------
+CURRENT_DIR=$(dirname $0)
+source $CURRENT_DIR/license-helper.sh
 
 $DEBUG && echo -e "[DEBUG] Extracting the required information from the input file: $INPUT_FILE"
 GENERAL=$(echo $JSON | jq -r .spec.general)
@@ -372,11 +374,11 @@ BLOCK_STORAGE_CLASS=$(echo $GENERAL | jq -r '.storage.block | if has("class") th
 FILE_STORAGE_CLASS=$(echo $GENERAL | jq -r '.storage.file | if has("class") then .class else "cp4i-file-performance-gid" end')
 LICENSE=$(echo $JSON | jq -r .spec.license)
 LICENSE_ACCEPT=$(echo $LICENSE | jq -r 'if has("accept") then .accept else "false" end')
-DEMO_LICENSE=$(echo $LICENSE | jq -r 'if has("demo") then .demo else "L-RJON-BYRMYW" end')
-ACE_LICENSE=$(echo $LICENSE | jq -r 'if has("ace") then .ace else "L-APEH-CCHL5W" end')
-APIC_LICENSE=$(echo $LICENSE | jq -r 'if has("apic") then .apic else "L-RJON-CD3JHD" end')
-AR_LICENSE=$(echo $LICENSE | jq -r 'if has("ar") then .ar else "L-RJON-CD3JKX" end')
-MQ_LICENSE=$(echo $LICENSE | jq -r 'if has("mq") then .mq else "L-RJON-CD3JKX" end')
+DEMO_LICENSE=$(echo $LICENSE | jq -r 'if has("demo") then .demo else "'$(getDemoLicense $namespace)'" end')
+ACE_LICENSE=$(echo $LICENSE | jq -r 'if has("ace") then .ace else "'$(getACELicense $namespace)'" end')
+APIC_LICENSE=$(echo $LICENSE | jq -r 'if has("apic") then .apic else "'$(getAPICLicense $namespace)'" end')
+AR_LICENSE=$(echo $LICENSE | jq -r 'if has("ar") then .ar else "'$(getARLicense $namespace)'" end')
+MQ_LICENSE=$(echo $LICENSE | jq -r 'if has("mq") then .mq else "'$(getMQLicense $namespace)'" end')
 TRACING_LICENSE=$(echo $LICENSE | jq -r 'if has("tracing") then .tracing else "CP4I" end')
 NAMESPACE=$(echo $JSON | jq -r .metadata.namespace)
 NAME=$(echo $JSON | jq -r .metadata.name)

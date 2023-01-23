@@ -64,7 +64,7 @@ metadata:
 spec:
   license:
     accept: true
-    license: Q4-license
+    license: L-RJON-CJR2RX
   mqDashboard: true
   replicas: ${replicas}
   version: 2022.4.1

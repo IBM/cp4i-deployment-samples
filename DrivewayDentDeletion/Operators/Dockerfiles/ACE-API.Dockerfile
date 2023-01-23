@@ -1,3 +1,3 @@
-FROM cp.icr.io/cp/appc/ace-server-prod@sha256:48569e3e1e219682e0ff5e24a810bf89317bb4ae961a02691c4dc206d74fce75
+FROM cp.icr.io/cp/appc/ace-server-prod:12.0.7.0-r2-20221213-110429@sha256:9b679f0b1784d04e23796c25894763b26546b0966c93f82b504a260370e2be35
 ENV MQCERTLABL=aceclient
 COPY DrivewayDemo.bar /home/aceuser/initial-config/bars/

@@ -186,7 +186,7 @@ ${qmStorageAvailability}
             - name: MQSNOAUT
               value: 'yes'
           name: qmgr
-  version: 9.3.0.0-r1
+  version: 9.3.1.0-r3
   web:
     enabled: true
   tracing:
@@ -304,7 +304,7 @@ ${qmStorageAvailability}
             - name: MQS_PERMIT_UNKNOWN_ID
               value: 'true'
           name: qmgr
-  version: 9.3.0.0-r1
+  version: 9.3.1.0-r3
   web:
     enabled: true
   tracing:
