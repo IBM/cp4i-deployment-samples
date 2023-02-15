@@ -32,8 +32,6 @@ source $CURRENT_DIR/utils.sh
 namespace="cp4i"
 is_image_name=""
 is_release_name="ace-is"
-tracing_enabled="false"
-tracing_namespace=""
 POLICY_PROJECT_TYPE="policyproject-ddd-dev"
 ace_replicas="2"
 license_use="CloudPakForIntegrationNonProduction"
@@ -97,13 +95,6 @@ echo "[DEBUG] ACE license: $(getACELicense $namespace)"
 
 echo "Current directory: $CURRENT_DIR"
 
-if [ "$tracing_enabled" == "true" ]; then
-  if [ -z "$tracing_namespace" ]; then tracing_namespace=${namespace}; fi
-else
-  # assigning value to tracing_namespace b/c empty values causes CR to throw an error
-  tracing_namespace=${namespace}
-fi
-
 if [[ -z "${ace_policy_names// /}" ]]; then
   ace_policy_names="[keystore-ddd, $POLICY_PROJECT_TYPE, serverconf-ddd, setdbparms-ddd, application.kdb, application.sth, application.jks]"
 fi
@@ -122,8 +113,6 @@ if [[ -z "$imageTag" ]]; then
   echo "ERROR: Failed to extract image tag from the end of '$is_image_name'"
   exit 1
 fi
-
-echo "[INFO] tracing is set to $tracing_enabled"
 
 echo -e "INFO: Going ahead to apply the CR for '$is_release_name'"
 
@@ -162,26 +151,11 @@ spec:
     endpointType: https
   useCommonServices: true
   version: '12.0.5.0-r1-lts'
-  tracing:
-    enabled: ${tracing_enabled}
-    namespace: ${tracing_namespace}
 EOF
 )
 OCApplyYAML "$namespace" "$YAML"
 
 timer=0
-echo "[INFO] tracing is set to $tracing_enabled"
-if [ "$tracing_enabled" == "true" ]; then
-  while ! oc get secrets icp4i-od-store-cred -n ${namespace}; do
-    echo "Waiting for the secret icp4i-od-store-cred to get created"
-    if [ $timer -gt 30 ]; then
-      echo "Secret icp4i-od-store-cred didn't get created in  ${namespace}, going to create the secret next "
-      break
-      timer=$((timer + 1))
-    fi
-    sleep 10
-  done
-fi
 # -------------------------------------- INSTALL JQ ---------------------------------------------------------------------
 
 divider
@@ -239,12 +213,6 @@ while [ "$numberOfMatchesForImageTag" -ne "$numberOfReplicas" ]; do
   fi
 
   numberOfMatchesForImageTag=0
-
-  if [ "${tracing_enabled}" == "true" ]; then
-    allCorrespondingPods=$(oc get pods -n $namespace | grep $is_release_name | grep 3/3 | grep Running | awk '{print $1}')
-  else
-    allCorrespondingPods=$(oc get pods -n $namespace | grep $is_release_name | grep 1/1 | grep Running | awk '{print $1}')
-  fi
 
   echo -e "[INFO] Total pods for ACE Integration Server:\n$allCorrespondingPods"
 

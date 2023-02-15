@@ -32,7 +32,6 @@ CURRENT_DIR=$(dirname $0)
 source $CURRENT_DIR/utils.sh
 namespace="cp4i"
 release_name="ademo"
-tracing="false"
 production="false"
 
 while getopts "n:r:tp" opt; do
@@ -93,9 +92,6 @@ metadata:
     app.kubernetes.io/name: apiconnect-production
 spec:
   gateway:
-    openTracing:
-      enabled: ${tracing}
-      odTracingNamespace: ${namespace}
     replicaCount: 1
   license:
     accept: true

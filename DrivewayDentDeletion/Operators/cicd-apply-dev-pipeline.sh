@@ -158,11 +158,9 @@ OCApplyYAML "$NAMESPACE" "$YAML"
 divider
 
 # create tekton tasks
-TRACING="-t -z $NAMESPACE"
 echo -e "$INFO [INFO] Create tekton tasks for the dev pipeline of the driveway dent deletion demo"
 YAML=$(cat $CURRENT_DIR/../../CommonPipelineResources/cicd-tasks.yaml |
-  sed "s#{{NAMESPACE}}#$NAMESPACE#g;" |
-  sed "s#{{TRACING}}#$TRACING#g;")
+  sed "s#{{NAMESACE}}#$NAMESPACE#g;" |
 OCApplyYAML "$NAMESPACE" "$YAML"
 
 divider

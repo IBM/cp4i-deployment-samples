@@ -52,7 +52,6 @@ FAILURE_CODE=1
 SUCCESS_CODE=0
 CONDITION_ELEMENT_OBJECT='{"lastTransitionTime":"","message":"","reason":"","status":"","type":""}'
 NAMESPACE_OBJECT_FOR_STATUS='{"name":""}'
-TRACING_ENABLED=false
 ADDON_OBJECT_FOR_STATUS='{"type":"", "installed":"", "readyToUse":""}'
 PRODUCT_OBJECT_FOR_STATUS='{"name":"","type":"", "namespace":"", "installed":"", "readyToUse":""}'
 DEFAULT_DEMO_VERSION="2022.2.1"
@@ -61,22 +60,22 @@ MISSING_PARAMS="false"
 MISSING_PREREQS="false"
 
 # cognitive car repair demo list
-# COGNITIVE_CAR_REPAIR_PRODUCTS_LIST=("aceDashboard" "aceDesigner" "apic" "assetRepo" "tracing")
+# COGNITIVE_CAR_REPAIR_PRODUCTS_LIST=("aceDashboard" "aceDesigner" "apic" "assetRepo")
 COGNITIVE_CAR_REPAIR_PRODUCTS_LIST=("aceDashboard" "aceDesigner" "apic" "assetRepo")
 COGNITIVE_CAR_REPAIR_ADDONS_LIST=()
 # driveway dent deletion demo list
-# DRIVEWAY_DENT_DELETION_PRODUCTS_LIST=("aceDashboard" "apic" "tracing")
+# DRIVEWAY_DENT_DELETION_PRODUCTS_LIST=("aceDashboard" "apic")
 DRIVEWAY_DENT_DELETION_PRODUCTS_LIST=("aceDashboard" "apic")
 DRIVEWAY_DENT_DELETION_ADDONS_LIST=("postgres" "ocpPipelines")
 # event insurance demo list
-# EVENT_ENABLED_INSURANCE_PRODUCTS_LIST=("aceDashboard" "apic" "eventStreams" "tracing")
+# EVENT_ENABLED_INSURANCE_PRODUCTS_LIST=("aceDashboard" "apic" "eventStreams")
 EVENT_ENABLED_INSURANCE_PRODUCTS_LIST=("aceDashboard" "apic" "eventStreams")
 EVENT_ENABLED_INSURANCE_ADDONS_LIST=("postgres" "ocpPipelines")
 # mapping assist demo list
 MAPPING_ASSIST_PRODUCTS_LIST=("aceDesigner")
 MAPPING_ASSIST_ADDONS_LIST=()
 # ace weather chatbot demo list
-# ACE_WEATHER_CHATBOT_PRODUCTS_LIST=("aceDashboard" "aceDesigner" "apic" "assetRepo" "tracing")
+# ACE_WEATHER_CHATBOT_PRODUCTS_LIST=("aceDashboard" "aceDesigner" "apic" "assetRepo")
 ACE_WEATHER_CHATBOT_PRODUCTS_LIST=("aceDashboard" "aceDesigner" "apic" "assetRepo")
 ACE_WEATHER_CHATBOT_ADDONS_LIST=()
 
@@ -87,7 +86,6 @@ ASSET_REPOSITORY_RELEASE_NAME="ar-demo"
 ACE_DASHBOARD_RELEASE_NAME="ace-dashboard-demo"
 APIC_RELEASE_NAME="ademo"
 EVENT_STREAM_RELEASE_NAME="es-demo"
-TRACING_RELEASE_NAME="tracing-demo"
 
 # Default APIC Configuration
 DEFAULT_APIC_EMAIL_ADDRESS="your@email.address"
@@ -377,7 +375,6 @@ ACE_LICENSE=$(echo $LICENSE | jq -r 'if has("ace") then .ace else "L-APEH-CCHL5W
 APIC_LICENSE=$(echo $LICENSE | jq -r 'if has("apic") then .apic else "L-RJON-CD3JHD" end')
 AR_LICENSE=$(echo $LICENSE | jq -r 'if has("ar") then .ar else "L-RJON-CD3JKX" end')
 MQ_LICENSE=$(echo $LICENSE | jq -r 'if has("mq") then .mq else "L-RJON-CD3JKX" end')
-TRACING_LICENSE=$(echo $LICENSE | jq -r 'if has("tracing") then .tracing else "CP4I" end')
 NAMESPACE=$(echo $JSON | jq -r .metadata.namespace)
 NAME=$(echo $JSON | jq -r .metadata.name)
 REQUIRED_DEMOS_JSON=$(echo $JSON | jq -c '.spec | if has("demos") then .demos else {} end')
@@ -431,7 +428,6 @@ for DEMO in $(echo $REQUIRED_DEMOS_JSON | jq -r 'keys[]'); do
       apic
       assetRepo
       '
-      # tracing
     ADDONS_FOR_DEMO=''
     ;;
   drivewayDentDeletion)
@@ -439,7 +435,6 @@ for DEMO in $(echo $REQUIRED_DEMOS_JSON | jq -r 'keys[]'); do
       aceDashboard
       apic
       '
-      # tracing
 
     # Disabled as we no longer want a separate namespace for test. The following is an example
     # of how this could work if we want to re-add this support later.
@@ -457,7 +452,6 @@ for DEMO in $(echo $REQUIRED_DEMOS_JSON | jq -r 'keys[]'); do
       apic
       eventStreams
       '
-      # tracing
     ADDONS_FOR_DEMO='
       postgres
       ocpPipelines
@@ -476,7 +470,6 @@ for DEMO in $(echo $REQUIRED_DEMOS_JSON | jq -r 'keys[]'); do
       apic
       assetRepo
       '
-      # tracing
     ADDONS_FOR_DEMO=''
     ;;
   *)
@@ -552,7 +545,6 @@ data:
   apic: $APIC_LICENSE
   ar: $AR_LICENSE
   mq: $MQ_LICENSE
-  tracing: $TRACING_LICENSE
 EOF
 
 echo "[DEBUG] Licenses configmap:"
@@ -635,13 +627,6 @@ for EACH_ADDON in $(echo $REQUIRED_ADDONS_JSON | jq -r '. | keys[]'); do
 done
 
 #-------------------------------------------------------------------------------------------------------------------
-# Check if tracing is enabled in the selected/required products
-#-------------------------------------------------------------------------------------------------------------------
-
-[[ "$(echo $REQUIRED_PRODUCTS_JSON | jq '.tracing?')" == "true" ]] && TRACING_ENABLED=true || TRACING_ENABLED=false
-divider && echo -e "$INFO [INFO] Tracing enabled: '$TRACING_ENABLED'"
-
-#-------------------------------------------------------------------------------------------------------------------
 # Install the selected/required products
 #-------------------------------------------------------------------------------------------------------------------
 
@@ -651,13 +636,6 @@ for EACH_PRODUCT in $(echo "${REQUIRED_PRODUCTS_JSON}" | jq -r '. | keys[]'); do
 
   case ${EACH_PRODUCT} in
   mq)
-    # if to enable or disable tracing while releasing MQ
-    if [[ "$TRACING_ENABLED" == "true" ]]; then
-      RELEASE_MQ_PARAMS="-n $NAMESPACE -z $NAMESPACE -r $MQ_RELEASE_NAME -t"
-    else
-      RELEASE_MQ_PARAMS="-n $NAMESPACE -r $MQ_RELEASE_NAME"
-    fi
-
     echo -e "$INFO [INFO] Releasing MQ $ECHO_LINE '$MQ_RELEASE_NAME' with release parameters as '$RELEASE_APIC_PARAMS'...\n"
 
     if ! $SCRIPT_DIR/release-mq.sh $RELEASE_MQ_PARAMS; then
@@ -718,13 +696,6 @@ for EACH_PRODUCT in $(echo "${REQUIRED_PRODUCTS_JSON}" | jq -r '. | keys[]'); do
     export MAIL_SERVER_USERNAME=$(echo ${APIC_CONFIGURATION} | jq -r '. | if has("mailServerUsername") then .mailServerUsername else "'$DEFAULT_APIC_MAIL_SERVER_USERNAME'" end')
     export MAIL_SERVER_PASSWORD=$(echo ${APIC_CONFIGURATION} | jq -r '. | if has("mailServerPassword") then .mailServerPassword else "'$DEFAULT_APIC_MAIL_SERVER_PASSWORD'" end')
 
-    # check if to enable or disable tracing while releasing APIC
-    if [[ "$TRACING_ENABLED" == "true" ]]; then
-      RELEASE_APIC_PARAMS="-n $NAMESPACE -r $APIC_RELEASE_NAME -t"
-    else
-      RELEASE_APIC_PARAMS="-n $NAMESPACE -r $APIC_RELEASE_NAME"
-    fi
-
     echo -e "$INFO [INFO] Releasing APIC $ECHO_LINE '$APIC_RELEASE_NAME' with release parameters as '$RELEASE_APIC_PARAMS'...\n"
 
     if ! $SCRIPT_DIR/release-apic.sh $RELEASE_APIC_PARAMS; then
@@ -751,19 +722,6 @@ for EACH_PRODUCT in $(echo "${REQUIRED_PRODUCTS_JSON}" | jq -r '. | keys[]'); do
     divider
     ;;
 
-  tracing)
-    echo -e "$INFO [INFO] Releasing tracing $ECHO_LINE '$TRACING_RELEASE_NAME'...\n"
-    if ! $SCRIPT_DIR/release-tracing.sh -n "$NAMESPACE" -r "$TRACING_RELEASE_NAME" -b "$BLOCK_STORAGE_CLASS" -f "$FILE_STORAGE_CLASS"; then
-      update_conditions "Failed to release Tracing $ECHO_LINE '$TRACING_RELEASE_NAME'" "Releasing"
-      update_phase "Failed"
-      FAILED_INSTALL_PRODUCTS_LIST+=($EACH_PRODUCT)
-    else
-      echo -e "\n$TICK [SUCCESS] Successfully released Tracing $ECHO_LINE '$TRACING_RELEASE_NAME'"
-      update_product_status "$TRACING_RELEASE_NAME" "$EACH_PRODUCT" "true" "true"
-    fi # release-tracing.sh
-    divider
-    ;;
-
   *)
     divider && echo -e "$CROSS ERROR: Unknown product type: ${EACH_PRODUCT}" 1>&2
     divider
@@ -773,7 +731,7 @@ for EACH_PRODUCT in $(echo "${REQUIRED_PRODUCTS_JSON}" | jq -r '. | keys[]'); do
 done
 
 #-------------------------------------------------------------------------------------------------------------------
-# Configure APIC if APIC is amongst selected product. Tracing registration is a pre-req for this step.
+# Configure APIC if APIC is amongst selected product.
 #-------------------------------------------------------------------------------------------------------------------
 
 if [[ "$(echo $REQUIRED_PRODUCTS_JSON | jq '.apic?')" == "true" ]]; then

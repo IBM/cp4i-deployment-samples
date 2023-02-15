@@ -123,9 +123,6 @@ REFRESH SECURITY
     version: 9.2.0.0-r1
     web:
       enabled: true
-    tracing:
-      enabled: ${tracing_enabled}
-      namespace: ${tracing_namespace}
   ```
 
 ## Setting up ACE to use TLS
@@ -222,9 +219,6 @@ spec:
     endpointType: https
   useCommonServices: true
   version: 11.0.0.10-r1
-  tracing:
-    enabled: ${tracing_enabled}
-    namespace: ${tracing_namespace}
 ```
 
 

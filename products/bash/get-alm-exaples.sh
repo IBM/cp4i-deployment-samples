@@ -131,19 +131,3 @@ echo "############################"
 echo "# Versions for release-mq.sh"
 echo "############################"
 echo $mq_versions
-
-SUBSCRIPTION_NAME="ibm-integration-operations-dashboard-ibm-integration-operations-dashboard-catalog-openshift-marketplace"
-echo "SUBSCRIPTION_NAME=${SUBSCRIPTION_NAME}"
-csv=$(oc get subscription -n ${NAMESPACE} ${SUBSCRIPTION_NAME} -o json | jq -r .status.currentCSV)
-echo "csv=${csv}"
-od_examples=$(oc get csv $csv -n ${NAMESPACE} -o jsonpath='{.metadata.annotations.alm-examples}' | jq '[.[] | select(.kind=="OperationsDashboard")]')
-od_versions=$(oc get csv $csv -n ${NAMESPACE} -o json | jq '.spec.customresourcedefinitions.owned[] | select(.kind=="OperationsDashboard") | .specDescriptors[] | select(.path=="version") | ."x-descriptors"')
-echo ""
-echo "#################################"
-echo "# Examples for release-tracing.sh"
-echo "#################################"
-echo $od_examples | yq r -P -
-echo "#################################"
-echo "# Versions for release-tracing.sh"
-echo "#################################"
-echo $od_versions | yq r -P -

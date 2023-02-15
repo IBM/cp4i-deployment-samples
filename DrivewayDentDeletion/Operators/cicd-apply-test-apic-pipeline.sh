@@ -161,20 +161,16 @@ divider
 
 # create tekton tasks
 echo -e "$INFO [INFO] Create common tekton tasks for the test pipeline of the driveway dent deletion demo"
-TRACING="-t -z $NAMESPACE"
 YAML=$(cat $CURRENT_DIR/../../CommonPipelineResources/cicd-tasks.yaml |
   sed "s#{{NAMESPACE}}#$NAMESPACE#g;" |
-  sed "s#{{TRACING}}#$TRACING#g;")
 OCApplyYAML "$NAMESPACE" "$YAML"
 
 divider
 
 # create tekton tasks for test
 echo -e "$INFO [INFO] Create tekton tasks for the test apic pipeline of the driveway dent deletion demo\n"
-TRACING="-t -z $NAMESPACE"
 YAML=$(cat $CURRENT_DIR/cicd-test-apic/cicd-tasks.yaml |
   sed "s#{{NAMESPACE}}#$NAMESPACE#g;" |
-  sed "s#{{TRACING}}#$TRACING#g;")
 OCApplyYAML "$NAMESPACE" "$YAML"
 
 divider
