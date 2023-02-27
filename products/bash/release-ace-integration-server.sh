@@ -213,6 +213,8 @@ while [ "$numberOfMatchesForImageTag" -ne "$numberOfReplicas" ]; do
 
   numberOfMatchesForImageTag=0
 
+  allCorrespondingPods=$(oc get pods -n $namespace | grep $is_release_name | grep 1/1 | grep Running | awk '{print $1}')
+
   echo -e "[INFO] Total pods for ACE Integration Server:\n$allCorrespondingPods"
 
   echo -e "\nINFO: For ACE Integration server '$is_release_name':"
