@@ -633,7 +633,7 @@ for EACH_PRODUCT in $(echo "${REQUIRED_PRODUCTS_JSON}" | jq -r '. | keys[]'); do
   case ${EACH_PRODUCT} in
   mq)
     RELEASE_MQ_PARAMS="-n $NAMESPACE -r $MQ_RELEASE_NAME"
-    
+
     echo -e "$INFO [INFO] Releasing MQ $ECHO_LINE '$MQ_RELEASE_NAME' with release parameters as '$RELEASE_APIC_PARAMS'...\n"
 
     if ! $SCRIPT_DIR/release-mq.sh $RELEASE_MQ_PARAMS; then
@@ -693,6 +693,8 @@ for EACH_PRODUCT in $(echo "${REQUIRED_PRODUCTS_JSON}" | jq -r '. | keys[]'); do
     export MAIL_SERVER_PORT=$(echo ${APIC_CONFIGURATION} | jq -r '. | if has("mailServerPort") then .mailServerPort else "'$DEFAULT_APIC_MAIL_SERVER_PORT'" end')
     export MAIL_SERVER_USERNAME=$(echo ${APIC_CONFIGURATION} | jq -r '. | if has("mailServerUsername") then .mailServerUsername else "'$DEFAULT_APIC_MAIL_SERVER_USERNAME'" end')
     export MAIL_SERVER_PASSWORD=$(echo ${APIC_CONFIGURATION} | jq -r '. | if has("mailServerPassword") then .mailServerPassword else "'$DEFAULT_APIC_MAIL_SERVER_PASSWORD'" end')
+
+    RELEASE_APIC_PARAMS="-n $NAMESPACE -r $APIC_RELEASE_NAME"
 
     echo -e "$INFO [INFO] Releasing APIC $ECHO_LINE '$APIC_RELEASE_NAME' with release parameters as '$RELEASE_APIC_PARAMS'...\n"
 
