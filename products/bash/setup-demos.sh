@@ -632,6 +632,8 @@ for EACH_PRODUCT in $(echo "${REQUIRED_PRODUCTS_JSON}" | jq -r '. | keys[]'); do
 
   case ${EACH_PRODUCT} in
   mq)
+    RELEASE_MQ_PARAMS="-n $NAMESPACE -r $MQ_RELEASE_NAME"
+    
     echo -e "$INFO [INFO] Releasing MQ $ECHO_LINE '$MQ_RELEASE_NAME' with release parameters as '$RELEASE_APIC_PARAMS'...\n"
 
     if ! $SCRIPT_DIR/release-mq.sh $RELEASE_MQ_PARAMS; then

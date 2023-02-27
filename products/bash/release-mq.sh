@@ -312,6 +312,8 @@ EOF
 
     numberOfMatchesForImageTag=0
 
+    allCorrespondingPods=$(oc get pods -n $namespace | grep $release_name | grep 1/1 | grep Running | awk '{print $1}')
+
     echo "[INFO] Total pods for mq $allCorrespondingPods"
 
     for eachMQPod in $allCorrespondingPods; do
