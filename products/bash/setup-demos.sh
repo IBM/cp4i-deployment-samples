@@ -72,7 +72,6 @@ EVENT_ENABLED_INSURANCE_ADDONS_LIST=("postgres" "ocpPipelines")
 MAPPING_ASSIST_PRODUCTS_LIST=("aceDesigner")
 MAPPING_ASSIST_ADDONS_LIST=()
 # ace weather chatbot demo list
-# ACE_WEATHER_CHATBOT_PRODUCTS_LIST=("aceDashboard" "aceDesigner" "apic" "assetRepo")
 ACE_WEATHER_CHATBOT_PRODUCTS_LIST=("aceDashboard" "aceDesigner" "apic" "assetRepo")
 ACE_WEATHER_CHATBOT_ADDONS_LIST=()
 
