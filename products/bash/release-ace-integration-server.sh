@@ -150,7 +150,7 @@ spec:
   service:
     endpointType: https
   useCommonServices: true
-  version: '12.0.5.0-r1-lts'
+  version: '12.0.7.0-r1'
 EOF
 )
 OCApplyYAML "$namespace" "$YAML"

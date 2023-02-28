@@ -38,7 +38,7 @@ function usage() {
 }
 
 CURRENT_DIR=$(dirname $0)
-source $CURRENT_DIR/../../products/bash/utils.sh
+source $CURRENT_DIR/../products/bash/utils.sh
 NAMESPACE="cp4i"
 SUFFIX="eei"
 POSTGRES_NAMESPACE=
@@ -358,6 +358,12 @@ $TKN clustertask ls | grep git-clone
 divider
 
 echo "TODO Wait for the PVCs to be bound"
+
+divider
+
+if ! $CURRENT_DIR/../CommonPipelineResources/setup.sh -n "$NAMESPACE" ; then
+  exit 1
+fi
 
 divider
 

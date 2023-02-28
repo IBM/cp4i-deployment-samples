@@ -46,7 +46,6 @@ SUFFIX="ddd"
 WORKING_DIR=/tmp
 CONFIG_DIR=$WORKING_DIR/ace
 CONFIG_YAML=$WORKING_DIR/configurations.yaml
-MQ_CERT=$WORKING_DIR/mq/createcerts
 API_USER="bruce"
 KEYSTORE_PASS=$(
   LC_ALL=C tr -dc 'A-Za-z0-9' </dev/urandom | head -c 16
@@ -63,7 +62,7 @@ function buildConfigurationCR() {
     COMMAND="base64 -w0 $file"
   elif [[ "$OSTYPE" == "darwin"* ]]; then
     echo -e "$INFO [INFO] Creating ace config base64 command for MAC"
-    COMMAND="base64 $file"
+    COMMAND="base64 -i $file"
   fi
   CONTENTS="$($COMMAND)"
   if [[ "$?" != "0" ]]; then
@@ -152,7 +151,7 @@ if [[ -z "$DEBUG" ]]; then
   DEBUG="false"
 fi
 
-DDD_SUFFIX_FOR_ACE_POLICYPROJECT=$([[ $SUFFIX == "ddd" ]] && echo "-${DDD_DEMO_TYPE}" || echo "")
+DDD_DEV_TEST_SUFFIX=$([[ $SUFFIX == "ddd" ]] && echo "-${DDD_DEMO_TYPE}" || echo "")
 
 DB_POD=$(oc get pod -n $POSTGRES_NAMESPACE -l name=postgresql -o jsonpath='{.items[].metadata.name}')
 DB_SVC="postgresql.$POSTGRES_NAMESPACE.svc.cluster.local"
@@ -163,7 +162,7 @@ echo -e "$INFO [INFO] Config directory: $CONFIG_DIR"
 echo -e "$INFO [INFO] Namespace passed: '$NAMESPACE'"
 echo -e "$INFO [INFO] Namespace passed for postgres: '$POSTGRES_NAMESPACE'"
 echo -e "$INFO [INFO] Demo suffix passed for postgres: '$SUFFIX'"
-[[ $SUFFIX == "ddd" ]] && echo -e "$INFO [INFO] Demo type for driveway dent deletion demo: '$DDD_DEMO_TYPE'" && echo -e "$INFO [INFO] Suffix for ace policyproject name for driveway dent deletion demo: '$DDD_SUFFIX_FOR_ACE_POLICYPROJECT'"
+[[ $SUFFIX == "ddd" ]] && echo -e "$INFO [INFO] Demo type for driveway dent deletion demo: '$DDD_DEMO_TYPE'" && echo -e "$INFO [INFO] Suffix for ace policyproject name for driveway dent deletion demo: '$DDD_DEV_TEST_SUFFIX'"
 echo -e "$INFO [INFO] Database username: '$DB_USER'"
 echo -e "$INFO [INFO] Database name: '$DB_NAME'"
 echo -e "$INFO [INFO] Postgres pod name in the '$POSTGRES_NAMESPACE' namespace: '$DB_POD'"
@@ -172,12 +171,12 @@ echo -e "$INFO [INFO] DEBUG mode in creating ace config: '$DEBUG'"
 
 divider
 
-TYPES=("serverconf" "keystore" "keystore" "keystore" "truststore" "policyproject" "setdbparms")
-FILES=("$CONFIG_DIR/$SUFFIX/server.conf.yaml" "$KEYSTORE" "$MQ_CERT/application.kdb" "$MQ_CERT/application.sth" "$MQ_CERT/application.jks" "$CONFIG_DIR/$SUFFIX/DefaultPolicies" "$CONFIG_DIR/$SUFFIX/setdbparms.txt")
-NAMES=("serverconf-$SUFFIX" "keystore-$SUFFIX" "application.kdb" "application.sth" "application.jks" "policyproject-${SUFFIX}${DDD_SUFFIX_FOR_ACE_POLICYPROJECT}" "setdbparms-$SUFFIX")
+TYPES=("serverconf" "keystore" "policyproject" "setdbparms")
+FILES=("$CONFIG_DIR/$SUFFIX/server.conf.yaml" "$KEYSTORE" "$CONFIG_DIR/$SUFFIX/DefaultPolicies" "$CONFIG_DIR/$SUFFIX/setdbparms.txt")
+NAMES=("serverconf-$SUFFIX" "keystore-$SUFFIX" "policyproject-${SUFFIX}${DDD_DEV_TEST_SUFFIX}" "setdbparms-$SUFFIX")
 
 # Copy all static config files & templates to default working directory (/tmp)
-cp -r $CURRENT_DIR/ace $CURRENT_DIR/mq $WORKING_DIR/
+cp -r $CURRENT_DIR/ace $CURRENT_DIR/mq-im $WORKING_DIR/
 $DEBUG && divider && echo -e "[DEBUG] Listing /tmp:\n$(ls -lAFL /tmp)"
 
 EXISTING_PASS=$(oc get secret ace-api-creds-$SUFFIX -ojsonpath='{.data.pass}' 2>/dev/null | base64 --decode)
@@ -252,9 +251,16 @@ cat $CONFIG_DIR/PostgresqlPolicy.policyxml.template |
 divider
 
 echo -e "$INFO [INFO] Templating mq policy"
-QM_NAME=$([[ $SUFFIX == "ddd" ]] && echo "QUICKSTART" || echo "eei")
-QM_HOST=$([[ $SUFFIX == "ddd" ]] && echo "mq-ddd-qm-${DDD_DEMO_TYPE}-ibm-mq" || echo "mq-eei-ibm-mq")
+if [[ $SUFFIX == "ddd" ]]; then
+  QM_NAME=mqdddqm${DDD_DEMO_TYPE}
+  QM_HOST="mq-ddd-qm-${DDD_DEMO_TYPE}-ibm-mq"
+else
+  QM_NAME=mqeeiqm
+  QM_HOST="mq-eei-qm-ibm-mq"
+fi
+QM_CHANNEL="MTLS.SVRCONN"
 cat $CONFIG_DIR/MQEndpointPolicy.policyxml.template |
+  sed "s#ACE_SVRCONN#$QM_CHANNEL#g;" |
   sed "s#{{QM_NAME}}#$QM_NAME#g;" |
   sed "s#{{QM_HOST}}#$QM_HOST#g;" >$CONFIG_DIR/$SUFFIX/DefaultPolicies/MQEndpointPolicy.policyxml
 
@@ -267,6 +273,11 @@ for i in ${!NAMES[@]}; do
   echo -e "\n$INFO [INFO] Target: $file"
   if [[ -d $file ]]; then
     python -m zipfile -c $file.zip $file/
+    if [[ "$?" != "0" ]]; then
+      echo -e "$CROSS [ERROR] Failed to zip dir using python"
+      exit 1
+    fi
+
     file=$file.zip
     echo -e "\n$INFO [INFO] Zipped: $file.zip"
   fi

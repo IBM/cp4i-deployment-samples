@@ -109,26 +109,15 @@ fi
 
 divider
 
-echo "INFO: Create build and deploy tekton tasks"
-if cat $CURRENT_DIR/../../CommonPipelineResources/cicd-tasks.yaml |
-  sed "s#{{NAMESPACE}}#$namespace#g;" |
-  oc apply -n ${namespace} -f -; then
-  echo -e "\n$tick INFO: Successfully applied build and deploy tekton tasks in the '$namespace' namespace"
-else
-  echo -e "\n$cross ERROR: Failed to apply build and deploy tekton tasks in the '$namespace' namespace"
-  exit 1
-fi
-
-divider
-
-CONFIGURATIONS="[serverconf-$SUFFIX, keystore-$SUFFIX, application.kdb, application.sth, application.jks, policyproject-$SUFFIX, setdbparms-$SUFFIX]"
-
 echo "INFO: Creating the pipeline to build and deploy the EEI apps in '$namespace' namespace"
+CONFIGURATIONS="[serverconf-$SUFFIX, keystore-$SUFFIX, application-eei, policyproject-$SUFFIX, setdbparms-$SUFFIX]"
 if cat $CURRENT_DIR/pipeline.yaml |
   sed "s#{{NAMESPACE}}#$namespace#g;" |
   sed "s#{{CONFIGURATIONS}}#'$CONFIGURATIONS'#g;" |
   sed "s#{{FORKED_REPO}}#$REPO#g;" |
   sed "s#{{BRANCH}}#$BRANCH#g;" |
+  sed "s#{{DEFAULT_FILE_STORAGE}}#$DEFAULT_FILE_STORAGE#g;" |
+  sed "s#{{DEFAULT_BLOCK_STORAGE}}#$DEFAULT_BLOCK_STORAGE#g;" |
   oc apply -n ${namespace} -f -; then
   echo -e "\n$tick INFO: Successfully applied the pipeline to build and deploy the EEI apps in '$namespace' namespace"
 else

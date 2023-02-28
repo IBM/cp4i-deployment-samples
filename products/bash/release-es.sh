@@ -137,7 +137,7 @@ spec:
         class: ${storageClass}
         size: 2Gi
         type: persistent-claim
-  version: 11.0.2
+  version: latest
 EOF
 )
 else
@@ -173,9 +173,7 @@ spec:
   strimziOverrides:
     kafka:
       config:
-        inter.broker.protocol.version: '2.8'
         interceptor.class.names: com.ibm.eventstreams.interceptors.metrics.ProducerMetricsInterceptor
-        log.message.format.version: '2.8'
         offsets.topic.replication.factor: 1
         transaction.state.log.min.isr: 1
         transaction.state.log.replication.factor: 1
@@ -203,7 +201,7 @@ spec:
       replicas: 3
       storage:
         type: ephemeral
-  version: 11.0.2
+  version: latest
 EOF
 )
 fi

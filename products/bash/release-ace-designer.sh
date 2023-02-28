@@ -103,7 +103,7 @@ spec:
     use: CloudPakForIntegrationNonProduction
   replicas: 1
   useCommonServices: true
-  version: '12.0-lts'
+  version: '12.0'
 EOF
 )
 OCApplyYAML "$namespace" "$YAML"

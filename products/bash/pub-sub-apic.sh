@@ -39,6 +39,8 @@
 CURRENT_DIR=$(dirname $0)
 source ${CURRENT_DIR}/generate-apic-password.sh
 
+TMP_DIR=/tmp
+
 TICK="\xE2\x9C\x85"
 CROSS="\xE2\x9D\x8C"
 ENVIRONMENT="dev"
@@ -182,19 +184,19 @@ echo "[INFO]  Templating api yaml..."
 cat ${CURRENT_DIR}/../../${SWAGGER_YAML_TEMPLATE} |
   sed "s#{{TARGET_URL}}#${TARGET_URL}#g;" |
   sed "s#{{BASIC_AUTH_USERNAME}}#${ACE_API_USER}#g;" |
-  sed "s#{{BASIC_AUTH_PASSWORD}}#${ACE_API_PASS}#g;" >${CURRENT_DIR}/api.yaml
-$DEBUG && echo -e "[DEBUG] api yaml:\n$(cat ${CURRENT_DIR}/api.yaml)"
+  sed "s#{{BASIC_AUTH_PASSWORD}}#${ACE_API_PASS}#g;" >${TMP_DIR}/api.yaml
+$DEBUG && echo -e "[DEBUG] api yaml:\n$(cat ${TMP_DIR}/api.yaml)"
 echo -e "[INFO]  ${TICK} Templated api yaml"
 
 echo "[INFO]  Templating product yaml..."
 cat ${CURRENT_DIR}/../../${PRODUCT_YAML_TEMPLATE} |
-  sed "s#{{NAMESPACE}}#$NAMESPACE#g;" >${CURRENT_DIR}/product.yaml
-$DEBUG && echo -e "[DEBUG] product yaml:\n$(cat ${CURRENT_DIR}/product.yaml)"
+  sed "s#{{NAMESPACE}}#$NAMESPACE#g;" >${TMP_DIR}/product.yaml
+$DEBUG && echo -e "[DEBUG] product yaml:\n$(cat ${TMP_DIR}/product.yaml)"
 echo -e "[INFO]  ${TICK} Templated product yaml"
 
 # Get product and api versions
-API_VER=$(grep 'version:' ${CURRENT_DIR}/api.yaml | head -1 | awk '{print $2}')
-PRODUCT_VER=$(grep 'version:' ${CURRENT_DIR}/product.yaml | head -1 | awk '{print $2}')
+API_VER=$(grep 'version:' ${TMP_DIR}/api.yaml | head -1 | awk '{print $2}')
+PRODUCT_VER=$(grep 'version:' ${TMP_DIR}/product.yaml | head -1 | awk '{print $2}')
 
 # Draft product first for dev, straight to publish for test
 if [[ $ENVIRONMENT == "dev" ]]; then
@@ -215,8 +217,8 @@ if [[ $ENVIRONMENT == "dev" ]]; then
       -H "accept: application/json" \
       -H "authorization: Bearer ${TOKEN}" \
       -H "content-type: multipart/form-data" \
-      -F "openapi=@${CURRENT_DIR}/api.yaml;type=application/yaml" \
-      -F "product=@${CURRENT_DIR}/product.yaml;type=application/yaml")
+      -F "openapi=@${TMP_DIR}/api.yaml;type=application/yaml" \
+      -F "product=@${TMP_DIR}/product.yaml;type=application/yaml")
     handle_res "${RES}"
     echo -e "[INFO]  ${TICK} Draft product created in org '$ORG'"
   else
@@ -226,8 +228,8 @@ if [[ $ENVIRONMENT == "dev" ]]; then
       -H "accept: application/json" \
       -H "authorization: Bearer ${TOKEN}" \
       -H "content-type: multipart/form-data" \
-      -F "openapi=@${CURRENT_DIR}/api.yaml;type=application/yaml" \
-      -F "product=@${CURRENT_DIR}/product.yaml;type=application/yaml")
+      -F "openapi=@${TMP_DIR}/api.yaml;type=application/yaml" \
+      -F "product=@${TMP_DIR}/product.yaml;type=application/yaml")
     handle_res "${RES}"
     echo -e "[INFO]  ${TICK} Draft product replaced in org '$ORG'"
   fi
@@ -289,8 +291,8 @@ else
     -H "accept: application/json" \
     -H "authorization: Bearer ${TOKEN}" \
     -H "content-type: multipart/form-data" \
-    -F "openapi=@${CURRENT_DIR}/api.yaml;type=application/yaml" \
-    -F "product=@${CURRENT_DIR}/product.yaml;type=application/yaml")
+    -F "openapi=@${TMP_DIR}/api.yaml;type=application/yaml" \
+    -F "product=@${TMP_DIR}/product.yaml;type=application/yaml")
   handle_res "${RES}"
   echo -e "[INFO]  ${TICK} Product published"
 fi
@@ -305,8 +307,6 @@ RES=$(curl -kLsS https://$PLATFORM_API_EP/api/catalogs/$ORG/$CATALOG/configured-
   -H "accept: application/json" \
   -H "authorization: Bearer ${TOKEN}")
 handle_res "${RES}"
-# Workaround to remove invalid part of returned endpoints
-OUTPUT=$(echo "${OUTPUT}" | sed "s/\/integration\/apis\/$NAMESPACE\/$RELEASE//")
 
 USER_REGISTRY_URL=$(echo "${OUTPUT}" | $JQ -r ".results[0].user_registry_url")
 $DEBUG && echo "[DEBUG] User registry url: ${USER_REGISTRY_URL}"
@@ -428,7 +428,7 @@ else
 fi
 
 echo "[INFO]  Creating secret ${ENDPOINT_SECRET_NAME}"
-BASE_PATH=$(grep 'basePath:' ${CURRENT_DIR}/api.yaml | head -1 | awk '{print $2}')
+BASE_PATH=$(grep 'basePath:' ${TMP_DIR}/api.yaml | head -1 | awk '{print $2}')
 $DEBUG && echo "[DEBUG] BASE_PATH: ${BASE_PATH}"
 HOST="https://$(oc get route -n $MAIN_NAMESPACE ${RELEASE}-gw-gateway -o jsonpath='{.spec.host}')/$ORG/$CATALOG$BASE_PATH"
 $DEBUG && echo "[DEBUG] HOST: ${HOST}"

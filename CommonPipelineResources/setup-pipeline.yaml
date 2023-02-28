@@ -1,0 +1,52 @@
+apiVersion: tekton.dev/v1beta1
+kind: Pipeline
+metadata:
+  name: common-build-pipeline
+  labels:
+    app: pipeline-common
+    demo: common
+spec:
+  tasks:
+    - name: build-run-command
+      retries: 2
+      taskSpec:
+        steps:
+        - name: build
+          image: quay.io/buildah/stable:latest
+          securityContext:
+            privileged: true
+          script: |
+            cat <<EOF > ./Dockerfile
+            # Used to run commands in an openshift pipeline. Supports:
+            # jq
+            # oc
+            # openssl
+            # runmqckm
+
+            FROM quay.io/openshift/origin-cli:latest as oc
+
+            FROM cp.icr.io/cp/ibm-mqadvanced-server-integration@sha256:966d870d250c59aede758f9ec88ff8260642161b342b51c4dd02927919a9eeb0 as mq
+            USER root
+            RUN microdnf install --nodocs openssl wget zip
+            COPY --from=oc /usr/bin/oc /usr/local/bin
+            RUN wget -O /usr/local/bin/jq https://github.com/stedolan/jq/releases/download/jq-1.6/jq-linux64
+            RUN chmod +x /usr/local/bin/jq
+            ENTRYPOINT []
+            USER 1001
+            EOF
+
+            IMAGE_PATH=image-registry.openshift-image-registry.svc:5000/$(context.taskRun.namespace)/run-command:latest
+            buildah --storage-driver vfs bud -f ./Dockerfile -t ${IMAGE_PATH} ./
+            buildah --storage-driver vfs push --tls-verify=false ${IMAGE_PATH}
+---
+apiVersion: tekton.dev/v1beta1
+kind: PipelineRun
+metadata:
+  name: "{{PIPELINE_RUN_NAME}}"
+  labels:
+    app: pipeline-common
+    demo: common
+spec:
+  pipelineRef:
+    name: common-build-pipeline
+  timeout: "20m"

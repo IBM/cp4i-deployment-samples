@@ -147,25 +147,6 @@ OCApplyYAML "$namespace" "$YAML"
 echo "INFO: Wait for all subscriptions to succeed"
 wait_for_all_subscriptions "${namespace}"
 
-# TODO No longer want this!
-# YAML=$(cat <<EOF
-# apiVersion: operators.coreos.com/v1alpha1
-# kind: Subscription
-# metadata:
-#   name: ibm-ai-wmltraining-ibm-ai-wmltraining-operator-catalog-openshift-marketplace
-# spec:
-#   installPlanApproval: Automatic
-#   name: ibm-ai-wmltraining
-#   source: ibm-ai-wmltraining-operator-catalog
-#   sourceNamespace: openshift-marketplace
-# EOF
-# )
-# echo "namespace=$namespace"
-# OCApplyYAML "$namespace" "$YAML"
-#
-# echo "INFO: Wait for all subscriptions to succeed"
-# wait_for_all_subscriptions "${namespace}"
-
 YAML=$(cat <<EOF
 apiVersion: operators.coreos.com/v1alpha1
 kind: Subscription
@@ -206,11 +187,11 @@ YAML=$(cat <<EOF
 apiVersion: operators.coreos.com/v1alpha1
 kind: Subscription
 metadata:
-  name: aspera-hsts-operator-aspera-hsts-catalog-openshift-marketplace
+  name: aspera-hsts-operator-ibm-aspera-hsts-operator-catalog-openshift-marketplace
 spec:
   installPlanApproval: Automatic
   name: aspera-hsts-operator
-  source: aspera-hsts-catalog
+  source: ibm-aspera-hsts-operator-catalog
   sourceNamespace: openshift-marketplace
 EOF
 )
@@ -224,11 +205,11 @@ YAML=$(cat <<EOF
 apiVersion: operators.coreos.com/v1alpha1
 kind: Subscription
 metadata:
-  name: ibm-appconnect-appconnect-operator-catalog-openshift-marketplace
+  name: ibm-appconnect-ibm-appconnect-catalog-openshift-marketplace
 spec:
   installPlanApproval: Automatic
   name: ibm-appconnect
-  source: appconnect-operator-catalog
+  source: ibm-appconnect-catalog
   sourceNamespace: openshift-marketplace
 EOF
 )
@@ -296,11 +277,11 @@ YAML=$(cat <<EOF
 apiVersion: operators.coreos.com/v1alpha1
 kind: Subscription
 metadata:
-  name: datapower-operator-datapower-operator-catalog-openshift-marketplace
+  name: datapower-operator-ibm-datapower-operator-catalog-openshift-marketplace
 spec:
   installPlanApproval: Automatic
   name: datapower-operator
-  source: datapower-operator-catalog
+  source: ibm-datapower-operator-catalog
   sourceNamespace: openshift-marketplace
 EOF
 )

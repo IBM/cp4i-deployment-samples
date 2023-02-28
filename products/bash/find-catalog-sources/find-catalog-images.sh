@@ -7,7 +7,7 @@ SCRIPT_DIR=$(dirname $0)
 ${CLOUDCTL} version
 
 CASE_REPO_PATH=https://github.com/IBM/cloud-pak/raw/master/repo/case
-CASE_NAMES="ibm-ai-wmltraining ibm-apiconnect ibm-appconnect ibm-aspera-hsts-operator ibm-cloud-databases-redis ibm-cp-common-services ibm-datapower-operator ibm-eventstreams ibm-integration-asset-repository ibm-integration-platform-navigator ibm-mq"
+CASE_NAMES="ibm-cp-common-services ibm-apiconnect ibm-appconnect ibm-aspera-hsts-operator ibm-cloud-databases-redis ibm-datapower-operator ibm-eventstreams ibm-integration-asset-repository ibm-integration-platform-navigator ibm-mq"
 
 SCRATCH=$(mktemp -d)
 mkdir -p $SCRATCH
@@ -16,13 +16,19 @@ mkdir "${SCRATCH}/cases"
 export CASES_DIR="${SCRATCH}/cases"
 
 for CASE_NAME in ${CASE_NAMES}; do
+  EXTRA_FLAGS=""
   retry_count=0
+  if [[ "${CASE_NAME}" == "ibm-cp-common-services" ]]; then
+    echo "Using version 1.18 of the CS case, which should be 3.22.x of the operator"
+    EXTRA_FLAGS="--version 1.18"
+  fi
   echo "Saving case for ${CASE_NAME}"
   until ${CLOUDCTL} case save \
           --repo $CASE_REPO_PATH \
           --case $CASE_NAME \
           --no-dependency \
-          --outputdir "${CASES_DIR}" ; do
+          --outputdir "${CASES_DIR}" \
+          $EXTRA_FLAGS ; do
     if [ $retry_count -gt 10 ]; then
       exit 1
     fi
@@ -35,11 +41,6 @@ ls -ltr ${CASES_DIR}/*.tgz
 CATALOG_IMAGES=$(grep -h -e "catalog" ${CASES_DIR}/*-images.csv | grep -e ",amd64,")
 FIXED_DATA_JSON='
 {
-  "ibm-ai-wmltraining-operator-catalog": {
-    "envVarPrefix": "WML_TRAINING",
-    "catalogName": "ibm-ai-wmltraining-catalog",
-    "displayNamePrefix": "WML Training Operators"
-  },
   "ibm-apiconnect-catalog": {
     "envVarPrefix": "APIC",
     "catalogName": "apic-operators",
