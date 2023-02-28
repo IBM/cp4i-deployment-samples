@@ -160,7 +160,7 @@ divider
 # create tekton tasks
 echo -e "$INFO [INFO] Create tekton tasks for the dev pipeline of the driveway dent deletion demo"
 YAML=$(cat $CURRENT_DIR/../../CommonPipelineResources/cicd-tasks.yaml |
-  sed "s#{{NAMESACE}}#$NAMESPACE#g;" |
+  sed "s#{{NAMESACE}}#$NAMESPACE#g;")
 OCApplyYAML "$NAMESPACE" "$YAML"
 
 divider
