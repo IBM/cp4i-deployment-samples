@@ -95,6 +95,7 @@ spec:
     accept: true
     license: $(getACELicense $namespace)
     use: ${use}
+  displayMode: IntegrationRuntimes
   pod:
     containers:
       content-server:
