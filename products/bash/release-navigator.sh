@@ -67,7 +67,7 @@ spec:
     license: L-RJON-CJR2RX
   mqDashboard: true
   replicas: ${replicas}
-  version: 2022.4.1
+  version: next
   storage:
     class: ${storage}
 EOF

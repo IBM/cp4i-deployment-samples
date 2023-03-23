@@ -155,8 +155,8 @@ metadata:
   name: ibm-integration-platform-navigator-catalog
   namespace: openshift-marketplace
 spec:
-  displayName: "PN Operators 7.0.0"
-  image: icr.io/cpopen/ibm-integration-platform-navigator-catalog@sha256:d98a7858cef16b558969d8cb5490f0916e89ad8fd4ca5baa0ce20580ccf9bef6
+  displayName: "PN Operators staging image"
+  image: cp.stg.icr.io/cp/ibm-integration-platform-navigator-catalog:latest-cd
   publisher: IBM
   sourceType: grpc
   updateStrategy:

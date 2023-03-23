@@ -79,32 +79,46 @@ echo -e "INFO: Going ahead to apply the CR for '$release_name'"
 divider
 
 YAML=$(cat <<EOF
-apiVersion: appconnect.ibm.com/v1beta1
-kind: IntegrationRuntime
+apiVersion: integration.ibm.com/v1beta1
+kind: IntegrationAssembly
 metadata:
-  name: ${release_name}
-  namespace: ${namespace}
+  name: ${release_name}-ia
 spec:
+  version: next
   license:
     accept: true
-    license: $(getACELicense $namespace)
-    use: ${license_use}
-  template:
-    spec:
-      containers:
-        - name: runtime
-          resources:
-            requests:
-              cpu: 300m
-              memory: 368Mi
-  logFormat: basic
-  barURL: ${bar_file_urls}
-  configurations: $configurations
-  version: '12.0'
-  replicas: ${replicas}
+    license: L-RJON-CJR2RX
+    use: CloudPakForIntegrationNonProduction
+  storage:
+    readWriteOnce:
+      class: ${BLOCK_STORAGE_CLASS}
+    readWriteMany:
+      class: ${FILE_STORAGE_CLASS}
+  managedIntegrations:
+    list:
+    - kind: IntegrationRuntime
+      metadata:
+        name: ${release_name}
+      spec:
+        template:
+          spec:
+            containers:
+              - name: runtime
+                resources:
+                  requests:
+                    cpu: 300m
+                    memory: 368Mi
+        logFormat: basic
+        barURL: ${bar_file_urls}
+        configurations: $configurations
+        version: '12.0'
+        replicas: ${replicas}
+
 EOF
 )
 OCApplyYAML "$namespace" "$YAML"
+
+
 
 echo "Wait for the runtime to be ready"
 oc wait --for=condition=ready integrationruntimes.appconnect.ibm.com -n ${namespace} ${release_name} --timeout 10m
