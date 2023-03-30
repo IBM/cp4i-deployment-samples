@@ -36,7 +36,11 @@ spec:
         name: run-command
       params:
         - name: command
-          value: /workspace/git-source/DrivewayDentDeletion/Operators/deploy-im.sh -n {{NAMESPACE}} -b {{DEFAULT_BLOCK_STORAGE}} -f {{DEFAULT_FILE_STORAGE}}
+          value: |
+            FORKED_REPO={{FORKED_REPO}}
+            BRANCH={{BRANCH}}
+            BAR_FILES='["'${FORKED_REPO%.*}/raw/${BRANCH}/DrivewayDentDeletion/Bar_files/ace-api/DrivewayDemo.bar'"]'
+            /workspace/git-source/DrivewayDentDeletion/Operators/deploy-im.sh -n {{NAMESPACE}} -b {{DEFAULT_BLOCK_STORAGE}} -f {{DEFAULT_FILE_STORAGE}} -u {BAR_FILES}
       workspaces:
         - name: git-source
           workspace: git-source
@@ -63,24 +67,6 @@ spec:
       params:
         - name: command
           value: oc wait --for=condition=ready -n {{NAMESPACE}} IntegrationAssembly ddd-dev --timeout 10m
-      workspaces:
-        - name: git-source
-          workspace: git-source
-
-    - name: d-api-dev
-      retries: 2
-      runAfter:
-        - clone-git-src
-      taskRef:
-        name: run-command
-      params:
-        - name: command
-          value: |
-            FORKED_REPO={{FORKED_REPO}}
-            BRANCH={{BRANCH}}
-            BAR_FILES='["'${FORKED_REPO%.*}/raw/${BRANCH}/DrivewayDentDeletion/Bar_files/ace-api/DrivewayDemo.bar'"]'
-            CONFIGURATIONS="[keystore-ddd, policyproject-ddd-dev, serverconf-ddd, setdbparms-ddd, application-ddd-dev, barauth-empty]"
-            /workspace/git-source/products/bash/release-ace-integration-runtime.sh -n {{NAMESPACE}} -r ddd-dev-ace-api -b "${BAR_FILES}" -c "${CONFIGURATIONS}"
       workspaces:
         - name: git-source
           workspace: git-source
@@ -144,7 +130,6 @@ spec:
       runAfter:
         - is-cfg-dev
         - wait-im-dev
-        - d-api-dev
         - d-acme-dev
         - d-bernie-dev
         - d-chris-dev

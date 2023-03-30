@@ -28,7 +28,7 @@ DDD_DEMO_TYPE="dev"
 BLOCK_STORAGE_CLASS="cp4i-block-performance"
 FILE_STORAGE_CLASS="cp4i-file-performance-gid"
 
-while getopts "b:f:n:t" opt; do
+while getopts "b:f:n:u:t" opt; do
   case ${opt} in
   b)
     BLOCK_STORAGE_CLASS="$OPTARG"
@@ -42,6 +42,10 @@ while getopts "b:f:n:t" opt; do
   t)
     DDD_DEMO_TYPE="test"
     ;;
+  u)
+    bar_file_urls="$OPTARG"
+    ;;
+
   \?)
     usage
     ;;
@@ -50,6 +54,7 @@ done
 
 IM_NAME=ddd-${DDD_DEMO_TYPE}
 QM_NAME=mq-ddd-qm-${DDD_DEMO_TYPE}
+CONFIGURATIONS="[keystore-ddd, policyproject-ddd-dev, serverconf-ddd, setdbparms-ddd, application-ddd-dev, barauth-empty]"
 
 YAML=$(cat <<EOF
 apiVersion: v1
@@ -206,6 +211,26 @@ spec:
                 name: qm-${QM_NAME}-queues
                 items:
                   - myqm.mqsc
+  managedIntegrations:
+    list:
+    - kind: IntegrationRuntime
+      metadata:
+        name: ace-api
+      spec:
+        template:
+          spec:
+            containers:
+              - name: runtime
+                resources:
+                  requests:
+                    cpu: 300m
+                    memory: 368Mi
+        logFormat: basic
+        barURL: ${bar_file_urls}
+        configurations: ${CONFIGURATIONS}
+        version: '12.0'
+        replicas: 1
+
 ---
 apiVersion: cert-manager.io/v1
 kind: Certificate
