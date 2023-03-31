@@ -229,7 +229,7 @@ spec:
                     cpu: 300m
                     memory: 368Mi
         logFormat: basic
-        barURL: ${BAR_URLS_ARRAY[0]}
+        barURL: [${BAR_URLS_ARRAY[0]}]
         configurations: ${CONFIGURATIONS}
         version: '12.0'
         replicas: 1
@@ -246,7 +246,7 @@ spec:
                     cpu: 300m
                     memory: 368Mi
         logFormat: basic
-        barURL: ${BAR_URLS_ARRAY[1]}
+        barURL: [${BAR_URLS_ARRAY[1]}]
         configurations: ${CONFIGURATIONS}
         version: '12.0'
         replicas: 1
