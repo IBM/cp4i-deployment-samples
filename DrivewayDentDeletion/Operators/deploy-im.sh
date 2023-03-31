@@ -13,7 +13,7 @@ function divider() {
 }
 
 function usage() {
-  echo "Usage: $0 -n <NAMESPACE> -b <BLOCK_STORAGE_CLASS> -f <FILE_STORAGE_CLASS> -r <FORKED_REPO> -a <BRANCH> [-t]"
+  echo "Usage: $0 -n <NAMESPACE> -b <BLOCK_STORAGE_CLASS> -f <FILE_STORAGE_CLASS> -u <BAR_URLS> [-t]"
   divider
   exit 1
 }
@@ -28,7 +28,7 @@ DDD_DEMO_TYPE="dev"
 BLOCK_STORAGE_CLASS="cp4i-block-performance"
 FILE_STORAGE_CLASS="cp4i-file-performance-gid"
 
-while getopts "b:f:n:r:a:t" opt; do
+while getopts "b:f:n:u:t" opt; do
   case ${opt} in
   b)
     BLOCK_STORAGE_CLASS="$OPTARG"
@@ -42,11 +42,8 @@ while getopts "b:f:n:r:a:t" opt; do
   t)
     DDD_DEMO_TYPE="test"
     ;;
-  r)
-    FORKED_REPO="$OPTARG"
-    ;;
-  a)
-    BRANCH="$OPTARG"
+  u)
+    BAR_URLS="$OPTARG"
     ;;
   \?)
     usage
@@ -57,6 +54,10 @@ done
 IM_NAME=ddd-${DDD_DEMO_TYPE}
 QM_NAME=mq-ddd-qm-${DDD_DEMO_TYPE}
 CONFIGURATIONS="[keystore-ddd, policyproject-ddd-dev, serverconf-ddd, setdbparms-ddd, application-ddd-dev, barauth-empty]"
+
+BAR_URLS_ARRAY= $(echo $BAR_URLS | tr "," '\n')
+echo ${BAR_URLS_ARRAY[0]}
+
 
 YAML=$(cat <<EOF
 apiVersion: v1
@@ -228,7 +229,7 @@ spec:
                     cpu: 300m
                     memory: 368Mi
         logFormat: basic
-        barURL: ["'${FORKED_REPO%.*}/raw/${BRANCH}/DrivewayDentDeletion/Bar_files/ace-api/DrivewayDemo.bar'"]
+        barURL: ${BARURL[0]}
         configurations: ${CONFIGURATIONS}
         version: '12.0'
         replicas: 1
@@ -245,44 +246,11 @@ spec:
                     cpu: 300m
                     memory: 368Mi
         logFormat: basic
-        barURL: ["'${FORKED_REPO%.*}/raw/${BRANCH}/DrivewayDentDeletion/Bar_files/ace-acme/AcmeV1.bar'"]
+        barURL: ${BARURL[1]}
         configurations: ${CONFIGURATIONS}
         version: '12.0'
         replicas: 1
-    - kind: IntegrationRuntime
-      metadata:
-        name: ${IM_NAME}-ace-bernie
-      spec:
-        template:
-          spec:
-            containers:
-              - name: runtime
-                resources:
-                  requests:
-                    cpu: 300m
-                    memory: 368Mi
-        logFormat: basic
-        barURL: ["'${FORKED_REPO%.*}/raw/${BRANCH}/DrivewayDentDeletion/Bar_files/ace-bernie/BernieV1.bar'"]
-        configurations: ${CONFIGURATIONS}
-        version: '12.0'
-        replicas: 1
-    - kind: IntegrationRuntime
-      metadata:
-        name: ${IM_NAME}-ace-chris
-      spec:
-        template:
-          spec:
-            containers:
-              - name: runtime
-                resources:
-                  requests:
-                    cpu: 300m
-                    memory: 368Mi
-        logFormat: basic
-        barURL: ["'${FORKED_REPO%.*}/raw/${BRANCH}/DrivewayDentDeletion/Bar_files/ace-chris/CrumpledV1.bar'"]
-        configurations: ${CONFIGURATIONS}
-        version: '12.0'
-        replicas: 1
+
 ---
 apiVersion: cert-manager.io/v1
 kind: Certificate
