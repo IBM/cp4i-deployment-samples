@@ -164,6 +164,125 @@ spec:
     name: qm-${QM_NAME}-issuer
   secretName: qm-${QM_NAME}-server
 ---
+apiVersion: integration.ibm.com/v1beta1
+kind: IntegrationAssembly
+metadata:
+  name: ${IM_NAME}
+spec:
+  version: next
+  license:
+    accept: true
+    license: L-RJON-CJR2RX
+    use: CloudPakForIntegrationNonProduction
+  storage:
+    readWriteOnce:
+      class: ${BLOCK_STORAGE_CLASS}
+    readWriteMany:
+      class: ${FILE_STORAGE_CLASS}
+  managedInstances:
+    list:
+    - kind: QueueManager
+      metadata:
+        name: ${QM_NAME}
+      spec:
+        version: 9.3.1.0-r3
+        web:
+          enabled: true
+        pki:
+          keys:
+          - name: default
+            secret:
+              items:
+              - tls.key
+              - tls.crt
+              secretName: qm-${QM_NAME}-server
+          trust:
+          - name: rootca
+            secret:
+              items:
+              - ca.crt
+              secretName: qm-${QM_NAME}-server
+        queueManager:
+          mqsc:
+            - configMap:
+                name: qm-${QM_NAME}-default
+                items:
+                  - myqm.mqsc
+            - configMap:
+                name: qm-${QM_NAME}-queues
+                items:
+                  - myqm.mqsc
+  managedIntegrations:
+    list:
+    - kind: IntegrationRuntime
+      metadata:
+        name: ${IM_NAME}-ace-api
+      spec:
+        template:
+          spec:
+            containers:
+              - name: runtime
+                resources:
+                  requests:
+                    cpu: 300m
+                    memory: 368Mi
+        logFormat: basic
+        barURL: [${BAR_URLS_ARRAY[0]}]
+        configurations: ${CONFIGURATIONS}
+        version: '12.0'
+        replicas: 1
+    - kind: IntegrationRuntime
+      metadata:
+        name: ${IM_NAME}-ace-acme
+      spec:
+        template:
+          spec:
+            containers:
+              - name: runtime
+                resources:
+                  requests:
+                    cpu: 300m
+                    memory: 368Mi
+        logFormat: basic
+        barURL: [${BAR_URLS_ARRAY[1]}]
+        configurations: ${CONFIGURATIONS}
+        version: '12.0'
+        replicas: 1
+    - kind: IntegrationRuntime
+      metadata:
+        name: ${IM_NAME}-ace-bernie
+      spec:
+        template:
+          spec:
+            containers:
+              - name: runtime
+                resources:
+                  requests:
+                    cpu: 300m
+                    memory: 368Mi
+        logFormat: basic
+        barURL: [${BAR_URLS_ARRAY[2]}]
+        configurations: ${CONFIGURATIONS}
+        version: '12.0'
+        replicas: 1
+    - kind: IntegrationRuntime
+      metadata:
+        name: ${IM_NAME}-ace-chris
+      spec:
+        template:
+          spec:
+            containers:
+              - name: runtime
+                resources:
+                  requests:
+                    cpu: 300m
+                    memory: 368Mi
+        logFormat: basic
+        barURL: [${BAR_URLS_ARRAY[3]}]
+        configurations: ${CONFIGURATIONS}
+        version: '12.0'
+        replicas: 1
+---
 apiVersion: cert-manager.io/v1
 kind: Certificate
 metadata:
