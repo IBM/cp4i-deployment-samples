@@ -13,7 +13,7 @@ function divider() {
 }
 
 function usage() {
-  echo "Usage: $0 -n <NAMESPACE> -b <BLOCK_STORAGE_CLASS> -f <FILE_STORAGE_CLASS> [-t]"
+  echo "Usage: $0 -n <NAMESPACE> -b <BLOCK_STORAGE_CLASS> -f <FILE_STORAGE_CLASS> -u <BAR_FILE_URLS> [-t]"
   divider
   exit 1
 }
@@ -43,7 +43,7 @@ while getopts "b:f:n:u:t" opt; do
     DDD_DEMO_TYPE="test"
     ;;
   u)
-    bar_file_urls="$OPTARG"
+    BAR_FILE_URLS="$OPTARG"
     ;;
 
   \?)
@@ -168,7 +168,7 @@ kind: IntegrationAssembly
 metadata:
   name: ${IM_NAME}
 spec:
-  version: 2022.4.1
+  version: next
   license:
     accept: true
     license: L-RJON-CJR2RX
@@ -226,7 +226,7 @@ spec:
                     cpu: 300m
                     memory: 368Mi
         logFormat: basic
-        barURL: ${bar_file_urls}
+        barURL: ${BAR_FILE_URLS}
         configurations: ${CONFIGURATIONS}
         version: '12.0'
         replicas: 1
