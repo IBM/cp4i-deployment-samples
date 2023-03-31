@@ -228,7 +228,7 @@ spec:
                     cpu: 300m
                     memory: 368Mi
         logFormat: basic
-        barURL: '["'${FORKED_REPO%.*}/raw/${BRANCH}/DrivewayDentDeletion/Bar_files/ace-api/DrivewayDemo.bar'"]'
+        barURL: ["'${FORKED_REPO%.*}/raw/${BRANCH}/DrivewayDentDeletion/Bar_files/ace-api/DrivewayDemo.bar'"]
         configurations: ${CONFIGURATIONS}
         version: '12.0'
         replicas: 1
@@ -245,11 +245,44 @@ spec:
                     cpu: 300m
                     memory: 368Mi
         logFormat: basic
-        barURL: '["'${FORKED_REPO%.*}/raw/${BRANCH}/DrivewayDentDeletion/Bar_files/ace-acme/AcmeV1.bar'"]'
+        barURL: ["'${FORKED_REPO%.*}/raw/${BRANCH}/DrivewayDentDeletion/Bar_files/ace-acme/AcmeV1.bar'"]
         configurations: ${CONFIGURATIONS}
         version: '12.0'
         replicas: 1
-
+    - kind: IntegrationRuntime
+      metadata:
+        name: ${IM_NAME}-ace-bernie
+      spec:
+        template:
+          spec:
+            containers:
+              - name: runtime
+                resources:
+                  requests:
+                    cpu: 300m
+                    memory: 368Mi
+        logFormat: basic
+        barURL: ["'${FORKED_REPO%.*}/raw/${BRANCH}/DrivewayDentDeletion/Bar_files/ace-bernie/BernieV1.bar'"]
+        configurations: ${CONFIGURATIONS}
+        version: '12.0'
+        replicas: 1
+    - kind: IntegrationRuntime
+      metadata:
+        name: ${IM_NAME}-ace-chris
+      spec:
+        template:
+          spec:
+            containers:
+              - name: runtime
+                resources:
+                  requests:
+                    cpu: 300m
+                    memory: 368Mi
+        logFormat: basic
+        barURL: ["'${FORKED_REPO%.*}/raw/${BRANCH}/DrivewayDentDeletion/Bar_files/ace-chris/CrumpledV1.bar'"]
+        configurations: ${CONFIGURATIONS}
+        version: '12.0'
+        replicas: 1
 ---
 apiVersion: cert-manager.io/v1
 kind: Certificate

@@ -70,68 +70,11 @@ spec:
         - name: git-source
           workspace: git-source
 
-    - name: d-acme-dev
-      retries: 2
-      runAfter:
-        - clone-git-src
-      taskRef:
-        name: run-command
-      params:
-        - name: command
-          value: |
-            FORKED_REPO={{FORKED_REPO}}
-            BRANCH={{BRANCH}}
-            BAR_FILES='["'${FORKED_REPO%.*}/raw/${BRANCH}/DrivewayDentDeletion/Bar_files/ace-acme/AcmeV1.bar'"]'
-            CONFIGURATIONS="[keystore-ddd, policyproject-ddd-dev, serverconf-ddd, setdbparms-ddd, application-ddd-dev, barauth-empty]"
-            /workspace/git-source/products/bash/release-ace-integration-runtime.sh -n {{NAMESPACE}} -r ddd-dev-ace-acme -b "${BAR_FILES}" -c "${CONFIGURATIONS}"
-      workspaces:
-        - name: git-source
-          workspace: git-source
-
-    - name: d-bernie-dev
-      retries: 2
-      runAfter:
-        - clone-git-src
-      taskRef:
-        name: run-command
-      params:
-        - name: command
-          value: |
-            FORKED_REPO={{FORKED_REPO}}
-            BRANCH={{BRANCH}}
-            BAR_FILES='["'${FORKED_REPO%.*}/raw/${BRANCH}/DrivewayDentDeletion/Bar_files/ace-bernie/BernieV1.bar'"]'
-            CONFIGURATIONS="[keystore-ddd, policyproject-ddd-dev, serverconf-ddd, setdbparms-ddd, application-ddd-dev, barauth-empty]"
-            /workspace/git-source/products/bash/release-ace-integration-runtime.sh -n {{NAMESPACE}} -r ddd-dev-ace-bernie -b "${BAR_FILES}" -c "${CONFIGURATIONS}"
-      workspaces:
-        - name: git-source
-          workspace: git-source
-
-    - name: d-chris-dev
-      retries: 2
-      runAfter:
-        - clone-git-src
-      taskRef:
-        name: run-command
-      params:
-        - name: command
-          value: |
-            FORKED_REPO={{FORKED_REPO}}
-            BRANCH={{BRANCH}}
-            BAR_FILES='["'${FORKED_REPO%.*}/raw/${BRANCH}/DrivewayDentDeletion/Bar_files/ace-chris/CrumpledV1.bar'"]'
-            CONFIGURATIONS="[keystore-ddd, policyproject-ddd-dev, serverconf-ddd, setdbparms-ddd, application-ddd-dev, barauth-empty]"
-            /workspace/git-source/products/bash/release-ace-integration-runtime.sh -n {{NAMESPACE}} -r ddd-dev-ace-chris -b "${BAR_FILES}" -c "${CONFIGURATIONS}"
-      workspaces:
-        - name: git-source
-          workspace: git-source
-
     - name: test-dev
       retries: 2
       runAfter:
         - is-cfg-dev
         - wait-im-dev
-        - d-acme-dev
-        - d-bernie-dev
-        - d-chris-dev
       taskRef:
         name: run-command
       params:
