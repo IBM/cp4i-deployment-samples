@@ -39,8 +39,7 @@ spec:
           value: |
             FORKED_REPO={{FORKED_REPO}}
             BRANCH={{BRANCH}}
-            BAR_FILES='["'${FORKED_REPO%.*}/raw/${BRANCH}/DrivewayDentDeletion/Bar_files/ace-api/DrivewayDemo.bar'"]'
-            /workspace/git-source/DrivewayDentDeletion/Operators/deploy-im.sh -n {{NAMESPACE}} -b {{DEFAULT_BLOCK_STORAGE}} -f {{DEFAULT_FILE_STORAGE}} -u {BAR_FILES}
+            /workspace/git-source/DrivewayDentDeletion/Operators/deploy-im.sh -n {{NAMESPACE}} -b {{DEFAULT_BLOCK_STORAGE}} -f {{DEFAULT_FILE_STORAGE}} -r {FORKED_REPO} -a {BRANCH}
       workspaces:
         - name: git-source
           workspace: git-source

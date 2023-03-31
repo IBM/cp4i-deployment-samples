@@ -13,7 +13,7 @@ function divider() {
 }
 
 function usage() {
-  echo "Usage: $0 -n <NAMESPACE> -b <BLOCK_STORAGE_CLASS> -f <FILE_STORAGE_CLASS> -u <BAR_FILE_URLS> [-t]"
+  echo "Usage: $0 -n <NAMESPACE> -b <BLOCK_STORAGE_CLASS> -f <FILE_STORAGE_CLASS> -r <FORKED_REPO> -a <BRANCH> [-t]"
   divider
   exit 1
 }
@@ -28,7 +28,7 @@ DDD_DEMO_TYPE="dev"
 BLOCK_STORAGE_CLASS="cp4i-block-performance"
 FILE_STORAGE_CLASS="cp4i-file-performance-gid"
 
-while getopts "b:f:n:u:t" opt; do
+while getopts "b:f:n:r:a:t" opt; do
   case ${opt} in
   b)
     BLOCK_STORAGE_CLASS="$OPTARG"
@@ -42,10 +42,12 @@ while getopts "b:f:n:u:t" opt; do
   t)
     DDD_DEMO_TYPE="test"
     ;;
-  u)
-    BAR_FILE_URLS="$OPTARG"
+  r)
+    FORKED_REPO="$OPTARG"
     ;;
-
+  a)
+    BRANCH="$OPTARG"
+    ;;
   \?)
     usage
     ;;
@@ -215,7 +217,7 @@ spec:
     list:
     - kind: IntegrationRuntime
       metadata:
-        name: ace-api
+        name: ${IM_NAME}-ace-api
       spec:
         template:
           spec:
@@ -226,7 +228,24 @@ spec:
                     cpu: 300m
                     memory: 368Mi
         logFormat: basic
-        barURL: ${BAR_FILE_URLS}
+        barURL: '["'${FORKED_REPO%.*}/raw/${BRANCH}/DrivewayDentDeletion/Bar_files/ace-api/DrivewayDemo.bar'"]'
+        configurations: ${CONFIGURATIONS}
+        version: '12.0'
+        replicas: 1
+    - kind: IntegrationRuntime
+      metadata:
+        name: ${IM_NAME}-ace-acme
+      spec:
+        template:
+          spec:
+            containers:
+              - name: runtime
+                resources:
+                  requests:
+                    cpu: 300m
+                    memory: 368Mi
+        logFormat: basic
+        barURL: '["'${FORKED_REPO%.*}/raw/${BRANCH}/DrivewayDentDeletion/Bar_files/ace-acme/AcmeV1.bar'"]'
         configurations: ${CONFIGURATIONS}
         version: '12.0'
         replicas: 1
