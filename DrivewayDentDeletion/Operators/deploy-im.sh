@@ -66,6 +66,12 @@ done
 IM_NAME=ddd-${DDD_DEMO_TYPE}
 QM_NAME=mq-ddd-qm-${DDD_DEMO_TYPE}
 
+echo ${API_URL}
+echo ${ACME_URL}
+echo ${BERNIE_URL}
+echo ${CHRIS_URL}
+echo ${CONFIGURATIONS}
+
 YAML=$(cat <<EOF
 apiVersion: v1
 kind: ConfigMap
