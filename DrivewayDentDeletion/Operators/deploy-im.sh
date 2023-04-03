@@ -58,6 +58,7 @@ IM_NAME=ddd-${DDD_DEMO_TYPE}
 QM_NAME=mq-ddd-qm-${DDD_DEMO_TYPE}
 
 echo "List of Bar urls" + $BAR_URLS
+echo ${BAR_URLS[0]}
 
 BAR_URLS_ARRAY=$(echo $BAR_URLS | tr "," '\n')
 echo "List of the array" + $BAR_URLS_ARRAY
