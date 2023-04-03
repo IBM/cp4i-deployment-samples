@@ -161,7 +161,7 @@ kind: IntegrationAssembly
 metadata:
   name: ${IM_NAME}
 spec:
-  version: 2022.4.1
+  version: next
   license:
     accept: true
     license: L-RJON-CJR2RX
