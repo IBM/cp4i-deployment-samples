@@ -13,7 +13,7 @@ function divider() {
 }
 
 function usage() {
-  echo "Usage: $0 -n <NAMESPACE> -b <BLOCK_STORAGE_CLASS> -f <FILE_STORAGE_CLASS> -u <BAR_URLS> -c <CONFIGURATIONS> [-t]"
+  echo "Usage: $0 -n <NAMESPACE> -b <BLOCK_STORAGE_CLASS> -f <FILE_STORAGE_CLASS> -g <API_URL> -h <ACME_URL> -i <BERNIE_URL> -j <CHRIS_URL> -c <CONFIGURATIONS> [-t]"
   divider
   exit 1
 }
@@ -28,7 +28,7 @@ DDD_DEMO_TYPE="dev"
 BLOCK_STORAGE_CLASS="cp4i-block-performance"
 FILE_STORAGE_CLASS="cp4i-file-performance-gid"
 
-while getopts "b:f:n:u:c:t" opt; do
+while getopts "b:f:n:g:h:i:j:c:t" opt; do
   case ${opt} in
   b)
     BLOCK_STORAGE_CLASS="$OPTARG"
@@ -42,8 +42,17 @@ while getopts "b:f:n:u:c:t" opt; do
   t)
     DDD_DEMO_TYPE="test"
     ;;
-  u)
-    BAR_URLS="$OPTARG"
+  g)
+    API_URL="$OPTARG"
+    ;;
+  h)
+    ACME_URL="$OPTARG"
+    ;;
+  i)
+    BERNIE_URL="$OPTARG"
+    ;;
+  j)
+    CHRIS_URL="$OPTARG"
     ;;
   c)
     CONFIGURATIONS="$OPTARG"
@@ -59,11 +68,10 @@ QM_NAME=mq-ddd-qm-${DDD_DEMO_TYPE}
 
 echo "List of Bar urls" + $BAR_URLS
 
-echo $BAR_URLS | sed 's/, /\n/g'
+echo "sed" $BAR_URLS | sed 's/, /\n/g'
 
-array=echo $BAR_URLS | sed 's/, /\n/g'
+echo "tr" $BAR_URLS | tr ',' '\n'
 
-echo $array
 
 YAML=$(cat <<EOF
 apiVersion: v1
@@ -235,7 +243,7 @@ spec:
                     cpu: 300m
                     memory: 368Mi
         logFormat: basic
-        barURL: [${BAR_URLS_ARRAY[0]}]
+        barURL: ${API_URL}
         configurations: ${CONFIGURATIONS}
         version: '12.0'
         replicas: 1
@@ -252,7 +260,7 @@ spec:
                     cpu: 300m
                     memory: 368Mi
         logFormat: basic
-        barURL: [${BAR_URLS_ARRAY[1]}]
+        barURL: ${ACME_URL}
         configurations: ${CONFIGURATIONS}
         version: '12.0'
         replicas: 1
@@ -269,7 +277,7 @@ spec:
                     cpu: 300m
                     memory: 368Mi
         logFormat: basic
-        barURL: [${BAR_URLS_ARRAY[2]}]
+        barURL: ${BERNIE_URL}
         configurations: ${CONFIGURATIONS}
         version: '12.0'
         replicas: 1
@@ -286,7 +294,7 @@ spec:
                     cpu: 300m
                     memory: 368Mi
         logFormat: basic
-        barURL: [${BAR_URLS_ARRAY[3]}]
+        barURL: ${CHRIS_URL}
         configurations: ${CONFIGURATIONS}
         version: '12.0'
         replicas: 1
