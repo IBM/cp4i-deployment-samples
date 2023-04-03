@@ -57,12 +57,12 @@ done
 IM_NAME=ddd-${DDD_DEMO_TYPE}
 QM_NAME=mq-ddd-qm-${DDD_DEMO_TYPE}
 
-echo $BAR_URLS
+echo "List of Bar urls" + $BAR_URLS
 
 BAR_URLS_ARRAY=$(echo $BAR_URLS | tr "," '\n')
-echo $BAR_URLS_ARRAY
-echo ${BAR_URLS_ARRAY[0]}
-echo ${BAR_URLS_ARRAY[1]}
+echo "List of the array" + $BAR_URLS_ARRAY
+echo "first one in array" + ${BAR_URLS_ARRAY[0]}
+echo " second one in the array" + ${BAR_URLS_ARRAY[1]}
 
 YAML=$(cat <<EOF
 apiVersion: v1
