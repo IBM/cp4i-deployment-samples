@@ -78,7 +78,7 @@ spec:
     - name: apic-dev
       retries: 2
       runAfter:
-        - d-api-dev
+        - wait-im-dev
       taskRef:
         name: run-command
       params:
@@ -155,7 +155,7 @@ spec:
     - name: apic-test
       retries: 2
       runAfter:
-        - d-api-test
+        - wait-im-test
       taskRef:
         name: run-command
       params:
