@@ -58,15 +58,15 @@ IM_NAME=ddd-${DDD_DEMO_TYPE}
 QM_NAME=mq-ddd-qm-${DDD_DEMO_TYPE}
 
 echo "List of Bar urls" + $BAR_URLS
-echo "first" +  ${BAR_URLS[0]}
-first_url="${BAR_URLS[0]}"
-echo "maybe first url" + $first_url
-echo "second" +  ${BAR_URLS[1]}
 
 BAR_URLS_ARRAY=$(echo $BAR_URLS | tr "," '\n')
 echo "List of the array" + $BAR_URLS_ARRAY
 echo "first one in array" + ${BAR_URLS_ARRAY[0]}
 echo " second one in the array" + ${BAR_URLS_ARRAY[1]}
+
+TESTARRAY=', ' read -r -a array <<< "$BAR_URLS"
+echo "${TESTARRAY[0]}"
+echo "${TESTARRAY[1]}"
 
 YAML=$(cat <<EOF
 apiVersion: v1
