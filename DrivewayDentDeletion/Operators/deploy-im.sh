@@ -70,7 +70,7 @@ echo ${API_URL}
 echo ${ACME_URL}
 echo ${BERNIE_URL}
 echo ${CHRIS_URL}
-echo $CONFIGURATIONS
+echo ${CONFIGURATIONS}
 
 YAML=$(cat <<EOF
 apiVersion: v1
@@ -243,7 +243,7 @@ spec:
                     memory: 368Mi
         logFormat: basic
         barURL: ${API_URL}
-        configurations: $CONFIGURATIONS
+        configurations: ${CONFIGURATIONS}
         version: '12.0'
         replicas: 1
     - kind: IntegrationRuntime
@@ -260,7 +260,7 @@ spec:
                     memory: 368Mi
         logFormat: basic
         barURL: ${ACME_URL}
-        configurations: $CONFIGURATIONS
+        configurations: ${CONFIGURATIONS}
         version: '12.0'
         replicas: 1
     - kind: IntegrationRuntime
@@ -277,7 +277,7 @@ spec:
                     memory: 368Mi
         logFormat: basic
         barURL: ${BERNIE_URL}
-        configurations: $CONFIGURATIONS
+        configurations: ${CONFIGURATIONS}
         version: '12.0'
         replicas: 1
     - kind: IntegrationRuntime
@@ -294,7 +294,7 @@ spec:
                     memory: 368Mi
         logFormat: basic
         barURL: ${CHRIS_URL}
-        configurations: $CONFIGURATIONS
+        configurations: ${CONFIGURATIONS}
         version: '12.0'
         replicas: 1
 ---
