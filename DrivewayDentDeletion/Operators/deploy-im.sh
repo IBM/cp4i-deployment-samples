@@ -13,7 +13,7 @@ function divider() {
 }
 
 function usage() {
-  echo "Usage: $0 -n <NAMESPACE> -b <BLOCK_STORAGE_CLASS> -f <FILE_STORAGE_CLASS> -u <BAR_URLS> [-t]"
+  echo "Usage: $0 -n <NAMESPACE> -b <BLOCK_STORAGE_CLASS> -f <FILE_STORAGE_CLASS> -u <BAR_URLS> -c <CONFIGURATIONS> [-t]"
   divider
   exit 1
 }
@@ -28,7 +28,7 @@ DDD_DEMO_TYPE="dev"
 BLOCK_STORAGE_CLASS="cp4i-block-performance"
 FILE_STORAGE_CLASS="cp4i-file-performance-gid"
 
-while getopts "b:f:n:u:t" opt; do
+while getopts "b:f:n:u:c:t" opt; do
   case ${opt} in
   b)
     BLOCK_STORAGE_CLASS="$OPTARG"
@@ -45,6 +45,9 @@ while getopts "b:f:n:u:t" opt; do
   u)
     BAR_URLS="$OPTARG"
     ;;
+  c)
+    CONFIGURATIONS="$OPTARG"
+    ;;
   \?)
     usage
     ;;
@@ -53,9 +56,11 @@ done
 
 IM_NAME=ddd-${DDD_DEMO_TYPE}
 QM_NAME=mq-ddd-qm-${DDD_DEMO_TYPE}
-CONFIGURATIONS="[keystore-ddd, policyproject-ddd-dev, serverconf-ddd, setdbparms-ddd, application-ddd-dev, barauth-empty]"
 
 BAR_URLS_ARRAY=$(echo $BAR_URLS | tr "," '\n')
+echo $BAR_URLS_ARRAY
+echo ${BAR_URLS_ARRAY[0]}
+echo ${BAR_URLS_ARRAY[1]}
 
 YAML=$(cat <<EOF
 apiVersion: v1

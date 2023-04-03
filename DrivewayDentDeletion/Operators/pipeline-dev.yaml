@@ -40,7 +40,8 @@ spec:
             FORKED_REPO={{FORKED_REPO}}
             BRANCH={{BRANCH}}
             BAR_FILES='"'${FORKED_REPO%.*}/raw/${BRANCH}/DrivewayDentDeletion/Bar_files/ace-api/DrivewayDemo.bar'", "'${FORKED_REPO%.*}/raw/${BRANCH}/DrivewayDentDeletion/Bar_files/ace-acme/AcmeV1.bar'", "'${FORKED_REPO%.*}/raw/${BRANCH}/DrivewayDentDeletion/Bar_files/ace-bernie/BernieV1.bar'", "'${FORKED_REPO%.*}/raw/${BRANCH}/DrivewayDentDeletion/Bar_files/ace-chris/CrumpledV1.bar'"'
-            /workspace/git-source/DrivewayDentDeletion/Operators/deploy-im.sh -n {{NAMESPACE}} -b {{DEFAULT_BLOCK_STORAGE}} -f {{DEFAULT_FILE_STORAGE}} -u ${BAR_FILES}
+            CONFIGURATIONS="[keystore-ddd, policyproject-ddd-dev, serverconf-ddd, setdbparms-ddd, application-ddd-dev, barauth-empty]"
+            /workspace/git-source/DrivewayDentDeletion/Operators/deploy-im.sh -n {{NAMESPACE}} -b {{DEFAULT_BLOCK_STORAGE}} -f {{DEFAULT_FILE_STORAGE}} -u ${BAR_FILES} -c ${CONFIGURATIONS}
       workspaces:
         - name: git-source
           workspace: git-source
@@ -66,7 +67,7 @@ spec:
         name: run-command
       params:
         - name: command
-          value: oc wait --for=condition=ready -n {{NAMESPACE}} IntegrationAssembly ddd-dev --timeout 10m
+          value: oc wait --for=condition=ready -n {{NAMESPACE}} IntegrationAssembly ddd-dev --timeout 15m
       workspaces:
         - name: git-source
           workspace: git-source
