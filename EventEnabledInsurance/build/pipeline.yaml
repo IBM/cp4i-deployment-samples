@@ -99,7 +99,12 @@ spec:
         name: run-command
       params:
         - name: command
-          value: /workspace/git-source/EventEnabledInsurance/build/deploy-im.sh -n {{NAMESPACE}} -b {{DEFAULT_BLOCK_STORAGE}} -f {{DEFAULT_FILE_STORAGE}}
+          value: |
+            FORKED_REPO={{FORKED_REPO}}
+            BRANCH={{BRANCH}}
+            ACE_REST_FILE='["'${FORKED_REPO%.*}/raw/${BRANCH}/EventEnabledInsurance/ACE/BarFiles/REST.bar'"]'
+            DB_WRITER_FILE='["'${FORKED_REPO%.*}/raw/${BRANCH}/EventEnabledInsurance/ACE/BarFiles/DB-WRITER.bar'"]'
+            /workspace/git-source/EventEnabledInsurance/build/deploy-im.sh -n {{NAMESPACE}} -b {{DEFAULT_BLOCK_STORAGE}} -f {{DEFAULT_FILE_STORAGE}} -a "${ACE_REST_FILE}" -d "${DB_WRITER_FILE}" -c {{CONFIGURATIONS}}
       workspaces:
         - name: git-source
           workspace: git-source
@@ -130,44 +135,10 @@ spec:
         - name: git-source
           workspace: git-source
 
-    - name: d-ace-rest
-      retries: 2
-      runAfter:
-        - clone-git-src
-      taskRef:
-        name: run-command
-      params:
-        - name: command
-          value: |
-            FORKED_REPO={{FORKED_REPO}}
-            BRANCH={{BRANCH}}
-            BAR_FILES='["'${FORKED_REPO%.*}/raw/${BRANCH}/EventEnabledInsurance/ACE/BarFiles/REST.bar'"]'
-            /workspace/git-source/products/bash/release-ace-integration-runtime.sh -n '{{NAMESPACE}}' -r 'ace-rest-int-srv-eei' -b "${BAR_FILES}" -c {{CONFIGURATIONS}}
-      workspaces:
-        - name: git-source
-          workspace: git-source
-
-    - name: d-db-writer
-      retries: 2
-      runAfter:
-        - clone-git-src
-      taskRef:
-        name: run-command
-      params:
-        - name: command
-          value: |
-            FORKED_REPO={{FORKED_REPO}}
-            BRANCH={{BRANCH}}
-            BAR_FILES='["'${FORKED_REPO%.*}/raw/${BRANCH}/EventEnabledInsurance/ACE/BarFiles/DB-WRITER.bar'"]'
-            /workspace/git-source/products/bash/release-ace-integration-runtime.sh -n '{{NAMESPACE}}' -r 'ace-db-writer-int-srv-eei' -b "${BAR_FILES}" -c {{CONFIGURATIONS}}
-      workspaces:
-        - name: git-source
-          workspace: git-source
-
     - name: push-to-apic
       retries: 2
       runAfter:
-        - d-ace-rest
+        - wait-im
       taskRef:
         name: run-command
       params:
