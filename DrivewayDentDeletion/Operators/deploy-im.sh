@@ -66,13 +66,6 @@ done
 IM_NAME=ddd-${DDD_DEMO_TYPE}
 QM_NAME=mq-ddd-qm-${DDD_DEMO_TYPE}
 
-echo "List of Bar urls" + $BAR_URLS
-
-echo "sed" $BAR_URLS | sed 's/, /\n/g'
-
-echo "tr" $BAR_URLS | tr ',' '\n'
-
-
 YAML=$(cat <<EOF
 apiVersion: v1
 kind: ConfigMap
