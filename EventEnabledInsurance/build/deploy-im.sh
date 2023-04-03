@@ -27,7 +27,7 @@ NAMESPACE="cp4i"
 BLOCK_STORAGE_CLASS="cp4i-block-performance"
 FILE_STORAGE_CLASS="cp4i-file-performance-gid"
 
-while getopts "b:f:n:a:d:" opt; do
+while getopts "b:f:n:a:d:c:" opt; do
   case ${opt} in
   b)
     BLOCK_STORAGE_CLASS="$OPTARG"
