@@ -64,8 +64,7 @@ CHRIS_FILE='["'${BASE_URL}/DrivewayDentDeletion/Bar_files/ace-chris/CrumpledV1.b
 
 echo ${API_FILE}
 echo ${BASE_URL}
-echo $API_FILE
-echo $BASE_URL
+
 
 YAML=$(cat <<EOF
 apiVersion: v1
