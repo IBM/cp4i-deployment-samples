@@ -57,12 +57,15 @@ done
 IM_NAME=ddd-${DDD_DEMO_TYPE}
 QM_NAME=mq-ddd-qm-${DDD_DEMO_TYPE}
 CONFIGURATIONS="[keystore-ddd, policyproject-ddd-${DDD_ENV}, serverconf-ddd, setdbparms-ddd, application-ddd-${DDD_ENV}, barauth-empty]"
-API_FILE='[${BASE_URL}/DrivewayDentDeletion/Bar_files/ace-api/DrivewayDemo.bar]'
+API_FILE='["'${BASE_URL}/DrivewayDentDeletion/Bar_files/ace-api/DrivewayDemo.bar'"]'
 ACME_FILE='["'${BASE_URL}/DrivewayDentDeletion/Bar_files/ace-acme/AcmeV1.bar'"]'
 BERNIE_FILE='["'${BASE_URL}/DrivewayDentDeletion/Bar_files/ace-bernie/BernieV1.bar'"]'
 CHRIS_FILE='["'${BASE_URL}/DrivewayDentDeletion/Bar_files/ace-chris/CrumpledV1.bar'"]'
 
 echo ${API_FILE}
+echo ${BASE_URL}
+echo $API_FILE
+echo $BASE_URL
 
 YAML=$(cat <<EOF
 apiVersion: v1
@@ -226,28 +229,28 @@ spec:
         name: ${IM_NAME}-ace-api
       spec:
         logFormat: basic
-        barURL: ${API_URL}
+        barURL: ${API_FILE}
         configurations: ${CONFIGURATIONS}
     - kind: IntegrationRuntime
       metadata:
         name: ${IM_NAME}-ace-acme
       spec:
         logFormat: basic
-        barURL: ${ACME_URL}
+        barURL: ${ACME_FILE}
         configurations: ${CONFIGURATIONS}
     - kind: IntegrationRuntime
       metadata:
         name: ${IM_NAME}-ace-bernie
       spec:
         logFormat: basic
-        barURL: ${BERNIE_URL}
+        barURL: ${BERNIE_FILE}
         configurations: ${CONFIGURATIONS}
     - kind: IntegrationRuntime
       metadata:
         name: ${IM_NAME}-ace-chris
       spec:
         logFormat: basic
-        barURL: ${CHRIS_URL}
+        barURL: ${CHRIS_FILE}
         configurations: ${CONFIGURATIONS}
 ---
 apiVersion: cert-manager.io/v1
