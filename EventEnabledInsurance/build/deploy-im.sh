@@ -55,7 +55,7 @@ IM_NAME=eei
 QM_NAME=mq-eei-qm
 ACE_REST_FILE='["'${BASE_URL}/EventEnabledInsurance/ACE/BarFiles/REST.bar'"]'
 DB_WRITER_FILE='["'${BASE_URL}/EventEnabledInsurance/ACE/BarFiles/DB-WRITER.bar'"]'
-
+echo ${ACE_REST_FILE}
 
 YAML=$(cat <<EOF
 apiVersion: v1
