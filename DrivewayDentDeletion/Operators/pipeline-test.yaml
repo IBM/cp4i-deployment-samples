@@ -97,9 +97,9 @@ spec:
           value: |
             FORKED_REPO={{FORKED_REPO}}
             BRANCH={{BRANCH}}
-            BASE_URL="'${FORKED_REPO%.*}/raw/${BRANCH}'"
+            BASE_URL=${FORKED_REPO%.*}/raw/${BRANCH}
             DDD_ENV='test'
-            /workspace/git-source/DrivewayDentDeletion/Operators/deploy-im.sh -n {{NAMESPACE}} -b {{DEFAULT_BLOCK_STORAGE}} -f {{DEFAULT_FILE_STORAGE}} -e "${DDD_ENV}" -u "${BASE_URL}" -t
+            /workspace/git-source/DrivewayDentDeletion/Operators/deploy-im.sh -n {{NAMESPACE}} -b {{DEFAULT_BLOCK_STORAGE}} -f {{DEFAULT_FILE_STORAGE}} -e "${DDD_ENV}" -u ${BASE_URL} -t
       workspaces:
         - name: git-source
           workspace: git-source
