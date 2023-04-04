@@ -106,8 +106,6 @@ EOF
 )
 OCApplyYAML "$namespace" "$YAML"
 
-
-
 echo "Wait for the runtime to be ready"
 oc wait --for=condition=ready integrationruntimes.appconnect.ibm.com -n ${namespace} ${release_name} --timeout 10m
 
