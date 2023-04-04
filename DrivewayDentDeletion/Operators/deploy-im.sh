@@ -13,7 +13,7 @@ function divider() {
 }
 
 function usage() {
-  echo "Usage: $0 -n <NAMESPACE> -b <BLOCK_STORAGE_CLASS> -f <FILE_STORAGE_CLASS> -g <API_URL> -h <ACME_URL> -i <BERNIE_URL> -j <CHRIS_URL> -c <CONFIGURATIONS> [-t]"
+  echo "Usage: $0 -n <NAMESPACE> -b <BLOCK_STORAGE_CLASS> -f <FILE_STORAGE_CLASS> -e <DDD_ENV> -u <BASE_URL> [-t]"
   divider
   exit 1
 }
@@ -28,7 +28,7 @@ DDD_DEMO_TYPE="dev"
 BLOCK_STORAGE_CLASS="cp4i-block-performance"
 FILE_STORAGE_CLASS="cp4i-file-performance-gid"
 
-while getopts "b:f:n:g:h:i:j:c:t" opt; do
+while getopts "b:f:n:e:u:t" opt; do
   case ${opt} in
   b)
     BLOCK_STORAGE_CLASS="$OPTARG"
@@ -42,20 +42,11 @@ while getopts "b:f:n:g:h:i:j:c:t" opt; do
   t)
     DDD_DEMO_TYPE="test"
     ;;
-  g)
-    API_URL="$OPTARG"
+  e)
+    DDD_ENV="$OPTARG"
     ;;
-  h)
-    ACME_URL="$OPTARG"
-    ;;
-  i)
-    BERNIE_URL="$OPTARG"
-    ;;
-  j)
-    CHRIS_URL="$OPTARG"
-    ;;
-  c)
-    CONFIGURATIONS="$OPTARG"
+  u)
+    BASE_URL="$OPTARG"
     ;;
   \?)
     usage
@@ -65,6 +56,12 @@ done
 
 IM_NAME=ddd-${DDD_DEMO_TYPE}
 QM_NAME=mq-ddd-qm-${DDD_DEMO_TYPE}
+CONFIGURATIONS="[keystore-ddd, policyproject-ddd-${DDD_ENV}, serverconf-ddd, setdbparms-ddd, application-ddd-${DDD_ENV}, barauth-empty]"
+API_FILE='["'${BASE_URL}/DrivewayDentDeletion/Bar_files/ace-api/DrivewayDemo.bar'"]'
+ACME_FILE='["'${BASE_URL}DrivewayDentDeletion/Bar_files/ace-acme/AcmeV1.bar'"]'
+BERNIE_FILE='["'${BASE_URL}/DrivewayDentDeletion/Bar_files/ace-bernie/BernieV1.bar'"]'
+CHRIS_FILE='["'${BASE_URL}/DrivewayDentDeletion/Bar_files/ace-chris/CrumpledV1.bar'"]'
+
 
 YAML=$(cat <<EOF
 apiVersion: v1
@@ -227,70 +224,30 @@ spec:
       metadata:
         name: ${IM_NAME}-ace-api
       spec:
-        template:
-          spec:
-            containers:
-              - name: runtime
-                resources:
-                  requests:
-                    cpu: 300m
-                    memory: 368Mi
         logFormat: basic
         barURL: ${API_URL}
         configurations: ${CONFIGURATIONS}
-        version: '12.0'
-        replicas: 1
     - kind: IntegrationRuntime
       metadata:
         name: ${IM_NAME}-ace-acme
       spec:
-        template:
-          spec:
-            containers:
-              - name: runtime
-                resources:
-                  requests:
-                    cpu: 300m
-                    memory: 368Mi
         logFormat: basic
         barURL: ${ACME_URL}
         configurations: ${CONFIGURATIONS}
-        version: '12.0'
-        replicas: 1
     - kind: IntegrationRuntime
       metadata:
         name: ${IM_NAME}-ace-bernie
       spec:
-        template:
-          spec:
-            containers:
-              - name: runtime
-                resources:
-                  requests:
-                    cpu: 300m
-                    memory: 368Mi
         logFormat: basic
         barURL: ${BERNIE_URL}
         configurations: ${CONFIGURATIONS}
-        version: '12.0'
-        replicas: 1
     - kind: IntegrationRuntime
       metadata:
         name: ${IM_NAME}-ace-chris
       spec:
-        template:
-          spec:
-            containers:
-              - name: runtime
-                resources:
-                  requests:
-                    cpu: 300m
-                    memory: 368Mi
         logFormat: basic
         barURL: ${CHRIS_URL}
         configurations: ${CONFIGURATIONS}
-        version: '12.0'
-        replicas: 1
 ---
 apiVersion: cert-manager.io/v1
 kind: Certificate

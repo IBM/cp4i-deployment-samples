@@ -102,6 +102,7 @@ spec:
           value: |
             FORKED_REPO={{FORKED_REPO}}
             BRANCH={{BRANCH}}
+            BASE_URL="'${FORKED_REPO%.*}/raw/${BRANCH}'"
             ACE_REST_FILE='["'${FORKED_REPO%.*}/raw/${BRANCH}/EventEnabledInsurance/ACE/BarFiles/REST.bar'"]'
             DB_WRITER_FILE='["'${FORKED_REPO%.*}/raw/${BRANCH}/EventEnabledInsurance/ACE/BarFiles/DB-WRITER.bar'"]'
             /workspace/git-source/EventEnabledInsurance/build/deploy-im.sh -n {{NAMESPACE}} -b {{DEFAULT_BLOCK_STORAGE}} -f {{DEFAULT_FILE_STORAGE}} -a "${ACE_REST_FILE}" -d "${DB_WRITER_FILE}" -c {{CONFIGURATIONS}}

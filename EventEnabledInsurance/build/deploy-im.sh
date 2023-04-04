@@ -13,7 +13,7 @@ function divider() {
 }
 
 function usage() {
-  echo "Usage: $0 -n <NAMESPACE> -b <BLOCK_STORAGE_CLASS> -f <FILE_STORAGE_CLASS> - a <ACE_REST_FILE> -d <DB_WRITER_FILE> -c <CONFIGURATIONS>"
+  echo "Usage: $0 -n <NAMESPACE> -b <BLOCK_STORAGE_CLASS> -f <FILE_STORAGE_CLASS> -u <BASE_URL> - a <ACE_REST_FILE> -d <DB_WRITER_FILE> -c <CONFIGURATIONS>"
   divider
   exit 1
 }
@@ -27,7 +27,7 @@ NAMESPACE="cp4i"
 BLOCK_STORAGE_CLASS="cp4i-block-performance"
 FILE_STORAGE_CLASS="cp4i-file-performance-gid"
 
-while getopts "b:f:n:a:d:c:" opt; do
+while getopts "b:f:n:u:c:" opt; do
   case ${opt} in
   b)
     BLOCK_STORAGE_CLASS="$OPTARG"
@@ -38,11 +38,8 @@ while getopts "b:f:n:a:d:c:" opt; do
   n)
     NAMESPACE="$OPTARG"
     ;;
-  a)
-    ACE_REST_FILE="$OPTARG"
-    ;;
-  d)
-    DB_WRITER_FILE="$OPTARG"
+  u)
+    BASE_URL="$OPTARG"
     ;;
   c)
     CONFIGURATIONS="$OPTARG"
@@ -56,6 +53,9 @@ done
 
 IM_NAME=eei
 QM_NAME=mq-eei-qm
+ACE_REST_FILE='["'${BASE_URL}/EventEnabledInsurance/ACE/BarFiles/REST.bar'"]'
+DB_WRITER_FILE='["'${BASE_URL}/EventEnabledInsurance/ACE/BarFiles/DB-WRITER.bar'"]'
+
 
 YAML=$(cat <<EOF
 apiVersion: v1
@@ -210,36 +210,16 @@ spec:
       metadata:
         name: ace-rest
       spec:
-        template:
-          spec:
-            containers:
-              - name: runtime
-                resources:
-                  requests:
-                    cpu: 300m
-                    memory: 368Mi
         logFormat: basic
         barURL: ${ACE_REST_FILE}
         configurations: ${CONFIGURATIONS}
-        version: '12.0'
-        replicas: 1
     - kind: IntegrationRuntime
       metadata:
         name: db-writer
       spec:
-        template:
-          spec:
-            containers:
-              - name: runtime
-                resources:
-                  requests:
-                    cpu: 300m
-                    memory: 368Mi
         logFormat: basic
         barURL: ${DB_WRITER_FILE}
         configurations: ${CONFIGURATIONS}
-        version: '12.0'
-        replicas: 1
 
 ---
 apiVersion: cert-manager.io/v1
