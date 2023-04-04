@@ -102,8 +102,8 @@ spec:
           value: |
             FORKED_REPO={{FORKED_REPO}}
             BRANCH={{BRANCH}}
-            BASE_URL="'${FORKED_REPO%.*}/raw/${BRANCH}'"
-            /workspace/git-source/EventEnabledInsurance/build/deploy-im.sh -n {{NAMESPACE}} -b {{DEFAULT_BLOCK_STORAGE}} -f {{DEFAULT_FILE_STORAGE}} -u "${BASE_URL}" -c {{CONFIGURATIONS}}
+            BASE_URL=${FORKED_REPO%.*}/raw/${BRANCH}
+            /workspace/git-source/EventEnabledInsurance/build/deploy-im.sh -n {{NAMESPACE}} -b {{DEFAULT_BLOCK_STORAGE}} -f {{DEFAULT_FILE_STORAGE}} -u ${BASE_URL} -c {{CONFIGURATIONS}}
       workspaces:
         - name: git-source
           workspace: git-source

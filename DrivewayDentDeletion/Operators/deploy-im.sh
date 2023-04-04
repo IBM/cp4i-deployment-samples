@@ -62,10 +62,6 @@ ACME_FILE='["'${BASE_URL}/DrivewayDentDeletion/Bar_files/ace-acme/AcmeV1.bar'"]'
 BERNIE_FILE='["'${BASE_URL}/DrivewayDentDeletion/Bar_files/ace-bernie/BernieV1.bar'"]'
 CHRIS_FILE='["'${BASE_URL}/DrivewayDentDeletion/Bar_files/ace-chris/CrumpledV1.bar'"]'
 
-echo ${API_FILE}
-echo ${BASE_URL}
-
-
 YAML=$(cat <<EOF
 apiVersion: v1
 kind: ConfigMap
