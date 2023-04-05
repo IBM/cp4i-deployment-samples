@@ -13,7 +13,7 @@ function divider() {
 }
 
 function usage() {
-  echo "Usage: $0 -n <NAMESPACE> -b <BLOCK_STORAGE_CLASS> -f <FILE_STORAGE_CLASS> [-t]"
+  echo "Usage: $0 -n <NAMESPACE> -b <BLOCK_STORAGE_CLASS> -f <FILE_STORAGE_CLASS> -e <DDD_ENV> -u <BASE_URL> [-t]"
   divider
   exit 1
 }
@@ -28,7 +28,7 @@ DDD_DEMO_TYPE="dev"
 BLOCK_STORAGE_CLASS="cp4i-block-performance"
 FILE_STORAGE_CLASS="cp4i-file-performance-gid"
 
-while getopts "b:f:n:t" opt; do
+while getopts "b:f:n:e:u:t" opt; do
   case ${opt} in
   b)
     BLOCK_STORAGE_CLASS="$OPTARG"
@@ -42,6 +42,12 @@ while getopts "b:f:n:t" opt; do
   t)
     DDD_DEMO_TYPE="test"
     ;;
+  e)
+    DDD_ENV="$OPTARG"
+    ;;
+  u)
+    BASE_URL="$OPTARG"
+    ;;
   \?)
     usage
     ;;
@@ -50,6 +56,11 @@ done
 
 IM_NAME=ddd-${DDD_DEMO_TYPE}
 QM_NAME=mq-ddd-qm-${DDD_DEMO_TYPE}
+CONFIGURATIONS="[keystore-ddd, policyproject-ddd-${DDD_ENV}, serverconf-ddd, setdbparms-ddd, application-ddd-${DDD_ENV}, barauth-empty]"
+API_FILE='["'${BASE_URL}/DrivewayDentDeletion/Bar_files/ace-api/DrivewayDemo.bar'"]'
+ACME_FILE='["'${BASE_URL}/DrivewayDentDeletion/Bar_files/ace-acme/AcmeV1.bar'"]'
+BERNIE_FILE='["'${BASE_URL}/DrivewayDentDeletion/Bar_files/ace-bernie/BernieV1.bar'"]'
+CHRIS_FILE='["'${BASE_URL}/DrivewayDentDeletion/Bar_files/ace-chris/CrumpledV1.bar'"]'
 
 YAML=$(cat <<EOF
 apiVersion: v1
@@ -163,7 +174,7 @@ kind: IntegrationAssembly
 metadata:
   name: ${IM_NAME}
 spec:
-  version: 2022.4.1
+  version: next
   license:
     accept: true
     license: L-RJON-CJR2RX
@@ -206,6 +217,36 @@ spec:
                 name: qm-${QM_NAME}-queues
                 items:
                   - myqm.mqsc
+  managedIntegrations:
+    list:
+    - kind: IntegrationRuntime
+      metadata:
+        name: ${IM_NAME}-ace-api
+      spec:
+        logFormat: basic
+        barURL: ${API_FILE}
+        configurations: ${CONFIGURATIONS}
+    - kind: IntegrationRuntime
+      metadata:
+        name: ${IM_NAME}-ace-acme
+      spec:
+        logFormat: basic
+        barURL: ${ACME_FILE}
+        configurations: ${CONFIGURATIONS}
+    - kind: IntegrationRuntime
+      metadata:
+        name: ${IM_NAME}-ace-bernie
+      spec:
+        logFormat: basic
+        barURL: ${BERNIE_FILE}
+        configurations: ${CONFIGURATIONS}
+    - kind: IntegrationRuntime
+      metadata:
+        name: ${IM_NAME}-ace-chris
+      spec:
+        logFormat: basic
+        barURL: ${CHRIS_FILE}
+        configurations: ${CONFIGURATIONS}
 ---
 apiVersion: cert-manager.io/v1
 kind: Certificate

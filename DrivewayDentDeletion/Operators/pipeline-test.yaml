@@ -36,7 +36,12 @@ spec:
         name: run-command
       params:
         - name: command
-          value: /workspace/git-source/DrivewayDentDeletion/Operators/deploy-im.sh -n {{NAMESPACE}} -b {{DEFAULT_BLOCK_STORAGE}} -f {{DEFAULT_FILE_STORAGE}}
+          value: |
+            FORKED_REPO={{FORKED_REPO}}
+            BRANCH={{BRANCH}}
+            BASE_URL=${FORKED_REPO%.*}/raw/${BRANCH}
+            DDD_ENV='dev'
+            /workspace/git-source/DrivewayDentDeletion/Operators/deploy-im.sh -n {{NAMESPACE}} -b {{DEFAULT_BLOCK_STORAGE}} -f {{DEFAULT_FILE_STORAGE}} -e ${DDD_ENV} -u "${BASE_URL}"
       workspaces:
         - name: git-source
           workspace: git-source
@@ -67,87 +72,11 @@ spec:
         - name: git-source
           workspace: git-source
 
-    - name: d-api-dev
-      retries: 2
-      runAfter:
-        - clone-git-src
-      taskRef:
-        name: run-command
-      params:
-        - name: command
-          value: |
-            FORKED_REPO={{FORKED_REPO}}
-            BRANCH={{BRANCH}}
-            BAR_FILES='["'${FORKED_REPO%.*}/raw/${BRANCH}/DrivewayDentDeletion/Bar_files/ace-api/DrivewayDemo.bar'"]'
-            CONFIGURATIONS="[keystore-ddd, policyproject-ddd-dev, serverconf-ddd, setdbparms-ddd, application-ddd-dev, barauth-empty]"
-            /workspace/git-source/products/bash/release-ace-integration-runtime.sh -n {{NAMESPACE}} -r ddd-dev-ace-api -b "${BAR_FILES}" -c "${CONFIGURATIONS}"
-      workspaces:
-        - name: git-source
-          workspace: git-source
-
-    - name: d-acme-dev
-      retries: 2
-      runAfter:
-        - clone-git-src
-      taskRef:
-        name: run-command
-      params:
-        - name: command
-          value: |
-            FORKED_REPO={{FORKED_REPO}}
-            BRANCH={{BRANCH}}
-            BAR_FILES='["'${FORKED_REPO%.*}/raw/${BRANCH}/DrivewayDentDeletion/Bar_files/ace-acme/AcmeV1.bar'"]'
-            CONFIGURATIONS="[keystore-ddd, policyproject-ddd-dev, serverconf-ddd, setdbparms-ddd, application-ddd-dev, barauth-empty]"
-            /workspace/git-source/products/bash/release-ace-integration-runtime.sh -n {{NAMESPACE}} -r ddd-dev-ace-acme -b "${BAR_FILES}" -c "${CONFIGURATIONS}"
-      workspaces:
-        - name: git-source
-          workspace: git-source
-
-    - name: d-bernie-dev
-      retries: 2
-      runAfter:
-        - clone-git-src
-      taskRef:
-        name: run-command
-      params:
-        - name: command
-          value: |
-            FORKED_REPO={{FORKED_REPO}}
-            BRANCH={{BRANCH}}
-            BAR_FILES='["'${FORKED_REPO%.*}/raw/${BRANCH}/DrivewayDentDeletion/Bar_files/ace-bernie/BernieV1.bar'"]'
-            CONFIGURATIONS="[keystore-ddd, policyproject-ddd-dev, serverconf-ddd, setdbparms-ddd, application-ddd-dev, barauth-empty]"
-            /workspace/git-source/products/bash/release-ace-integration-runtime.sh -n {{NAMESPACE}} -r ddd-dev-ace-bernie -b "${BAR_FILES}" -c "${CONFIGURATIONS}"
-      workspaces:
-        - name: git-source
-          workspace: git-source
-
-    - name: d-chris-dev
-      retries: 2
-      runAfter:
-        - clone-git-src
-      taskRef:
-        name: run-command
-      params:
-        - name: command
-          value: |
-            FORKED_REPO={{FORKED_REPO}}
-            BRANCH={{BRANCH}}
-            BAR_FILES='["'${FORKED_REPO%.*}/raw/${BRANCH}/DrivewayDentDeletion/Bar_files/ace-chris/CrumpledV1.bar'"]'
-            CONFIGURATIONS="[keystore-ddd, policyproject-ddd-dev, serverconf-ddd, setdbparms-ddd, application-ddd-dev, barauth-empty]"
-            /workspace/git-source/products/bash/release-ace-integration-runtime.sh -n {{NAMESPACE}} -r ddd-dev-ace-chris -b "${BAR_FILES}" -c "${CONFIGURATIONS}"
-      workspaces:
-        - name: git-source
-          workspace: git-source
-
     - name: test-dev
       retries: 2
       runAfter:
         - is-cfg-dev
         - wait-im-dev
-        - d-api-dev
-        - d-acme-dev
-        - d-bernie-dev
-        - d-chris-dev
       taskRef:
         name: run-command
       params:
@@ -165,7 +94,12 @@ spec:
         name: run-command
       params:
         - name: command
-          value: /workspace/git-source/DrivewayDentDeletion/Operators/deploy-im.sh -n {{NAMESPACE}} -b {{DEFAULT_BLOCK_STORAGE}} -f {{DEFAULT_FILE_STORAGE}} -t
+          value: |
+            FORKED_REPO={{FORKED_REPO}}
+            BRANCH={{BRANCH}}
+            BASE_URL=${FORKED_REPO%.*}/raw/${BRANCH}
+            DDD_ENV='test'
+            /workspace/git-source/DrivewayDentDeletion/Operators/deploy-im.sh -n {{NAMESPACE}} -b {{DEFAULT_BLOCK_STORAGE}} -f {{DEFAULT_FILE_STORAGE}} -e "${DDD_ENV}" -u ${BASE_URL} -t
       workspaces:
         - name: git-source
           workspace: git-source
@@ -196,87 +130,11 @@ spec:
         - name: git-source
           workspace: git-source
 
-    - name: d-api-test
-      retries: 2
-      runAfter:
-        - test-dev
-      taskRef:
-        name: run-command
-      params:
-        - name: command
-          value: |
-            FORKED_REPO={{FORKED_REPO}}
-            BRANCH={{BRANCH}}
-            BAR_FILES='["'${FORKED_REPO%.*}/raw/${BRANCH}/DrivewayDentDeletion/Bar_files/ace-api/DrivewayDemo.bar'"]'
-            CONFIGURATIONS="[keystore-ddd, policyproject-ddd-test, serverconf-ddd, setdbparms-ddd, application-ddd-test, barauth-empty]"
-            /workspace/git-source/products/bash/release-ace-integration-runtime.sh -n {{NAMESPACE}} -r ddd-test-ace-api -b "${BAR_FILES}" -c "${CONFIGURATIONS}"
-      workspaces:
-        - name: git-source
-          workspace: git-source
-
-    - name: d-acme-test
-      retries: 2
-      runAfter:
-        - test-dev
-      taskRef:
-        name: run-command
-      params:
-        - name: command
-          value: |
-            FORKED_REPO={{FORKED_REPO}}
-            BRANCH={{BRANCH}}
-            BAR_FILES='["'${FORKED_REPO%.*}/raw/${BRANCH}/DrivewayDentDeletion/Bar_files/ace-acme/AcmeV1.bar'"]'
-            CONFIGURATIONS="[keystore-ddd, policyproject-ddd-test, serverconf-ddd, setdbparms-ddd, application-ddd-test, barauth-empty]"
-            /workspace/git-source/products/bash/release-ace-integration-runtime.sh -n {{NAMESPACE}} -r ddd-test-ace-acme -b "${BAR_FILES}" -c "${CONFIGURATIONS}"
-      workspaces:
-        - name: git-source
-          workspace: git-source
-
-    - name: d-bernie-test
-      retries: 2
-      runAfter:
-        - test-dev
-      taskRef:
-        name: run-command
-      params:
-        - name: command
-          value: |
-            FORKED_REPO={{FORKED_REPO}}
-            BRANCH={{BRANCH}}
-            BAR_FILES='["'${FORKED_REPO%.*}/raw/${BRANCH}/DrivewayDentDeletion/Bar_files/ace-bernie/BernieV1.bar'"]'
-            CONFIGURATIONS="[keystore-ddd, policyproject-ddd-test, serverconf-ddd, setdbparms-ddd, application-ddd-test, barauth-empty]"
-            /workspace/git-source/products/bash/release-ace-integration-runtime.sh -n {{NAMESPACE}} -r ddd-test-ace-bernie -b "${BAR_FILES}" -c "${CONFIGURATIONS}"
-      workspaces:
-        - name: git-source
-          workspace: git-source
-
-    - name: d-chris-test
-      retries: 2
-      runAfter:
-        - test-dev
-      taskRef:
-        name: run-command
-      params:
-        - name: command
-          value: |
-            FORKED_REPO={{FORKED_REPO}}
-            BRANCH={{BRANCH}}
-            BAR_FILES='["'${FORKED_REPO%.*}/raw/${BRANCH}/DrivewayDentDeletion/Bar_files/ace-chris/CrumpledV1.bar'"]'
-            CONFIGURATIONS="[keystore-ddd, policyproject-ddd-test, serverconf-ddd, setdbparms-ddd, application-ddd-test, barauth-empty]"
-            /workspace/git-source/products/bash/release-ace-integration-runtime.sh -n {{NAMESPACE}} -r ddd-test-ace-chris -b "${BAR_FILES}" -c "${CONFIGURATIONS}"
-      workspaces:
-        - name: git-source
-          workspace: git-source
-
     - name: test-test
       retries: 2
       runAfter:
         - is-cfg-test
         - wait-im-test
-        - d-api-test
-        - d-acme-test
-        - d-bernie-test
-        - d-chris-test
       taskRef:
         name: run-command
       params:
