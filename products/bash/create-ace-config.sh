@@ -304,7 +304,7 @@ metadata:
 spec:
   type: barauth
   description: Authentication for public GitHub, no credentials needed
-  data: $(echo '{"authType":"BASIC_AUTH","credentials":{"username":"","password":""}}' | base64)
+  data: eyJhdXRoVHlwZSI6IkJBU0lDX0FVVEgiLCJjcmVkZW50aWFscyI6eyJ1c2VybmFtZSI6IiIsInBhc3N3b3JkIjoiIn19Cg==
 EOF
 )
 OCApplyYAML "$NAMESPACE" "$YAML"
