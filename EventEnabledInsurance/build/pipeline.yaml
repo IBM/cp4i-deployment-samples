@@ -130,57 +130,19 @@ spec:
         - name: git-source
           workspace: git-source
 
-    - name: bld-ace-rest
-      retries: 2
-      runAfter:
-        - clone-git-src
-      taskRef:
-        name: build-task
-      params:
-        - name: imageTag
-          value: "latest"
-        - name: imageName
-          value: "ace-rest-eei"
-        - name: dockerfile
-          value: "EventEnabledInsurance/ACE/REST.Dockerfile"
-        - name: contextPath
-          value: "EventEnabledInsurance/ACE/BarFiles"
-        - name: pvc
-          value: "buildah-ace-rest-eei"
-      workspaces:
-        - name: git-source
-          workspace: git-source
-
-    - name: bld-db-writer
-      retries: 2
-      runAfter:
-        - clone-git-src
-      taskRef:
-        name: build-task
-      params:
-        - name: imageTag
-          value: "latest"
-        - name: imageName
-          value: "ace-db-writer-eei"
-        - name: dockerfile
-          value: "EventEnabledInsurance/ACE/DB-WRITER.Dockerfile"
-        - name: contextPath
-          value: "EventEnabledInsurance/ACE/BarFiles"
-        - name: pvc
-          value: "buildah-ace-db-writer-eei"
-      workspaces:
-        - name: git-source
-          workspace: git-source
-
     - name: d-ace-rest
       retries: 2
       runAfter:
-        - bld-ace-rest
+        - clone-git-src
       taskRef:
         name: run-command
       params:
         - name: command
-          value: /workspace/git-source/products/bash/release-ace-integration-server.sh -n '{{NAMESPACE}}' -r 'ace-rest-int-srv-eei' -i image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}/ace-rest-eei:latest -c {{CONFIGURATIONS}} -p 1
+          value: |
+            FORKED_REPO={{FORKED_REPO}}
+            BRANCH={{BRANCH}}
+            BAR_FILES='["'${FORKED_REPO%.*}/raw/${BRANCH}/EventEnabledInsurance/ACE/BarFiles/REST.bar'"]'
+            /workspace/git-source/products/bash/release-ace-integration-runtime.sh -n '{{NAMESPACE}}' -r 'ace-rest-int-srv-eei' -b "${BAR_FILES}" -c {{CONFIGURATIONS}}
       workspaces:
         - name: git-source
           workspace: git-source
@@ -188,12 +150,16 @@ spec:
     - name: d-db-writer
       retries: 2
       runAfter:
-        - bld-db-writer
+        - clone-git-src
       taskRef:
         name: run-command
       params:
         - name: command
-          value: /workspace/git-source/products/bash/release-ace-integration-server.sh -n '{{NAMESPACE}}' -r 'ace-db-writer-int-srv-eei' -i image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}/ace-db-writer-eei:latest -c {{CONFIGURATIONS}} -p 1
+          value: |
+            FORKED_REPO={{FORKED_REPO}}
+            BRANCH={{BRANCH}}
+            BAR_FILES='["'${FORKED_REPO%.*}/raw/${BRANCH}/EventEnabledInsurance/ACE/BarFiles/DB-WRITER.bar'"]'
+            /workspace/git-source/products/bash/release-ace-integration-runtime.sh -n '{{NAMESPACE}}' -r 'ace-db-writer-int-srv-eei' -b "${BAR_FILES}" -c {{CONFIGURATIONS}}
       workspaces:
         - name: git-source
           workspace: git-source
@@ -206,7 +172,8 @@ spec:
         name: run-command
       params:
         - name: command
-          value: /workspace/git-source/products/bash/pub-sub-apic.sh -n '{{NAMESPACE}}' -d eei -t https://ace-rest-int-srv-eei-is:7843 -p EventEnabledInsurance/apic/apic-product-eei.yaml -s EventEnabledInsurance/apic/apic-api-eei.yaml
+          value: |
+            /workspace/git-source/products/bash/pub-sub-apic.sh -n '{{NAMESPACE}}' -d eei -t https://ace-rest-int-srv-eei-ir:7843 -p EventEnabledInsurance/apic/apic-product-eei.yaml -s EventEnabledInsurance/apic/apic-api-eei.yaml
       workspaces:
         - name: git-source
           workspace: git-source

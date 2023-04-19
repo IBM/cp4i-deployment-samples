@@ -294,6 +294,21 @@ YAML=$(cat $CONFIG_YAML)
 OCApplyYAML "$NAMESPACE" "$YAML"
 echo -e "\n$TICK [SUCCESS] Successfully applied all the configuration yaml"
 
+
+echo -e "$INFO [INFO] Creating barauth-empty to allow pulling bar files from urls that don't require auth\n"
+YAML=$(cat <<EOF
+apiVersion: appconnect.ibm.com/v1beta1
+kind: Configuration
+metadata:
+  name: barauth-empty
+spec:
+  type: barauth
+  description: Authentication for public GitHub, no credentials needed
+  data: eyJhdXRoVHlwZSI6IkJBU0lDX0FVVEgiLCJjcmVkZW50aWFscyI6eyJ1c2VybmFtZSI6IiIsInBhc3N3b3JkIjoiIn19Cg==
+EOF
+)
+OCApplyYAML "$NAMESPACE" "$YAML"
+
 # DEBUG: get configurations
 $DEBUG && divider && echo "[DEBUG] Getting configurations"
 for i in ${!NAMES[@]}; do
