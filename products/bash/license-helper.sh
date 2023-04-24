@@ -22,7 +22,6 @@ DEFAULT_APIC="L-GVEN-GFUPVE"
 DEFAULT_AR="L-RJON-CD3JKX"
 DEFAULT_DEMO="L-RJON-CJR3Q4"
 DEFAULT_MQ="L-RJON-CJR2RX"
-DEFAULT_TRACING="CP4I"
 
 function usage() {
   echo "Usage: source $0; getAceLicense \$NAMESPACE"
@@ -60,9 +59,4 @@ function getDemoLicense() {
 function getMQLicense() {
   MQ_LICENSE=$(oc -n $1 get configmap $LICENSES_CM -ojsonpath='{.data.mq}' 2>/dev/null)
   [[ $? -eq 0 && ! -z $MQ_LICENSE ]] && echo $MQ_LICENSE || echo $DEFAULT_MQ
-}
-
-function getTracingLicense() {
-  TRACING_LICENSE=$(oc -n $1 get configmap $LICENSES_CM -ojsonpath='{.data.tracing}' 2>/dev/null)
-  [[ $? -eq 0 && ! -z $TRACING_LICENSE ]] && echo $TRACING_LICENSE || echo $DEFAULT_TRACING
 }

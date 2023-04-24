@@ -113,7 +113,7 @@ divider
 export check=0
 
 # CPU/Memory requirements when demoPreparation is true
-demo_products="ACE, ACE Designer, APIC, Event Streams, Tracing, PostgreSQL and Asset Repository"
+demo_products="ACE, ACE Designer, APIC, Event Streams, PostgreSQL and Asset Repository"
 cpu_req=77.95
 mem_req_gi=154.5
 total_cpu=0.0

@@ -157,8 +157,6 @@ OCApplyYAML "$NAMESPACE" "$YAML"
 divider
 
 # create the pipeline to run tasks to build and deploy to test using apic
-TRACING=""
-# TRACING="-t -z $NAMESPACE"
 echo -e "$INFO [INFO] Create the pipeline in '$NAMESPACE' namespace"
 YAML=$(cat $CURRENT_DIR/pipeline-apic.yaml |
   sed "s#{{NAMESPACE}}#$NAMESPACE#g;" |
@@ -166,8 +164,7 @@ YAML=$(cat $CURRENT_DIR/pipeline-apic.yaml |
   sed "s#{{BRANCH}}#$BRANCH#g;" |
   sed "s#{{HA_ENABLED}}#$HA_ENABLED#g;" |
   sed "s#{{DEFAULT_FILE_STORAGE}}#$DEFAULT_FILE_STORAGE#g;" |
-  sed "s#{{DEFAULT_BLOCK_STORAGE}}#$DEFAULT_BLOCK_STORAGE#g;" |
-  sed "s#{{TRACING}}#$TRACING#g;")
+  sed "s#{{DEFAULT_BLOCK_STORAGE}}#$DEFAULT_BLOCK_STORAGE#g;")
 OCApplyYAML "$NAMESPACE" "$YAML"
 
 divider
