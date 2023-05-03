@@ -7,7 +7,7 @@ SCRIPT_DIR=$(dirname $0)
 ${CLOUDCTL} version
 
 CASE_REPO_PATH=https://github.com/IBM/cloud-pak/raw/master/repo/case
-CASE_NAMES="ibm-cp-common-services ibm-apiconnect ibm-appconnect ibm-aspera-hsts-operator ibm-cloud-databases-redis ibm-datapower-operator ibm-eventstreams ibm-integration-asset-repository ibm-integration-operations-dashboard ibm-integration-platform-navigator ibm-mq"
+CASE_NAMES="ibm-cp-common-services ibm-apiconnect ibm-appconnect ibm-aspera-hsts-operator ibm-cloud-databases-redis ibm-datapower-operator ibm-eventstreams ibm-integration-asset-repository ibm-integration-platform-navigator ibm-mq"
 
 SCRATCH=$(mktemp -d)
 mkdir -p $SCRATCH
@@ -80,11 +80,6 @@ FIXED_DATA_JSON='
     "envVarPrefix": "ASSET_REPO",
     "catalogName": "ar-operators",
     "displayNamePrefix": "AR Operators"
-  },
-  "ibm-integration-operations-dashboard-catalog": {
-    "envVarPrefix": "OPERATIONS_DASHBOARD",
-    "catalogName": "od-operators",
-    "displayNamePrefix": "OD Operators"
   },
   "ibm-integration-platform-navigator-catalog": {
     "envVarPrefix": "NAVIGATOR",

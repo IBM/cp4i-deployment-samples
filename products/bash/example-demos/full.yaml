@@ -45,7 +45,6 @@ spec:
     assetRepo: true
     eventStreams: true
     mq: false
-    tracing: true
 
   # Allow additional addon applications to be enabled independently. Enabling a
   # demo will automatically enable required addons.
@@ -109,11 +108,6 @@ status:
       namespace: cp4i
     - name: mq-demo
       type: mq
-      installed: true
-      readyToUse: true
-      namespace: cp4i
-    - name: tracing-demo
-      type: tracing
       installed: true
       readyToUse: true
       namespace: cp4i

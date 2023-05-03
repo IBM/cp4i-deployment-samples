@@ -17,8 +17,8 @@
 #   -r : <release_name> (string), Defaults to "mq-demo"
 #   -i : <image_name> (string)
 #   -q : <qm_name> (string), Defaults to "QUICKSTART"
-#   -z : <tracing_namespace> (string), Defaults to "namespace"
-#   -t : <tracing_enabled> (boolean), optional flag to enable tracing, Defaults to false
+#   -z : <tracing_namespace> (string), Defaults to "namespace" - Out of support
+#   -t : <tracing_enabled> (boolean), optional flag to enable tracing, Defaults to false - Out of support
 #   -a : <HA_ENABLED>, default to false
 #   -b : <block-storage-class> (string), Default to "ibmc-block-gold"
 #
@@ -34,8 +34,6 @@ source $CURRENT_DIR/utils.sh
 namespace="cp4i"
 release_name="mq-demo"
 qm_name="QUICKSTART"
-tracing_namespace=""
-tracing_enabled="false"
 HA_ENABLED="false"
 block_storage="ibmc-block-gold"
 
@@ -86,22 +84,6 @@ echo "[DEBUG] MQ license: $(getMQLicense $namespace)"
 
 echo "Current directory: $CURRENT_DIR"
 echo "Namespace: $namespace"
-
-# when called from install.sh
-if [ "$tracing_enabled" == "true" ]; then
-  if [ -z "$tracing_namespace" ]; then tracing_namespace=${namespace}; fi
-else
-  # assigning value to tracing_namespace b/c empty values causes CR to throw an error
-  tracing_namespace=${namespace}
-fi
-
-echo "[INFO] tracing is set to $tracing_enabled"
-
-if [[ "$release_name" =~ "ddd" ]]; then
-  numberOfContainers=3
-elif [[ "$release_name" =~ "eei" ]]; then
-  numberOfContainers=1
-fi
 
 # -------------------------------------- INSTALL JQ ---------------------------------------------------------------------
 
@@ -189,9 +171,6 @@ ${qmStorageAvailability}
   version: 9.3.1.0-r3
   web:
     enabled: true
-  tracing:
-    enabled: ${tracing_enabled}
-    namespace: ${tracing_namespace}
 EOF
 )
   OCApplyYAML "$namespace" "$YAML"
@@ -307,9 +286,6 @@ ${qmStorageAvailability}
   version: 9.3.1.0-r3
   web:
     enabled: true
-  tracing:
-    enabled: ${tracing_enabled}
-    namespace: ${tracing_namespace}
 EOF
 )
   OCApplyYAML "$namespace" "$YAML"
@@ -336,11 +312,7 @@ EOF
 
     numberOfMatchesForImageTag=0
 
-    if [ "${tracing_enabled}" == "true" ]; then
-      allCorrespondingPods=$(oc get pods -n $namespace | grep $release_name | grep 3/3 | grep Running | awk '{print $1}')
-    else
-      allCorrespondingPods=$(oc get pods -n $namespace | grep $release_name | grep 1/1 | grep Running | awk '{print $1}')
-    fi
+    allCorrespondingPods=$(oc get pods -n $namespace | grep $release_name | grep 1/1 | grep Running | awk '{print $1}')
 
     echo "[INFO] Total pods for mq $allCorrespondingPods"
 
