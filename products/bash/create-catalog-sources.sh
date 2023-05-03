@@ -138,20 +138,6 @@ spec:
 apiVersion: operators.coreos.com/v1alpha1
 kind: CatalogSource
 metadata:
-  name: ibm-integration-operations-dashboard-catalog
-  namespace: openshift-marketplace
-spec:
-  displayName: "OD Operators 2.6.6"
-  image: icr.io/cpopen/ibm-integration-operations-dashboard-catalog@sha256:adca1ed1a029ec648c665e9e839da3a7d20e533809706b72e7e676c665d2d7b3
-  publisher: IBM
-  sourceType: grpc
-  updateStrategy:
-    registryPoll:
-      interval: 45m
----
-apiVersion: operators.coreos.com/v1alpha1
-kind: CatalogSource
-metadata:
   name: ibm-integration-platform-navigator-catalog
   namespace: openshift-marketplace
 spec:
