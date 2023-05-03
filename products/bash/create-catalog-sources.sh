@@ -155,8 +155,10 @@ metadata:
   name: ibm-integration-platform-navigator-catalog
   namespace: openshift-marketplace
 spec:
-  displayName: "PN Operators staging image"
-  image: cp.stg.icr.io/cp/ibm-integration-platform-navigator-catalog:latest-cd
+  # displayName: "PN Operators staging image"
+  # image: cp.stg.icr.io/cp/ibm-integration-platform-navigator-catalog:latest-cd
+  displayName: "PN Operators Dans"
+  image: cp.stg.icr.io/cp/ibm-integration-platform-navigator-catalog:7.0.4-2023-05-03-0755-54e8354d-fix-api-delete-problem@sha256:add14003f34a5889ed596bb29ce272c28c630787a04b3f7371168f63c4d4c2c7
   publisher: IBM
   sourceType: grpc
   updateStrategy:
