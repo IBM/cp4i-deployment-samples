@@ -41,7 +41,7 @@ spec:
             BRANCH={{BRANCH}}
             BASE_URL=${FORKED_REPO%.*}/raw/${BRANCH}
             DDD_ENV='dev'
-            /workspace/git-source/DrivewayDentDeletion/Operators/deploy-im.sh -n {{NAMESPACE}} -b {{DEFAULT_BLOCK_STORAGE}} -f {{DEFAULT_FILE_STORAGE}} -e ${DDD_ENV} -u "${BASE_URL}"
+            /workspace/git-source/DrivewayDentDeletion/Operators/deploy-ia.sh -n {{NAMESPACE}} -b {{DEFAULT_BLOCK_STORAGE}} -f {{DEFAULT_FILE_STORAGE}} -e ${DDD_ENV} -u "${BASE_URL}"
       workspaces:
         - name: git-source
           workspace: git-source
