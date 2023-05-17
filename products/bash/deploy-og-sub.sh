@@ -23,6 +23,8 @@
 #     ./deploy-og-sub.sh -n cp4i-prod
 #
 
+#SLOW_BUT_SAFE="true"
+
 function usage() {
   echo "Usage: $0 -n <namespace>"
   exit 1
@@ -100,7 +102,7 @@ function wait_for_all_subscriptions() {
         exit 1
       fi
 
-      $CURRENT_DIR/fixup-olm.sh -n $namespace
+      # $CURRENT_DIR/fixup-olm.sh -n $namespace
 
       echo "Retrying in ${wait_time} seconds, waited for $(output_time $time) so far"
       ((time = time + $wait_time))
@@ -129,7 +131,7 @@ EOF
   fi
 fi
 
-YAML=$(cat <<EOF
+ALL_YAMLS=$(cat <<EOF
 apiVersion: operators.coreos.com/v1alpha1
 kind: Subscription
 metadata:
@@ -139,15 +141,7 @@ spec:
   name: ibm-common-service-operator
   source: ibm-common-service-catalog
   sourceNamespace: openshift-marketplace
-EOF
-)
-echo "namespace=$namespace"
-OCApplyYAML "$namespace" "$YAML"
-
-echo "INFO: Wait for all subscriptions to succeed"
-wait_for_all_subscriptions "${namespace}"
-
-YAML=$(cat <<EOF
+---
 apiVersion: operators.coreos.com/v1alpha1
 kind: Subscription
 metadata:
@@ -157,15 +151,7 @@ spec:
   name: ibm-cloud-databases-redis-operator
   source: ibm-cloud-databases-redis-catalog
   sourceNamespace: openshift-marketplace
-EOF
-)
-echo "namespace=$namespace"
-OCApplyYAML "$namespace" "$YAML"
-
-echo "INFO: Wait for all subscriptions to succeed"
-wait_for_all_subscriptions "${namespace}"
-
-YAML=$(cat <<EOF
+---
 apiVersion: operators.coreos.com/v1alpha1
 kind: Subscription
 metadata:
@@ -175,15 +161,7 @@ spec:
   name: ibm-integration-platform-navigator
   source: ibm-integration-platform-navigator-catalog
   sourceNamespace: openshift-marketplace
-EOF
-)
-echo "namespace=$namespace"
-OCApplyYAML "$namespace" "$YAML"
-
-echo "INFO: Wait for all subscriptions to succeed"
-wait_for_all_subscriptions "${namespace}"
-
-YAML=$(cat <<EOF
+---
 apiVersion: operators.coreos.com/v1alpha1
 kind: Subscription
 metadata:
@@ -193,15 +171,7 @@ spec:
   name: aspera-hsts-operator
   source: ibm-aspera-hsts-operator-catalog
   sourceNamespace: openshift-marketplace
-EOF
-)
-echo "namespace=$namespace"
-OCApplyYAML "$namespace" "$YAML"
-
-echo "INFO: Wait for all subscriptions to succeed"
-wait_for_all_subscriptions "${namespace}"
-
-YAML=$(cat <<EOF
+---
 apiVersion: operators.coreos.com/v1alpha1
 kind: Subscription
 metadata:
@@ -211,15 +181,7 @@ spec:
   name: ibm-appconnect
   source: ibm-appconnect-catalog
   sourceNamespace: openshift-marketplace
-EOF
-)
-echo "namespace=$namespace"
-OCApplyYAML "$namespace" "$YAML"
-
-echo "INFO: Wait for all subscriptions to succeed"
-wait_for_all_subscriptions "${namespace}"
-
-YAML=$(cat <<EOF
+---
 apiVersion: operators.coreos.com/v1alpha1
 kind: Subscription
 metadata:
@@ -229,15 +191,7 @@ spec:
   name: ibm-eventstreams
   source: ibm-eventstreams-catalog
   sourceNamespace: openshift-marketplace
-EOF
-)
-echo "namespace=$namespace"
-OCApplyYAML "$namespace" "$YAML"
-
-echo "INFO: Wait for all subscriptions to succeed"
-wait_for_all_subscriptions "${namespace}"
-
-YAML=$(cat <<EOF
+---
 apiVersion: operators.coreos.com/v1alpha1
 kind: Subscription
 metadata:
@@ -247,15 +201,7 @@ spec:
   name: ibm-mq
   source: ibm-mq-operator-catalog
   sourceNamespace: openshift-marketplace
-EOF
-)
-echo "namespace=$namespace"
-OCApplyYAML "$namespace" "$YAML"
-
-echo "INFO: Wait for all subscriptions to succeed"
-wait_for_all_subscriptions "${namespace}"
-
-YAML=$(cat <<EOF
+---
 apiVersion: operators.coreos.com/v1alpha1
 kind: Subscription
 metadata:
@@ -265,15 +211,7 @@ spec:
   name: ibm-integration-asset-repository
   source: ibm-integration-asset-repository-catalog
   sourceNamespace: openshift-marketplace
-EOF
-)
-echo "namespace=$namespace"
-OCApplyYAML "$namespace" "$YAML"
-
-echo "INFO: Wait for all subscriptions to succeed"
-wait_for_all_subscriptions "${namespace}"
-
-YAML=$(cat <<EOF
+---
 apiVersion: operators.coreos.com/v1alpha1
 kind: Subscription
 metadata:
@@ -283,15 +221,7 @@ spec:
   name: datapower-operator
   source: ibm-datapower-operator-catalog
   sourceNamespace: openshift-marketplace
-EOF
-)
-echo "namespace=$namespace"
-OCApplyYAML "$namespace" "$YAML"
-
-echo "INFO: Wait for all subscriptions to succeed"
-wait_for_all_subscriptions "${namespace}"
-
-YAML=$(cat <<EOF
+---
 apiVersion: operators.coreos.com/v1alpha1
 kind: Subscription
 metadata:
@@ -301,10 +231,31 @@ spec:
   name: ibm-apiconnect
   source: ibm-apiconnect-catalog
   sourceNamespace: openshift-marketplace
+---
+# NOTE Leave the above "---" there to make SLOW_BUT_SAFE apply the last subscription
 EOF
 )
-echo "namespace=$namespace"
-OCApplyYAML "$namespace" "$YAML"
 
-echo "INFO: Wait for all subscriptions to succeed"
-wait_for_all_subscriptions "${namespace}"
+echo "namespace=$namespace"
+
+if [[ "$SLOW_BUT_SAFE" == "true" ]]; then
+  CURRENT_YAML=""
+  while IFS= read -r line; do
+    if [[ "$line" == "---" ]]; then
+      OCApplyYAML "$namespace" "$CURRENT_YAML"
+
+      echo "INFO: Wait for all subscriptions to succeed"
+      wait_for_all_subscriptions "${namespace}"
+
+      CURRENT_YAML=""
+    else
+      CURRENT_YAML="${CURRENT_YAML}
+${line}"
+    fi
+  done <<< "$ALL_YAMLS"
+else
+  OCApplyYAML "$namespace" "$ALL_YAMLS"
+
+  echo "INFO: Wait for all subscriptions to succeed"
+  wait_for_all_subscriptions "${namespace}"
+fi 

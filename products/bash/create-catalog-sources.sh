@@ -29,8 +29,8 @@ metadata:
   name: ibm-apiconnect-catalog
   namespace: openshift-marketplace
 spec:
-  displayName: "APIC Operators 4.10"
-  image: icr.io/cpopen/ibm-apiconnect-catalog@sha256:e3950b6d9c2f86ec1be3deb6db1cb2e479592c3d288de94fe239fa9d01e6d445
+  displayName: "APIC Operators latest-cd"
+  image: cp.stg.icr.io/cp/ibm-apiconnect-catalog:latest-cd
   publisher: IBM
   sourceType: grpc
   updateStrategy:
@@ -43,8 +43,8 @@ metadata:
   name: ibm-appconnect-catalog
   namespace: openshift-marketplace
 spec:
-  displayName: "ACE Operators 7.0.0"
-  image: icr.io/cpopen/appconnect-operator-catalog@sha256:89d67d6a6934f056705000855bac890f6699435a475b690c143387a5c6a1352c
+  displayName: "ACE Operators latest-cd"
+  image: cp.stg.icr.io/cp/appconnect-operator-catalog:latest-cd
   publisher: IBM
   sourceType: grpc
   updateStrategy:
@@ -99,8 +99,8 @@ metadata:
   name: ibm-datapower-operator-catalog
   namespace: openshift-marketplace
 spec:
-  displayName: "DP Operators 1.6.5"
-  image: icr.io/cpopen/datapower-operator-catalog@sha256:244827e90e194fc92e0d60d5da7ec434d2711139ea1392f816a05bde83da386a
+  displayName: "DP Operators latest-cd"
+  image: cp.stg.icr.io/cp/datapower-operator-catalog:latest-cd
   publisher: IBM
   sourceType: grpc
   updateStrategy:
@@ -113,8 +113,8 @@ metadata:
   name: ibm-eventstreams-catalog
   namespace: openshift-marketplace
 spec:
-  displayName: "ES Operators v3.1.3"
-  image: icr.io/cpopen/ibm-eventstreams-catalog@sha256:803f7f8de9d3e2d52878ec78da6991917cfe21af937ab39009e2f218bf6ac0a1
+  displayName: "ES Operators latest-cd"
+  image: cp.stg.icr.io/cp/ibm-eventstreams-catalog:latest-cd
   publisher: IBM
   sourceType: grpc
   updateStrategy:
@@ -127,8 +127,8 @@ metadata:
   name: ibm-integration-asset-repository-catalog
   namespace: openshift-marketplace
 spec:
-  displayName: "AR Operators 1.5.4"
-  image: icr.io/cpopen/ibm-integration-asset-repository-catalog@sha256:89cd0b2bfc66241cfaf542de906982434c23d1c6391db72fc6ef99d851568abe
+  displayName: "AR Operators latest-cd"
+  image: cp.stg.icr.io/cp/ibm-integration-asset-repository-catalog:latest-cd
   publisher: IBM
   sourceType: grpc
   updateStrategy:
@@ -144,7 +144,9 @@ spec:
   # displayName: "PN Operators staging image"
   # image: cp.stg.icr.io/cp/ibm-integration-platform-navigator-catalog:latest-cd
   displayName: "PN Operators Dans"
-  image: cp.stg.icr.io/cp/ibm-integration-platform-navigator-catalog:7.0.4-2023-05-03-0755-54e8354d-fix-api-delete-problem@sha256:add14003f34a5889ed596bb29ce272c28c630787a04b3f7371168f63c4d4c2c7
+  # image: cp.stg.icr.io/cp/ibm-integration-platform-navigator-catalog:7.1.0-2023-05-16-1100-dd301d3d-declarative-security@sha256:a8b8bca3c97957ecd6a6ecf35da0d3d7c1e719baafd1935a165c11438462ef17
+  # image: cp.stg.icr.io/cp/ibm-integration-platform-navigator-catalog:7.1.0-2023-05-17-0912-80d91db1-ds-with-updated-versions@sha256:e98bdabfa68031f4df344f2663e18447845ccf97451344f8864cbf5fd6957a2d
+  image: cp.stg.icr.io/cp/ibm-integration-platform-navigator-catalog:7.1.0-2023-05-17-1029-ffd3a976-ds-with-updated-versions@sha256:6a440a3b8d40830034268ed591bb3609609bd9a1acd571b05175403fee77a6f5
   publisher: IBM
   sourceType: grpc
   updateStrategy:
@@ -157,8 +159,8 @@ metadata:
   name: ibm-mq-operator-catalog
   namespace: openshift-marketplace
 spec:
-  displayName: "MQ Operators v2.2.1"
-  image: icr.io/cpopen/ibm-mq-operator-catalog@sha256:8de83ff5531de8df3ca639f612480f95ccd39a26e85a1bbdf18c7375dc93917a
+  displayName: "MQ Operators latest-cd"
+  image: cp.stg.icr.io/cp/ibm-mq-operator-catalog:latest-cd
   publisher: IBM
   sourceType: grpc
   updateStrategy:
