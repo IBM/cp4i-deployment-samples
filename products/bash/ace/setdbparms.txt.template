@@ -1,2 +1,0 @@
-brokerKeystore::password ignore {{KEYSTORE_PASS}}
-brokerTruststore::password dummy password
