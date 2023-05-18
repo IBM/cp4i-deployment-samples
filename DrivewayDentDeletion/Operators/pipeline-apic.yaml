@@ -41,11 +41,7 @@ spec:
             BRANCH={{BRANCH}}
             BASE_URL=${FORKED_REPO%.*}/raw/${BRANCH}
             DDD_ENV='dev'
-            echo "NAMESPACE={{NAMESPACE}}"
-            echo "DEFAULT_BLOCK_STORAGE={{DEFAULT_BLOCK_STORAGE}}"
-            echo "DEFAULT_FILE_STORAGE={{DEFAULT_FILE_STORAGE}}"
-            echo "BASE_URL=${BASE_URL}"
-            /workspace/git-source/DrivewayDentDeletion/Operators/deploy-ia.sh -n {{NAMESPACE}} -b {{DEFAULT_BLOCK_STORAGE}} -f {{DEFAULT_FILE_STORAGE}} -e ${DDD_ENV} -u ${BASE_URL}
+            /workspace/git-source/DrivewayDentDeletion/Operators/deploy-ia.sh -n {{NAMESPACE}} -b {{DEFAULT_BLOCK_STORAGE}} -f {{DEFAULT_FILE_STORAGE}} -e ${DDD_ENV} -u "${BASE_URL}"
       workspaces:
         - name: git-source
           workspace: git-source
@@ -119,7 +115,7 @@ spec:
             BRANCH={{BRANCH}}
             BASE_URL=${FORKED_REPO%.*}/raw/${BRANCH}
             DDD_ENV='test'
-            /workspace/git-source/DrivewayDentDeletion/Operators/deploy-ia.sh -n {{NAMESPACE}} -b {{DEFAULT_BLOCK_STORAGE}} -f {{DEFAULT_FILE_STORAGE}} -e "${DDD_ENV}" -u ${BASE_URL}
+            /workspace/git-source/DrivewayDentDeletion/Operators/deploy-ia.sh -n {{NAMESPACE}} -b {{DEFAULT_BLOCK_STORAGE}} -f {{DEFAULT_FILE_STORAGE}} -e "${DDD_ENV}" -u "${BASE_URL}"
       workspaces:
         - name: git-source
           workspace: git-source

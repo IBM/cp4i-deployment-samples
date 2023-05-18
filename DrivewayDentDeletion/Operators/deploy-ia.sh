@@ -35,9 +35,7 @@ FILE_STORAGE_CLASS="cp4i-file-performance-gid"
 DDD_ENV="dev"
 APIC="false"
 
-while getopts "a:b:f:n:e:u" opt; do
-  echo "opt=${opt}"
-  echo "OPTARG=${OPTARG}"
+while getopts "a:b:f:n:e:u:" opt; do
   case ${opt} in
   a)
     APIC="true"
