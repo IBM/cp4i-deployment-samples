@@ -1,8 +1,6 @@
 serverConfVersion: 1
 BrokerRegistry:
   mqKeyRepository: /home/aceuser/generic/mq-certs/application
-forceServerHTTPS: true
-forceServerHTTPSecurityProfile: '{DefaultPolicies}:BasicAuthPolicy'
 ResourceManagers:
   HTTPSConnector:
     KeystoreFile: '/home/aceuser/keystores/{{KEYSTORE}}'

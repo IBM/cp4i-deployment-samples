@@ -27,9 +27,13 @@ NAMESPACE="cp4i"
 BLOCK_STORAGE_CLASS="cp4i-block-performance"
 FILE_STORAGE_CLASS="cp4i-file-performance-gid"
 DDD_ENV="dev"
+APIC="false"
 
-while getopts "b:f:n:e:u" opt; do
+while getopts "a:b:f:n:e:u" opt; do
   case ${opt} in
+  a)
+    APIC="true"
+    ;;
   b)
     BLOCK_STORAGE_CLASS="$OPTARG"
     ;;
@@ -53,13 +57,29 @@ done
 
 IA_NAME=ddd-${DDD_ENV}
 QM_NAME=mq-ddd-qm-${DDD_ENV}
-CONFIGURATIONS="[keystore-ddd, policyproject-ddd-${DDD_ENV}, serverconf-ddd, setdbparms-ddd, application-ddd-${DDD_ENV}, barauth-empty]"
+CONFIGURATIONS="[barauth-empty, keystore-ddd, policyproject-ddd-${DDD_ENV}, serverconf-ddd, setdbparms-ddd, application-ddd-${DDD_ENV}]"
 API_FILE='["'${BASE_URL}/DrivewayDentDeletion/Bar_files/ace-api/DrivewayDemo.bar'"]'
 ACME_FILE='["'${BASE_URL}/DrivewayDentDeletion/Bar_files/ace-acme/AcmeV1.bar'"]'
 BERNIE_FILE='["'${BASE_URL}/DrivewayDentDeletion/Bar_files/ace-bernie/BernieV1.bar'"]'
 CHRIS_FILE='["'${BASE_URL}/DrivewayDentDeletion/Bar_files/ace-chris/CrumpledV1.bar'"]'
 
+
+PLATFORM_API="https://$(oc get route -n ${NAMESPACE} ademo-mgmt-platform-api -o jsonpath="{.spec.host}")/"
+CERTIFICATE="$(oc get route -n ${NAMESPACE} ademo-mgmt-platform-api -o json | jq -r .spec.tls.caCertificate)"
+CERTIFICATE_NEWLINES_REPLACED=$(echo "${CERTIFICATE}" | awk '{printf "%s\\n", $0}')
+
 YAML=$(cat <<EOF
+apiVersion: v1
+kind: Secret
+metadata:
+  name: apim-credentials
+type: Opaque
+stringData:
+  base_url: "${PLATFORM_API}"
+  username: cp4i-admin
+  password: engageibmAPI1
+  trusted_cert: "${CERTIFICATE_NEWLINES_REPLACED}"
+---
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -129,6 +149,12 @@ spec:
         logFormat: basic
         barURL: ${API_FILE}
         configurations: ${CONFIGURATIONS}
+        routes:
+          disabled: false
+        forceFlowsHTTPS:
+          enabled: true
+        forceFlowBasicAuth:
+          enabled: false
     - kind: IntegrationRuntime
       metadata:
         name: ${IA_NAME}-ace-acme
@@ -150,6 +176,35 @@ spec:
         logFormat: basic
         barURL: ${CHRIS_FILE}
         configurations: ${CONFIGURATIONS}
+    - kind: Product
+      metadata:
+        name: ${IA_NAME}-ace-api
+      spec:
+        state: Published
+        definition:
+          product: 1.0.0
+          info:
+            title: ${IA_NAME}-ace-api
+            name: ${IA_NAME}-ace-api
+            version: '1.0'
+          plans:
+            default-plan:
+              rate-limits:
+                default:
+                  value: 100/1hour
+              title: Default Plan
+              description: Default Plan
+              approval: false
+        apis:
+          integrationRuntimes:
+            - name: ${IA_NAME}-ace-api
+              security:
+                type: NoOp
+        share:
+          apim:
+            credentialsSecret: apim-credentials
+            providerOrg: main-demo
+            catalog: main-demo-catalog
 ---
 apiVersion: cert-manager.io/v1
 kind: Certificate
@@ -169,3 +224,13 @@ EOF
 )
 OCApplyYAML "$NAMESPACE" "$YAML"
 echo -e "\n$TICK [SUCCESS] Successfully applied the Integration Assembly yaml"
+
+
+
+# $(if [[ ${APIC} == "true" ]]; then
+#     echo "ownerReferences:
+#     - apiVersion: integration.ibm.com/v1beta1
+#       kind: Demo
+#       name: ${METADATA_NAME}
+#       uid: ${METADATA_UID}"
+#fi)
