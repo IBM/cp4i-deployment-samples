@@ -63,6 +63,11 @@ ACME_FILE='["'${BASE_URL}/DrivewayDentDeletion/Bar_files/ace-acme/AcmeV1.bar'"]'
 BERNIE_FILE='["'${BASE_URL}/DrivewayDentDeletion/Bar_files/ace-bernie/BernieV1.bar'"]'
 CHRIS_FILE='["'${BASE_URL}/DrivewayDentDeletion/Bar_files/ace-chris/CrumpledV1.bar'"]'
 
+echo "BASE_URL=${BASE_URL}"
+echo "API_FILE=${API_FILE}"
+echo "ACME_FILE=${ACME_FILE}"
+echo "BERNIE_FILE=${BERNIE_FILE}"
+echo "CHRIS_FILE=${CHRIS_FILE}"
 
 PLATFORM_API="https://$(oc get route -n ${NAMESPACE} ademo-mgmt-platform-api -o jsonpath="{.spec.host}")/"
 CERTIFICATE="$(oc get route -n ${NAMESPACE} ademo-mgmt-platform-api -o json | jq -r .spec.tls.caCertificate)"
