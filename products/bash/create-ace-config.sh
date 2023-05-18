@@ -185,6 +185,8 @@ divider
 
 divider
 
+[[ ! -d $CONFIG_DIR/$SUFFIX/DefaultPolicies ]] && mkdir -p $CONFIG_DIR/$SUFFIX/DefaultPolicies
+
 echo -e "$INFO [INFO] Templating postgresql policy"
 cat $CONFIG_DIR/PostgresqlPolicy.policyxml.template |
   sed "s#{{DB_SVC}}#$DB_SVC#g;" |
