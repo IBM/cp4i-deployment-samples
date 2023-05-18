@@ -63,8 +63,9 @@ done
 
 IA_NAME=ddd-${DDD_ENV}
 QM_NAME=mq-ddd-qm-${DDD_ENV}
-CONFIGURATIONS="[barauth-empty, serverconf-ddd, setdbparms-ddd, application-ddd-${DDD_ENV}]"
+# CONFIGURATIONS="[barauth-empty, serverconf-ddd, setdbparms-ddd, application-ddd-${DDD_ENV}]"
 # CONFIGURATIONS="[barauth-empty, keystore-ddd, policyproject-ddd-${DDD_ENV}, serverconf-ddd, setdbparms-ddd, application-ddd-${DDD_ENV}]"
+CONFIGURATIONS="[barauth-empty, policyproject-ddd-${DDD_ENV}, serverconf-ddd, application-ddd-${DDD_ENV}]"
 API_FILE='["'${BASE_URL}/DrivewayDentDeletion/Bar_files/ace-api/DrivewayDemo.bar'"]'
 ACME_FILE='["'${BASE_URL}/DrivewayDentDeletion/Bar_files/ace-acme/AcmeV1.bar'"]'
 BERNIE_FILE='["'${BASE_URL}/DrivewayDentDeletion/Bar_files/ace-bernie/BernieV1.bar'"]'

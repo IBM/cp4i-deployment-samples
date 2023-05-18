@@ -166,8 +166,8 @@ echo -e "$INFO [INFO] DEBUG mode in creating ace config: '$DEBUG'"
 divider
 
 TYPES=("serverconf" "policyproject")
-FILES=("$CONFIG_DIR/$SUFFIX/server.conf.yaml" "$CONFIG_DIR/$SUFFIX/setdbparms.txt")
-NAMES=("serverconf-$SUFFIX" "setdbparms-$SUFFIX")
+FILES=("$CONFIG_DIR/$SUFFIX/server.conf.yaml" "$CONFIG_DIR/$SUFFIX/DefaultPolicies")
+NAMES=("serverconf-$SUFFIX" "policyproject-${SUFFIX}${DDD_DEV_TEST_SUFFIX}")
 
 # Copy all static config files & templates to default working directory (/tmp)
 cp -r $CURRENT_DIR/ace $CURRENT_DIR/mq-im $WORKING_DIR/
@@ -179,11 +179,13 @@ echo -e "$INFO [INFO] Creating policyproject for ace in the '$NAMESPACE' namespa
 
 divider
 
-echo -e "$INFO [INFO] Templating setdbparms.txt"
-cat $CONFIG_DIR/setdbparms.txt.template |
-  sed "s#{{KEYSTORE_PASS}}#$KEYSTORE_PASS#g;" >$CONFIG_DIR/$SUFFIX/setdbparms.txt
+echo -e "$INFO [INFO] Templating server.conf.yaml"
+cat $CONFIG_DIR/server.conf.yaml.template >$CONFIG_DIR/$SUFFIX/server.conf.yaml
+divider
 
 divider
+
+[[ ! -d $CONFIG_DIR/$SUFFIX/DefaultPolicies ]] && mkdir -p $CONFIG_DIR/$SUFFIX/DefaultPolicies
 
 echo -e "$INFO [INFO] Templating postgresql policy"
 cat $CONFIG_DIR/PostgresqlPolicy.policyxml.template |
