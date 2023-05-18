@@ -94,6 +94,17 @@ fi
 YAML+=$(cat <<EOF
 
 apiVersion: v1
+kind: Secret
+metadata:
+  name: apim-credentials
+type: Opaque
+stringData:
+  base_url: "${PLATFORM_API}"
+  username: cp4i-admin
+  password: engageibmAPI1
+  trusted_cert: "${CERTIFICATE_NEWLINES_REPLACED}"
+---
+apiVersion: v1
 kind: ConfigMap
 metadata:
   name: qm-${QM_NAME}-queues
@@ -247,3 +258,13 @@ EOF
 
 OCApplyYAML "$NAMESPACE" "$YAML"
 echo -e "\n$TICK [SUCCESS] Successfully applied the Integration Assembly yaml"
+
+
+
+# $(if [[ ${APIC} == "true" ]]; then
+#     echo "ownerReferences:
+#     - apiVersion: integration.ibm.com/v1beta1
+#       kind: Demo
+#       name: ${METADATA_NAME}
+#       uid: ${METADATA_UID}"
+#fi)
