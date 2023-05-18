@@ -82,7 +82,8 @@ spec:
         - name: command
           value: |
             TARGET_URL="https://ddd-dev-ace-api-ir.{{NAMESPACE}}.svc.cluster.local:7843"
-            /workspace/git-source/products/bash/pub-sub-apic.sh -n {{NAMESPACE}} -r ademo -e dev -t ${TARGET_URL}
+            # /workspace/git-source/products/bash/pub-sub-apic.sh -n {{NAMESPACE}} -r ademo -e dev -t ${TARGET_URL}
+            exit 1
       workspaces:
         - name: git-source
           workspace: git-source
@@ -156,7 +157,8 @@ spec:
         - name: command
           value: |
             TARGET_URL="https://ddd-test-ace-api-ir.{{NAMESPACE}}.svc.cluster.local:7843"
-            /workspace/git-source/products/bash/pub-sub-apic.sh -n {{NAMESPACE}} -r ademo -e test -t ${TARGET_URL}
+            # /workspace/git-source/products/bash/pub-sub-apic.sh -n {{NAMESPACE}} -r ademo -e test -t ${TARGET_URL}
+            exit 1
       workspaces:
         - name: git-source
           workspace: git-source

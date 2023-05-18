@@ -198,6 +198,9 @@ if ! $CURRENT_DIR/../../CommonPipelineResources/setup.sh -n "$NAMESPACE" ; then
   exit 1
 fi
 
-divider
-echo -e "$TICK $ALL_DONE [SUCCESS] All prerequisites for the driveway dent deletion demo have been applied successfully $ALL_DONE $TICK"
+if [[ "$OMIT_INITIAL_SETUP" == "false" ]]; then
+  divider
+  echo -e "$TICK $ALL_DONE [SUCCESS] All prerequisites for the driveway dent deletion demo have been applied successfully $ALL_DONE $TICK"
+fi
+
 divider

@@ -160,12 +160,12 @@ spec:
         logFormat: basic
         barURL: ${API_FILE}
         configurations: ${CONFIGURATIONS}
-        routes:
-          disabled: false
-        forceFlowsHTTPS:
-          enabled: true
-        forceFlowBasicAuth:
-          enabled: false
+        # routes:
+        #   disabled: false
+        # forceFlowsHTTPS:
+        #   enabled: true
+        # forceFlowBasicAuth:
+        #   enabled: false
     - kind: IntegrationRuntime
       metadata:
         name: ${IA_NAME}-ace-acme
