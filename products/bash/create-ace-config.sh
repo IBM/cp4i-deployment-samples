@@ -46,11 +46,6 @@ SUFFIX="ddd"
 WORKING_DIR=/tmp
 CONFIG_DIR=$WORKING_DIR/ace
 CONFIG_YAML=$WORKING_DIR/configurations.yaml
-KEYSTORE_PASS=$(
-  LC_ALL=C tr -dc 'A-Za-z0-9' </dev/urandom | head -c 16
-  echo
-)
-KEYSTORE=$WORKING_DIR/keystore.p12
 
 function buildConfigurationCR() {
   local type=$1
@@ -170,9 +165,9 @@ echo -e "$INFO [INFO] DEBUG mode in creating ace config: '$DEBUG'"
 
 divider
 
-TYPES=("serverconf" "keystore" "policyproject" "setdbparms")
-FILES=("$CONFIG_DIR/$SUFFIX/server.conf.yaml" "$KEYSTORE" "$CONFIG_DIR/$SUFFIX/DefaultPolicies" "$CONFIG_DIR/$SUFFIX/setdbparms.txt")
-NAMES=("serverconf-$SUFFIX" "keystore-$SUFFIX" "policyproject-${SUFFIX}${DDD_DEV_TEST_SUFFIX}" "setdbparms-$SUFFIX")
+TYPES=("serverconf" "policyproject")
+FILES=("$CONFIG_DIR/$SUFFIX/server.conf.yaml" "$CONFIG_DIR/$SUFFIX/setdbparms.txt")
+NAMES=("serverconf-$SUFFIX" "setdbparms-$SUFFIX")
 
 # Copy all static config files & templates to default working directory (/tmp)
 cp -r $CURRENT_DIR/ace $CURRENT_DIR/mq-im $WORKING_DIR/
@@ -182,22 +177,6 @@ divider && [[ -f $CONFIG_YAML ]] && echo -e "$INFO [INFO] Removing existing conf
 
 echo -e "$INFO [INFO] Creating policyproject for ace in the '$NAMESPACE' namespace\n"
 
-echo -e "$INFO [INFO] Creating keystore"
-CERTS_KEY_BUNDLE=$CONFIG_DIR/certs-key.pem
-CERTS=$CONFIG_DIR/certs.pem
-KEY=$CONFIG_DIR/key.pem
-rm $CERTS $KEY $KEYSTORE
-oc -n openshift-config-managed get secret router-certs -o json | jq -r '.data | .[]' | base64 --decode >$CERTS_KEY_BUNDLE
-openssl crl2pkcs7 -nocrl -certfile $CERTS_KEY_BUNDLE | openssl pkcs7 -print_certs -out $CERTS
-openssl pkey -in $CERTS_KEY_BUNDLE -out $KEY
-openssl pkcs12 -export -out $KEYSTORE -inkey $KEY -in $CERTS -password pass:$KEYSTORE_PASS
-
-divider
-
-echo -e "$INFO [INFO] Templating server.conf.yaml"
-cat $CONFIG_DIR/server.conf.yaml.template |
-  sed "s#{{KEYSTORE}}#keystore-$SUFFIX#g;" >$CONFIG_DIR/$SUFFIX/server.conf.yaml
-
 divider
 
 echo -e "$INFO [INFO] Templating setdbparms.txt"
@@ -205,8 +184,6 @@ cat $CONFIG_DIR/setdbparms.txt.template |
   sed "s#{{KEYSTORE_PASS}}#$KEYSTORE_PASS#g;" >$CONFIG_DIR/$SUFFIX/setdbparms.txt
 
 divider
-
-[[ ! -d $CONFIG_DIR/$SUFFIX/DefaultPolicies ]] && mkdir -p $CONFIG_DIR/$SUFFIX/DefaultPolicies
 
 echo -e "$INFO [INFO] Templating postgresql policy"
 cat $CONFIG_DIR/PostgresqlPolicy.policyxml.template |
