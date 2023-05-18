@@ -173,6 +173,36 @@ NAMES=("serverconf-$SUFFIX" "policyproject-${SUFFIX}${DDD_DEV_TEST_SUFFIX}")
 cp -r $CURRENT_DIR/ace $CURRENT_DIR/mq-im $WORKING_DIR/
 $DEBUG && divider && echo -e "[DEBUG] Listing /tmp:\n$(ls -lAFL /tmp)"
 
+EXISTING_PASS=$(oc get secret ace-api-creds-$SUFFIX -ojsonpath='{.data.pass}' 2>/dev/null | base64 --decode)
+if [[ -z $EXISTING_PASS ]]; then
+  API_PASS=$(
+    LC_ALL=C tr -dc 'A-Za-z0-9' </dev/urandom | head -c 16
+    echo
+  )
+  # Store ace api password
+  YAML=$(cat <<EOF
+kind: Secret
+apiVersion: v1
+metadata:
+  name: ace-api-creds-$SUFFIX
+  namespace: $NAMESPACE
+stringData:
+  user: $API_USER
+  pass: $API_PASS
+  auth: "$API_USER:$API_PASS"
+type: Opaque
+EOF
+)
+  OCApplyYAML "$NAMESPACE" "$YAML"
+
+  if [[ "$?" != "0" ]]; then
+    echo -e "$CROSS [ERROR] Failed to create 'ace-api-creds-$SUFFIX' secret in '$NAMESPACE' namespace"
+    exit 1
+  fi
+else
+  API_PASS=$EXISTING_PASS
+fi
+
 divider && [[ -f $CONFIG_YAML ]] && echo -e "$INFO [INFO] Removing existing configurations yaml" && rm -f $CONFIG_YAML && divider
 
 echo -e "$INFO [INFO] Creating policyproject for ace in the '$NAMESPACE' namespace\n"
