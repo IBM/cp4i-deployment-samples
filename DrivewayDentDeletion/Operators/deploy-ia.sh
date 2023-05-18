@@ -164,8 +164,8 @@ spec:
         configurations: ${CONFIGURATIONS}
         routes:
           disabled: false
-        # forceFlowsHTTPS:
-        #   enabled: true
+        forceFlowsHTTPS:
+          enabled: true
         forceFlowBasicAuth:
           enabled: false
     - kind: IntegrationRuntime
