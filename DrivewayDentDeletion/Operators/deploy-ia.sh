@@ -36,7 +36,7 @@ DDD_ENV="dev"
 APIC="false"
 
 while getopts "a:b:f:n:e:u" opt; do
-  echo "opt=${opt}
+  echo "opt=${opt}"
   echo "OPTARG=${OPTARG}"
   case ${opt} in
   a)
