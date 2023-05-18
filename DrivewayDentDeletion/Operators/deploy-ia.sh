@@ -20,6 +20,12 @@ function usage() {
 
 set -e
 
+echo "BASE_URL=${BASE_URL}"
+echo "API_FILE=${API_FILE}"
+echo "ACME_FILE=${ACME_FILE}"
+echo "BERNIE_FILE=${BERNIE_FILE}"
+echo "CHRIS_FILE=${CHRIS_FILE}"
+
 CURRENT_DIR=$(dirname $0)
 source $CURRENT_DIR/../../products/bash/utils.sh
 
