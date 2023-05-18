@@ -132,6 +132,7 @@ divider
 
 echo -e "INFO: Testing E2E API now..."
 
+# TODO
 API_AUTH=$(oc get secret -n $NAMESPACE ace-api-creds-ddd -o json | $JQ -r '.data.auth')
 echo "api auth: $API_AUTH"
 

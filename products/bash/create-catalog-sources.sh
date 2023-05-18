@@ -144,9 +144,8 @@ spec:
   # displayName: "PN Operators staging image"
   # image: cp.stg.icr.io/cp/ibm-integration-platform-navigator-catalog:latest-cd
   displayName: "PN Operators Dans"
-  # image: cp.stg.icr.io/cp/ibm-integration-platform-navigator-catalog:7.1.0-2023-05-16-1100-dd301d3d-declarative-security@sha256:a8b8bca3c97957ecd6a6ecf35da0d3d7c1e719baafd1935a165c11438462ef17
-  # image: cp.stg.icr.io/cp/ibm-integration-platform-navigator-catalog:7.1.0-2023-05-17-0912-80d91db1-ds-with-updated-versions@sha256:e98bdabfa68031f4df344f2663e18447845ccf97451344f8864cbf5fd6957a2d
-  image: cp.stg.icr.io/cp/ibm-integration-platform-navigator-catalog:7.1.0-2023-05-17-1029-ffd3a976-ds-with-updated-versions@sha256:6a440a3b8d40830034268ed591bb3609609bd9a1acd571b05175403fee77a6f5
+  # image: cp.stg.icr.io/cp/ibm-integration-platform-navigator-catalog:7.1.0-2023-05-17-1029-ffd3a976-ds-with-updated-versions@sha256:6a440a3b8d40830034268ed591bb3609609bd9a1acd571b05175403fee77a6f5
+  image: cp.stg.icr.io/cp/ibm-integration-platform-navigator-catalog:7.1.0-2023-05-17-2215-ba53705d-valid-product-api-name@sha256:3c335fab7f11ada538002a72e266f6140df16f048084265d4150ec8e46e0e809
   publisher: IBM
   sourceType: grpc
   updateStrategy:
