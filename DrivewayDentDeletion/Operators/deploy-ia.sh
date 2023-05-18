@@ -20,6 +20,12 @@ function usage() {
 
 set -e
 
+echo "BASE_URL=${BASE_URL}"
+echo "API_FILE=${API_FILE}"
+echo "ACME_FILE=${ACME_FILE}"
+echo "BERNIE_FILE=${BERNIE_FILE}"
+echo "CHRIS_FILE=${CHRIS_FILE}"
+
 CURRENT_DIR=$(dirname $0)
 source $CURRENT_DIR/../../products/bash/utils.sh
 
@@ -30,6 +36,8 @@ DDD_ENV="dev"
 APIC="false"
 
 while getopts "a:b:f:n:e:u" opt; do
+  echo "opt=${opt}
+  echo "OPTARG=${OPTARG}"
   case ${opt} in
   a)
     APIC="true"
