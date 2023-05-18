@@ -54,6 +54,8 @@ while getopts "b:f:n:e:u:t" opt; do
   esac
 done
 
+echo "in deploy-im.sh: BASE_URL=${BASE_URL}"
+
 IM_NAME=ddd-${DDD_DEMO_TYPE}
 QM_NAME=mq-ddd-qm-${DDD_DEMO_TYPE}
 CONFIGURATIONS="[keystore-ddd, policyproject-ddd-${DDD_ENV}, serverconf-ddd, setdbparms-ddd, application-ddd-${DDD_ENV}, barauth-empty]"
