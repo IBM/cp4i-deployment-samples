@@ -157,6 +157,12 @@ spec:
       spec:
         barURL: ${ACE_REST_FILE}
         configurations: ${CONFIGURATIONS}
+        routes:
+          disabled: false
+        forceFlowsHTTPS:
+          enabled: true
+        forceFlowBasicAuth:
+          enabled: true
     - kind: IntegrationRuntime
       metadata:
         name: eei-db-writer
