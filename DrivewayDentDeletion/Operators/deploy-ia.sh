@@ -236,8 +236,6 @@ YAML+=$(cat <<EOF
         apis:
           integrationRuntimes:
             - name: ${IA_NAME}-ace-api
-              security:
-                type: NoOp
         share:
           apim:
             credentialsSecret: apim-credentials
