@@ -86,7 +86,7 @@ spec:
         - name: git-source
           workspace: git-source
 
-    - name: test-subscribe-dev
+    - name: test-dev
       retries: 2
       runAfter:
         - subscribe-dev
@@ -104,7 +104,7 @@ spec:
     - name: d-ia-test
       retries: 2
       runAfter:
-        - test-subscribe-dev
+        - test-dev
       taskRef:
         name: run-command
       params:
@@ -159,7 +159,7 @@ spec:
         - name: git-source
           workspace: git-source
 
-    - name: test-subscribe-test
+    - name: test-test
       retries: 2
       runAfter:
         - subscribe-test
