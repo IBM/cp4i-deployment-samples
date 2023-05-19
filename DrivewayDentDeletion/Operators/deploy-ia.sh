@@ -20,12 +20,6 @@ function usage() {
 
 set -e
 
-echo "BASE_URL=${BASE_URL}"
-echo "API_FILE=${API_FILE}"
-echo "ACME_FILE=${ACME_FILE}"
-echo "BERNIE_FILE=${BERNIE_FILE}"
-echo "CHRIS_FILE=${CHRIS_FILE}"
-
 CURRENT_DIR=$(dirname $0)
 source $CURRENT_DIR/../../products/bash/utils.sh
 
@@ -99,17 +93,6 @@ fi
 
 YAML+=$(cat <<EOF
 
-apiVersion: v1
-kind: Secret
-metadata:
-  name: apim-credentials
-type: Opaque
-stringData:
-  base_url: "${PLATFORM_API}"
-  username: cp4i-admin
-  password: engageibmAPI1
-  trusted_cert: "${CERTIFICATE_NEWLINES_REPLACED}"
----
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -264,13 +247,3 @@ EOF
 
 OCApplyYAML "$NAMESPACE" "$YAML"
 echo -e "\n$TICK [SUCCESS] Successfully applied the Integration Assembly yaml"
-
-
-
-# $(if [[ ${APIC} == "true" ]]; then
-#     echo "ownerReferences:
-#     - apiVersion: integration.ibm.com/v1beta1
-#       kind: Demo
-#       name: ${METADATA_NAME}
-#       uid: ${METADATA_UID}"
-#fi)
