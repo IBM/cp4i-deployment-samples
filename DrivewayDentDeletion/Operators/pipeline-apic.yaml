@@ -41,7 +41,7 @@ spec:
             BRANCH={{BRANCH}}
             BASE_URL=${FORKED_REPO%.*}/raw/${BRANCH}
             DDD_ENV='dev'
-            /workspace/git-source/DrivewayDentDeletion/Operators/deploy-ia.sh -n {{NAMESPACE}} -b {{DEFAULT_BLOCK_STORAGE}} -f {{DEFAULT_FILE_STORAGE}} -e ${DDD_ENV} -u "${BASE_URL}"
+            /workspace/git-source/DrivewayDentDeletion/Operators/deploy-ia.sh -n {{NAMESPACE}} -b {{DEFAULT_BLOCK_STORAGE}} -f {{DEFAULT_FILE_STORAGE}} -e ${DDD_ENV} -u "${BASE_URL}" -a
       workspaces:
         - name: git-source
           workspace: git-source
@@ -81,9 +81,7 @@ spec:
       params:
         - name: command
           value: |
-            TARGET_URL="https://ddd-dev-ace-api-ir.{{NAMESPACE}}.svc.cluster.local:7843"
-            # /workspace/git-source/products/bash/pub-sub-apic.sh -n {{NAMESPACE}} -r ademo -e dev -t ${TARGET_URL}
-            exit 1
+            /workspace/git-source/products/bash/apic-subscribe.sh -n {{NAMESPACE}} -o main-demo -c main-demo-catalog -u main-demo-corp -p {{NAMESPACE}}-product-ddd -a ddd-app -e "ddd-dev-api-endpoint-client-id" -b "/drivewayrepair"
       workspaces:
         - name: git-source
           workspace: git-source
@@ -116,7 +114,7 @@ spec:
             BRANCH={{BRANCH}}
             BASE_URL=${FORKED_REPO%.*}/raw/${BRANCH}
             DDD_ENV='test'
-            /workspace/git-source/DrivewayDentDeletion/Operators/deploy-ia.sh -n {{NAMESPACE}} -b {{DEFAULT_BLOCK_STORAGE}} -f {{DEFAULT_FILE_STORAGE}} -e "${DDD_ENV}" -u "${BASE_URL}"
+            /workspace/git-source/DrivewayDentDeletion/Operators/deploy-ia.sh -n {{NAMESPACE}} -b {{DEFAULT_BLOCK_STORAGE}} -f {{DEFAULT_FILE_STORAGE}} -e "${DDD_ENV}" -u "${BASE_URL}" -a
       workspaces:
         - name: git-source
           workspace: git-source
@@ -156,9 +154,7 @@ spec:
       params:
         - name: command
           value: |
-            TARGET_URL="https://ddd-test-ace-api-ir.{{NAMESPACE}}.svc.cluster.local:7843"
-            # /workspace/git-source/products/bash/pub-sub-apic.sh -n {{NAMESPACE}} -r ademo -e test -t ${TARGET_URL}
-            exit 1
+            /workspace/git-source/products/bash/apic-subscribe.sh -n {{NAMESPACE}} -o ddd-test -c main-demo-catalog -u main-demo-corp -p {{NAMESPACE}}-product-ddd -a ddd-app -e "ddd-dev-api-endpoint-client-id" -b "/drivewayrepair"
       workspaces:
         - name: git-source
           workspace: git-source
