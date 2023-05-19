@@ -51,30 +51,28 @@ while getopts "b:f:n:u:c:" opt; do
   esac
 done
 
-IM_NAME=eei
+IA_NAME=eei
 QM_NAME=mq-eei-qm
 ACE_REST_FILE='["'${BASE_URL}/EventEnabledInsurance/ACE/BarFiles/REST.bar'"]'
 DB_WRITER_FILE='["'${BASE_URL}/EventEnabledInsurance/ACE/BarFiles/DB-WRITER.bar'"]'
 
+PROVIDER_ORG="main-demo"
+CATALOG="${PROVIDER_ORG}-catalog"
+PLATFORM_API="https://$(oc get route -n ${NAMESPACE} ademo-mgmt-platform-api -o jsonpath="{.spec.host}")/"
+CERTIFICATE="$(oc get route -n ${NAMESPACE} ademo-mgmt-platform-api -o json | jq -r .spec.tls.caCertificate)"
+CERTIFICATE_NEWLINES_REPLACED=$(echo "${CERTIFICATE}" | awk '{printf "%s\\n", $0}')
+
 YAML=$(cat <<EOF
 apiVersion: v1
-kind: ConfigMap
+kind: Secret
 metadata:
-  name: qm-${QM_NAME}-default
-  labels:
-    app.kubernetes.io/component: ibm-mq
-    app.kubernetes.io/instance: ${NAMESPACE}.${IM_NAME}
-    app.kubernetes.io/managed-by: ibm-integration-platform-navigator-operator
-    app.kubernetes.io/name: integration-assembly
-    app.kubernetes.io/part-of: ${NAMESPACE}.${IM_NAME}
-data:
-  myqm.ini: "Service:\n\tName=AuthorizationService\n\tEntryPoints=14\n\tSecurityPolicy=UserExternal"
-  myqm.mqsc: |-
-    DEFINE CHANNEL('MTLS.SVRCONN') CHLTYPE(SVRCONN) SSLCAUTH(REQUIRED) SSLCIPH('ANY_TLS12_OR_HIGHER') REPLACE
-    ALTER QMGR CONNAUTH(' ')
-    REFRESH SECURITY
-    SET CHLAUTH('MTLS.SVRCONN') TYPE(SSLPEERMAP) SSLPEER('CN=*') USERSRC(NOACCESS) ACTION(REPLACE)
-    SET CHLAUTH('*') TYPE(ADDRESSMAP) ADDRESS('*') USERSRC(NOACCESS) ACTION(REPLACE)
+  name: apim-credentials
+type: Opaque
+stringData:
+  base_url: "${PLATFORM_API}"
+  username: cp4i-admin
+  password: engageibmAPI1
+  trusted_cert: "${CERTIFICATE_NEWLINES_REPLACED}"
 ---
 apiVersion: v1
 kind: ConfigMap
@@ -86,79 +84,15 @@ data:
     DEFINE QLOCAL('Quote') DEFPSIST(YES) BOTHRESH(5) REPLACE
     SET AUTHREC PROFILE('QuoteBO') PRINCIPAL('app1') OBJTYPE(QUEUE) AUTHADD(BROWSE,GET,INQ,PUT)
     SET AUTHREC PROFILE('Quote') PRINCIPAL('app1') OBJTYPE(QUEUE) AUTHADD(BROWSE,GET,INQ,PUT)
-    SET CHLAUTH('MTLS.SVRCONN') TYPE(SSLPEERMAP) SSLPEER('CN=${NAMESPACE}.${IM_NAME},OU=my-team') USERSRC(MAP) MCAUSER('app1') ACTION(REPLACE)
+    SET CHLAUTH('MTLS.SVRCONN') TYPE(SSLPEERMAP) SSLPEER('CN=${NAMESPACE}.${IA_NAME},OU=my-team') USERSRC(MAP) MCAUSER('app1') ACTION(REPLACE)
     SET AUTHREC PRINCIPAL('app1') OBJTYPE(QMGR) AUTHADD(CONNECT,INQ)
     REFRESH SECURITY
     ALTER QMGR DEADQ(SYSTEM.DEAD.LETTER.QUEUE)
 ---
-apiVersion: cert-manager.io/v1
-kind: Issuer
-metadata:
-  name: ia-${NAMESPACE}-${IM_NAME}-ca
-  labels:
-    app.kubernetes.io/component: ibm-mq
-    app.kubernetes.io/instance: ${NAMESPACE}.${IM_NAME}
-    app.kubernetes.io/managed-by: ibm-integration-platform-navigator-operator
-    app.kubernetes.io/name: integration-assembly
-    app.kubernetes.io/part-of: ${NAMESPACE}.${IM_NAME}
-spec:
-  selfSigned: {}
----
-apiVersion: cert-manager.io/v1
-kind: Certificate
-metadata:
-  name: ia-${NAMESPACE}-${IM_NAME}-ca
-  labels:
-    app.kubernetes.io/component: ibm-mq
-    app.kubernetes.io/instance: ${NAMESPACE}.${IM_NAME}
-    app.kubernetes.io/managed-by: ibm-integration-platform-navigator-operator
-    app.kubernetes.io/name: integration-assembly
-    app.kubernetes.io/part-of: ${NAMESPACE}.${IM_NAME}
-spec:
-  commonName: ca
-  isCA: true
-  issuerRef:
-    group: cert-manager.io
-    kind: Issuer
-    name: ia-${NAMESPACE}-${IM_NAME}-ca
-  secretName: ia-${NAMESPACE}-${IM_NAME}-ca
----
-apiVersion: cert-manager.io/v1
-kind: Issuer
-metadata:
-  name: qm-${QM_NAME}-issuer
-  labels:
-    app.kubernetes.io/component: ibm-mq
-    app.kubernetes.io/instance: ${NAMESPACE}.${IM_NAME}
-    app.kubernetes.io/managed-by: ibm-integration-platform-navigator-operator
-    app.kubernetes.io/name: integration-assembly
-    app.kubernetes.io/part-of: ${NAMESPACE}.${IM_NAME}
-spec:
-  ca:
-    secretName: ia-${NAMESPACE}-${IM_NAME}-ca
----
-apiVersion: cert-manager.io/v1
-kind: Certificate
-metadata:
-  name: qm-${QM_NAME}-server
-  labels:
-    app.kubernetes.io/component: ibm-mq
-    app.kubernetes.io/instance: ${NAMESPACE}.${IM_NAME}
-    app.kubernetes.io/managed-by: ibm-integration-platform-navigator-operator
-    app.kubernetes.io/name: integration-assembly
-    app.kubernetes.io/part-of: ${NAMESPACE}.${IM_NAME}
-spec:
-  commonName: cert
-  issuerRef:
-    group: cert-manager.io
-    kind: Issuer
-    name: qm-${QM_NAME}-issuer
-  secretName: qm-${QM_NAME}-server
----
 apiVersion: integration.ibm.com/v1beta1
 kind: IntegrationAssembly
 metadata:
-  name: ${IM_NAME}
+  name: ${IA_NAME}
 spec:
   version: next
   license:
@@ -176,23 +110,12 @@ spec:
       metadata:
         name: ${QM_NAME}
       spec:
-        version: 9.3.1.0-r3
+        license:
+          license: L-YBXJ-ADJNSM
+          accept: true
+          use: NonProduction
         web:
           enabled: true
-        pki:
-          keys:
-          - name: default
-            secret:
-              items:
-              - tls.key
-              - tls.crt
-              secretName: qm-${QM_NAME}-server
-          trust:
-          - name: rootca
-            secret:
-              items:
-              - ca.crt
-              secretName: qm-${QM_NAME}-server
         queueManager:
           mqsc:
             - configMap:
@@ -207,26 +130,69 @@ spec:
     list:
     - kind: IntegrationRuntime
       metadata:
-        name: ace-rest
+        name: eei-ace-rest
       spec:
-        logFormat: basic
         barURL: ${ACE_REST_FILE}
         configurations: ${CONFIGURATIONS}
+        routes:
+          disabled: false
+        forceFlowsHTTPS:
+          enabled: true
+        forceFlowBasicAuth:
+          enabled: true
     - kind: IntegrationRuntime
       metadata:
-        name: db-writer
+        name: eei-db-writer
       spec:
-        logFormat: basic
         barURL: ${DB_WRITER_FILE}
         configurations: ${CONFIGURATIONS}
-
+    - kind: Product
+      metadata:
+        name: eei-product
+      spec:
+        state: Published
+        definition:
+          product: 1.0.0
+          info:
+            title: ${NAMESPACE}-product-eei
+            name: ${NAMESPACE}-product-eei
+            version: '1.0'
+          gateways:
+            - datapower-api-gateway
+          plans:
+            default-plan:
+              rate-limits:
+                default:
+                  value: 100/1hour
+              title: Default Plan
+              description: Default Plan
+              approval: false
+          visibility:
+            view:
+              type: public
+              orgs: []
+              tags: []
+              enabled: true
+            subscribe:
+              type: authenticated
+              orgs: []
+              tags: []
+              enabled: true
+        apis:
+          integrationRuntimes:
+            - name: eei-ace-rest
+        share:
+          apim:
+            credentialsSecret: apim-credentials
+            providerOrg: ${PROVIDER_ORG}
+            catalog: ${CATALOG}
 ---
 apiVersion: cert-manager.io/v1
 kind: Certificate
 metadata:
   name: qm-${QM_NAME}-client
 spec:
-  commonName: ${NAMESPACE}.${IM_NAME}
+  commonName: ${NAMESPACE}.${IA_NAME}
   subject:
     organizationalUnits:
     - my-team
