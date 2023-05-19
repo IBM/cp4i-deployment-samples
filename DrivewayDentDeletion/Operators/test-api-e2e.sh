@@ -109,7 +109,6 @@ divider
 
 # -------------------------------------- TEST E2E API ------------------------------------------
 # BASE_PATH=/basepath, all ready contains /
-HOST=https://$(oc get routes -n ${NAMESPACE} | grep ddd-${DDD_TYPE}-ace-api-https | awk '{print $2}')/drivewayrepair
 if [[ $APIC == true ]]; then
   # Grab bearer token
   echo "[INFO]  Getting the host and client id..."
@@ -118,6 +117,13 @@ if [[ $APIC == true ]]; then
   CLIENT_ID=$(oc get secret -n ${NAMESPACE} ${ENDPOINT_SECRET_NAME} -o jsonpath='{.data.cid}' | base64 --decode)
   $DEBUG && echo "[DEBUG] Client id: ${CLIENT_ID}"
   [[ $CLIENT_ID == "null" ]] && echo -e "[ERROR] ${CROSS} Couldn't get client id" && exit 1
+else
+  HOST=https://$(oc get routes -n ${NAMESPACE} | grep ddd-${DDD_TYPE}-ace-api-https | awk '{print $2}')/drivewayrepair
+  AUTH=$(oc get secret ddd-${DDD_TYPE}-ace-api-ingress-basic-auth -o json | jq -r .data.configuration | base64 --decode)
+  [[ $AUTH == "null" ]] && echo -e "[ERROR] ${CROSS} Couldn't get basic auth from secret named: ddd-${DDD_TYPE}-ace-api-ingress-basic-auth" && exit 1
+  USERNAME="$(echo "$AUTH" | cut -d' ' -f2)"
+  PASSWORD="$(echo "$AUTH" | cut -d' ' -f3)"
+  API_AUTH=$(echo -n "${USERNAME}:${PASSWORD}" | base64)
 fi
 
 echo "INFO: Host: ${HOST}"
@@ -131,10 +137,6 @@ echo "INFO: Database name is: '${DB_NAME}'"
 divider
 
 echo -e "INFO: Testing E2E API now..."
-
-# TODO
-API_AUTH=$(oc get secret -n $NAMESPACE ace-api-creds-ddd -o json | $JQ -r '.data.auth')
-echo "api auth: $API_AUTH"
 
 # ------- Post to the database -------
 echo "request url: $HOST/quote"
