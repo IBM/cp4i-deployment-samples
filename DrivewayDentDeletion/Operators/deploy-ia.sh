@@ -20,12 +20,6 @@ function usage() {
 
 set -e
 
-echo "BASE_URL=${BASE_URL}"
-echo "API_FILE=${API_FILE}"
-echo "ACME_FILE=${ACME_FILE}"
-echo "BERNIE_FILE=${BERNIE_FILE}"
-echo "CHRIS_FILE=${CHRIS_FILE}"
-
 CURRENT_DIR=$(dirname $0)
 source $CURRENT_DIR/../../products/bash/utils.sh
 
@@ -35,7 +29,7 @@ FILE_STORAGE_CLASS="cp4i-file-performance-gid"
 DDD_ENV="dev"
 APIC="false"
 
-while getopts "a:b:f:n:e:u:" opt; do
+while getopts "ab:f:n:e:u:" opt; do
   case ${opt} in
   a)
     APIC="true"
@@ -63,25 +57,25 @@ done
 
 IA_NAME=ddd-${DDD_ENV}
 QM_NAME=mq-ddd-qm-${DDD_ENV}
-# CONFIGURATIONS="[barauth-empty, serverconf-ddd, setdbparms-ddd, application-ddd-${DDD_ENV}]"
-# CONFIGURATIONS="[barauth-empty, keystore-ddd, policyproject-ddd-${DDD_ENV}, serverconf-ddd, setdbparms-ddd, application-ddd-${DDD_ENV}]"
 CONFIGURATIONS="[barauth-empty, policyproject-ddd-${DDD_ENV}, serverconf-ddd, application-ddd-${DDD_ENV}]"
 API_FILE='["'${BASE_URL}/DrivewayDentDeletion/Bar_files/ace-api/DrivewayDemo.bar'"]'
 ACME_FILE='["'${BASE_URL}/DrivewayDentDeletion/Bar_files/ace-acme/AcmeV1.bar'"]'
 BERNIE_FILE='["'${BASE_URL}/DrivewayDentDeletion/Bar_files/ace-bernie/BernieV1.bar'"]'
 CHRIS_FILE='["'${BASE_URL}/DrivewayDentDeletion/Bar_files/ace-chris/CrumpledV1.bar'"]'
-
-echo "BASE_URL=${BASE_URL}"
-echo "API_FILE=${API_FILE}"
-echo "ACME_FILE=${ACME_FILE}"
-echo "BERNIE_FILE=${BERNIE_FILE}"
-echo "CHRIS_FILE=${CHRIS_FILE}"
-
+if [[ "${DDD_ENV}" == "dev" ]]; then
+  PROVIDER_ORG="main-demo"
+else
+  PROVIDER_ORG="ddd-demo-test"
+fi
+CATALOG="${PROVIDER_ORG}-catalog"
 PLATFORM_API="https://$(oc get route -n ${NAMESPACE} ademo-mgmt-platform-api -o jsonpath="{.spec.host}")/"
 CERTIFICATE="$(oc get route -n ${NAMESPACE} ademo-mgmt-platform-api -o json | jq -r .spec.tls.caCertificate)"
 CERTIFICATE_NEWLINES_REPLACED=$(echo "${CERTIFICATE}" | awk '{printf "%s\\n", $0}')
 
-YAML=$(cat <<EOF
+YAML=""
+
+if [[ ${APIC} == "true" ]]; then
+YAML+=$(cat <<EOF
 apiVersion: v1
 kind: Secret
 metadata:
@@ -93,6 +87,12 @@ stringData:
   password: engageibmAPI1
   trusted_cert: "${CERTIFICATE_NEWLINES_REPLACED}"
 ---
+EOF
+)
+fi
+
+YAML+=$(cat <<EOF
+
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -167,7 +167,7 @@ spec:
         forceFlowsHTTPS:
           enabled: true
         forceFlowBasicAuth:
-          enabled: false
+          enabled: true
     - kind: IntegrationRuntime
       metadata:
         name: ${IA_NAME}-ace-acme
@@ -189,17 +189,24 @@ spec:
         logFormat: basic
         barURL: ${CHRIS_FILE}
         configurations: ${CONFIGURATIONS}
+EOF
+)
+if [[ ${APIC} == "true" ]]; then
+YAML+=$(cat <<EOF
+
     - kind: Product
       metadata:
-        name: ${IA_NAME}-ace-api
+        name: ${IA_NAME}
       spec:
         state: Published
         definition:
           product: 1.0.0
           info:
-            title: ${IA_NAME}-ace-api
-            name: ${IA_NAME}-ace-api
+            title: ${NAMESPACE}-product-ddd
+            name: ${NAMESPACE}-product-ddd
             version: '1.0'
+          gateways:
+            - datapower-api-gateway
           plans:
             default-plan:
               rate-limits:
@@ -208,6 +215,24 @@ spec:
               title: Default Plan
               description: Default Plan
               approval: false
+            gold-plan:
+              rate-limits:
+                default:
+                  value: 10/1second
+              title: Gold Plan
+              description: Gold Plan for Valued Customers
+              approval: false
+          visibility:
+            view:
+              type: public
+              orgs: []
+              tags: []
+              enabled: true
+            subscribe:
+              type: authenticated
+              orgs: []
+              tags: []
+              enabled: true
         apis:
           integrationRuntimes:
             - name: ${IA_NAME}-ace-api
@@ -216,8 +241,14 @@ spec:
         share:
           apim:
             credentialsSecret: apim-credentials
-            providerOrg: main-demo
-            catalog: main-demo-catalog
+            providerOrg: ${PROVIDER_ORG}
+            catalog: ${CATALOG}
+EOF
+)
+fi
+
+YAML+=$(cat <<EOF
+
 ---
 apiVersion: cert-manager.io/v1
 kind: Certificate
@@ -235,15 +266,6 @@ spec:
     group: cert-manager.io
 EOF
 )
+
 OCApplyYAML "$NAMESPACE" "$YAML"
 echo -e "\n$TICK [SUCCESS] Successfully applied the Integration Assembly yaml"
-
-
-
-# $(if [[ ${APIC} == "true" ]]; then
-#     echo "ownerReferences:
-#     - apiVersion: integration.ibm.com/v1beta1
-#       kind: Demo
-#       name: ${METADATA_NAME}
-#       uid: ${METADATA_UID}"
-#fi)
