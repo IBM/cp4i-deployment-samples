@@ -108,7 +108,6 @@ echo -e "\n$TICK INFO: Installed JQ version is $($JQ --version)"
 divider
 
 # -------------------------------------- TEST E2E API ------------------------------------------
-# BASE_PATH=/basepath, all ready contains /
 if [[ $APIC == true ]]; then
   # Grab bearer token
   echo "[INFO]  Getting the host and client id..."
