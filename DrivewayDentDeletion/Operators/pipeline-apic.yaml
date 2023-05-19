@@ -28,7 +28,7 @@ spec:
         - name: output
           workspace: git-source
 
-    - name: d-im-dev
+    - name: d-ia-dev
       retries: 2
       runAfter:
         - clone-git-src
@@ -46,10 +46,10 @@ spec:
         - name: git-source
           workspace: git-source
 
-    - name: is-cfg-dev
+    - name: ir-cfg-dev
       retries: 2
       runAfter:
-        - d-im-dev
+        - d-ia-dev
       taskRef:
         name: run-command
       params:
@@ -59,10 +59,10 @@ spec:
         - name: git-source
           workspace: git-source
 
-    - name: wait-im-dev
+    - name: wait-ia-dev
       retries: 2
       runAfter:
-        - d-im-dev
+        - d-ia-dev
       taskRef:
         name: run-command
       params:
@@ -72,10 +72,10 @@ spec:
         - name: git-source
           workspace: git-source
 
-    - name: apic-dev
+    - name: subscribe-dev
       retries: 2
       runAfter:
-        - wait-im-dev
+        - wait-ia-dev
       taskRef:
         name: run-command
       params:
@@ -86,12 +86,12 @@ spec:
         - name: git-source
           workspace: git-source
 
-    - name: test-apic-dev
+    - name: test-subscribe-dev
       retries: 2
       runAfter:
-        - apic-dev
-        - is-cfg-dev
-        - wait-im-dev
+        - subscribe-dev
+        - ir-cfg-dev
+        - wait-ia-dev
       taskRef:
         name: run-command
       params:
@@ -101,10 +101,10 @@ spec:
         - name: git-source
           workspace: git-source
 
-    - name: d-im-test
+    - name: d-ia-test
       retries: 2
       runAfter:
-        - test-apic-dev
+        - test-subscribe-dev
       taskRef:
         name: run-command
       params:
@@ -119,10 +119,10 @@ spec:
         - name: git-source
           workspace: git-source
 
-    - name: is-cfg-test
+    - name: ir-cfg-test
       retries: 2
       runAfter:
-        - d-im-test
+        - d-ia-test
       taskRef:
         name: run-command
       params:
@@ -132,10 +132,10 @@ spec:
         - name: git-source
           workspace: git-source
 
-    - name: wait-im-test
+    - name: wait-ia-test
       retries: 2
       runAfter:
-        - d-im-test
+        - d-ia-test
       taskRef:
         name: run-command
       params:
@@ -145,10 +145,10 @@ spec:
         - name: git-source
           workspace: git-source
 
-    - name: apic-test
+    - name: subscribe-test
       retries: 2
       runAfter:
-        - wait-im-test
+        - wait-ia-test
       taskRef:
         name: run-command
       params:
@@ -159,12 +159,12 @@ spec:
         - name: git-source
           workspace: git-source
 
-    - name: test-apic-test
+    - name: test-subscribe-test
       retries: 2
       runAfter:
-        - apic-test
-        - is-cfg-test
-        - wait-im-test
+        - subscribe-test
+        - ir-cfg-test
+        - wait-ia-test
       taskRef:
         name: run-command
       params:
