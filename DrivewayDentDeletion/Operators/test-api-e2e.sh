@@ -114,6 +114,7 @@ if [[ $APIC == true ]]; then
   ENDPOINT_SECRET_NAME="ddd-${DDD_TYPE}-api-endpoint-client-id"
   HOST=$(oc get secret -n ${NAMESPACE} ${ENDPOINT_SECRET_NAME} -o jsonpath='{.data.api}' | base64 --decode)
   CLIENT_ID=$(oc get secret -n ${NAMESPACE} ${ENDPOINT_SECRET_NAME} -o jsonpath='{.data.cid}' | base64 --decode)
+  CLIENT_SECRET=$(oc get secret -n ${NAMESPACE} ${ENDPOINT_SECRET_NAME} -o jsonpath='{.data.csecret}' | base64 --decode)
   $DEBUG && echo "[DEBUG] Client id: ${CLIENT_ID}"
   [[ $CLIENT_ID == "null" ]] && echo -e "[ERROR] ${CROSS} Couldn't get client id" && exit 1
 else
@@ -142,6 +143,7 @@ echo "request url: $HOST/quote"
 post_response=$(curl -ksw " %{http_code}" -X POST $HOST/quote \
   -H "authorization: Basic ${API_AUTH}" \
   -H "X-IBM-Client-Id: ${CLIENT_ID}" \
+  -H "X-IBM-Client-Secret: ${CLIENT_SECRET}" \
   -H "content-type: application/json" \
   -d "{
     \"Name\": \"Jane Doe\",
@@ -183,7 +185,7 @@ divider
 # ------- Get from the database -------
 for i in {1..100}; do
   echo -e "INFO: GET request ${i} of 100 ..."
-  get_response=$(curl -ksw " %{http_code}" ${HOST}/quote?QuoteID=${quote_id} -H "authorization: Basic ${API_AUTH}" -H "X-IBM-Client-Id: ${CLIENT_ID}")
+  get_response=$(curl -ksw " %{http_code}" ${HOST}/quote?QuoteID=${quote_id} -H "authorization: Basic ${API_AUTH}" -H "X-IBM-Client-Id: ${CLIENT_ID}" -H "X-IBM-Client-Secret: ${CLIENT_SECRET}")
   get_response_code=$(echo "${get_response##* }")
   if [ "$get_response_code" != "200" ]; then
     echo "$CROSS ERROR: FAILED - Error code: ${get_response_code}"
