@@ -159,7 +159,6 @@ spec:
       metadata:
         name: ${IA_NAME}-ace-api
       spec:
-        logFormat: basic
         barURL: ${API_FILE}
         configurations: ${CONFIGURATIONS}
         routes:
@@ -172,21 +171,18 @@ spec:
       metadata:
         name: ${IA_NAME}-ace-acme
       spec:
-        logFormat: basic
         barURL: ${ACME_FILE}
         configurations: ${CONFIGURATIONS}
     - kind: IntegrationRuntime
       metadata:
         name: ${IA_NAME}-ace-bernie
       spec:
-        logFormat: basic
         barURL: ${BERNIE_FILE}
         configurations: ${CONFIGURATIONS}
     - kind: IntegrationRuntime
       metadata:
         name: ${IA_NAME}-ace-chris
       spec:
-        logFormat: basic
         barURL: ${CHRIS_FILE}
         configurations: ${CONFIGURATIONS}
 EOF
