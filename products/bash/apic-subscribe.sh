@@ -221,8 +221,6 @@ EOF
   fi
 fi
 
-exit 1
-
 
 # Get product url
 echo "[INFO] Getting url for product $PRODUCT..."
