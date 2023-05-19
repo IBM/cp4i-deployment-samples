@@ -196,6 +196,34 @@ RES=$(curl -kLsS -X POST https://$PLATFORM_API_EP/api/consumer-orgs/${PROVIDER_O
 handle_res "${RES}"
 echo -e "[INFO] ${TICK} Application created"
 
+if [[ $ENDPOINT_SECRET_NAME != "" ]]; then
+    CLIENT_ID=$(echo "${OUTPUT}" | $JQ -r ".client_id")
+    CLIENT_SECRET=$(echo "${OUTPUT}" | $JQ -r ".client_secret")
+    if [[ $CLIENT_SECRET != "null" ]]; then
+      echo "[INFO]  Creating secret ${ENDPOINT_SECRET_NAME}"
+      $DEBUG && echo "[DEBUG] BASE_PATH: ${BASE_PATH}"
+      HOST="https://$(oc get route -n $NAMESPACE ${RELEASE}-gw-gateway -o jsonpath='{.spec.host}')/$PROVIDER_ORG/$CATALOG$BASE_PATH"
+      $DEBUG && echo "[DEBUG] HOST: ${HOST}"
+
+      # Store api endpoint & client id/secret in secret
+      cat <<EOF | oc apply -n ${NAMESPACE} -f -
+apiVersion: v1
+kind: Secret
+metadata:
+  name: ${ENDPOINT_SECRET_NAME}
+type: Opaque
+stringData:
+  api: ${HOST}
+  cid: ${CLIENT_ID}
+  csecret: ${CLIENT_SECRET}
+EOF
+      echo -e "[INFO]  ${TICK} Secret created"
+  fi
+fi
+
+exit 1
+
+
 # Get product url
 echo "[INFO] Getting url for product $PRODUCT..."
 RES=$(curl -kLsS https://$PLATFORM_API_EP/api/catalogs/${PROVIDER_ORG}/$CATALOG/products/$PRODUCT \
@@ -218,33 +246,3 @@ RES=$(curl -kLsS -X POST https://$PLATFORM_API_EP/api/apps/${PROVIDER_ORG}/$CATA
 }")
 handle_res "${RES}"
 echo -e "[INFO] ${TICK} Subscription created"
-
-echo "[INFO]  Getting client id..."
-RES=$(curl -kLsS https://$PLATFORM_API_EP/api/catalogs/${PROVIDER_ORG}/$CATALOG/credentials \
-  -H "accept: application/json" \
-  -H "authorization: Bearer ${TOKEN}")
-handle_res "${RES}"
-CLIENT_ID=$(echo "${RES}" | $JQ -r '.results[] | select(.name | contains("'${APP}'")).client_id')
-$DEBUG && echo "[DEBUG] Client id: ${CLIENT_ID}"
-[[ $CLIENT_ID == "null" ]] && echo -e "[ERROR] ${CROSS} Couldn't get client id" && exit 1
-echo -e "[INFO]  ${TICK} Got client id"
-
-if [[ $ENDPOINT_SECRET_NAME != "" ]]; then
-    echo "[INFO]  Creating secret ${ENDPOINT_SECRET_NAME}"
-    $DEBUG && echo "[DEBUG] BASE_PATH: ${BASE_PATH}"
-    HOST="https://$(oc get route -n $NAMESPACE ${RELEASE}-gw-gateway -o jsonpath='{.spec.host}')/$PROVIDER_ORG/$CATALOG$BASE_PATH"
-    $DEBUG && echo "[DEBUG] HOST: ${HOST}"
-
-    # Store api endpoint & client id in secret
-    cat <<EOF | oc apply -n ${NAMESPACE} -f -
-apiVersion: v1
-kind: Secret
-metadata:
-  name: ${ENDPOINT_SECRET_NAME}
-type: Opaque
-stringData:
-  api: ${HOST}
-  cid: ${CLIENT_ID}
-EOF
-    echo -e "[INFO]  ${TICK} Secret created"
-fi

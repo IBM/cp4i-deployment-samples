@@ -116,6 +116,7 @@ if [[ $APIC == true ]]; then
   ENDPOINT_SECRET_NAME="ddd-${DDD_TYPE}-api-endpoint-client-id"
   API_BASE_URL=$(oc get secret -n $NAMESPACE ${ENDPOINT_SECRET_NAME} -o jsonpath='{.data.api}' | base64 --decode)
   API_CLIENT_ID=$(oc get secret -n $NAMESPACE ${ENDPOINT_SECRET_NAME} -o jsonpath='{.data.cid}' | base64 --decode)
+  API_CLIENT_SECRET=$(oc get secret -n $NAMESPACE ${ENDPOINT_SECRET_NAME} -o jsonpath='{.data.csecret}' | base64 --decode)
   echo -e "[INFO] api base url: ${API_BASE_URL}\n[INFO] client id: ${API_CLIENT_ID}"
 else
   API_BASE_URL=$(echo "https://$(oc get routes -n $NAMESPACE | grep ddd-${DDD_TYPE}-ace-api-https | awk '{print $2}')/drivewayrepair")
@@ -151,6 +152,7 @@ while true; do
   post_response=$(curl ${CURL_OPTS[@]} -w " %{http_code}" -X POST ${API_BASE_URL}/quote \
     -H "authorization: Basic ${API_AUTH}" \
     -H "X-IBM-CLIENT-ID: ${API_CLIENT_ID}" \
+    -H "X-IBM-CLIENT-SECRET: ${API_CLIENT_SECRET}" \
     -d "{
       \"Name\": \"Jane Doe\",
       \"EMail\": \"janedoe@example.com\",
@@ -190,7 +192,8 @@ while true; do
     echo -e "\nGET request..."
     get_response=$(curl ${CURL_OPTS[@]} -w " %{http_code}" -X GET ${API_BASE_URL}/quote?QuoteID=${quote_id} \
       -H "authorization: Basic ${API_AUTH}" \
-      -H "X-IBM-CLIENT-ID: ${API_CLIENT_ID}")
+      -H "X-IBM-CLIENT-ID: ${API_CLIENT_ID}") \
+      -H "X-IBM-CLIENT-SECRET: ${API_CLIENT_SECRET}"
     get_response_code=$(echo "${get_response##* }")
     $DEBUG && echo "[DEBUG] get response: ${get_response}"
 
