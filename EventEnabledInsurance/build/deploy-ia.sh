@@ -135,7 +135,7 @@ spec:
         barURL: ${ACE_REST_FILE}
         configurations: ${CONFIGURATIONS}
         routes:
-          disabled: false
+          disabled: true
         forceFlowsHTTPS:
           enabled: true
         forceFlowBasicAuth:
