@@ -110,7 +110,7 @@ fi
 divider
 
 echo "INFO: Creating the pipeline to build and deploy the EEI apps in '$namespace' namespace"
-CONFIGURATIONS="[serverconf-$SUFFIX, keystore-$SUFFIX, application-eei, policyproject-$SUFFIX, setdbparms-$SUFFIX, barauth-empty]"
+CONFIGURATIONS="[barauth-empty, serverconf-$SUFFIX, application-eei, policyproject-$SUFFIX]"
 if cat $CURRENT_DIR/pipeline.yaml |
   sed "s#{{NAMESPACE}}#$namespace#g;" |
   sed "s#{{CONFIGURATIONS}}#'$CONFIGURATIONS'#g;" |
