@@ -24,7 +24,7 @@ spec:
           productName: IBM Event Streams for Non Production
 
           # Use the latest version of Eventstreams
-          productVersion: 11.1.1
+          productVersion: 11.2.0
 
           productMetric: VIRTUAL_PROCESSOR_CORE
           productChargedContainers: eei-cluster-connect
@@ -32,7 +32,7 @@ spec:
           cloudpakName: IBM Cloud Pak for Integration
 
           # Use the latest version of Eventstreams
-          cloudpakVersion: 2022.4.1
+          cloudpakVersion: 2023.2.1
 
           productCloudpakRatio: "2:1"
   config:

@@ -52,7 +52,7 @@ spec:
           productName: IBM Event Streams for Non Production
 
           # Use the latest version of Eventstreams
-          productVersion: 11.1.1
+          productVersion: 11.2.0
 
           productMetric: VIRTUAL_PROCESSOR_CORE
           productChargedContainers: eei-cluster-connect
@@ -60,7 +60,7 @@ spec:
           cloudpakName: IBM Cloud Pak for Integration
 
           # Use the latest version of Eventstreams
-          cloudpakVersion: 2022.4.1
+          cloudpakVersion: 2023.2.1
 
           productCloudpakRatio: "2:1"
   config:
@@ -270,7 +270,7 @@ spec:
     database.password: "${file:/opt/kafka/external-configuration/postgres-connector-config/connector.properties:dbPassword}"
 
     # This is the prefix used for the topic created by this connector.
-    database.server.name: "sor"
+    topic.prefix: sor
 
     # The Postgres Debezium connector has various ways of monitoring the Postgres database.
     #  We're using Postgres 10 which includes the `pgoutput` plugin by default.
