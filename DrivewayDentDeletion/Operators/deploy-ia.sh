@@ -166,18 +166,24 @@ spec:
       spec:
         barURL: ${ACME_FILE}
         configurations: ${CONFIGURATIONS}
+        routes:
+          disabled: true
     - kind: IntegrationRuntime
       metadata:
         name: ${IA_NAME}-ace-bernie
       spec:
         barURL: ${BERNIE_FILE}
         configurations: ${CONFIGURATIONS}
+        routes:
+          disabled: true
     - kind: IntegrationRuntime
       metadata:
         name: ${IA_NAME}-ace-chris
       spec:
         barURL: ${CHRIS_FILE}
         configurations: ${CONFIGURATIONS}
+        routes:
+          disabled: true
 EOF
 )
 if [[ ${APIC} == "true" ]]; then
