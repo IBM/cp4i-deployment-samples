@@ -22,7 +22,7 @@ spec:
     database.password: "${file:/opt/kafka/external-configuration/postgres-connector-config/connector.properties:dbPassword}"
 
     # This is the prefix used for the topic created by this connector.
-    database.server.name: "sor"
+    topic.prefix: sor
 
     # The Postgres Debezium connector has various ways of monitoring the Postgres database.
     #  We're using Postgres 10 which includes the `pgoutput` plugin by default.
@@ -34,3 +34,4 @@ spec:
     # would require the connector to run with superuser privileges.
     publication.autocreate.mode: disabled
     publication.name: db_eei_quotes
+
