@@ -102,8 +102,6 @@ function wait_for_all_subscriptions() {
         exit 1
       fi
 
-      # $CURRENT_DIR/fixup-olm.sh -n $namespace
-
       echo "Retrying in ${wait_time} seconds, waited for $(output_time $time) so far"
       ((time = time + $wait_time))
       sleep $wait_time
