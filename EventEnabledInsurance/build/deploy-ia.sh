@@ -94,10 +94,10 @@ kind: IntegrationAssembly
 metadata:
   name: ${IA_NAME}
 spec:
-  version: next
+  version: 2023.2.1
   license:
     accept: true
-    license: L-RJON-CJR2RX
+    license: L-YBXJ-ADJNSM
     use: CloudPakForIntegrationNonProduction
   storage:
     readWriteOnce:
@@ -110,12 +110,6 @@ spec:
       metadata:
         name: ${QM_NAME}
       spec:
-        license:
-          license: L-YBXJ-ADJNSM
-          accept: true
-          use: NonProduction
-        web:
-          enabled: true
         queueManager:
           mqsc:
             - configMap:
