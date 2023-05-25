@@ -134,12 +134,6 @@ spec:
       spec:
         barURL: ${ACE_REST_FILE}
         configurations: ${CONFIGURATIONS}
-        routes:
-          disabled: true
-        forceFlowsHTTPS:
-          enabled: true
-        forceFlowBasicAuth:
-          enabled: true
     - kind: IntegrationRuntime
       metadata:
         name: eei-db-writer
@@ -167,17 +161,6 @@ spec:
               title: Default Plan
               description: Default Plan
               approval: false
-          visibility:
-            view:
-              type: public
-              orgs: []
-              tags: []
-              enabled: true
-            subscribe:
-              type: authenticated
-              orgs: []
-              tags: []
-              enabled: true
         apis:
           integrationRuntimes:
             - name: eei-ace-rest
