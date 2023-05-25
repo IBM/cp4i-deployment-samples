@@ -162,35 +162,26 @@ spec:
         barURL: ${API_FILE}
         configurations: ${CONFIGURATIONS}
         routes:
+          # If using APIC then disable the route
           disabled: ${APIC}
-        forceFlowsHTTPS:
-          enabled: true
-        forceFlowBasicAuth:
-          enabled: true
     - kind: IntegrationRuntime
       metadata:
         name: ${IA_NAME}-ace-acme
       spec:
         barURL: ${ACME_FILE}
         configurations: ${CONFIGURATIONS}
-        routes:
-          disabled: true
     - kind: IntegrationRuntime
       metadata:
         name: ${IA_NAME}-ace-bernie
       spec:
         barURL: ${BERNIE_FILE}
         configurations: ${CONFIGURATIONS}
-        routes:
-          disabled: true
     - kind: IntegrationRuntime
       metadata:
         name: ${IA_NAME}-ace-chris
       spec:
         barURL: ${CHRIS_FILE}
         configurations: ${CONFIGURATIONS}
-        routes:
-          disabled: true
 EOF
 )
 if [[ ${APIC} == "true" ]]; then
@@ -224,17 +215,6 @@ YAML+=$(cat <<EOF
               title: Gold Plan
               description: Gold Plan for Valued Customers
               approval: false
-          visibility:
-            view:
-              type: public
-              orgs: []
-              tags: []
-              enabled: true
-            subscribe:
-              type: authenticated
-              orgs: []
-              tags: []
-              enabled: true
         apis:
           integrationRuntimes:
             - name: ${IA_NAME}-ace-api
