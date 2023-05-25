@@ -144,8 +144,7 @@ spec:
   # displayName: "PN Operators staging image"
   # image: cp.stg.icr.io/cp/ibm-integration-platform-navigator-catalog:latest-cd
   displayName: "PN Operators Dans"
-  # image: cp.stg.icr.io/cp/ibm-integration-platform-navigator-catalog:7.1.0-2023-05-17-1029-ffd3a976-ds-with-updated-versions@sha256:6a440a3b8d40830034268ed591bb3609609bd9a1acd571b05175403fee77a6f5
-  image: cp.stg.icr.io/cp/ibm-integration-platform-navigator-catalog:7.1.0-2023-05-17-2215-ba53705d-valid-product-api-name@sha256:3c335fab7f11ada538002a72e266f6140df16f048084265d4150ec8e46e0e809
+  image: cp.stg.icr.io/cp/ibm-integration-platform-navigator-catalog:7.1.0-2023-05-25-0652-e709c61a@sha256:687217c1d6b64053cd3566b0afd79056b6c5c1a69eee0af63e296052b9028001
   publisher: IBM
   sourceType: grpc
   updateStrategy:
