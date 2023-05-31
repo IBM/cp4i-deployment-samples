@@ -141,10 +141,10 @@ metadata:
   name: ibm-integration-platform-navigator-catalog
   namespace: openshift-marketplace
 spec:
-  # displayName: "PN Operators staging image"
-  # image: cp.stg.icr.io/cp/ibm-integration-platform-navigator-catalog:latest-cd
-  displayName: "PN Operators Dans"
-  image: cp.stg.icr.io/cp/ibm-integration-platform-navigator-catalog:7.1.0-2023-05-25-1452-1848b312-mq-update-fix@sha256:ef27ccf7e67875ea10c2a68eac6104281089c3198c462fb8e54d820f7057551f
+  displayName: "PN Operators staging image"
+  image: cp.stg.icr.io/cp/ibm-integration-platform-navigator-catalog:latest-cd
+  # displayName: "PN Operators Dans"
+  # image: cp.stg.icr.io/cp/ibm-integration-platform-navigator-catalog:7.1.0-2023-05-25-1452-1848b312-mq-update-fix@sha256:ef27ccf7e67875ea10c2a68eac6104281089c3198c462fb8e54d820f7057551f
   publisher: IBM
   sourceType: grpc
   updateStrategy:
