@@ -218,7 +218,7 @@ for i in ${!NAMES[@]}; do
   file=${FILES[$i]}
   echo -e "\n$INFO [INFO] Target: $file"
   if [[ -d $file ]]; then
-    python3 -m zipfile -c $file.zip $file/
+    python -m zipfile -c $file.zip $file/
     if [[ "$?" != "0" ]]; then
       echo -e "$CROSS [ERROR] Failed to zip dir using python"
       exit 1
