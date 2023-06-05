@@ -152,13 +152,13 @@ provider_password=engageibmAPI1
 provider_firstname=CP4I
 provider_lastname=Administrator
 
-MAIN_PORG_TITLE="Org for Demo use (${ORG_NAME})"
+MAIN_PORG_TITLE="${ORG_NAME} : For Demo use"
 MAIN_CATALOG="${ORG_NAME}-catalog"
-MAIN_CATALOG_TITLE="Catalog for Demo use (${MAIN_CATALOG})"
+MAIN_CATALOG_TITLE="${MAIN_CATALOG}: For Demo use"
 
-TEST_PORG_TITLE="Org for Demo use (${ORG_NAME_DDD})"
+TEST_PORG_TITLE="${ORG_NAME_DDD} : For Demo use"
 TEST_CATALOG="${ORG_NAME_DDD}-catalog"
-TEST_CATALOG_TITLE="Catalog for Demo use (${TEST_CATALOG})"
+TEST_CATALOG_TITLE="${TEST_CATALOG} : For Demo use"
 
 RESULT=""
 function authenticate() {

@@ -28,7 +28,7 @@ spec:
         - name: output
           workspace: git-source
 
-    - name: d-im-dev
+    - name: d-ia-dev
       retries: 2
       runAfter:
         - clone-git-src
@@ -41,28 +41,28 @@ spec:
             BRANCH={{BRANCH}}
             BASE_URL=${FORKED_REPO%.*}/raw/${BRANCH}
             DDD_ENV='dev'
-            /workspace/git-source/DrivewayDentDeletion/Operators/deploy-im.sh -n {{NAMESPACE}} -b {{DEFAULT_BLOCK_STORAGE}} -f {{DEFAULT_FILE_STORAGE}} -e ${DDD_ENV} -u "${BASE_URL}"
+            /workspace/git-source/DrivewayDentDeletion/Operators/deploy-ia.sh -n {{NAMESPACE}} -b {{DEFAULT_BLOCK_STORAGE}} -f {{DEFAULT_FILE_STORAGE}} -e ${DDD_ENV} -u "${BASE_URL}" -a
       workspaces:
         - name: git-source
           workspace: git-source
 
-    - name: is-cfg-dev
+    - name: ir-cfg-dev
       retries: 2
       runAfter:
-        - d-im-dev
+        - d-ia-dev
       taskRef:
         name: run-command
       params:
         - name: command
-          value: /workspace/git-source/products/bash/create-ace-mq-configuration.sh -n {{NAMESPACE}} -c qm-mq-ddd-qm-dev-client -o application-eei
+          value: /workspace/git-source/products/bash/create-ace-mq-configuration.sh -n {{NAMESPACE}} -c qm-mq-ddd-qm-dev-client -o application-ddd-dev
       workspaces:
         - name: git-source
           workspace: git-source
 
-    - name: wait-im-dev
+    - name: wait-ia-dev
       retries: 2
       runAfter:
-        - d-im-dev
+        - d-ia-dev
       taskRef:
         name: run-command
       params:
@@ -72,27 +72,26 @@ spec:
         - name: git-source
           workspace: git-source
 
-    - name: apic-dev
+    - name: subscribe-dev
       retries: 2
       runAfter:
-        - wait-im-dev
+        - wait-ia-dev
       taskRef:
         name: run-command
       params:
         - name: command
           value: |
-            TARGET_URL="https://ddd-dev-ace-api-ir.{{NAMESPACE}}.svc.cluster.local:7843"
-            /workspace/git-source/products/bash/pub-sub-apic.sh -n {{NAMESPACE}} -r ademo -e dev -t ${TARGET_URL}
+            /workspace/git-source/products/bash/apic-subscribe.sh -n {{NAMESPACE}} -o main-demo -c main-demo-catalog -u main-demo-corp -p {{NAMESPACE}}-product-ddd -a ddd-app -e "ddd-dev-api-endpoint-client-id" -b "/drivewayrepair"
       workspaces:
         - name: git-source
           workspace: git-source
 
-    - name: test-apic-dev
+    - name: test-dev
       retries: 2
       runAfter:
-        - apic-dev
-        - is-cfg-dev
-        - wait-im-dev
+        - subscribe-dev
+        - ir-cfg-dev
+        - wait-ia-dev
       taskRef:
         name: run-command
       params:
@@ -102,10 +101,10 @@ spec:
         - name: git-source
           workspace: git-source
 
-    - name: d-im-test
+    - name: d-ia-test
       retries: 2
       runAfter:
-        - test-apic-dev
+        - test-dev
       taskRef:
         name: run-command
       params:
@@ -115,15 +114,15 @@ spec:
             BRANCH={{BRANCH}}
             BASE_URL=${FORKED_REPO%.*}/raw/${BRANCH}
             DDD_ENV='test'
-            /workspace/git-source/DrivewayDentDeletion/Operators/deploy-im.sh -n {{NAMESPACE}} -b {{DEFAULT_BLOCK_STORAGE}} -f {{DEFAULT_FILE_STORAGE}} -e "${DDD_ENV}" -u ${BASE_URL} -t
+            /workspace/git-source/DrivewayDentDeletion/Operators/deploy-ia.sh -n {{NAMESPACE}} -b {{DEFAULT_BLOCK_STORAGE}} -f {{DEFAULT_FILE_STORAGE}} -e "${DDD_ENV}" -u "${BASE_URL}" -a
       workspaces:
         - name: git-source
           workspace: git-source
 
-    - name: is-cfg-test
+    - name: ir-cfg-test
       retries: 2
       runAfter:
-        - d-im-test
+        - d-ia-test
       taskRef:
         name: run-command
       params:
@@ -133,10 +132,10 @@ spec:
         - name: git-source
           workspace: git-source
 
-    - name: wait-im-test
+    - name: wait-ia-test
       retries: 2
       runAfter:
-        - d-im-test
+        - d-ia-test
       taskRef:
         name: run-command
       params:
@@ -146,27 +145,26 @@ spec:
         - name: git-source
           workspace: git-source
 
-    - name: apic-test
+    - name: subscribe-test
       retries: 2
       runAfter:
-        - wait-im-test
+        - wait-ia-test
       taskRef:
         name: run-command
       params:
         - name: command
           value: |
-            TARGET_URL="https://ddd-test-ace-api-ir.{{NAMESPACE}}.svc.cluster.local:7843"
-            /workspace/git-source/products/bash/pub-sub-apic.sh -n {{NAMESPACE}} -r ademo -e test -t ${TARGET_URL}
+            /workspace/git-source/products/bash/apic-subscribe.sh -n {{NAMESPACE}} -o ddd-demo-test -c ddd-demo-test-catalog -u ddd-demo-test-corp -p {{NAMESPACE}}-product-ddd -a ddd-app -e "ddd-test-api-endpoint-client-id" -b "/drivewayrepair"
       workspaces:
         - name: git-source
           workspace: git-source
 
-    - name: test-apic-test
+    - name: test-test
       retries: 2
       runAfter:
-        - apic-test
-        - is-cfg-test
-        - wait-im-test
+        - subscribe-test
+        - ir-cfg-test
+        - wait-ia-test
       taskRef:
         name: run-command
       params:

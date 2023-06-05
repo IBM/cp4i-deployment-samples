@@ -52,7 +52,7 @@ spec:
           productName: IBM Event Streams for Non Production
 
           # Use the latest version of Eventstreams
-          productVersion: 11.1.1
+          productVersion: 11.2.0
 
           productMetric: VIRTUAL_PROCESSOR_CORE
           productChargedContainers: eei-cluster-connect
@@ -60,7 +60,7 @@ spec:
           cloudpakName: IBM Cloud Pak for Integration
 
           # Use the latest version of Eventstreams
-          cloudpakVersion: 2022.4.1
+          cloudpakVersion: 2023.2.1
 
           productCloudpakRatio: "2:1"
   config:
@@ -104,7 +104,9 @@ spec:
 About the `bootstrapServers` from the above example yaml, the EventStreams CR populates the following fields
 once it has started up:
 ```
-$ oc describe EventStreams es-demo
+oc describe EventStreams es-demo
+```
+```
 ...
 Kafka Listeners:
   Addresses:
@@ -128,7 +130,9 @@ oc get KafkaConnect eei-cluster -w
 Describe the `KafkaConnect` and check that the Status section exists and the Conditions section
 contains a condition with `Type` of `Ready` that has a `Status` of `True`:
 ```
-$ oc describe KafkaConnect eei-cluster
+oc describe KafkaConnect eei-cluster
+```
+```
 ...
 Status:
   Conditions:
@@ -195,7 +199,9 @@ docker push $IMAGE_REPO/${NAMESPACE}/eei-connect-cluster-image:latest
 
 Confirm the image was pushed:
 ```
-$ oc get imagestream eei-connect-cluster-image
+oc get imagestream eei-connect-cluster-image
+```
+```
 NAME                        IMAGE REPOSITORY                                                                 TAGS     UPDATED
 eei-connect-cluster-image   image-registry.openshift-image-registry.svc:5000/dan/eei-connect-cluster-image   latest   7 minutes ago
 ```
@@ -209,7 +215,9 @@ Edit the image property in the kafka-connect.yaml and re-apply.
 
 Describe the `KafkaConnect` and check that the Status section shows the PostgresConnector (it will take a couple of minutes for this to happen):
 ```
-$ oc describe KafkaConnect eei-cluster
+oc describe KafkaConnect eei-cluster
+```
+```
 ...
 Status:
   Conditions:
@@ -270,7 +278,7 @@ spec:
     database.password: "${file:/opt/kafka/external-configuration/postgres-connector-config/connector.properties:dbPassword}"
 
     # This is the prefix used for the topic created by this connector.
-    database.server.name: "sor"
+    topic.prefix: sor
 
     # The Postgres Debezium connector has various ways of monitoring the Postgres database.
     #  We're using Postgres 10 which includes the `pgoutput` plugin by default.
@@ -451,7 +459,7 @@ export API_CLIENT_ID=$(oc -n $NAMESPACE get secret eei-api-endpoint-client-id -o
 
 Example GET:
 ```bash
-$ curl -k -H "X-IBM-Client-Id: ${API_CLIENT_ID}" "${API_BASE_URL}/quote?QuoteID=$QUOTE_ID"
+curl -k -H "X-IBM-Client-Id: ${API_CLIENT_ID}" "${API_BASE_URL}/quote?QuoteID=$QUOTE_ID"
 ```
 
 Example POST:

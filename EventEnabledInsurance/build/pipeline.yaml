@@ -91,7 +91,7 @@ spec:
         - name: git-source
           workspace: git-source
 
-    - name: deploy-im
+    - name: deploy-ia
       retries: 2
       runAfter:
         - clone-git-src
@@ -103,7 +103,7 @@ spec:
             FORKED_REPO={{FORKED_REPO}}
             BRANCH={{BRANCH}}
             BASE_URL=${FORKED_REPO%.*}/raw/${BRANCH}
-            /workspace/git-source/EventEnabledInsurance/build/deploy-im.sh -n {{NAMESPACE}} -b {{DEFAULT_BLOCK_STORAGE}} -f {{DEFAULT_FILE_STORAGE}} -u ${BASE_URL} -c {{CONFIGURATIONS}}
+            /workspace/git-source/EventEnabledInsurance/build/deploy-ia.sh -n {{NAMESPACE}} -b {{DEFAULT_BLOCK_STORAGE}} -f {{DEFAULT_FILE_STORAGE}} -u ${BASE_URL} -c {{CONFIGURATIONS}}
       workspaces:
         - name: git-source
           workspace: git-source
@@ -111,7 +111,7 @@ spec:
     - name: is-cfg
       retries: 2
       runAfter:
-        - deploy-im
+        - deploy-ia
       taskRef:
         name: run-command
       params:
@@ -121,10 +121,10 @@ spec:
         - name: git-source
           workspace: git-source
 
-    - name: wait-im
+    - name: wait-ia
       retries: 2
       runAfter:
-        - deploy-im
+        - deploy-ia
       taskRef:
         name: run-command
       params:
@@ -134,16 +134,16 @@ spec:
         - name: git-source
           workspace: git-source
 
-    - name: push-to-apic
+    - name: subscribe
       retries: 2
       runAfter:
-        - wait-im
+        - wait-ia
       taskRef:
         name: run-command
       params:
         - name: command
           value: |
-            /workspace/git-source/products/bash/pub-sub-apic.sh -n '{{NAMESPACE}}' -d eei -t https://ace-rest-int-srv-eei-ir:7843 -p EventEnabledInsurance/apic/apic-product-eei.yaml -s EventEnabledInsurance/apic/apic-api-eei.yaml
+            /workspace/git-source/products/bash/apic-subscribe.sh -n {{NAMESPACE}} -o main-demo -c main-demo-catalog -u main-demo-corp -p {{NAMESPACE}}-product-eei -a ddd-eei -e "eei-api-endpoint-client-id" -b "/eventinsurance"
       workspaces:
         - name: git-source
           workspace: git-source

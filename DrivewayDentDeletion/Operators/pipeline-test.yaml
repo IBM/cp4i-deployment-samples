@@ -28,7 +28,7 @@ spec:
         - name: output
           workspace: git-source
 
-    - name: d-im-dev
+    - name: d-ia-dev
       retries: 2
       runAfter:
         - clone-git-src
@@ -41,15 +41,15 @@ spec:
             BRANCH={{BRANCH}}
             BASE_URL=${FORKED_REPO%.*}/raw/${BRANCH}
             DDD_ENV='dev'
-            /workspace/git-source/DrivewayDentDeletion/Operators/deploy-im.sh -n {{NAMESPACE}} -b {{DEFAULT_BLOCK_STORAGE}} -f {{DEFAULT_FILE_STORAGE}} -e ${DDD_ENV} -u "${BASE_URL}"
+            /workspace/git-source/DrivewayDentDeletion/Operators/deploy-ia.sh -n {{NAMESPACE}} -b {{DEFAULT_BLOCK_STORAGE}} -f {{DEFAULT_FILE_STORAGE}} -e ${DDD_ENV} -u "${BASE_URL}"
       workspaces:
         - name: git-source
           workspace: git-source
 
-    - name: is-cfg-dev
+    - name: ir-cfg-dev
       retries: 2
       runAfter:
-        - d-im-dev
+        - d-ia-dev
       taskRef:
         name: run-command
       params:
@@ -59,10 +59,10 @@ spec:
         - name: git-source
           workspace: git-source
 
-    - name: wait-im-dev
+    - name: wait-ia-dev
       retries: 2
       runAfter:
-        - d-im-dev
+        - d-ia-dev
       taskRef:
         name: run-command
       params:
@@ -75,8 +75,8 @@ spec:
     - name: test-dev
       retries: 2
       runAfter:
-        - is-cfg-dev
-        - wait-im-dev
+        - ir-cfg-dev
+        - wait-ia-dev
       taskRef:
         name: run-command
       params:
@@ -86,7 +86,7 @@ spec:
         - name: git-source
           workspace: git-source
 
-    - name: d-im-test
+    - name: d-ia-test
       retries: 2
       runAfter:
         - test-dev
@@ -99,15 +99,15 @@ spec:
             BRANCH={{BRANCH}}
             BASE_URL=${FORKED_REPO%.*}/raw/${BRANCH}
             DDD_ENV='test'
-            /workspace/git-source/DrivewayDentDeletion/Operators/deploy-im.sh -n {{NAMESPACE}} -b {{DEFAULT_BLOCK_STORAGE}} -f {{DEFAULT_FILE_STORAGE}} -e "${DDD_ENV}" -u ${BASE_URL} -t
+            /workspace/git-source/DrivewayDentDeletion/Operators/deploy-ia.sh -n {{NAMESPACE}} -b {{DEFAULT_BLOCK_STORAGE}} -f {{DEFAULT_FILE_STORAGE}} -e "${DDD_ENV}" -u "${BASE_URL}"
       workspaces:
         - name: git-source
           workspace: git-source
 
-    - name: is-cfg-test
+    - name: ir-cfg-test
       retries: 2
       runAfter:
-        - d-im-test
+        - d-ia-test
       taskRef:
         name: run-command
       params:
@@ -117,10 +117,10 @@ spec:
         - name: git-source
           workspace: git-source
 
-    - name: wait-im-test
+    - name: wait-ia-test
       retries: 2
       runAfter:
-        - d-im-test
+        - d-ia-test
       taskRef:
         name: run-command
       params:
@@ -133,8 +133,8 @@ spec:
     - name: test-test
       retries: 2
       runAfter:
-        - is-cfg-test
-        - wait-im-test
+        - ir-cfg-test
+        - wait-ia-test
       taskRef:
         name: run-command
       params:

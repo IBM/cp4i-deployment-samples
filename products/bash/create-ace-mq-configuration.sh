@@ -54,7 +54,7 @@ done
 set -e
 
 echo "Wait for the ${CERTIFICATE_NAME} certificate to be ready, so the secret is ready to be used"
-oc wait --for=condition=ready -n ${NAMESPACE} certificate ${CERTIFICATE_NAME} --timeout=60s
+oc wait --for=condition=ready -n ${NAMESPACE} certificate ${CERTIFICATE_NAME} --timeout=300s
 
 echo "Create and move to a temporary dir"
 tmp=$(mktemp -d)

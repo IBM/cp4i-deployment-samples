@@ -84,6 +84,7 @@ spec:
   license:
     accept: true
     use: CloudPakForIntegrationProduction
+    license: L-YBXJ-ADJNSM
   requestIbmServices:
     iam: true
     monitoring: true
@@ -161,6 +162,7 @@ spec:
   license:
     accept: true
     use: CloudPakForIntegrationNonProduction
+    license: L-YBXJ-ADJNSM
   requestIbmServices:
     iam: false
     monitoring: false
