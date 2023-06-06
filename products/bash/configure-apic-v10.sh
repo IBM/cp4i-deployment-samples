@@ -30,7 +30,7 @@
 CURRENT_DIR=$(dirname $0)
 source $CURRENT_DIR/../../products/bash/utils.sh
 
-ha_enabled="true"
+ha_enabled="false"
 NAMESPACE="cp4i"
 RELEASE_NAME="ademo"
 ORG_NAME="main-demo"
@@ -442,21 +442,24 @@ API_MANAGER_PASS=$(echo $PROVIDER_CREDENTIALS | jq -r .password | base64 --decod
 ACE_CLIENT_ID=$(echo $ACE_CREDENTIALS | jq -r .client_id | base64 --decode)
 ACE_CLIENT_SECRET=$(echo $ACE_CREDENTIALS | jq -r .client_secret | base64 --decode)
 
+# Wait for the GatewayCluster to get created
+for i in $(seq 1 720); do
+  oc get -n $NAMESPACE GatewayCluster/${RELEASE_NAME}-gw
+  if [[ $? == 0 ]]; then
+    printf "$TICK"
+    echo "[OK] GatewayCluster/${RELEASE_NAME}-gw"
+    break
+  else
+    echo "Waiting for GatewayCluster/${RELEASE_NAME}-gw to be created (Attempt $i of 720)."
+    echo "Checking again in 10 seconds..."
+    sleep 10
+  fi
+done
+
 if [[ "$ha_enabled" == "true" ]]; then
-  # Wait for the GatewayCluster to get created
-  for i in $(seq 1 720); do
-    oc get -n $NAMESPACE GatewayCluster/${RELEASE_NAME}-gw
-    if [[ $? == 0 ]]; then
-      printf "$TICK"
-      echo "[OK] GatewayCluster/${RELEASE_NAME}-gw"
-      break
-    else
-      echo "Waiting for GatewayCluster/${RELEASE_NAME}-gw to be created (Attempt $i of 720)."
-      echo "Checking again in 10 seconds..."
-      sleep 10
-    fi
-  done
   oc patch -n ${NAMESPACE} GatewayCluster/${RELEASE_NAME}-gw --patch '{"spec":{"profile":"n3xc4.m8","replicaCount":3}}' --type=merge
+else
+  oc patch -n ${NAMESPACE} GatewayCluster/${RELEASE_NAME}-gw --patch '{"spec":{"profile":"n1xc1.m8","replicaCount":1}}' --type=merge
 fi
 
 printf "$TICK"
