@@ -230,6 +230,16 @@ spec:
   source: ibm-apiconnect-catalog
   sourceNamespace: openshift-marketplace
 ---
+apiVersion: operators.coreos.com/v1alpha1
+kind: Subscription
+metadata:
+  name: ibm-eventendpointmanagement-ibm-eventendpointmanagement-catalog-openshift-marketplace
+spec:
+  installPlanApproval: Automatic
+  name: ibm-eventendpointmanagement
+  source: ibm-eventendpointmanagement-catalog
+  sourceNamespace: openshift-marketplace
+---
 # NOTE Leave the above "---" there to make SLOW_BUT_SAFE apply the last subscription
 EOF
 )

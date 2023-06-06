@@ -57,8 +57,8 @@ metadata:
   name: ibm-aspera-hsts-operator-catalog
   namespace: openshift-marketplace
 spec:
-  displayName: "Aspera Operators latest"
-  image: icr.io/cpopen/aspera-hsts-catalog@sha256:a1c401135c5a4a9f3c88e2ac9b75299b9be376d6f97f34d7f68f2a31f0c726cd
+  displayName: "Aspera Operators latest-cd"
+  image: cp.stg.icr.io/cp/icp4i/aspera/aspera-hsts-catalog:latest-cd
   publisher: IBM
   sourceType: grpc
   updateStrategy:
@@ -71,8 +71,8 @@ metadata:
   name: ibm-cloud-databases-redis-catalog
   namespace: openshift-marketplace
 spec:
-  displayName: "Redis for Aspera Operators 1.6.2"
-  image: icr.io/cpopen/ibm-cloud-databases-redis-catalog@sha256:68dfcc9bb5b39990171c30e20fee337117c7385a07c4868efd28751d15e08e9f
+  displayName: "Redis for Aspera Operators latest"
+  image: cp.stg.icr.io/cp/ibm-cloud-databases-redis-catalog:latest
   publisher: IBM
   sourceType: grpc
   updateStrategy:
@@ -85,8 +85,8 @@ metadata:
   name: ibm-common-service-catalog
   namespace: openshift-marketplace
 spec:
-  displayName: "IBMCS Operators v3.22.0"
-  image: icr.io/cpopen/ibm-common-service-catalog@sha256:36c410c39a52c98919f22f748e67f7ac6d3036195789d9cfbcd8a362dedbb2bd
+  displayName: "IBMCS Operators ltsr-validated"
+  image: hyc-cloud-private-daily-docker-local.artifactory.swg-devops.com/ibmcom/ibm-common-service-catalog:ltsr-validated
   publisher: IBM
   sourceType: grpc
   updateStrategy:
@@ -141,10 +141,10 @@ metadata:
   name: ibm-integration-platform-navigator-catalog
   namespace: openshift-marketplace
 spec:
-  # displayName: "PN Operators staging image"
-  # image: cp.stg.icr.io/cp/ibm-integration-platform-navigator-catalog:latest-cd
-  displayName: "PN Operators Dans"
-  image: cp.stg.icr.io/cp/ibm-integration-platform-navigator-catalog:7.1.0-2023-05-25-0652-e709c61a@sha256:687217c1d6b64053cd3566b0afd79056b6c5c1a69eee0af63e296052b9028001
+  displayName: "PN Operators latest-cd"
+  image: cp.stg.icr.io/cp/ibm-integration-platform-navigator-catalog:latest-cd
+  # displayName: "PN Operators Dans"
+  # image: cp.stg.icr.io/cp/ibm-integration-platform-navigator-catalog:7.1.0-2023-05-25-1452-1848b312-mq-update-fix@sha256:ef27ccf7e67875ea10c2a68eac6104281089c3198c462fb8e54d820f7057551f
   publisher: IBM
   sourceType: grpc
   updateStrategy:
@@ -159,6 +159,20 @@ metadata:
 spec:
   displayName: "MQ Operators latest-cd"
   image: cp.stg.icr.io/cp/ibm-mq-operator-catalog:latest-cd
+  publisher: IBM
+  sourceType: grpc
+  updateStrategy:
+    registryPoll:
+      interval: 45m
+---
+apiVersion: operators.coreos.com/v1alpha1
+kind: CatalogSource
+metadata:
+  name: ibm-eventendpointmanagement-catalog
+  namespace: openshift-marketplace
+spec:
+  displayName: "EEM Operators latest-cd"
+  image: cp.stg.icr.io/cp/ibm-eventendpointmanagement-operator-catalog:latest-cd
   publisher: IBM
   sourceType: grpc
   updateStrategy:
