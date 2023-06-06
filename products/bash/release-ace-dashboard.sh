@@ -28,7 +28,6 @@ CURRENT_DIR=$(dirname $0)
 source $CURRENT_DIR/utils.sh
 dashboard_release_name="ace-dashboard-demo"
 namespace="cp4i"
-production="false"
 storage="cp4i-file-performance-gid"
 
 function usage() {
@@ -46,9 +45,6 @@ while getopts "n:r:s:p" opt; do
   s)
     storage="$OPTARG"
     ;;
-  p)
-    production="true"
-    ;;
   \?)
     usage
     exit
@@ -62,14 +58,6 @@ echo "[DEBUG] ACE license: $(getACELicense $namespace)"
 echo "INFO: Release ACE Dashboard..."
 echo "INFO: Namespace: '$namespace'"
 echo "INFO: Dashboard Release Name: '$dashboard_release_name'"
-
-use="CloudPakForIntegrationNonProduction"
-
-if [[ "$production" == "true" ]]; then
-  echo "Production Mode Enabled"
-  use="CloudPakForIntegrationProduction"
-
-fi
 
 json=$(oc get configmap -n $namespace operator-info -o json 2> /dev/null)
 if [[ $? == 0 ]]; then
@@ -94,7 +82,7 @@ spec:
   license:
     accept: true
     license: $(getACELicense $namespace)
-    use: ${use}
+    use: CloudPakForIntegrationNonProduction
   displayMode: IntegrationRuntimes
   pod:
     containers:

@@ -184,7 +184,19 @@ export IMAGE_REPO="$(oc get route default-route -n openshift-image-registry --te
 echo "IMAGE_REPO=${IMAGE_REPO}"
 
 export DOCKER_REGISTRY_USER=image-bot
+```
+
+On OCP < 4.12:
+```
 export DOCKER_REGISTRY_PASS="$(oc serviceaccounts get-token image-bot)"
+```
+On OCP >= 4.12:
+```
+export DOCKER_REGISTRY_PASS=$(oc create token image-bot)
+```
+
+Then:
+```
 echo "DOCKER_REGISTRY_USER=${DOCKER_REGISTRY_USER}"
 echo "DOCKER_REGISTRY_PASS=${DOCKER_REGISTRY_PASS}"
 docker login $IMAGE_REPO -u $DOCKER_REGISTRY_USER -p $DOCKER_REGISTRY_PASS
