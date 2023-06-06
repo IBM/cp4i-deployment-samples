@@ -368,77 +368,15 @@ fi
 divider
 
 if echo $CLUSTER_TYPE | grep -iqF roks; then
-  # This storage class improves the pvc performance for small PVCs
-  echo -e "$INFO [INFO] Creating new cp4i-block-performance storage class\n"
-  YAML=$(cat <<EOF
-apiVersion: storage.k8s.io/v1
-kind: StorageClass
-metadata:
-  name: cp4i-block-performance
-  labels:
-    kubernetes.io/cluster-service: "true"
-provisioner: ibm.io/ibmc-block
-parameters:
-  billingType: "hourly"
-  classVersion: "2"
-  sizeIOPSRange: |-
-    "[1-39]Gi:[1000]"
-    "[40-79]Gi:[2000]"
-    "[80-99]Gi:[4000]"
-    "[100-499]Gi:[5000-6000]"
-    "[500-999]Gi:[5000-10000]"
-    "[1000-1999]Gi:[10000-20000]"
-    "[2000-2999]Gi:[20000-40000]"
-    "[3000-12000]Gi:[24000-48000]"
-  type: "Performance"
-reclaimPolicy: Delete
-volumeBindingMode: Immediate
-EOF
-)
-  OCApplyYAML "$JOB_NAMESPACE" "$YAML"
-
-  echo -e "$INFO [INFO] Creating new cp4i-file-performance-gid storage class\n"
-  YAML=$(cat <<EOF
-apiVersion: storage.k8s.io/v1
-kind: StorageClass
-metadata:
-  name: cp4i-file-performance-gid
-  labels:
-    kubernetes.io/cluster-service: "true"
-provisioner: ibm.io/ibmc-file
-parameters:
-  billingType: "hourly"
-  classVersion: "2"
-  gidAllocate: "true"
-  sizeIOPSRange: |-
-    "[1-39]Gi:[1000]"
-    "[40-79]Gi:[2000]"
-    "[80-99]Gi:[4000]"
-    "[100-499]Gi:[5000-6000]"
-    "[500-999]Gi:[5000-10000]"
-    "[1000-1999]Gi:[10000-20000]"
-    "[2000-2999]Gi:[20000-40000]"
-    "[3000-12000]Gi:[24000-48000]"
-  type: "Performance"
-reclaimPolicy: Delete
-volumeBindingMode: Immediate
-EOF
-)
-  OCApplyYAML "$JOB_NAMESPACE" "$YAML"
+  if ! $CURRENT_DIR/create-roks-performance-scs.sh -d "$useFastStorageClass" ; then
+    echo -e "$CROSS [ERROR] Failed to create the performance storage classes"
+    exit 1
+  fi
 
   defaultStorageClass=$(oc get sc -o json | jq -r '.items[].metadata | select(.annotations["storageclass.kubernetes.io/is-default-class"] == "true") | .name')
-
   DEFAULT_BLOCK_STORAGE=$defaultStorageClass
 
   if [[ "$useFastStorageClass" == "true" ]]; then
-    echo -e "\n$INFO [INFO] Current default storage class is: $defaultStorageClass"
-
-    echo -e "\n$INFO [INFO] Making $defaultStorageClass non-default\n"
-    oc patch storageclass $defaultStorageClass -p '{"metadata": {"annotations":{"storageclass.kubernetes.io/is-default-class":"false"}}}'
-
-    echo -e "\n$INFO [INFO] Making cp4i-block-performance default\n"
-    oc patch storageclass cp4i-block-performance -p '{"metadata": {"annotations":{"storageclass.kubernetes.io/is-default-class":"true"}}}'
-
     DEFAULT_BLOCK_STORAGE="cp4i-block-performance"
     DEFAULT_FILE_STORAGE="cp4i-file-performance-gid"
   fi

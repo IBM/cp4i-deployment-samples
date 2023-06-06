@@ -64,7 +64,7 @@ if [[ "$production" == "true" ]]; then
   profile="n12xc4.m12"
   license_use="production"
 else
-  profile="n1xc10.m48"
+  profile="n1xc7.m48"
 fi
 
 json=$(oc get configmap -n $namespace operator-info -o json 2>/dev/null)
@@ -98,7 +98,7 @@ spec:
     use: ${license_use}
     license: $(getAPICLicense $namespace)
   profile: ${profile}
-  version: "10.0.5"
+  version: "10.0.6"
 EOF
 )
 OCApplyYAML "$namespace" "$YAML"

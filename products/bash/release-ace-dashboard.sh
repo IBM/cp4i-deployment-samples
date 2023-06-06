@@ -101,7 +101,6 @@ spec:
       content-server:
         resources:
           limits:
-            cpu: 250m
             memory: 512Mi
           requests:
             cpu: 50m
@@ -109,7 +108,6 @@ spec:
       control-ui:
         resources:
           limits:
-            cpu: 500m
             memory: 512Mi
           requests:
             cpu: 50m
