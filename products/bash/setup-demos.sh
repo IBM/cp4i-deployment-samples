@@ -664,7 +664,7 @@ for EACH_PRODUCT in $(echo "${REQUIRED_PRODUCTS_JSON}" | jq -r '. | keys[]'); do
 
   assetRepo)
     echo -e "$INFO [INFO] Releasing Asset Repository $ECHO_LINE '$ASSET_REPOSITORY_RELEASE_NAME'...\n"
-    if ! $SCRIPT_DIR/release-ar.sh -n "$NAMESPACE" -r "$ASSET_REPOSITORY_RELEASE_NAME" -a "$FILE_STORAGE_CLASS" -c "$BLOCK_STORAGE_CLASS"; then
+    if ! $SCRIPT_DIR/release-ar.sh -n "$NAMESPACE" -r "$ASSET_REPOSITORY_RELEASE_NAME" -b "$BLOCK_STORAGE_CLASS"; then
       update_conditions "Failed to release Asset Repository $ECHO_LINE '$ASSET_REPOSITORY_RELEASE_NAME'" "Releasing"
       update_phase "Failed"
       FAILED_INSTALL_PRODUCTS_LIST+=($EACH_PRODUCT)
