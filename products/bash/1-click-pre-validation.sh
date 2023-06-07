@@ -47,8 +47,6 @@ info="\xE2\x84\xB9"
 missingParams="false"
 namespace="cp4i"
 MIN_OCP_VERSION=4.10
-
-# Remove this hack unless the scripts have been updated to work with 4.12...
 MAX_OCP_VERSION=4.12
 
 while getopts "p:r:u:d:n:" opt; do
