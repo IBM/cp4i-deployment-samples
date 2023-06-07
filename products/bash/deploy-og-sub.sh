@@ -133,21 +133,21 @@ ALL_YAMLS=$(cat <<EOF
 apiVersion: operators.coreos.com/v1alpha1
 kind: Subscription
 metadata:
-  name: ibm-common-service-operator-ibm-common-service-catalog-openshift-marketplace
+  name: ibm-common-service-operator-opencloud-operators-openshift-marketplace
 spec:
   installPlanApproval: Automatic
   name: ibm-common-service-operator
-  source: ibm-common-service-catalog
+  source: opencloud-operators
   sourceNamespace: openshift-marketplace
 ---
 apiVersion: operators.coreos.com/v1alpha1
 kind: Subscription
 metadata:
-  name: ibm-cloud-databases-redis-operator-ibm-cloud-databases-redis-catalog-openshift-marketplace
+  name: ibm-cloud-databases-redis-operator-ibm-cloud-databases-redis-operator-catalog-openshift-marketplace
 spec:
   installPlanApproval: Automatic
   name: ibm-cloud-databases-redis-operator
-  source: ibm-cloud-databases-redis-catalog
+  source: ibm-cloud-databases-redis-operator-catalog
   sourceNamespace: openshift-marketplace
 ---
 apiVersion: operators.coreos.com/v1alpha1
@@ -163,41 +163,41 @@ spec:
 apiVersion: operators.coreos.com/v1alpha1
 kind: Subscription
 metadata:
-  name: aspera-hsts-operator-ibm-aspera-hsts-operator-catalog-openshift-marketplace
+  name: aspera-hsts-operator-aspera-operators-openshift-marketplace
 spec:
   installPlanApproval: Automatic
   name: aspera-hsts-operator
-  source: ibm-aspera-hsts-operator-catalog
+  source: aspera-operators
   sourceNamespace: openshift-marketplace
 ---
 apiVersion: operators.coreos.com/v1alpha1
 kind: Subscription
 metadata:
-  name: ibm-appconnect-ibm-appconnect-catalog-openshift-marketplace
+  name: ibm-appconnect-appconnect-operator-catalogsource-openshift-marketplace
 spec:
   installPlanApproval: Automatic
   name: ibm-appconnect
-  source: ibm-appconnect-catalog
+  source: appconnect-operator-catalogsource
   sourceNamespace: openshift-marketplace
 ---
 apiVersion: operators.coreos.com/v1alpha1
 kind: Subscription
 metadata:
-  name: ibm-eventstreams-ibm-eventstreams-catalog-openshift-marketplace
+  name: ibm-eventstreams-ibm-eventstreams-openshift-marketplace
 spec:
   installPlanApproval: Automatic
   name: ibm-eventstreams
-  source: ibm-eventstreams-catalog
+  source: ibm-eventstreams
   sourceNamespace: openshift-marketplace
 ---
 apiVersion: operators.coreos.com/v1alpha1
 kind: Subscription
 metadata:
-  name: ibm-mq-ibm-mq-operator-catalog-openshift-marketplace
+  name: ibm-mq-ibmmq-operator-catalogsource-openshift-marketplace
 spec:
   installPlanApproval: Automatic
   name: ibm-mq
-  source: ibm-mq-operator-catalog
+  source: ibmmq-operator-catalogsource
   sourceNamespace: openshift-marketplace
 ---
 apiVersion: operators.coreos.com/v1alpha1
