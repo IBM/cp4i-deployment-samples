@@ -12,7 +12,7 @@ IBM MQ	export CASE_NAME=ibm-mq && export CASE_VERSION=2.3.3
 IBM Event Streams	export CASE_NAME=ibm-eventstreams && export CASE_VERSION=1.7.6
 IBM DataPower Gateway	export CASE_NAME=ibm-datapower-operator && export CASE_VERSION=1.6.7
 IBM Aspera HSTS	export CASE_NAME=ibm-aspera-hsts-operator && export CASE_VERSION=1.5.7
-IBM Cloud Pak foundational services	export CASE_NAME=ibm-cp-common-services && export CASE_VERSION=1.19.3"
+IBM Cloud Pak foundational services	export CASE_NAME=ibm-cp-common-services && export CASE_VERSION=1.19.4"
 
 IFS='
 '

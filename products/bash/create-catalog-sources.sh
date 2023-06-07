@@ -40,7 +40,7 @@ spec:
 apiVersion: operators.coreos.com/v1alpha1
 kind: CatalogSource
 metadata:
-  name: ibm-appconnect-catalog
+  name: appconnect-operator-catalogsource
   namespace: openshift-marketplace
 spec:
   displayName: "ACE Operators latest-cd"
@@ -54,7 +54,7 @@ spec:
 apiVersion: operators.coreos.com/v1alpha1
 kind: CatalogSource
 metadata:
-  name: ibm-aspera-hsts-operator-catalog
+  name: aspera-operators
   namespace: openshift-marketplace
 spec:
   displayName: "Aspera Operators latest-cd"
@@ -68,7 +68,7 @@ spec:
 apiVersion: operators.coreos.com/v1alpha1
 kind: CatalogSource
 metadata:
-  name: ibm-cloud-databases-redis-catalog
+  name: ibm-cloud-databases-redis-operator-catalog
   namespace: openshift-marketplace
 spec:
   displayName: "Redis for Aspera Operators latest"
@@ -82,7 +82,7 @@ spec:
 apiVersion: operators.coreos.com/v1alpha1
 kind: CatalogSource
 metadata:
-  name: ibm-common-service-catalog
+  name: opencloud-operators
   namespace: openshift-marketplace
 spec:
   displayName: "IBMCS Operators ltsr-validated"
@@ -110,7 +110,7 @@ spec:
 apiVersion: operators.coreos.com/v1alpha1
 kind: CatalogSource
 metadata:
-  name: ibm-eventstreams-catalog
+  name: ibm-eventstreams
   namespace: openshift-marketplace
 spec:
   displayName: "ES Operators latest-cd"
@@ -154,7 +154,7 @@ spec:
 apiVersion: operators.coreos.com/v1alpha1
 kind: CatalogSource
 metadata:
-  name: ibm-mq-operator-catalog
+  name: ibmmq-operator-catalogsource
   namespace: openshift-marketplace
 spec:
   displayName: "MQ Operators latest-cd"
