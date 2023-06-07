@@ -28,7 +28,7 @@ These steps will need to be documented in the demo docs:
   export NAMESPACE=<NAMESPACE>
 
   # Branch/tag for required version of CP4I
-  export BRANCH=2022.2.1
+  export BRANCH=2023.2.1
 
   # The URL for your forked repo
   export FORKED_REPO=https://github.com/IBM/cp4i-deployment-samples.git
@@ -50,7 +50,7 @@ These steps will need to be documented in the demo docs:
   export NAMESPACE=<NAMESPACE>
 
   # Branch/tag for required version of CP4I
-  export BRANCH=2022.2.1
+  export BRANCH=2023.2.1
 
   # The URL for your forked repo
   export FORKED_REPO=https://github.com/IBM/cp4i-deployment-samples.git
@@ -72,7 +72,7 @@ These steps will need to be documented in the demo docs:
   export NAMESPACE=<NAMESPACE>
 
   # Branch/tag for required version of CP4I
-  export BRANCH=2022.2.1
+  export BRANCH=2023.2.1
 
   # The URL for your forked repo
   export FORKED_REPO=https://github.com/IBM/cp4i-deployment-samples.git
