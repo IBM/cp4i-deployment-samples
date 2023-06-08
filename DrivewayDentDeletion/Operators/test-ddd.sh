@@ -255,7 +255,7 @@ if [[ "$TKN_INSTALLED" == "false" ]]; then
     # Get the tar
     curl -LO https://github.com/tektoncd/cli/releases/download/v0.31.0/tkn_0.31.0_Linux_x86_64.tar.gz
     # Extract tkn to current directory
-    tar xvzf tkn_0.12.0_Linux_x86_64.tar.gz -C . tkn
+    tar xvzf tkn_0.31.0_Linux_x86_64.tar.gz -C . tkn
     UNTAR_STATUS=$(echo $?)
     if [[ "$UNTAR_STATUS" -ne 0 ]]; then
       echo -e "\n$CROSS [ERROR] Could not extract the tar for 'tkn'"
