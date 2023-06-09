@@ -62,6 +62,12 @@ PLATFORM_API="https://$(oc get route -n ${NAMESPACE} ademo-mgmt-platform-api -o 
 CERTIFICATE="$(oc get route -n ${NAMESPACE} ademo-mgmt-platform-api -o json | jq -r .spec.tls.caCertificate)"
 CERTIFICATE_NEWLINES_REPLACED=$(echo "${CERTIFICATE}" | awk '{printf "%s\\n", $0}')
 
+json=$(oc get configmap -n $namespace operator-info -o json 2>/dev/null)
+if [[ $? == 0 ]]; then
+  METADATA_NAME=$(echo $json | tr '\r\n' ' ' | $JQ -r '.data.METADATA_NAME')
+  METADATA_UID=$(echo $json | tr '\r\n' ' ' | $JQ -r '.data.METADATA_UID')
+fi
+
 YAML=$(cat <<EOF
 apiVersion: v1
 kind: Secret
@@ -95,6 +101,13 @@ metadata:
   name: ${IA_NAME}
   annotations:
     "operator.ibm.com/ia-managed-integrations-dry-run": "false"
+  $(if [[ ! -z ${METADATA_UID} && ! -z ${METADATA_NAME} ]]; then
+    echo "ownerReferences:
+    - apiVersion: integration.ibm.com/v1beta1
+      kind: Demo
+      name: ${METADATA_NAME}
+      uid: ${METADATA_UID}"
+  fi)
 spec:
   version: 2023.2.1
   license:
