@@ -192,8 +192,8 @@ while true; do
     echo -e "\nGET request..."
     get_response=$(curl ${CURL_OPTS[@]} -w " %{http_code}" -X GET ${API_BASE_URL}/quote?QuoteID=${quote_id} \
       -H "authorization: Basic ${API_AUTH}" \
-      -H "X-IBM-CLIENT-ID: ${API_CLIENT_ID}") \
-      -H "X-IBM-CLIENT-SECRET: ${API_CLIENT_SECRET}"
+      -H "X-IBM-CLIENT-ID: ${API_CLIENT_ID}" \
+      -H "X-IBM-CLIENT-SECRET: ${API_CLIENT_SECRET}")
     get_response_code=$(echo "${get_response##* }")
     $DEBUG && echo "[DEBUG] get response: ${get_response}"
 
