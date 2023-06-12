@@ -8,6 +8,8 @@
 # Contract with IBM Corp.
 #******************************************************************************
 
+echo "Start of EEI deploy-ia.sh"
+
 function divider() {
   echo -e "\n-------------------------------------------------------------------------------------------------------------------\n"
 }
@@ -20,12 +22,15 @@ function usage() {
 
 set -e
 
+echo "About to source utils.sh"
 CURRENT_DIR=$(dirname $0)
 source $CURRENT_DIR/../../products/bash/utils.sh
 
 NAMESPACE="cp4i"
 BLOCK_STORAGE_CLASS="cp4i-block-performance"
 FILE_STORAGE_CLASS="cp4i-file-performance-gid"
+
+echo "About to process options"
 
 while getopts "b:f:n:u:c:" opt; do
   case ${opt} in
@@ -51,6 +56,8 @@ while getopts "b:f:n:u:c:" opt; do
   esac
 done
 
+echo "About to set env vars"
+
 IA_NAME=eei
 QM_NAME=mq-eei-qm
 ACE_REST_FILE='["'${BASE_URL}/EventEnabledInsurance/ACE/BarFiles/REST.bar'"]'
@@ -61,6 +68,8 @@ CATALOG="${PROVIDER_ORG}-catalog"
 PLATFORM_API="https://$(oc get route -n ${NAMESPACE} ademo-mgmt-platform-api -o jsonpath="{.spec.host}")/"
 CERTIFICATE="$(oc get route -n ${NAMESPACE} ademo-mgmt-platform-api -o json | jq -r .spec.tls.caCertificate)"
 CERTIFICATE_NEWLINES_REPLACED=$(echo "${CERTIFICATE}" | awk '{printf "%s\\n", $0}')
+
+echo "About to create YAML"
 
 YAML=$(cat <<EOF
 apiVersion: v1
@@ -182,5 +191,7 @@ spec:
     group: cert-manager.io
 EOF
 )
+
+echo "Applying YAML"
 OCApplyYAML "$NAMESPACE" "$YAML"
 echo -e "\n$TICK [SUCCESS] Successfully applied the Integration Assembly yaml"
