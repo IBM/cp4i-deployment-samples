@@ -70,11 +70,15 @@ CERTIFICATE="$(oc get route -n ${NAMESPACE} ademo-mgmt-platform-api -o json | jq
 CERTIFICATE_NEWLINES_REPLACED=$(echo "${CERTIFICATE}" | awk '{printf "%s\\n", $0}')
 
 
+echo "About to get name/uid from operator-info configmap"
+
+set +e
 json=$(oc get configmap -n $NAMESPACE operator-info -o json 2>/dev/null)
 if [[ $? == 0 ]]; then
   METADATA_NAME=$(echo $json | tr '\r\n' ' ' | $JQ -r '.data.METADATA_NAME')
   METADATA_UID=$(echo $json | tr '\r\n' ' ' | $JQ -r '.data.METADATA_UID')
 fi
+set -e
 
 echo "About to create YAML"
 
