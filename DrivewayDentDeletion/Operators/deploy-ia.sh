@@ -120,6 +120,8 @@ apiVersion: integration.ibm.com/v1beta1
 kind: IntegrationAssembly
 metadata:
   name: ${IA_NAME}
+  annotations:
+    "operator.ibm.com/ia-managed-integrations-dry-run": "false"
 spec:
   version: 2023.2.1
   license:

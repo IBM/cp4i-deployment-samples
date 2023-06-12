@@ -127,6 +127,8 @@ apiVersion: integration.ibm.com/v1beta1
 kind: IntegrationAssembly
 metadata:
   name: ${IA_NAME}
+  annotations:
+    "operator.ibm.com/ia-managed-integrations-dry-run": "false"
 $(if [[ ! -z ${METADATA_UID} && ! -z ${METADATA_NAME} ]]; then
   echo "ownerReferences:
   - apiVersion: integration.ibm.com/v1beta1
