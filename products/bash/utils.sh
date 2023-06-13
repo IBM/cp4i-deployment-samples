@@ -22,8 +22,8 @@ function OCApplyYAML() {
   yaml=${2}
 
   # For debug output uncomment the following:
-  echo "Applying the following yaml in the ${namespace} project:"
-  echo "${yaml}"
+  # echo "Applying the following yaml in the ${namespace} project:"
+  # echo "${yaml}"
 
   time=0
   until cat <<EOF | oc apply -n ${namespace} -f -; do
