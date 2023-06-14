@@ -133,28 +133,9 @@ ALL_YAMLS=$(cat <<EOF
 apiVersion: operators.coreos.com/v1alpha1
 kind: Subscription
 metadata:
-  name: ibm-common-service-operator-opencloud-operators-openshift-marketplace
-spec:
-  installPlanApproval: Automatic
-  name: ibm-common-service-operator
-  source: opencloud-operators
-  sourceNamespace: openshift-marketplace
----
-apiVersion: operators.coreos.com/v1alpha1
-kind: Subscription
-metadata:
-  name: ibm-cloud-databases-redis-operator-ibm-cloud-databases-redis-operator-catalog-openshift-marketplace
-spec:
-  installPlanApproval: Automatic
-  name: ibm-cloud-databases-redis-operator
-  source: ibm-cloud-databases-redis-operator-catalog
-  sourceNamespace: openshift-marketplace
----
-apiVersion: operators.coreos.com/v1alpha1
-kind: Subscription
-metadata:
   name: ibm-integration-platform-navigator-ibm-integration-platform-navigator-catalog-openshift-marketplace
 spec:
+  channel: v7.1
   installPlanApproval: Automatic
   name: ibm-integration-platform-navigator
   source: ibm-integration-platform-navigator-catalog
@@ -165,6 +146,7 @@ kind: Subscription
 metadata:
   name: aspera-hsts-operator-aspera-operators-openshift-marketplace
 spec:
+  channel: v1.5
   installPlanApproval: Automatic
   name: aspera-hsts-operator
   source: aspera-operators
@@ -175,6 +157,7 @@ kind: Subscription
 metadata:
   name: ibm-appconnect-appconnect-operator-catalogsource-openshift-marketplace
 spec:
+  channel: v8.2
   installPlanApproval: Automatic
   name: ibm-appconnect
   source: appconnect-operator-catalogsource
@@ -185,6 +168,7 @@ kind: Subscription
 metadata:
   name: ibm-eventstreams-ibm-eventstreams-openshift-marketplace
 spec:
+  channel: v3.2
   installPlanApproval: Automatic
   name: ibm-eventstreams
   source: ibm-eventstreams
@@ -195,6 +179,7 @@ kind: Subscription
 metadata:
   name: ibm-mq-ibmmq-operator-catalogsource-openshift-marketplace
 spec:
+  channel: v2.4
   installPlanApproval: Automatic
   name: ibm-mq
   source: ibmmq-operator-catalogsource
@@ -205,6 +190,7 @@ kind: Subscription
 metadata:
   name: ibm-integration-asset-repository-ibm-integration-asset-repository-catalog-openshift-marketplace
 spec:
+  channel: v1.5
   installPlanApproval: Automatic
   name: ibm-integration-asset-repository
   source: ibm-integration-asset-repository-catalog
@@ -215,6 +201,7 @@ kind: Subscription
 metadata:
   name: datapower-operator-ibm-datapower-operator-catalog-openshift-marketplace
 spec:
+  channel: v1.7
   installPlanApproval: Automatic
   name: datapower-operator
   source: ibm-datapower-operator-catalog
@@ -225,6 +212,7 @@ kind: Subscription
 metadata:
   name: ibm-apiconnect-ibm-apiconnect-catalog-openshift-marketplace
 spec:
+  channel: v5.0
   installPlanApproval: Automatic
   name: ibm-apiconnect
   source: ibm-apiconnect-catalog
@@ -235,6 +223,7 @@ kind: Subscription
 metadata:
   name: ibm-eventendpointmanagement-ibm-eventendpointmanagement-catalog-openshift-marketplace
 spec:
+  channel: v11.0
   installPlanApproval: Automatic
   name: ibm-eventendpointmanagement
   source: ibm-eventendpointmanagement-catalog
