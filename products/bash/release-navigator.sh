@@ -62,12 +62,12 @@ metadata:
   name: ${namespace}-navigator
   namespace: ${namespace}
 spec:
+  version: 2023.2.1
   license:
     accept: true
     license: L-YBXJ-ADJNSM
   mqDashboard: true
   replicas: ${replicas}
-  version: next
   storage:
     class: ${storage}
 EOF

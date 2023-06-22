@@ -2,156 +2,51 @@
 
 SCRIPT_DIR=$(dirname $0)
 
-: ${CLOUDCTL:=cloudctl}
+# Data copied from the table in https://www.ibm.com/docs/en/cloud-paks/cp-integration/2023.2?topic=images-adding-catalog-sources-cluster
+# + the row from https://ibm-cloud.slack.com/archives/CT320FAH4/p1686903900324049?thread_ts=1686887428.360699&cid=CT320FAH4
+CASES="IBM Cloud Pak for Integration	export CASE_NAME=ibm-integration-platform-navigator && export CASE_VERSION=7.1.0
+IBM Automation foundation assets	export CASE_NAME=ibm-integration-asset-repository && export CASE_VERSION=1.5.9
+IBM API Connect	export CASE_NAME=ibm-apiconnect && export CASE_VERSION=5.0.0
+IBM App Connect	export CASE_NAME=ibm-appconnect && export CASE_VERSION=8.2.1
+IBM MQ	export CASE_NAME=ibm-mq && export CASE_VERSION=2.4.0
+IBM Event Streams	export CASE_NAME=ibm-eventstreams && export CASE_VERSION=3.2.0
+IBM DataPower Gateway	export CASE_NAME=ibm-datapower-operator && export CASE_VERSION=1.7.0
+IBM Aspera HSTS	export CASE_NAME=ibm-aspera-hsts-operator && export CASE_VERSION=1.5.8
+IBM Cloud Pak foundational services	export CASE_NAME=ibm-cp-common-services && export CASE_VERSION=1.19.4
+IBM Event Endpoint Management	export CASE_NAME=ibm-eventendpointmanagement && export CASE_VERSION=11.0.0"
+IFS='
+'
+export ARCH=amd64
 
-${CLOUDCTL} version
+for CASE in ${CASES}; do
+    CASE_DESCRIPTION=$(echo "$CASE" | cut -f1)
+    eval "$(echo "$CASE" | cut -f2)"
 
-CASE_REPO_PATH=https://github.com/IBM/cloud-pak/raw/master/repo/case
-CASE_NAMES="ibm-cp-common-services ibm-apiconnect ibm-appconnect ibm-aspera-hsts-operator ibm-cloud-databases-redis ibm-datapower-operator ibm-eventstreams ibm-integration-asset-repository ibm-integration-platform-navigator ibm-mq"
+    echo "CASE_DESCRIPTION=$CASE_DESCRIPTION"
+    echo "CASE_NAME=${CASE_NAME}"
+    echo "CASE_VERSION=${CASE_VERSION}"
 
-SCRATCH=$(mktemp -d)
-mkdir -p $SCRATCH
+    oc ibm-pak get ${CASE_NAME} --version ${CASE_VERSION}
+    oc ibm-pak generate mirror-manifests ${CASE_NAME} icr.io --version ${CASE_VERSION}
 
-mkdir "${SCRATCH}/cases"
-export CASES_DIR="${SCRATCH}/cases"
+    echo ""
+    echo ""
+    echo ""
+done
 
-for CASE_NAME in ${CASE_NAMES}; do
-  EXTRA_FLAGS=""
-  retry_count=0
-  if [[ "${CASE_NAME}" == "ibm-cp-common-services" ]]; then
-    echo "Using version 1.18 of the CS case, which should be 3.22.x of the operator"
-    EXTRA_FLAGS="--version 1.18"
-  fi
-  echo "Saving case for ${CASE_NAME}"
-  until ${CLOUDCTL} case save \
-          --repo $CASE_REPO_PATH \
-          --case $CASE_NAME \
-          --no-dependency \
-          --outputdir "${CASES_DIR}" \
-          $EXTRA_FLAGS ; do
-    if [ $retry_count -gt 10 ]; then
-      exit 1
+for CASE in ${CASES}; do
+    CASE_DESCRIPTION=$(echo "$CASE" | cut -f1)
+    eval "$(echo "$CASE" | cut -f2)"
+
+    echo "#"
+    echo "# ${CASE_DESCRIPTION}"
+    echo "# ${CASE_NAME} ${CASE_VERSION}"
+    echo "#"
+    echo "---"
+    if cat ~/.ibm-pak/data/mirror/${CASE_NAME}/${CASE_VERSION}/catalog-sources.yaml 2>/dev/null; then
+        echo "---"
     fi
-    retry_count=$((retry_count + 1))
-  done
-done
-
-ls -ltr ${CASES_DIR}/*.tgz
-
-CATALOG_IMAGES=$(grep -h -e "catalog" ${CASES_DIR}/*-images.csv | grep -e ",amd64,")
-FIXED_DATA_JSON='
-{
-  "ibm-apiconnect-catalog": {
-    "envVarPrefix": "APIC",
-    "catalogName": "apic-operators",
-    "displayNamePrefix": "APIC Operators"
-  },
-  "appconnect-operator-catalog": {
-    "envVarPrefix": "ACE",
-    "catalogName": "ace-operators",
-    "displayNamePrefix": "ACE Operators"
-  },
-  "aspera-hsts-catalog": {
-    "envVarPrefix": "ASPERA",
-    "catalogName": "aspera-operators",
-    "displayNamePrefix": "Aspera Operators"
-  },
-  "ibm-cloud-databases-redis-catalog": {
-    "envVarPrefix": "REDIS",
-    "catalogName": "aspera-redis-operators",
-    "displayNamePrefix": "Redis for Aspera Operators"
-  },
-  "ibm-common-service-catalog": {
-    "envVarPrefix": "COMMON_SERVICES",
-    "catalogName": "opencloud-operators",
-    "displayNamePrefix": "IBMCS Operators"
-  },
-  "datapower-operator-catalog": {
-    "envVarPrefix": "DATAPOWER",
-    "catalogName": "dp-operators",
-    "displayNamePrefix": "DP Operators"
-  },
-  "ibm-eventstreams-catalog": {
-    "envVarPrefix": "EVENT_STREAMS",
-    "catalogName": "es-operators",
-    "displayNamePrefix": "ES Operators"
-  },
-  "ibm-integration-asset-repository-catalog": {
-    "envVarPrefix": "ASSET_REPO",
-    "catalogName": "ar-operators",
-    "displayNamePrefix": "AR Operators"
-  },
-  "ibm-integration-platform-navigator-catalog": {
-    "envVarPrefix": "NAVIGATOR",
-    "catalogName": "pn-operators",
-    "displayNamePrefix": "PN Operators"
-  },
-  "ibm-mq-operator-catalog": {
-    "envVarPrefix": "MQ",
-    "catalogName": "mq-operators",
-    "displayNamePrefix": "MQ Operators"
-  }
-}'
-
-echo "Comparing images to those expected..."
-FOUND_ERRORS=false
-for line in $CATALOG_IMAGES; do
-  image_name=$(echo $line | cut -d, -f 2)
-  catalog_name=$(echo $image_name | cut -d/ -f 2)
-  if [[ "$(echo "$FIXED_DATA_JSON" | jq 'has("'$catalog_name'")')" == "false" ]]; then
-    echo "Found the following in the list of catalog images but not supported by create-catalog-sources.sh:"
-    echo "  ${line}"
-    FOUND_ERRORS=true
-  fi
-done
-
-for catalog_name in $(echo "${FIXED_DATA_JSON}" | jq -r 'keys[]'); do
-  echo "$CATALOG_IMAGES" | grep -e "$catalog_name" >/dev/null 2>&1
-  RESULT=$?
-  if [[ $RESULT == 1 ]] ; then
-    FOUND_ERRORS=true
-    echo "Catalog image not found for catalog: $catalog_name"
-  fi
-done
-
-if [[ "$FOUND_ERRORS" == "true" ]]; then
-  exit 1
-fi
-
-echo "No problems found, creating catalogsource yaml:"
-echo ""
-echo ""
-echo ""
-
-for line in $CATALOG_IMAGES; do
-  image_name=$(echo $line | cut -d, -f 2)
-  catalog_name=$(echo $image_name | cut -d/ -f 2)
-  data=$(echo "$FIXED_DATA_JSON" | jq -r '.["'$catalog_name'"]')
-  ignore=$(echo "$data" | jq -r '.ignore')
-  if [[ "${ignore}" != "true" ]]; then
-    registry=$(echo $line | cut -d, -f 1)
-    tag=$(echo $line | cut -d, -f 3)
-    digest=$(echo $line | cut -d, -f 4)
-    version=$(echo $tag | cut -d- -f 1)
-    envVarPrefix=$(echo "$data" | jq -r '.envVarPrefix')
-    catalogName=$(echo "$data" | jq -r '.catalogName')
-    displayNamePrefix=$(echo "$data" | jq -r '.displayNamePrefix')
-    CATALOG_NAME=${catalog_name}
-    CATALOG_IMAGE="${registry}/${image_name}@${digest}"
-    CATALOG_DISPLAY_NAME="${displayNamePrefix} ${version}"
-    echo "---
-apiVersion: operators.coreos.com/v1alpha1
-kind: CatalogSource
-metadata:
-  name: ${CATALOG_NAME}
-  namespace: openshift-marketplace
-spec:
-  displayName: \"${CATALOG_DISPLAY_NAME}\"
-  image: ${CATALOG_IMAGE}
-  publisher: IBM
-  sourceType: grpc
-  updateStrategy:
-    registryPoll:
-      interval: 45m"
-  fi
+    if cat ~/.ibm-pak/data/mirror/${CASE_NAME}/${CASE_VERSION}/catalog-sources-linux-${ARCH}.yaml 2>/dev/null; then
+        echo "---"
+    fi
 done

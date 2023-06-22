@@ -27,7 +27,7 @@ CURRENT_DIR=$(dirname $0)
 source $CURRENT_DIR/utils.sh
 designer_release_name="ace-designer-demo"
 namespace="cp4i"
-storage="ibmc-block-gold"
+storage="cp4i-block-performance"
 file_storage="cp4i-file-performance-gid"
 
 function usage() {

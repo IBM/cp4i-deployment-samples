@@ -17,11 +17,11 @@
 #*******************************************************************************
 
 LICENSES_CM="demo-licenses"
-DEFAULT_ACE="L-APEH-CJUCNR"
-DEFAULT_APIC="L-GVEN-GFUPVE"
+DEFAULT_ACE="L-MJTK-WUU8HE"
+DEFAULT_APIC="L-KZXM-S7SNCU"
 DEFAULT_AR="L-RJON-CD3JKX"
 DEFAULT_DEMO="L-RJON-CJR3Q4"
-DEFAULT_MQ="L-RJON-CJR2RX"
+DEFAULT_MQ="L-YBXJ-ADJNSM"
 
 function usage() {
   echo "Usage: source $0; getAceLicense \$NAMESPACE"

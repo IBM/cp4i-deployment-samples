@@ -155,9 +155,9 @@ if [[ "$tknInstalled" == "false" ]]; then
   else
     echo -e "$INFO [INFO] Installing on Linux"
     # Get the tar
-    curl -LO https://github.com/tektoncd/cli/releases/download/v0.12.0/tkn_0.12.0_Linux_x86_64.tar.gz
+    curl -LO https://github.com/tektoncd/cli/releases/download/v0.31.0/tkn_0.31.0_Linux_x86_64.tar.gz
     # Extract tkn to current directory
-    tar xvzf tkn_0.12.0_Linux_x86_64.tar.gz -C . tkn
+    tar xvzf tkn_0.31.0_Linux_x86_64.tar.gz -C . tkn
     untarStatus=$(echo $?)
     if [[ "$untarStatus" -ne 0 ]]; then
       echo -e "\n$CROSS [ERROR] Could not extract the tar for tkn"
