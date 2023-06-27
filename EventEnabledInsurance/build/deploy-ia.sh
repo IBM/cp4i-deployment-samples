@@ -87,6 +87,13 @@ apiVersion: v1
 kind: Secret
 metadata:
   name: apim-credentials
+$(if [[ ! -z ${METADATA_UID} && ! -z ${METADATA_NAME} ]]; then
+  echo "ownerReferences:
+  - apiVersion: integration.ibm.com/v1beta1
+    kind: Demo
+    name: ${METADATA_NAME}
+    uid: ${METADATA_UID}"
+fi)
 type: Opaque
 stringData:
   base_url: "${PLATFORM_API}"
@@ -98,6 +105,13 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: qm-${QM_NAME}-queues
+$(if [[ ! -z ${METADATA_UID} && ! -z ${METADATA_NAME} ]]; then
+  echo "ownerReferences:
+  - apiVersion: integration.ibm.com/v1beta1
+    kind: Demo
+    name: ${METADATA_NAME}
+    uid: ${METADATA_UID}"
+fi)
 data:
   myqm.mqsc: |
     DEFINE QLOCAL('QuoteBO') DEFPSIST(YES) BOTHRESH(5) REPLACE
@@ -197,6 +211,13 @@ apiVersion: cert-manager.io/v1
 kind: Certificate
 metadata:
   name: qm-${QM_NAME}-client
+$(if [[ ! -z ${METADATA_UID} && ! -z ${METADATA_NAME} ]]; then
+  echo "ownerReferences:
+  - apiVersion: integration.ibm.com/v1beta1
+    kind: Demo
+    name: ${METADATA_NAME}
+    uid: ${METADATA_UID}"
+fi)
 spec:
   commonName: ${NAMESPACE}.${IA_NAME}
   subject:
