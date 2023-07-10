@@ -54,7 +54,7 @@ done
 set -e
 
 echo "Wait for the ${CERTIFICATE_NAME} certificate to be ready, so the secret is ready to be used"
-oc wait --for=condition=ready -n ${NAMESPACE} certificate ${CERTIFICATE_NAME} --timeout=60s
+oc wait --for=condition=ready -n ${NAMESPACE} certificate ${CERTIFICATE_NAME} --timeout=300s
 
 echo "Create and move to a temporary dir"
 tmp=$(mktemp -d)
@@ -97,6 +97,14 @@ elif [[ "$OSTYPE" == "darwin"* ]]; then
 fi
 
 YAML=$(cat <<EOF
+apiVersion: v1
+kind: Secret
+metadata:
+  name: ${CONFIGURATION_NAME}
+  namespace: ${NAMESPACE}
+data:
+  configuration: ${CONTENTS}
+---
 apiVersion: appconnect.ibm.com/v1beta1
 kind: Configuration
 metadata:
@@ -104,7 +112,7 @@ metadata:
   namespace: ${NAMESPACE}
 spec:
   type: generic
-  contents: ${CONTENTS}
+  secretName: ${CONFIGURATION_NAME}
 EOF
 )
 OCApplyYAML "$NAMESPACE" "$YAML"

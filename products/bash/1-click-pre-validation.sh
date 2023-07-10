@@ -47,7 +47,7 @@ info="\xE2\x84\xB9"
 missingParams="false"
 namespace="cp4i"
 MIN_OCP_VERSION=4.10
-MAX_OCP_VERSION=4.11
+MAX_OCP_VERSION=4.12
 
 while getopts "p:r:u:d:n:" opt; do
   case ${opt} in

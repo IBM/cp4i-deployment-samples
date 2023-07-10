@@ -4,4 +4,4 @@
 # Use --help for details
 
 cd $(dirname $0)/..
-exec python3 -m bookshop.bookshop_client "$@"
+exec python -m bookshop.bookshop_client "$@"

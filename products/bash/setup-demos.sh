@@ -54,7 +54,7 @@ CONDITION_ELEMENT_OBJECT='{"lastTransitionTime":"","message":"","reason":"","sta
 NAMESPACE_OBJECT_FOR_STATUS='{"name":""}'
 ADDON_OBJECT_FOR_STATUS='{"type":"", "installed":"", "readyToUse":""}'
 PRODUCT_OBJECT_FOR_STATUS='{"name":"","type":"", "namespace":"", "installed":"", "readyToUse":""}'
-DEFAULT_DEMO_VERSION="2022.2.1"
+DEFAULT_DEMO_VERSION="2023.2.1"
 DEMO_OBJECT_FOR_STATUS='{"name":"", "installed":"", "readyToUse":""}'
 MISSING_PARAMS="false"
 MISSING_PREREQS="false"
@@ -664,7 +664,7 @@ for EACH_PRODUCT in $(echo "${REQUIRED_PRODUCTS_JSON}" | jq -r '. | keys[]'); do
 
   assetRepo)
     echo -e "$INFO [INFO] Releasing Asset Repository $ECHO_LINE '$ASSET_REPOSITORY_RELEASE_NAME'...\n"
-    if ! $SCRIPT_DIR/release-ar.sh -n "$NAMESPACE" -r "$ASSET_REPOSITORY_RELEASE_NAME" -a "$FILE_STORAGE_CLASS" -c "$BLOCK_STORAGE_CLASS"; then
+    if ! $SCRIPT_DIR/release-ar.sh -n "$NAMESPACE" -r "$ASSET_REPOSITORY_RELEASE_NAME" -b "$BLOCK_STORAGE_CLASS"; then
       update_conditions "Failed to release Asset Repository $ECHO_LINE '$ASSET_REPOSITORY_RELEASE_NAME'" "Releasing"
       update_phase "Failed"
       FAILED_INSTALL_PRODUCTS_LIST+=($EACH_PRODUCT)

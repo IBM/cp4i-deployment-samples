@@ -62,12 +62,12 @@ metadata:
   name: ${namespace}-navigator
   namespace: ${namespace}
 spec:
+  version: 2023.2.1
   license:
     accept: true
-    license: L-RJON-CJR2RX
+    license: L-YBXJ-ADJNSM
   mqDashboard: true
   replicas: ${replicas}
-  version: 2022.4.1
   storage:
     class: ${storage}
 EOF
@@ -86,10 +86,6 @@ while [[ "$(oc get PlatformNavigator -n ${namespace} ${namespace}-navigator -o j
     exit 1
   fi
   echo "INFO: Waiting up to 90 minutes for platform navigator object to be ready. Waited ${time} minute(s)."
-
-  # TODO Remove these workarounds when no longer needed
-  ${SCRIPT_DIR}/fix-usermgmt.sh -n ${namespace}
-  ${SCRIPT_DIR}/fixup-olm.sh -n $namespace
 
   time=$((time + 1))
   sleep 60

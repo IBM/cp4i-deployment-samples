@@ -108,16 +108,22 @@ echo -e "\n$TICK INFO: Installed JQ version is $($JQ --version)"
 divider
 
 # -------------------------------------- TEST E2E API ------------------------------------------
-# BASE_PATH=/basepath, all ready contains /
-HOST=https://$(oc get routes -n ${NAMESPACE} | grep ddd-${DDD_TYPE}-ace-api-https | awk '{print $2}')/drivewayrepair
 if [[ $APIC == true ]]; then
   # Grab bearer token
   echo "[INFO]  Getting the host and client id..."
   ENDPOINT_SECRET_NAME="ddd-${DDD_TYPE}-api-endpoint-client-id"
   HOST=$(oc get secret -n ${NAMESPACE} ${ENDPOINT_SECRET_NAME} -o jsonpath='{.data.api}' | base64 --decode)
   CLIENT_ID=$(oc get secret -n ${NAMESPACE} ${ENDPOINT_SECRET_NAME} -o jsonpath='{.data.cid}' | base64 --decode)
+  CLIENT_SECRET=$(oc get secret -n ${NAMESPACE} ${ENDPOINT_SECRET_NAME} -o jsonpath='{.data.csecret}' | base64 --decode)
   $DEBUG && echo "[DEBUG] Client id: ${CLIENT_ID}"
   [[ $CLIENT_ID == "null" ]] && echo -e "[ERROR] ${CROSS} Couldn't get client id" && exit 1
+else
+  HOST=https://$(oc get routes -n ${NAMESPACE} | grep ddd-${DDD_TYPE}-ace-api-https | awk '{print $2}')/drivewayrepair
+  AUTH=$(oc get secret ddd-${DDD_TYPE}-ace-api-ingress-basic-auth -o json | jq -r .data.configuration | base64 --decode)
+  [[ $AUTH == "null" ]] && echo -e "[ERROR] ${CROSS} Couldn't get basic auth from secret named: ddd-${DDD_TYPE}-ace-api-ingress-basic-auth" && exit 1
+  USERNAME="$(echo "$AUTH" | cut -d' ' -f2)"
+  PASSWORD="$(echo "$AUTH" | cut -d' ' -f3)"
+  API_AUTH=$(echo -n "${USERNAME}:${PASSWORD}" | base64)
 fi
 
 echo "INFO: Host: ${HOST}"
@@ -132,14 +138,12 @@ divider
 
 echo -e "INFO: Testing E2E API now..."
 
-API_AUTH=$(oc get secret -n $NAMESPACE ace-api-creds-ddd -o json | $JQ -r '.data.auth')
-echo "api auth: $API_AUTH"
-
 # ------- Post to the database -------
 echo "request url: $HOST/quote"
 post_response=$(curl -ksw " %{http_code}" -X POST $HOST/quote \
   -H "authorization: Basic ${API_AUTH}" \
   -H "X-IBM-Client-Id: ${CLIENT_ID}" \
+  -H "X-IBM-Client-Secret: ${CLIENT_SECRET}" \
   -H "content-type: application/json" \
   -d "{
     \"Name\": \"Jane Doe\",
@@ -181,7 +185,7 @@ divider
 # ------- Get from the database -------
 for i in {1..100}; do
   echo -e "INFO: GET request ${i} of 100 ..."
-  get_response=$(curl -ksw " %{http_code}" ${HOST}/quote?QuoteID=${quote_id} -H "authorization: Basic ${API_AUTH}" -H "X-IBM-Client-Id: ${CLIENT_ID}")
+  get_response=$(curl -ksw " %{http_code}" ${HOST}/quote?QuoteID=${quote_id} -H "authorization: Basic ${API_AUTH}" -H "X-IBM-Client-Id: ${CLIENT_ID}" -H "X-IBM-Client-Secret: ${CLIENT_SECRET}")
   get_response_code=$(echo "${get_response##* }")
   if [ "$get_response_code" != "200" ]; then
     echo "$CROSS ERROR: FAILED - Error code: ${get_response_code}"
