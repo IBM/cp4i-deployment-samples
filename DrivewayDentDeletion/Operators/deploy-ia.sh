@@ -68,16 +68,15 @@ else
   PROVIDER_ORG="ddd-demo-test"
 fi
 CATALOG="${PROVIDER_ORG}-catalog"
+
+if [[ ${APIC} == "true" ]]; then
+if ! oc get secret -n $NAMESPACE apim-credentials ; then
 APIC_NAMESPACE=apic
 APIC_NAME=apic
 PLATFORM_API="https://$(oc get route -n ${APIC_NAMESPACE} ${APIC_NAME}-mgmt-platform-api -o jsonpath="{.spec.host}")/"
 CERTIFICATE="$(oc get route -n ${APIC_NAMESPACE} ${APIC_NAME}-mgmt-platform-api -o json | jq -r .spec.tls.caCertificate)"
 CERTIFICATE_NEWLINES_REPLACED=$(echo "${CERTIFICATE}" | awk '{printf "%s\\n", $0}')
-
-YAML=""
-
-if [[ ${APIC} == "true" ]]; then
-YAML+=$(cat <<EOF
+SECRET_YAML=$(cat <<EOF
 apiVersion: v1
 kind: Secret
 metadata:
@@ -88,11 +87,13 @@ stringData:
   username: cp4i-admin
   password: engageibmAPI1
   trusted_cert: "${CERTIFICATE_NEWLINES_REPLACED}"
----
 EOF
 )
+OCApplyYAML "$NAMESPACE" "$SECRET_YAML"
+fi
 fi
 
+YAML=""
 YAML+=$(cat <<EOF
 
 apiVersion: v1
