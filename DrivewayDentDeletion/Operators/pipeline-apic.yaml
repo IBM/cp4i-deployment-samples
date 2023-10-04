@@ -81,7 +81,7 @@ spec:
       params:
         - name: command
           value: |
-            /workspace/git-source/products/bash/apic-subscribe.sh -n {{NAMESPACE}} -o main-demo -c main-demo-catalog -u main-demo-corp -p {{NAMESPACE}}-product-ddd -a ddd-app -e "ddd-dev-api-endpoint-client-id" -b "/drivewayrepair"
+            /workspace/git-source/products/bash/apic-subscribe.sh -r apic -n apic -o main-demo -c main-demo-catalog -u main-demo-corp -p {{NAMESPACE}}-product-ddd -a ddd-app -e "ddd-dev-api-endpoint-client-id" -b "/drivewayrepair"
       workspaces:
         - name: git-source
           workspace: git-source
@@ -154,7 +154,7 @@ spec:
       params:
         - name: command
           value: |
-            /workspace/git-source/products/bash/apic-subscribe.sh -n {{NAMESPACE}} -o ddd-demo-test -c ddd-demo-test-catalog -u ddd-demo-test-corp -p {{NAMESPACE}}-product-ddd -a ddd-app -e "ddd-test-api-endpoint-client-id" -b "/drivewayrepair"
+            /workspace/git-source/products/bash/apic-subscribe.sh -r apic -n apic -o ddd-demo-test -c ddd-demo-test-catalog -u ddd-demo-test-corp -p {{NAMESPACE}}-product-ddd -a ddd-app -e "ddd-test-api-endpoint-client-id" -b "/drivewayrepair"
       workspaces:
         - name: git-source
           workspace: git-source
