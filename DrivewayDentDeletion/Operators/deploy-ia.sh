@@ -68,8 +68,10 @@ else
   PROVIDER_ORG="ddd-demo-test"
 fi
 CATALOG="${PROVIDER_ORG}-catalog"
-PLATFORM_API="https://$(oc get route -n ${NAMESPACE} ademo-mgmt-platform-api -o jsonpath="{.spec.host}")/"
-CERTIFICATE="$(oc get route -n ${NAMESPACE} ademo-mgmt-platform-api -o json | jq -r .spec.tls.caCertificate)"
+APIC_NAMESPACE=apic
+APIC_NAME=apic
+PLATFORM_API="https://$(oc get route -n ${APIC_NAMESPACE} ${APIC_NAME}-mgmt-platform-api -o jsonpath="{.spec.host}")/"
+CERTIFICATE="$(oc get route -n ${APIC_NAMESPACE} ${APIC_NAME}-mgmt-platform-api -o json | jq -r .spec.tls.caCertificate)"
 CERTIFICATE_NEWLINES_REPLACED=$(echo "${CERTIFICATE}" | awk '{printf "%s\\n", $0}')
 
 YAML=""
