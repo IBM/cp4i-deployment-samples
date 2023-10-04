@@ -79,9 +79,13 @@ APP_TITLE=${APP}
 CORG_OWNER_USERNAME="${PROVIDER_ORG}-corg-admin"
 CORG_OWNER_PASSWORD=engageibmAPI1
 
-PLATFORM_API_EP=$(oc get route -n $NAMESPACE ${RELEASE}-mgmt-platform-api -o jsonpath="{.spec.host}")
-[[ -z $PLATFORM_API_EP ]] && echo -e "[ERROR] ${CROSS} APIC platform api route doesn't exit" && exit 1
+PLATFORM_API_EP=$(oc get secret apim-credentials -n $NAMESPACE -o json | jq -r .data.base_url | base64 --decode)
+[[ -z $PLATFORM_API_EP ]] && echo -e "[ERROR] ${CROSS} APIC platform api doesn't exist" && exit 1
 $DEBUG && echo "[DEBUG] PLATFORM_API_EP=${PLATFORM_API_EP}"
+
+
+GW_BASE_URL=$(oc get secret apim-credentials -n $NAMESPACE -o json | jq -r .data.gw_base_url | base64 --decode)
+[[ -z $GW_BASE_URL ]] && echo -e "[ERROR] ${CROSS} DP GW base url doesn't exist" && exit 1
 
 JQ=jq
 
@@ -110,7 +114,7 @@ function handle_res() {
   fi
 }
 
-response=`curl -X POST https://$PLATFORM_API_EP/api/token \
+response=`curl -X POST ${PLATFORM_API_EP}api/token \
                -s -k -H "Content-Type: application/json" -H "Accept: application/json" \
                -d "{ \"realm\": \"${realm}\",
                      \"username\": \"${username}\",
@@ -127,7 +131,7 @@ fi
 
 # Get user registry url
 echo "[INFO] Getting configured catalog user registry url for ${PROVIDER_ORG}-catalog..."
-RES=$(curl -kLsS https://$PLATFORM_API_EP/api/catalogs/${PROVIDER_ORG}/$CATALOG/configured-catalog-user-registries \
+RES=$(curl -kLsS ${PLATFORM_API_EP}api/catalogs/${PROVIDER_ORG}/$CATALOG/configured-catalog-user-registries \
   -H "accept: application/json" \
   -H "authorization: Bearer ${TOKEN}")
 handle_res "${RES}"
@@ -158,7 +162,7 @@ if [[ $OWNER_URL == "null" ]]; then
   # Get existing owner
   echo "[INFO] Getting existing consumer org owner..."
   # user registry naming convention: {catalog-name}-catalog
-  RES=$(curl -kLsS https://$PLATFORM_API_EP/api/user-registries/${PROVIDER_ORG}/${CATALOG}-catalog/users \
+  RES=$(curl -kLsS ${PLATFORM_API_EP}api/user-registries/${PROVIDER_ORG}/${CATALOG}-catalog/users \
     -H "accept: application/json" \
     -H "authorization: Bearer ${TOKEN}")
   handle_res "${RES}"
@@ -171,7 +175,7 @@ fi
 
 # Create consumer org
 echo "[INFO] Creating consumer org..."
-RES=$(curl -kLsS -X POST https://$PLATFORM_API_EP/api/catalogs/${PROVIDER_ORG}/$CATALOG/consumer-orgs \
+RES=$(curl -kLsS -X POST ${PLATFORM_API_EP}api/catalogs/${PROVIDER_ORG}/$CATALOG/consumer-orgs \
   -H "accept: application/json" \
   -H "authorization: Bearer ${TOKEN}" \
   -H "content-type: application/json" \
@@ -185,7 +189,7 @@ echo -e "[INFO] ${TICK} Consumer org created"
 
 # Create an app
 echo "[INFO] Creating application..."
-RES=$(curl -kLsS -X POST https://$PLATFORM_API_EP/api/consumer-orgs/${PROVIDER_ORG}/$CATALOG/$CONSUMER_ORG/apps \
+RES=$(curl -kLsS -X POST ${PLATFORM_API_EP}api/consumer-orgs/${PROVIDER_ORG}/$CATALOG/$CONSUMER_ORG/apps \
   -H "accept: application/json" \
   -H "authorization: Bearer ${TOKEN}" \
   -H "content-type: application/json" \
@@ -202,7 +206,7 @@ if [[ $ENDPOINT_SECRET_NAME != "" ]]; then
     if [[ $CLIENT_SECRET != "null" ]]; then
       echo "[INFO]  Creating secret ${ENDPOINT_SECRET_NAME}"
       $DEBUG && echo "[DEBUG] BASE_PATH: ${BASE_PATH}"
-      HOST="https://$(oc get route -n $NAMESPACE ${RELEASE}-gw-gateway -o jsonpath='{.spec.host}')/$PROVIDER_ORG/$CATALOG$BASE_PATH"
+      HOST="${GW_BASE_URL}$PROVIDER_ORG/$CATALOG$BASE_PATH"
       $DEBUG && echo "[DEBUG] HOST: ${HOST}"
 
       # Store api endpoint & client id/secret in secret
@@ -224,7 +228,7 @@ fi
 
 # Get product url
 echo "[INFO] Getting url for product $PRODUCT..."
-RES=$(curl -kLsS https://$PLATFORM_API_EP/api/catalogs/${PROVIDER_ORG}/$CATALOG/products/$PRODUCT \
+RES=$(curl -kLsS ${PLATFORM_API_EP}api/catalogs/${PROVIDER_ORG}/$CATALOG/products/$PRODUCT \
   -H "accept: application/json" \
   -H "authorization: Bearer ${TOKEN}")
 handle_res "${RES}"
@@ -234,7 +238,7 @@ echo -e "[INFO] ${TICK} Got product url"
 
 # Create a subscription
 echo "[INFO] Creating subscription..."
-RES=$(curl -kLsS -X POST https://$PLATFORM_API_EP/api/apps/${PROVIDER_ORG}/$CATALOG/$CONSUMER_ORG/$APP/subscriptions \
+RES=$(curl -kLsS -X POST ${PLATFORM_API_EP}api/apps/${PROVIDER_ORG}/$CATALOG/$CONSUMER_ORG/$APP/subscriptions \
   -H "accept: application/json" \
   -H "authorization: Bearer ${TOKEN}" \
   -H "content-type: application/json" \
