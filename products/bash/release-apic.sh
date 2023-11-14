@@ -93,16 +93,13 @@ metadata:
     app.kubernetes.io/name: apiconnect-production
 spec:
   gateway:
-    openTracing:
-      enabled: ${tracing}
-      odTracingNamespace: ${namespace}
     replicaCount: 1
   license:
     accept: true
     use: ${license_use}
-    license: $(getAPICLicense $namespace)
+    license: "L-MMBZ-295QZQ"
   profile: ${profile}
-  version: "10.0.5"
+  version: "10.0.7.0"
 EOF
 )
 OCApplyYAML "$namespace" "$YAML"
