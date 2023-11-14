@@ -17,12 +17,11 @@
 #*******************************************************************************
 
 LICENSES_CM="demo-licenses"
-DEFAULT_ACE="L-APEH-CJUCNR"
-DEFAULT_APIC="L-GVEN-GFUPVE"
+DEFAULT_ACE="L-MJTK-WUU8HE"
+DEFAULT_APIC="L-KZXM-S7SNCU"
 DEFAULT_AR="L-RJON-CD3JKX"
 DEFAULT_DEMO="L-RJON-CJR3Q4"
-DEFAULT_MQ="L-RJON-CJR2RX"
-DEFAULT_TRACING="CP4I"
+DEFAULT_MQ="L-YBXJ-ADJNSM"
 
 function usage() {
   echo "Usage: source $0; getAceLicense \$NAMESPACE"
@@ -60,9 +59,4 @@ function getDemoLicense() {
 function getMQLicense() {
   MQ_LICENSE=$(oc -n $1 get configmap $LICENSES_CM -ojsonpath='{.data.mq}' 2>/dev/null)
   [[ $? -eq 0 && ! -z $MQ_LICENSE ]] && echo $MQ_LICENSE || echo $DEFAULT_MQ
-}
-
-function getTracingLicense() {
-  TRACING_LICENSE=$(oc -n $1 get configmap $LICENSES_CM -ojsonpath='{.data.tracing}' 2>/dev/null)
-  [[ $? -eq 0 && ! -z $TRACING_LICENSE ]] && echo $TRACING_LICENSE || echo $DEFAULT_TRACING
 }

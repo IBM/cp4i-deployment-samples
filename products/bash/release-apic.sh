@@ -32,7 +32,6 @@ CURRENT_DIR=$(dirname $0)
 source $CURRENT_DIR/utils.sh
 namespace="cp4i"
 release_name="ademo"
-tracing="false"
 production="false"
 
 while getopts "n:r:tp" opt; do
@@ -65,7 +64,7 @@ if [[ "$production" == "true" ]]; then
   profile="n12xc4.m12"
   license_use="production"
 else
-  profile="n1xc10.m48"
+  profile="n1xc7.m48"
 fi
 
 json=$(oc get configmap -n $namespace operator-info -o json 2>/dev/null)

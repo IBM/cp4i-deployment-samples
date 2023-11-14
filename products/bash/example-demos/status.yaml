@@ -57,9 +57,4 @@ status:
       installed: true
       readyToUse: true
       namespace: cp4i
-    - name: tracing-demo
-      type: tracing
-      installed: true
-      readyToUse: true
-      namespace: cp4i
-  version: 2022.2.1
+  version: 2023.2.1

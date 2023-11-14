@@ -27,17 +27,16 @@
 #     enabled: true
 
 function usage() {
-  echo "Usage: $0 -n <namespace> -r <release-name> -a <assets storage class (file)> -c <couch storage class (block)>"
+  echo "Usage: $0 -n <namespace> -r <release-name> -b <block storage class>"
 }
 
 CURRENT_DIR=$(dirname $0)
 source $CURRENT_DIR/utils.sh
 namespace="cp4i"
 release_name="demo"
-assetDataVolume="cp4i-file-performance-gid"
-couchVolume="ibmc-block-gold"
+block_storage="cp4i-block-performance"
 
-while getopts "n:r:a:c:" opt; do
+while getopts "n:r:b:" opt; do
   case ${opt} in
   n)
     namespace="$OPTARG"
@@ -45,11 +44,8 @@ while getopts "n:r:a:c:" opt; do
   r)
     release_name="$OPTARG"
     ;;
-  a)
-    assetDataVolume="$OPTARG"
-    ;;
-  c)
-    couchVolume="$OPTARG"
+  b)
+    block_storage="$OPTARG"
     ;;
   \?)
     usage
@@ -87,10 +83,11 @@ spec:
   replicas: 1
   storage:
     assetDataVolume:
-      class: ${assetDataVolume}
+      class: ${block_storage}
     couchVolume:
-      class: ${couchVolume}
+      class: ${block_storage}
   version: 2022.2.1
+  singleReplicaOnly: true
 EOF
 )
 OCApplyYAML "$namespace" "$YAML"

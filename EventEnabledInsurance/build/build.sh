@@ -94,7 +94,7 @@ divider
 
 echo "INFO: Delete the old pipelineruns and pvcs"
 oc get pipelinerun -n ${namespace} --no-headers=true 2>/dev/null | awk '/eei-build-pipelinerun/{print $1}' | xargs  oc delete pipelinerun -n ${namespace}
-oc delete pvc -n $namespace git-workspace-eei buildah-ace-rest-eei buildah-ace-db-writer-eei 2>/dev/null
+oc delete pvc -n $namespace git-workspace-eei 2>/dev/null
 
 echo "INFO: Creating pvc for EEI in the '$namespace' namespace"
 if cat $CURRENT_DIR/pvc.yaml |
@@ -110,7 +110,7 @@ fi
 divider
 
 echo "INFO: Creating the pipeline to build and deploy the EEI apps in '$namespace' namespace"
-CONFIGURATIONS="[serverconf-$SUFFIX, keystore-$SUFFIX, application-eei, policyproject-$SUFFIX, setdbparms-$SUFFIX]"
+CONFIGURATIONS="[barauth-empty, serverconf-$SUFFIX, application-eei, policyproject-$SUFFIX]"
 if cat $CURRENT_DIR/pipeline.yaml |
   sed "s#{{NAMESPACE}}#$namespace#g;" |
   sed "s#{{CONFIGURATIONS}}#'$CONFIGURATIONS'#g;" |
@@ -184,22 +184,6 @@ if oc delete pvc git-workspace-eei -n $namespace; then
   echo -e "\n$tick INFO: Deleted the pvc 'git-workspace-eei'"
 else
   echo -e "$cross ERROR: Failed to delete the pvc 'git-workspace-eei'"
-fi
-
-divider
-
-if oc delete pvc buildah-ace-rest-eei -n $namespace; then
-  echo -e "\n$tick INFO: Deleted the pvc 'buildah-ace-rest-eei'"
-else
-  echo -e "$cross ERROR: Failed to delete the pvc 'buildah-ace-rest-eei'"
-fi
-
-divider
-
-if oc delete pvc buildah-ace-db-writer-eei -n $namespace; then
-  echo -e "\n$tick INFO: Deleted the pvc 'buildah-ace-db-writer-eei'"
-else
-  echo -e "$cross ERROR: Failed to delete the pvc 'buildah-ace-db-writer-eei'"
 fi
 
 divider

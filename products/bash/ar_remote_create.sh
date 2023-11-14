@@ -194,8 +194,9 @@ fi
 ## Modify remote.json to include asset types from configs
 printf "$tick "
 echo "Fetched remote config for catalog id $catalogId"
-asset_types=$(jq '.assetTypes | map(.name) | join(",")' /tmp/ar_create_tmp/remote_config.json -r)
+asset_types=$(jq '[.assetTypes[] | select(.name != "integration_assembly_cr")] | map(.name) | join(",")' /tmp/ar_create_tmp/remote_config.json -r)
 echo "- Configuring remote for the following asset types $asset_types"
+
 modified_remote=$(jq --arg asset_types $asset_types '.entity.remote_repo.asset_types= $asset_types' <<<"$remote")
 printf "$tick "
 echo "Git remote config asset types populated."

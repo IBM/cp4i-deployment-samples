@@ -91,7 +91,7 @@ spec:
         - name: git-source
           workspace: git-source
 
-    - name: deploy-im
+    - name: deploy-ia
       retries: 2
       runAfter:
         - clone-git-src
@@ -99,7 +99,11 @@ spec:
         name: run-command
       params:
         - name: command
-          value: /workspace/git-source/EventEnabledInsurance/build/deploy-im.sh -n {{NAMESPACE}} -b {{DEFAULT_BLOCK_STORAGE}} -f {{DEFAULT_FILE_STORAGE}}
+          value: |
+            FORKED_REPO={{FORKED_REPO}}
+            BRANCH={{BRANCH}}
+            BASE_URL=${FORKED_REPO%.*}/raw/${BRANCH}
+            /workspace/git-source/EventEnabledInsurance/build/deploy-ia.sh -n {{NAMESPACE}} -b {{DEFAULT_BLOCK_STORAGE}} -f {{DEFAULT_FILE_STORAGE}} -u ${BASE_URL} -c {{CONFIGURATIONS}}
       workspaces:
         - name: git-source
           workspace: git-source
@@ -107,7 +111,7 @@ spec:
     - name: is-cfg
       retries: 2
       runAfter:
-        - deploy-im
+        - deploy-ia
       taskRef:
         name: run-command
       params:
@@ -117,10 +121,10 @@ spec:
         - name: git-source
           workspace: git-source
 
-    - name: wait-im
+    - name: wait-ia
       retries: 2
       runAfter:
-        - deploy-im
+        - deploy-ia
       taskRef:
         name: run-command
       params:
@@ -130,83 +134,16 @@ spec:
         - name: git-source
           workspace: git-source
 
-    - name: bld-ace-rest
+    - name: subscribe
       retries: 2
       runAfter:
-        - clone-git-src
-      taskRef:
-        name: build-task
-      params:
-        - name: imageTag
-          value: "latest"
-        - name: imageName
-          value: "ace-rest-eei"
-        - name: dockerfile
-          value: "EventEnabledInsurance/ACE/REST.Dockerfile"
-        - name: contextPath
-          value: "EventEnabledInsurance/ACE/BarFiles"
-        - name: pvc
-          value: "buildah-ace-rest-eei"
-      workspaces:
-        - name: git-source
-          workspace: git-source
-
-    - name: bld-db-writer
-      retries: 2
-      runAfter:
-        - clone-git-src
-      taskRef:
-        name: build-task
-      params:
-        - name: imageTag
-          value: "latest"
-        - name: imageName
-          value: "ace-db-writer-eei"
-        - name: dockerfile
-          value: "EventEnabledInsurance/ACE/DB-WRITER.Dockerfile"
-        - name: contextPath
-          value: "EventEnabledInsurance/ACE/BarFiles"
-        - name: pvc
-          value: "buildah-ace-db-writer-eei"
-      workspaces:
-        - name: git-source
-          workspace: git-source
-
-    - name: d-ace-rest
-      retries: 2
-      runAfter:
-        - bld-ace-rest
+        - wait-ia
       taskRef:
         name: run-command
       params:
         - name: command
-          value: /workspace/git-source/products/bash/release-ace-integration-server.sh -n '{{NAMESPACE}}' -r 'ace-rest-int-srv-eei' -i image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}/ace-rest-eei:latest -c {{CONFIGURATIONS}} -p 1
-      workspaces:
-        - name: git-source
-          workspace: git-source
-
-    - name: d-db-writer
-      retries: 2
-      runAfter:
-        - bld-db-writer
-      taskRef:
-        name: run-command
-      params:
-        - name: command
-          value: /workspace/git-source/products/bash/release-ace-integration-server.sh -n '{{NAMESPACE}}' -r 'ace-db-writer-int-srv-eei' -i image-registry.openshift-image-registry.svc:5000/{{NAMESPACE}}/ace-db-writer-eei:latest -c {{CONFIGURATIONS}} -p 1
-      workspaces:
-        - name: git-source
-          workspace: git-source
-
-    - name: push-to-apic
-      retries: 2
-      runAfter:
-        - d-ace-rest
-      taskRef:
-        name: run-command
-      params:
-        - name: command
-          value: /workspace/git-source/products/bash/pub-sub-apic.sh -n '{{NAMESPACE}}' -d eei -t https://ace-rest-int-srv-eei-is:7843 -p EventEnabledInsurance/apic/apic-product-eei.yaml -s EventEnabledInsurance/apic/apic-api-eei.yaml
+          value: |
+            /workspace/git-source/products/bash/apic-subscribe.sh -n {{NAMESPACE}} -o main-demo -c main-demo-catalog -u main-demo-corp -p {{NAMESPACE}}-product-eei -a ddd-eei -e "eei-api-endpoint-client-id" -b "/eventinsurance"
       workspaces:
         - name: git-source
           workspace: git-source

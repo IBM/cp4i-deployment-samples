@@ -12,29 +12,3 @@ spec:
   resources:
     requests:
       storage: 10Gi
-
----
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: buildah-ace-rest-eei
-spec:
-  storageClassName: "{{DEFAULT_BLOCK_STORAGE}}"
-  accessModes:
-    - ReadWriteOnce
-  resources:
-    requests:
-      storage: 100Gi
-
----
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: buildah-ace-db-writer-eei
-spec:
-  storageClassName: "{{DEFAULT_BLOCK_STORAGE}}"
-  accessModes:
-    - ReadWriteOnce
-  resources:
-    requests:
-      storage: 100Gi

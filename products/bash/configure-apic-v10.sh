@@ -30,7 +30,7 @@
 CURRENT_DIR=$(dirname $0)
 source $CURRENT_DIR/../../products/bash/utils.sh
 
-ha_enabled="true"
+ha_enabled="false"
 NAMESPACE="cp4i"
 RELEASE_NAME="ademo"
 ORG_NAME="main-demo"
@@ -106,7 +106,7 @@ if [ "$APIC_STATUS" != "Ready" ]; then
 fi
 
 for i in $(seq 1 60); do
-  PORTAL_WWW_POD=$(oc get pods -n $NAMESPACE | grep -m1 "${RELEASE_NAME}-ptl.*www" | awk '{print $1}')
+  PORTAL_WWW_POD=$(oc get pods -n $NAMESPACE | grep -m1 "${RELEASE_NAME:0:10}-.*-www" | awk '{print $1}')
   if [ -z "$PORTAL_WWW_POD" ]; then
     echo "Not got portal pod yet"
   else
@@ -127,12 +127,19 @@ done
 echo "Pod listing for information"
 oc get pod -n $NAMESPACE
 
+# obtain different APIC v10 routes names
+APIM_UI_RESOURCE_NAME=$(oc get routes -n $NAMESPACE | grep -m1 "${RELEASE_NAME:0:10}.*api-manager" | awk '{print $1}')
+CMC_UI_RESOURCE_NAME=$(oc get routes -n $NAMESPACE | grep -m1 "${RELEASE_NAME:0:10}.*admin" | awk '{print $1}')
+C_API_RESOURCE_NAME=$(oc get routes -n $NAMESPACE | grep -m1 "${RELEASE_NAME:0:10}.*consumer-api" | awk '{print $1}')
+API_RESOURCE_NAME=$(oc get routes -n $NAMESPACE | grep -m1 "${RELEASE_NAME:0:10}.*platform-api" | awk '{print $1}')
+PLT_WEB_RESOURCE_NAME=$(oc get routes -n $NAMESPACE | grep -m1 "${RELEASE_NAME:0:10}.*portal-web" | awk '{print $1}')
+
 # obtain endpoint info from APIC v10 routes
-APIM_UI_EP=$(oc get route -n $NAMESPACE ${RELEASE_NAME}-mgmt-api-manager -o jsonpath='{.spec.host}')
-CMC_UI_EP=$(oc get route -n $NAMESPACE ${RELEASE_NAME}-mgmt-admin -o jsonpath='{.spec.host}')
-C_API_EP=$(oc get route -n $NAMESPACE ${RELEASE_NAME}-mgmt-consumer-api -o jsonpath='{.spec.host}')
-API_EP=$(oc get route -n $NAMESPACE ${RELEASE_NAME}-mgmt-platform-api -o jsonpath='{.spec.host}')
-PTL_WEB_EP=$(oc get route -n $NAMESPACE ${RELEASE_NAME}-ptl-portal-web -o jsonpath='{.spec.host}')
+APIM_UI_EP=$(oc get route -n $NAMESPACE ${APIM_UI_RESOURCE_NAME} -o jsonpath='{.spec.host}')
+CMC_UI_EP=$(oc get route -n $NAMESPACE ${CMC_UI_RESOURCE_NAME} -o jsonpath='{.spec.host}')
+C_API_EP=$(oc get route -n $NAMESPACE ${C_API_RESOURCE_NAME} -o jsonpath='{.spec.host}')
+API_EP=$(oc get route -n $NAMESPACE ${API_RESOURCE_NAME} -o jsonpath='{.spec.host}')
+PTL_WEB_EP=$(oc get route -n $NAMESPACE ${PLT_WEB_RESOURCE_NAME} -o jsonpath='{.spec.host}')
 
 admin_idp=admin/default-idp-1
 admin_password=$(oc get secret -n $NAMESPACE ${RELEASE_NAME}-mgmt-admin-pass -o json | jq -r .data.password | base64 --decode)
@@ -145,13 +152,13 @@ provider_password=engageibmAPI1
 provider_firstname=CP4I
 provider_lastname=Administrator
 
-MAIN_PORG_TITLE="Org for Demo use (${ORG_NAME})"
+MAIN_PORG_TITLE="${ORG_NAME} : For Demo use"
 MAIN_CATALOG="${ORG_NAME}-catalog"
-MAIN_CATALOG_TITLE="Catalog for Demo use (${MAIN_CATALOG})"
+MAIN_CATALOG_TITLE="${MAIN_CATALOG}: For Demo use"
 
-TEST_PORG_TITLE="Org for Demo use (${ORG_NAME_DDD})"
+TEST_PORG_TITLE="${ORG_NAME_DDD} : For Demo use"
 TEST_CATALOG="${ORG_NAME_DDD}-catalog"
-TEST_CATALOG_TITLE="Catalog for Demo use (${TEST_CATALOG})"
+TEST_CATALOG_TITLE="${TEST_CATALOG} : For Demo use"
 
 RESULT=""
 function authenticate() {
@@ -413,7 +420,7 @@ PROVIDER_CREDENTIALS=$(oc get secret $PROVIDER_SECRET_NAME -n $NAMESPACE -o json
 ACE_CREDENTIALS=$(oc get secret $ACE_REGISTRATION_SECRET_NAME -n $NAMESPACE -o json | jq .data)
 
 for i in $(seq 1 60); do
-  PORTAL_WWW_POD=$(oc get pods -n $NAMESPACE | grep -m1 "${RELEASE_NAME}-ptl.*www" | awk '{print $1}')
+  PORTAL_WWW_POD=$(oc get pods -n $NAMESPACE | grep -m1 "${RELEASE_NAME:0:10}-.*-www" | awk '{print $1}')
   $DEBUG && echo "[DEBUG] PORTAL_WWW_POD=${PORTAL_WWW_POD}"
   PORTAL_SITE_UUID=$(oc exec -n $NAMESPACE -it $PORTAL_WWW_POD -c admin -- /opt/ibm/bin/list_sites | awk '{print $1}')
   $DEBUG && echo "[DEBUG] PORTAL_SITE_UUID=${PORTAL_SITE_UUID}"
@@ -435,21 +442,24 @@ API_MANAGER_PASS=$(echo $PROVIDER_CREDENTIALS | jq -r .password | base64 --decod
 ACE_CLIENT_ID=$(echo $ACE_CREDENTIALS | jq -r .client_id | base64 --decode)
 ACE_CLIENT_SECRET=$(echo $ACE_CREDENTIALS | jq -r .client_secret | base64 --decode)
 
+# Wait for the GatewayCluster to get created
+for i in $(seq 1 720); do
+  oc get -n $NAMESPACE GatewayCluster/${RELEASE_NAME}-gw
+  if [[ $? == 0 ]]; then
+    printf "$TICK"
+    echo "[OK] GatewayCluster/${RELEASE_NAME}-gw"
+    break
+  else
+    echo "Waiting for GatewayCluster/${RELEASE_NAME}-gw to be created (Attempt $i of 720)."
+    echo "Checking again in 10 seconds..."
+    sleep 10
+  fi
+done
+
 if [[ "$ha_enabled" == "true" ]]; then
-  # Wait for the GatewayCluster to get created
-  for i in $(seq 1 720); do
-    oc get -n $NAMESPACE GatewayCluster/${RELEASE_NAME}-gw
-    if [[ $? == 0 ]]; then
-      printf "$TICK"
-      echo "[OK] GatewayCluster/${RELEASE_NAME}-gw"
-      break
-    else
-      echo "Waiting for GatewayCluster/${RELEASE_NAME}-gw to be created (Attempt $i of 720)."
-      echo "Checking again in 10 seconds..."
-      sleep 10
-    fi
-  done
   oc patch -n ${NAMESPACE} GatewayCluster/${RELEASE_NAME}-gw --patch '{"spec":{"profile":"n3xc4.m8","replicaCount":3}}' --type=merge
+else
+  oc patch -n ${NAMESPACE} GatewayCluster/${RELEASE_NAME}-gw --patch '{"spec":{"profile":"n1xc1.m8","replicaCount":1}}' --type=merge
 fi
 
 printf "$TICK"

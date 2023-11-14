@@ -47,7 +47,7 @@ info="\xE2\x84\xB9"
 missingParams="false"
 namespace="cp4i"
 MIN_OCP_VERSION=4.10
-MAX_OCP_VERSION=4.11
+MAX_OCP_VERSION=4.12
 
 while getopts "p:r:u:d:n:" opt; do
   case ${opt} in
@@ -113,7 +113,7 @@ divider
 export check=0
 
 # CPU/Memory requirements when demoPreparation is true
-demo_products="ACE, ACE Designer, APIC, Event Streams, Tracing, PostgreSQL and Asset Repository"
+demo_products="ACE, ACE Designer, APIC, Event Streams, PostgreSQL and Asset Repository"
 cpu_req=77.95
 mem_req_gi=154.5
 total_cpu=0.0

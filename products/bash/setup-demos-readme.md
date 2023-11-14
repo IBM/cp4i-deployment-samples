@@ -92,7 +92,6 @@ spec:
     assetRepo: false
     eventStreams: false
     mq: false
-    tracing: false
 
   # Allow additional addon applications to be enabled independently. Enabling a
   # demo will automatically enable required addons.
@@ -120,8 +119,7 @@ The demo script does the following actions sequentially:
 - Check if the namespace and the required secret exists
 - Setup and configure the required addons
 - Install the selected and required products
-- Register tracing if tracing is amongst the selected products
-- Configure APIC if it is amongst the selected product. Tracing registration is a pre-req for this step.
+- Configure APIC if it is amongst the selected product.
 - If asset repository is enabled, create Asset Repository remote
 - Setup the required demos
 - All above steps keeps the status array updated at all times
