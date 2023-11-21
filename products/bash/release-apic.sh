@@ -86,6 +86,8 @@ metadata:
       name: ${METADATA_NAME}
       uid: ${METADATA_UID}"
   fi)
+  annotations:
+    apiconnnect-operator/backups-not-configured: 'true'
   labels:
     app.kubernetes.io/instance: apiconnect
     app.kubernetes.io/managed-by: ibm-apiconnect
