@@ -86,7 +86,7 @@ spec:
       class: ${block_storage}
     couchVolume:
       class: ${block_storage}
-  version: 2022.2.1
+  version: 2023.4.1-0
   singleReplicaOnly: true
 EOF
 )
