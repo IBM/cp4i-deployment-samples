@@ -25,7 +25,7 @@ source $CURRENT_DIR/utils.sh
 YAML=$(cat <<EOF
 #
 # IBM Cloud Pak for Integration
-# ibm-integration-platform-navigator 7.1.0
+# ibm-integration-platform-navigator 7.2.0
 #
 ---
 apiVersion: operators.coreos.com/v1alpha1
@@ -34,9 +34,9 @@ metadata:
   name: ibm-integration-platform-navigator-catalog
   namespace: openshift-marketplace
 spec:
-  displayName: ibm-integration-platform-navigator-7.1.0
+  displayName: ibm-integration-platform-navigator-7.2.0
   publisher: IBM
-  image: icr.io/cpopen/ibm-integration-platform-navigator-catalog@sha256:4d23293d3786fbde27fe064148455ececd456261a2f0c51bb8f6426f8c8c1f25
+  image: icr.io/cpopen/ibm-integration-platform-navigator-catalog@sha256:6696f54af1d2cc0a97d2014fd56538e937299a693a171d0424a535027c942149
   sourceType: grpc
   updateStrategy:
     registryPoll:
@@ -44,7 +44,7 @@ spec:
 ---
 #
 # IBM Automation foundation assets
-# ibm-integration-asset-repository 1.5.9
+# ibm-integration-asset-repository 1.6.0
 #
 ---
 apiVersion: operators.coreos.com/v1alpha1
@@ -53,9 +53,9 @@ metadata:
   name: ibm-integration-asset-repository-catalog
   namespace: openshift-marketplace
 spec:
-  displayName: ibm-integration-asset-repository-1.5.9-linux-amd64
+  displayName: ibm-integration-asset-repository-1.6.0-linux-amd64
   publisher: IBM
-  image: icr.io/cpopen/ibm-integration-asset-repository-catalog@sha256:1af42da7f7c8b12818d242108b4db6f87862504f1c57789213539a98720b0fed
+  image: icr.io/cpopen/ibm-integration-asset-repository-catalog@sha256:f323685c1b5f3da95026562588c71b6cd1aae35c9615acb54868ca68d14a581d
   sourceType: grpc
   updateStrategy:
     registryPoll:
@@ -66,22 +66,8 @@ spec:
 ---
 #
 # IBM API Connect
-# ibm-apiconnect 5.0.0
+# ibm-apiconnect 5.1.0
 #
----
-apiVersion: operators.coreos.com/v1alpha1
-kind: CatalogSource
-metadata:
-  name: cloud-native-postgresql-catalog
-  namespace: openshift-marketplace
-spec:
-  displayName: ibm-cloud-native-postgresql-4.8.0+20221102.113620
-  publisher: IBM
-  image: icr.io/cpopen/ibm-cpd-cloud-native-postgresql-operator-catalog@sha256:3da7f227fee1034d585c2c76a643a6d749784ca005565de83b0016079c5151ac
-  sourceType: grpc
-  updateStrategy:
-    registryPoll:
-      interval: 30m0s
 ---
 apiVersion: operators.coreos.com/v1alpha1
 kind: CatalogSource
@@ -89,17 +75,34 @@ metadata:
   name: ibm-apiconnect-catalog
   namespace: openshift-marketplace
 spec:
-  displayName: ibm-apiconnect-5.0.0
+  displayName: ibm-apiconnect-5.1.0
   publisher: IBM
-  image: icr.io/cpopen/ibm-apiconnect-catalog@sha256:9e1242d2e3de4cb0a0971e5bc8e2c71db6e86cfc8938b982614c03151b90fa1c
+  image: icr.io/cpopen/ibm-apiconnect-catalog@sha256:2058d863696e3adccd620ab3210a84f792c2953e42a9b61f350b4ad897723f1e
   sourceType: grpc
   updateStrategy:
     registryPoll:
       interval: 30m0s
 ---
+apiVersion: operators.coreos.com/v1alpha1
+kind: CatalogSource
+metadata:
+  name: ibm-datapower-operator-catalog
+  namespace: openshift-marketplace
+spec:
+  displayName: ibm-datapower-operator-1.9.0-linux-amd64
+  publisher: IBM
+  image: icr.io/cpopen/datapower-operator-catalog@sha256:709199367366fe22ffd9791a975e268f736903b55605eff99f031982bf9b4c68
+  sourceType: grpc
+  updateStrategy:
+    registryPoll:
+      interval: 30m0s
+  grpcPodConfig:
+    nodeSelector:
+      kubernetes.io/arch: amd64
+---
 #
 # IBM App Connect
-# ibm-appconnect 8.2.1
+# ibm-appconnect 11.1.0
 #
 ---
 apiVersion: operators.coreos.com/v1alpha1
@@ -108,9 +111,9 @@ metadata:
   name: appconnect-operator-catalogsource
   namespace: openshift-marketplace
 spec:
-  displayName: ibm-appconnect-8.2.1
+  displayName: ibm-appconnect-11.1.0
   publisher: IBM
-  image: icr.io/cpopen/appconnect-operator-catalog@sha256:85e5679e67d9966708ac589c0e6266c11c6f45e282a28f37a4c8992dfb7d0bed
+  image: icr.io/cpopen/appconnect-operator-catalog@sha256:05c9cdc95390e2a17776fd276966db73adb67e4a687f129620aeb3f796f71ba7
   sourceType: grpc
   updateStrategy:
     registryPoll:
@@ -118,7 +121,7 @@ spec:
 ---
 #
 # IBM MQ
-# ibm-mq 2.4.0
+# ibm-mq 3.0.0
 #
 ---
 apiVersion: operators.coreos.com/v1alpha1
@@ -127,9 +130,9 @@ metadata:
   name: ibmmq-operator-catalogsource
   namespace: openshift-marketplace
 spec:
-  displayName: ibm-mq-2.4.0
+  displayName: ibm-mq-3.0.0
   publisher: IBM
-  image: icr.io/cpopen/ibm-mq-operator-catalog@sha256:710220d34b45aeaff4d1a5fb2a76beb20b1de89eadf18f0d83a4bfd6ebe66646
+  image: icr.io/cpopen/ibm-mq-operator-catalog@sha256:99b43b78e103fa18ea91827286c865219493a056e6f002096558a2dd1655c9b7
   sourceType: grpc
   updateStrategy:
     registryPoll:
@@ -137,7 +140,7 @@ spec:
 ---
 #
 # IBM Event Streams
-# ibm-eventstreams 3.2.0
+# ibm-eventstreams 3.3.0
 #
 ---
 apiVersion: operators.coreos.com/v1alpha1
@@ -146,9 +149,9 @@ metadata:
   name: ibm-eventstreams
   namespace: openshift-marketplace
 spec:
-  displayName: ibm-eventstreams-3.2.0
+  displayName: ibm-eventstreams-3.3.0
   publisher: IBM
-  image: icr.io/cpopen/ibm-eventstreams-catalog@sha256:ac87cfecba0635a67c7d9b6c453c752cba9b631ffdd340223e547809491eb708
+  image: icr.io/cpopen/ibm-eventstreams-catalog@sha256:b0c0035a38dc6cb990ea4d452f1f083c74e3b0aedf6154d709f6f2a41ffb12af
   sourceType: grpc
   updateStrategy:
     registryPoll:
@@ -156,7 +159,7 @@ spec:
 ---
 #
 # IBM DataPower Gateway
-# ibm-datapower-operator 1.7.0
+# ibm-datapower-operator 1.9.0
 #
 ---
 apiVersion: operators.coreos.com/v1alpha1
@@ -165,9 +168,9 @@ metadata:
   name: ibm-datapower-operator-catalog
   namespace: openshift-marketplace
 spec:
-  displayName: ibm-datapower-operator-1.7.0-linux-amd64
+  displayName: ibm-datapower-operator-1.9.0-linux-amd64
   publisher: IBM
-  image: icr.io/cpopen/datapower-operator-catalog@sha256:e82be67d0ffba2127a22b64d61a99ea4d23ede0a2fdf558d3c120fbfd39cf839
+  image: icr.io/cpopen/datapower-operator-catalog@sha256:709199367366fe22ffd9791a975e268f736903b55605eff99f031982bf9b4c68
   sourceType: grpc
   updateStrategy:
     registryPoll:
@@ -178,7 +181,7 @@ spec:
 ---
 #
 # IBM Aspera HSTS
-# ibm-aspera-hsts-operator 1.5.8
+# ibm-aspera-hsts-operator 1.5.12
 #
 ---
 apiVersion: operators.coreos.com/v1alpha1
@@ -187,9 +190,9 @@ metadata:
   name: aspera-operators
   namespace: openshift-marketplace
 spec:
-  displayName: ibm-aspera-hsts-operator-1.5.8
+  displayName: ibm-aspera-hsts-operator-1.5.12
   publisher: IBM
-  image: icr.io/cpopen/aspera-hsts-catalog@sha256:ba2b97642692c627382e738328ec5e4b566555dcace34d68d0471439c1efc548
+  image: icr.io/cpopen/aspera-hsts-catalog@sha256:536446293eea0a8804abaec6ec290a7f448bbdf95de44f38d8c36aacf7c0b143
   sourceType: grpc
   updateStrategy:
     registryPoll:
@@ -201,9 +204,9 @@ metadata:
   name: ibm-cloud-databases-redis-operator-catalog
   namespace: openshift-marketplace
 spec:
-  displayName: ibm-cloud-databases-redis-1.6.6
+  displayName: ibm-cloud-databases-redis-1.6.11
   publisher: IBM
-  image: icr.io/cpopen/ibm-cloud-databases-redis-catalog@sha256:fddf96636005a9c276aec061a3b514036ce6d79bd91fd7e242126b2f52394a78
+  image: icr.io/cpopen/ibm-cloud-databases-redis-catalog@sha256:dbdafdc70600a84099bd11df76b7a6728cbada513a1e06fefbc08f38406e3636
   sourceType: grpc
   updateStrategy:
     registryPoll:
@@ -211,8 +214,22 @@ spec:
 ---
 #
 # IBM Cloud Pak foundational services
-# ibm-cp-common-services 1.19.4
+# ibm-cp-common-services 4.3.1
 #
+---
+apiVersion: operators.coreos.com/v1alpha1
+kind: CatalogSource
+metadata:
+  name: cloud-native-postgresql-catalog
+  namespace: openshift-marketplace
+spec:
+  displayName: ibm-cloud-native-postgresql-4.18.0
+  publisher: IBM
+  image: icr.io/cpopen/ibm-cpd-cloud-native-postgresql-operator-catalog@sha256:c96aa2e6bce92f2e5e4874116cf1cc1cdd60676499cd04ab1631462b8b883357
+  sourceType: grpc
+  updateStrategy:
+    registryPoll:
+      interval: 30m0s
 ---
 apiVersion: operators.coreos.com/v1alpha1
 kind: CatalogSource
@@ -220,9 +237,9 @@ metadata:
   name: opencloud-operators
   namespace: openshift-marketplace
 spec:
-  displayName: ibm-cp-common-services-1.19.4
+  displayName: ibm-cp-common-services-4.3.1
   publisher: IBM
-  image: icr.io/cpopen/ibm-common-service-catalog@sha256:cc3491ee7b448c3c8db43242d13e9d5d13a37ad9e67d166744d9b162887ed7e7
+  image: icr.io/cpopen/ibm-common-service-catalog@sha256:8dd824397a6294d40aa44fc916b64940af56acad91298d271bc9a63f5054e41a
   sourceType: grpc
   updateStrategy:
     registryPoll:
@@ -230,7 +247,7 @@ spec:
 ---
 #
 # IBM Event Endpoint Management
-# ibm-eventendpointmanagement 11.0.0
+# ibm-eventendpointmanagement 11.1.1
 #
 ---
 apiVersion: operators.coreos.com/v1alpha1
@@ -239,9 +256,9 @@ metadata:
   name: ibm-eventendpointmanagement-catalog
   namespace: openshift-marketplace
 spec:
-  displayName: ibm-eventendpointmanagement-11.0.0-linux-amd64
+  displayName: ibm-eventendpointmanagement-11.1.1-linux-amd64
   publisher: IBM
-  image: icr.io/cpopen/ibm-eventendpointmanagement-operator-catalog@sha256:d3e4503869e56f5656f1789ea3914be191c6f55486921b552f23b59540189551
+  image: icr.io/cpopen/ibm-eventendpointmanagement-operator-catalog@sha256:ea0fccc22503422d8b07dc0baf991c98d83596b29027749b2e3ebabb723bd355
   sourceType: grpc
   updateStrategy:
     registryPoll:

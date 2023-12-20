@@ -35,7 +35,7 @@ NAMESPACE="cp4i"
 RELEASE_NAME="ademo"
 ORG_NAME="main-demo"
 ORG_NAME_DDD="ddd-demo-test"
-DEBUG=true
+DEBUG=false
 
 function usage() {
   echo "Usage: $0 -n <NAMESPACE> -r <RELEASE_NAME>"

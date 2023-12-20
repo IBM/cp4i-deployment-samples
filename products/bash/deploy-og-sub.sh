@@ -135,7 +135,7 @@ kind: Subscription
 metadata:
   name: ibm-integration-platform-navigator-ibm-integration-platform-navigator-catalog-openshift-marketplace
 spec:
-  channel: v7.1
+  channel: v7.2
   installPlanApproval: Automatic
   name: ibm-integration-platform-navigator
   source: ibm-integration-platform-navigator-catalog
@@ -157,7 +157,7 @@ kind: Subscription
 metadata:
   name: ibm-appconnect-appconnect-operator-catalogsource-openshift-marketplace
 spec:
-  channel: v8.2
+  channel: v11.1
   installPlanApproval: Automatic
   name: ibm-appconnect
   source: appconnect-operator-catalogsource
@@ -168,7 +168,7 @@ kind: Subscription
 metadata:
   name: ibm-eventstreams-ibm-eventstreams-openshift-marketplace
 spec:
-  channel: v3.2
+  channel: v3.3
   installPlanApproval: Automatic
   name: ibm-eventstreams
   source: ibm-eventstreams
@@ -179,7 +179,7 @@ kind: Subscription
 metadata:
   name: ibm-mq-ibmmq-operator-catalogsource-openshift-marketplace
 spec:
-  channel: v2.4
+  channel: v3.0
   installPlanApproval: Automatic
   name: ibm-mq
   source: ibmmq-operator-catalogsource
@@ -190,7 +190,7 @@ kind: Subscription
 metadata:
   name: ibm-integration-asset-repository-ibm-integration-asset-repository-catalog-openshift-marketplace
 spec:
-  channel: v1.5
+  channel: v1.6
   installPlanApproval: Automatic
   name: ibm-integration-asset-repository
   source: ibm-integration-asset-repository-catalog
@@ -201,7 +201,7 @@ kind: Subscription
 metadata:
   name: datapower-operator-ibm-datapower-operator-catalog-openshift-marketplace
 spec:
-  channel: v1.7
+  channel: v1.9
   installPlanApproval: Automatic
   name: datapower-operator
   source: ibm-datapower-operator-catalog
@@ -212,7 +212,7 @@ kind: Subscription
 metadata:
   name: ibm-apiconnect-ibm-apiconnect-catalog-openshift-marketplace
 spec:
-  channel: v5.0
+  channel: v5.1
   installPlanApproval: Automatic
   name: ibm-apiconnect
   source: ibm-apiconnect-catalog
@@ -223,7 +223,7 @@ kind: Subscription
 metadata:
   name: ibm-eventendpointmanagement-ibm-eventendpointmanagement-catalog-openshift-marketplace
 spec:
-  channel: v11.0
+  channel: v11.1
   installPlanApproval: Automatic
   name: ibm-eventendpointmanagement
   source: ibm-eventendpointmanagement-catalog
