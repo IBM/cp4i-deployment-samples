@@ -111,6 +111,20 @@ function wait_for_all_subscriptions() {
   echo -e "All subscriptions in $NAMESPACE have succeeded:${subscriptions_succeeded}"
 }
 
+CERT_MANAGER_NAMESPACE="cert-manager-operator"
+if oc get namespace $CERT_MANAGER_NAMESPACE >/dev/null 2>&1; then
+  echo -e "$INFO [INFO] namespace $CERT_MANAGER_NAMESPACE already exists"
+else
+  echo -e "$INFO [INFO] Creating the '$CERT_MANAGER_NAMESPACE' namespace\n"
+  if ! oc create namespace $CERT_MANAGER_NAMESPACE; then
+    echo -e "$CROSS [ERROR] Failed to create the '$CERT_MANAGER_NAMESPACE' namespace"
+    divider
+    exit 1
+  else
+    echo -e "\n$TICK [SUCCESS] Successfully created the '$CERT_MANAGER_NAMESPACE' namespace"
+  fi
+fi
+
 if [[ "$CLUSTER_SCOPED" != "true" ]]; then
   OPERATOR_GROUP_COUNT=$(oc get operatorgroups -n ${namespace} -o json | jq '.items | length')
   if [[ "${OPERATOR_GROUP_COUNT}" == "0" ]]; then
@@ -127,7 +141,37 @@ EOF
 )
     OCApplyYAML "$namespace" "$YAML"
   fi
+  OPERATOR_GROUP_COUNT=$(oc get operatorgroups -n ${CERT_MANAGER_NAMESPACE} -o json | jq '.items | length')
+  if [[ "${OPERATOR_GROUP_COUNT}" == "0" ]]; then
+    YAML=$(cat <<EOF
+apiVersion: operators.coreos.com/v1
+kind: OperatorGroup
+metadata:
+  name: ${CERT_MANAGER_NAMESPACE}-og
+  namespace: ${CERT_MANAGER_NAMESPACE}
+spec:
+  targetNamespaces:
+    - ${CERT_MANAGER_NAMESPACE}
+EOF
+)
+    OCApplyYAML "$CERT_MANAGER_NAMESPACE" "$YAML"
+  fi
 fi
+
+CERT_MANAGER_YAML=$(cat <<EOF
+apiVersion: operators.coreos.com/v1alpha1
+kind: Subscription
+metadata:
+  name: openshift-cert-manager-operator
+spec:
+  channel: stable-v1
+  installPlanApproval: Automatic
+  name: openshift-cert-manager-operator
+  source: redhat-operators
+  sourceNamespace: openshift-marketplace
+EOF
+)
+OCApplyYAML "$CERT_MANAGER_NAMESPACE" "$CERT_MANAGER_YAML"
 
 ALL_YAMLS=$(cat <<EOF
 apiVersion: operators.coreos.com/v1alpha1

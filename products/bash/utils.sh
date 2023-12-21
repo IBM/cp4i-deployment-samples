@@ -18,15 +18,15 @@ RETRY_INTERVAL=5
 RETRY_COUNT=120
 
 function OCApplyYAML() {
-  namespace=${1}
+  NAMESPACE=${1}
   yaml=${2}
 
   # For debug output uncomment the following:
-  # echo "Applying the following yaml in the ${namespace} project:"
+  # echo "Applying the following yaml in the ${NAMESPACE} project:"
   # echo "${yaml}"
 
   time=0
-  until cat <<EOF | oc apply -n ${namespace} -f -; do
+  until cat <<EOF | oc apply -n ${NAMESPACE} -f -; do
 ${yaml}
 EOF
     if [ $time -gt $RETRY_COUNT ]; then
