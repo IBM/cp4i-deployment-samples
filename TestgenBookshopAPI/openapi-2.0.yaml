@@ -1,0 +1,908 @@
+swagger: '2.0'
+info:
+  title: Bookshop API
+  x-ibm-name: bookshop-api
+  version: '1.0'
+  description: |
+    Simulates an online bookshop to provide an example subject for AI-driven test generation in Cloud Pak for Integration.
+schemes:
+  - https
+  - http
+basePath: /
+consumes:
+  - application/json
+produces:
+  - application/json
+x-ibm-configuration:
+  gateway: datapower-api-gateway
+  type: rest
+  phase: realized
+  enforced: true
+  testable: true
+  cors:
+    enabled: true
+  assembly:
+    execute:
+      - switch:
+          version: 2.0.0
+          title: switch
+          case:
+            - condition: >-
+                ($operationPath() = '/books' or $operationPath() =
+                '/books/{book_id}')
+              execute:
+                - invoke:
+                    title: invoke
+                    version: 2.0.0
+                    verb: keep
+                    target-url: 'http://books-service:5000$(request.path)$(request.search)'
+                    follow-redirects: false
+                    timeout: 60
+                    parameter-control:
+                      type: blocklist
+                      values: []
+                    header-control:
+                      type: blocklist
+                      values: []
+                    inject-proxy-headers: true
+            - condition: 'true'
+              execute:
+                - invoke:
+                    version: 2.2.0
+                    title: invoke
+                    backend-type: detect
+                    header-control:
+                      type: blocklist
+                      values: []
+                    parameter-control:
+                      type: allowlist
+                      values: []
+                    http-version: HTTP/1.1
+                    timeout: 60
+                    verb: keep
+                    chunked-uploads: true
+                    cache-response: protocol
+                    cache-ttl: 900
+                    stop-on-error: []
+                    graphql-send-type: detect
+                    websocket-upgrade: false
+                    target-url: >-
+                      http://customer-order-service:5000$(request.path)$(request.search)
+  properties:
+    target-url:
+      value: 'http://books-service:5000/books'
+      description: The URL of the target service
+      encoded: false
+  activity-log:
+    enabled: true
+    error-content: payload
+    success-content: payload
+  buffering: true
+  application-authentication:
+    certificate: false
+  catalogs: {}
+paths:
+  '/books':
+    post:
+      tags:
+      - Books
+      description: |
+        Add a new book to the shop
+      operationId: add_book
+      parameters:
+        - name: book
+          in: body
+          description: The new book
+          required: true
+          schema:
+            $ref: '#/definitions/NewBook'
+      responses:
+        '201':
+          description: |
+            The book was added successfully
+          headers:
+            'Location':
+              description: URL of the new book
+              type: string
+              format: url
+          schema:
+            $ref: '#/definitions/Book'
+        '400':
+          $ref: '#/responses/BadRequest'
+        '401':
+          $ref: '#/responses/Unauthorized'
+        '403':
+          $ref: '#/responses/Forbidden'
+  '/books/{book_id}':
+    delete:
+      tags:
+      - Books
+      description: |
+        Remove a book from the shop
+      operationId: remove_book
+      parameters:
+        - name: book_id
+          in: path
+          required: true
+          type: string
+          format: uuid
+      responses:
+        '204':
+          description: |
+            The book was removed successfully
+        '400':
+          $ref: '#/responses/BadRequest'
+        '401':
+          $ref: '#/responses/Unauthorized'
+        '403':
+          $ref: '#/responses/Forbidden'
+        '404':
+          $ref: '#/responses/BookNotFound'
+    get:
+      tags:
+      - Books
+      description: |
+        Retrieve a book from the shop
+      operationId: get_book
+      parameters:
+        - name: book_id
+          in: path
+          required: true
+          type: string
+          format: uuid
+      responses:
+        '200':
+          description: |
+            The book was retrieved successfully
+          schema:
+            $ref: '#/definitions/Book'
+        '400':
+          $ref: '#/responses/BadRequest'
+        '401':
+          $ref: '#/responses/Unauthorized'
+        '404':
+          $ref: '#/responses/BookNotFound'
+    put:
+      tags:
+      - Books
+      description: |
+        Modify a book in the shop
+      operationId: update_book
+      parameters:
+        - name: book_id
+          in: path
+          required: true
+          type: string
+          format: uuid
+        - name: book
+          in: body
+          description: The modified book
+          required: true
+          schema:
+            $ref: '#/definitions/Book'
+      responses:
+        '200':
+          description: |
+            The book was modified successfully
+          schema:
+            $ref: '#/definitions/Book'
+        '400':
+          $ref: '#/responses/BadRequest'
+        '401':
+          $ref: '#/responses/Unauthorized'
+        '403':
+          $ref: '#/responses/Forbidden'
+        '404':
+          $ref: '#/responses/BookNotFound'
+  '/customers':
+    post:
+      tags:
+      - Customers
+      description: |
+        Add a new customer
+      operationId: add_customer
+      parameters:
+      - in: body
+        name: customer
+        description: New customer details
+        required: true
+        schema:
+          $ref: '#/definitions/NewCustomer'
+      responses:
+        '201':
+          description: Created new customer
+          headers:
+            'Location':
+              description: URL of the new customer
+              type: string
+              format: url
+          schema:
+            $ref: '#/definitions/Customer'
+        '400':
+          $ref: '#/responses/BadRequest'
+        '401':
+          $ref: '#/responses/Unauthorized'
+        '403':
+          $ref: '#/responses/Forbidden'
+  '/customers/{customer_id}':
+    delete:
+      tags:
+      - Customers
+      description: |
+        Delete a specific customer
+      operationId: delete_customer
+      parameters:
+      - in: path
+        name: customer_id
+        description: The unique id for the customer
+        required: true
+        type: string
+        format: uuid
+      responses:
+        '204':
+          description: |
+            The customer was successfully deleted
+        '400':
+          $ref: '#/responses/BadRequest'
+        '401':
+          $ref: '#/responses/Unauthorized'
+        '403':
+          $ref: '#/responses/Forbidden'
+        '404':
+          $ref: '#/responses/CustomerNotFound'
+    get:
+      tags:
+      - Customers
+      description: |
+        Retrieve a customer by ID
+      operationId: get_customer
+      parameters:
+      - in: path
+        name: customer_id
+        description: Unique ID of the customer
+        required: true
+        type: string
+        format: uuid
+      responses:
+        '200':
+          description: Retrieved a customer
+          schema:
+            '$ref': '#/definitions/Customer'
+        '400':
+          $ref: '#/responses/BadRequest'
+        '401':
+          $ref: '#/responses/Unauthorized'
+        '403':
+          $ref: '#/responses/Forbidden'
+        '404':
+          $ref: '#/responses/CustomerNotFound'
+    put:
+      tags:
+      - Customers
+      description: |
+        Modify customer details
+      operationId: update_customer
+      parameters:
+        - name: customer_id
+          in: path
+          required: true
+          type: string
+          format: uuid
+        - name: customer
+          in: body
+          description: The modified customer
+          required: true
+          schema:
+            $ref: '#/definitions/Customer'
+      responses:
+        '200':
+          description: |
+            The customer was modified successfully
+          schema:
+            $ref: '#/definitions/Customer'
+        '400':
+          $ref: '#/responses/BadRequest'
+        '401':
+          $ref: '#/responses/Unauthorized'
+        '403':
+          $ref: '#/responses/Forbidden'
+        '404':
+          $ref: '#/responses/CustomerNotFound'
+  '/customers/{customer_id}/orders':
+    post:
+      tags:
+        - Orders
+      description: |
+        Add a new order for a customer
+      operationId: add_order
+      parameters:
+      - in: path
+        name: customer_id
+        type: string
+        format: uuid
+        required: true
+        description: the unique id of the customer
+      - in: body
+        name: order
+        description: order
+        required: true
+        schema:
+          $ref: '#/definitions/NewOrder'
+      responses:
+        '201':
+          description: Created new order for given customer
+          headers:
+            'Location':
+              description: URL of the new order for the given customer
+              type: string
+              format: url
+          schema:
+            '$ref': '#/definitions/Order'
+        '400':
+          $ref: '#/responses/BadRequest'
+        '401':
+          $ref: '#/responses/Unauthorized'
+        '403':
+          $ref: '#/responses/Forbidden'
+        '404':
+          $ref: '#/responses/CustomerNotFound'
+  '/customers/{customer_id}/orders/{order_id}':
+    delete:
+      tags:
+        - Orders
+      description: |
+        Delete a specific order for a specific customer
+      operationId: delete_order
+      parameters:
+      - in: path
+        name: customer_id
+        description: The unique id for the customer
+        required: true
+        type: string
+        format: uuid
+      - in: path
+        name: order_id
+        description: The unique order id
+        required: true
+        type: string
+        format: uuid
+      responses:
+        '204':
+          description: |
+            The order was successfully removed
+        '400':
+          $ref: '#/responses/BadRequest'
+        '401':
+          $ref: '#/responses/Unauthorized'
+        '403':
+          $ref: '#/responses/Forbidden'
+        '404':
+          $ref: '#/responses/OrderNotFound'
+    get:
+      tags:
+        - Orders
+      description: |
+        Retrieve a specific order for a specific customer
+      operationId: get_order
+      parameters:
+      - in: path
+        name: customer_id
+        description: The unique id for the customer
+        required: true
+        type: string
+        format: uuid
+      - in: path
+        name: order_id
+        description: The unique order id
+        required: true
+        type: string
+        format: uuid
+      responses:
+        '200':
+          description: Retrieved a customer
+          schema:
+            '$ref': '#/definitions/Order'
+        '400':
+          $ref: '#/responses/BadRequest'
+        '401':
+          $ref: '#/responses/Unauthorized'
+        '403':
+          $ref: '#/responses/Forbidden'
+        '404':
+          $ref: '#/responses/OrderNotFound'
+    put:
+      tags:
+        - Orders
+      description: |
+        Update a specific order for a specific customer
+      operationId: update_order
+      parameters:
+      - in: path
+        name: customer_id
+        description: The unique id for the customer
+        required: true
+        type: string
+        format: uuid
+      - in: path
+        name: order_id
+        description: The unique order id
+        required: true
+        type: string
+        format: uuid
+      - in: body
+        name: order
+        description: the details of the order
+        required: true
+        schema:
+          $ref: '#/definitions/Order'
+      responses:
+        '200':
+          description: Updated order details
+          schema:
+            '$ref': '#/definitions/Order'
+        '400':
+          $ref: '#/responses/BadRequest'
+        '401':
+          $ref: '#/responses/Unauthorized'
+        '403':
+          $ref: '#/responses/Forbidden'
+        '404':
+          $ref: '#/responses/OrderNotFound'
+  '/services/author':
+    post:
+      tags:
+        - Services
+      description: |
+        Search for authors by name
+      operationId: find_author
+      parameters:
+        - name: search
+          in: body
+          description: Search terms
+          required: true
+          schema:
+            $ref: '#/definitions/AuthorSearch'
+      responses:
+        '200':
+          description: |
+            The search completed without error
+          schema:
+            $ref: '#/definitions/AuthorSearchResult'
+        '400':
+          $ref: '#/responses/BadRequest'
+        '401':
+          $ref: '#/responses/Unauthorized'
+        '403':
+          $ref: '#/responses/Forbidden'
+  '/services/category':
+    post:
+      tags:
+        - Services
+      description: |
+        Choose appropriate categories for a book
+      operationId: find_category
+      parameters:
+        - name: search
+          in: body
+          description: Search terms
+          required: true
+          schema:
+            $ref: '#/definitions/CategorySearch'
+      responses:
+        '200':
+          description: |
+            The search completed without error
+          schema:
+            $ref: '#/definitions/CategorySearchResult'
+        '400':
+          $ref: '#/responses/BadRequest'
+        '401':
+          $ref: '#/responses/Unauthorized'
+        '403':
+          $ref: '#/responses/Forbidden'
+  '/services/usage':
+    post:
+      tags:
+        - Services
+      description: |
+        Record service usage
+      operationId: record_usage
+      parameters:
+        - name: usage
+          in: body
+          description: Service usage
+          required: true
+          schema:
+            $ref: '#/definitions/ServiceUsage'
+      responses:
+        '200':
+          description: |
+            Usage was updated
+          schema:
+            $ref: '#/definitions/ServiceUsage'
+        '400':
+          $ref: '#/responses/BadRequest'
+        '401':
+          $ref: '#/responses/Unauthorized'
+        '403':
+          $ref: '#/responses/Forbidden'
+
+definitions:
+  Book:
+    type: object
+    properties:
+      book_id:
+        $ref: '#/definitions/BookId'
+      author_id:
+        $ref: '#/definitions/AuthorId'
+      category:
+        $ref: '#/definitions/Category'
+      title:
+        $ref: '#/definitions/Title'
+      author:
+        $ref: '#/definitions/AuthorName'
+      publisher:
+        $ref: '#/definitions/Publisher'
+      date:
+        $ref: '#/definitions/PublicationDate'
+      format:
+        $ref: '#/definitions/PublicationFormat'
+      isbn:
+        $ref: '#/definitions/ISBN'
+      synopsis:
+        $ref: '#/definitions/Synopsis'
+      language:
+        $ref: '#/definitions/Language'
+    required:
+      - book_id
+      - author_id
+      - category
+      - title
+      - author
+      - publisher
+      - date
+      - format
+      - isbn
+      - language
+    additionalProperties: false
+  NewBook:
+    type: object
+    properties:
+      title:
+        $ref: '#/definitions/Title'
+      author:
+        $ref: '#/definitions/AuthorName'
+      publisher:
+        $ref: '#/definitions/Publisher'
+      date:
+        $ref: '#/definitions/PublicationDate'
+      format:
+        $ref: '#/definitions/PublicationFormat'
+      isbn:
+        $ref: '#/definitions/ISBN'
+      synopsis:
+        $ref: '#/definitions/Synopsis'
+      language:
+        $ref: '#/definitions/Language'
+    required:
+      - title
+      - author
+      - publisher
+      - date
+      - format
+      - isbn
+      - language
+    additionalProperties: false
+  AuthorId:
+    type: string
+    format: uuid
+  AuthorName:
+    type: string
+  BookId:
+    description: The unique identifier of a book
+    type: string
+    format: uuid
+  Category:
+    type: string
+    enum:
+      - biography
+      - business
+      - computing
+      - fiction
+      - food
+      - history
+      - science
+      - social
+  ISBN:
+    type: string
+  Language:
+    type: string
+  PublicationDate:
+    type: string
+    format: date
+  PublicationFormat:
+    type: string
+    enum:
+      - hardback
+      - paperback
+      - digital
+  Publisher:
+    type: string
+  Synopsis:
+    type: string
+  Title:
+    type: string
+
+  Customer:
+    type: object
+    properties:
+      customer_id:
+        $ref: '#/definitions/CustomerId'
+      username:
+        $ref: '#/definitions/UserName'
+      first_name:
+        $ref: '#/definitions/CustomerFirstName'
+      last_name:
+        $ref: '#/definitions/CustomerLastName'
+      email:
+        $ref: '#/definitions/CustomerEmail'
+      password:
+        $ref: '#/definitions/Password'
+      phone:
+        $ref: '#/definitions/CustomerPhone'
+    required:
+      - customer_id
+      - username
+      - first_name
+      - last_name
+      - email
+      - password
+    additionalProperties: false
+  NewCustomer:
+    type: object
+    properties:
+      username:
+        $ref: '#/definitions/UserName'
+      first_name:
+        $ref: '#/definitions/CustomerFirstName'
+      last_name:
+        $ref: '#/definitions/CustomerLastName'
+      email:
+        $ref: '#/definitions/CustomerEmail'
+      password:
+        $ref: '#/definitions/Password'
+      phone:
+        $ref: '#/definitions/CustomerPhone'
+    required:
+      - username
+      - first_name
+      - last_name
+      - email
+      - password
+    additionalProperties: false
+  CustomerEmail:
+    type: string
+  CustomerFirstName:
+    type: string
+  CustomerId:
+    description: The unique identifier of a customer
+    type: string
+    format: uuid
+  CustomerLastName:
+    type: string
+  CustomerPhone:
+    type: string
+  Password:
+    type: string
+  UserName:
+    type: string
+
+  Order:
+    type: object
+    properties:
+      order_id:
+        $ref: '#/definitions/OrderId'
+      customer_id:
+        $ref: '#/definitions/CustomerId'
+      book_ids:
+        type: array
+        items:
+          $ref: '#/definitions/BookId'
+        minItems: 1
+      quantity:
+        $ref: '#/definitions/OrderQuantity'
+      ship_date:
+        $ref: '#/definitions/ShipDate'
+      status:
+        $ref: '#/definitions/OrderStatus'
+      complete:
+        $ref: '#/definitions/OrderCompleted'
+    required:
+      - order_id
+      - customer_id
+      - book_ids
+      - quantity
+    additionalProperties: false
+  NewOrder:
+    type: object
+    properties:
+      customer_id:
+        $ref: '#/definitions/CustomerId'
+      book_ids:
+        type: array
+        items:
+          $ref: '#/definitions/BookId'
+        minItems: 1
+      quantity:
+        $ref: '#/definitions/OrderQuantity'
+      ship_date:
+        $ref: '#/definitions/ShipDate'
+      status:
+        $ref: '#/definitions/OrderStatus'
+      complete:
+        $ref: '#/definitions/OrderCompleted'
+    required:
+      - customer_id
+      - book_ids
+      - quantity
+    additionalProperties: false
+  OrderCompleted:
+    type: boolean
+    default: false
+  OrderId:
+    description: The unique identifier of an order
+    type: string
+    format: uuid
+  OrderQuantity:
+    type: integer
+    minimum: 1
+  OrderStatus:
+    type: string
+    description: Order Status
+    enum:
+    - placed
+    - approved
+    - delivered
+  ShipDate:
+    type: string
+    format: date-time
+
+  AuthorSearch:
+    type: object
+    properties:
+      author:
+        $ref: '#/definitions/AuthorName'
+    required:
+      - author
+  AuthorSearchResult:
+    type: array
+    items:
+      type: object
+      properties:
+        author_name:
+          $ref: '#/definitions/AuthorName'
+        author_id:
+          $ref: '#/definitions/AuthorId'
+      required:
+        - author_id
+  CategorySearch:
+    type: object
+    properties:
+      title:
+        $ref: '#/definitions/Title'
+      synopsis:
+        $ref: '#/definitions/Synopsis'
+    required:
+      - title
+  CategorySearchResult:
+    type: array
+    items:
+      $ref: '#/definitions/Category'
+  ServiceUsage:
+    type: object
+    properties:
+      service:
+        $ref: '#/definitions/ServiceType'
+      usage:
+        $ref: '#/definitions/Usage'
+    required:
+      - service
+    additionalProperties: false
+  ServiceType:
+    type: string
+    enum:
+      - author
+      - category
+  Usage:
+    type: integer
+    minimum: 0
+
+  Error:
+    type: object
+    description: |
+      General error response body, based on the WDP error model:
+      https://test.cloud.ibm.com/docs/api-handbook?topic=api-handbook-errors
+    properties:
+      errors:
+        type: array
+        items:
+          $ref: '#/definitions/ErrorItem'
+        minItems: 1
+      trace:
+        description: Client trace ID (optional)
+        type: string
+    required:
+      - errors
+    additionalProperties: false
+  ErrorItem:
+    type: object
+    properties:
+      code:
+        type: string
+      message:
+        type: string
+      more_info:
+        type: string
+        format: url
+      target:
+        $ref: '#/definitions/ErrorTarget'
+    required:
+      - code
+      - message
+    additionalProperties: false
+  ErrorTarget:
+    type: object
+    properties:
+      type:
+        type: string
+        enum:
+          - field
+          - parameter
+          - header
+      name:
+        type: string
+    required:
+      - type
+      - name
+    additionalProperties: false
+
+responses:
+  BadRequest:
+    description: |
+      The request body or parameters were incorrect
+    schema:
+      $ref: '#/definitions/Error'
+  Forbidden:
+    description: |
+      The caller does not have permission to perform the operation
+    schema:
+      $ref: '#/definitions/Error'
+  Unauthorized:
+    description: |
+      The caller could not be authenticated
+    headers:
+      'WWW-Authenticate':
+        type: string
+    schema:
+      $ref: '#/definitions/Error'
+  BookNotFound:
+    description: |
+      The requested book was not found in the shop
+    schema:
+      $ref: '#/definitions/Error'
+  CustomerNotFound:
+    description: |
+      There is no user associated with this user id.
+    schema:
+      $ref: '#/definitions/Error'
+  OrderNotFound:
+    description: |
+      The requested order could not be located
+    schema:
+      $ref: '#/definitions/Error'
+
+tags:
+  - name: Books
+  - name: Customers
+  - name: Orders
+  - name: Services
