@@ -231,8 +231,8 @@ function add_cs_admin_user() {
   member_json='{
     "name": "cs-admin",
     "user": {
-      "identity_provider": "common-services",
-      "url": "https://'${API_EP}'/api/user-registries/admin/common-services/users/admin"
+      "identity_provider": "integration-keycloak",
+      "url": "https://'${API_EP}'/api/user-registries/admin/integration-keycloak/users/integration-admin"
     },
     "role_urls": [
       "'${administrator_role_url}'"

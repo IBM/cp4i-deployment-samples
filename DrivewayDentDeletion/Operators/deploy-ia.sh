@@ -123,10 +123,10 @@ metadata:
   annotations:
     "operator.ibm.com/ia-managed-integrations-dry-run": "false"
 spec:
-  version: 2023.2.1
+  version: 2023.4.1
   license:
     accept: true
-    license: L-YBXJ-ADJNSM
+    license: L-VTPK-22YZPK
     use: CloudPakForIntegrationNonProduction
   storage:
     readWriteOnce:

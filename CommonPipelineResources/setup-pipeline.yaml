@@ -25,7 +25,7 @@ spec:
 
             FROM quay.io/openshift/origin-cli:latest as oc
 
-            FROM cp.icr.io/cp/ibm-mqadvanced-server-integration@sha256:966d870d250c59aede758f9ec88ff8260642161b342b51c4dd02927919a9eeb0 as mq
+            FROM cp.icr.io/cp/ibm-mqadvanced-server-integration@sha256:16c79cbe80ec249ef139f78311f8bdd4214ff6ec405aa2bab3372793050d3545 as mq
             USER root
             RUN microdnf install --nodocs openssl wget zip
             COPY --from=oc /usr/bin/oc /usr/local/bin

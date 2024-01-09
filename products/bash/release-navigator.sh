@@ -62,7 +62,6 @@ metadata:
   name: ${namespace}-navigator
   namespace: ${namespace}
 spec:
-  version: 2023.2.1
   license:
     accept: true
     license: L-VTPK-22YZPK
