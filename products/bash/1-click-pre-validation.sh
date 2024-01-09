@@ -43,8 +43,8 @@ all_done="\xF0\x9F\x92\xAF"
 info="\xE2\x84\xB9"
 missingParams="false"
 namespace="cp4i"
-MIN_OCP_VERSION=4.10
-MAX_OCP_VERSION=4.12
+MIN_OCP_VERSION=4.12
+MAX_OCP_VERSION=4.14
 
 while getopts "p:r:d:n:" opt; do
   case ${opt} in

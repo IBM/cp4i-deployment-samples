@@ -309,6 +309,7 @@ echo -e "$INFO [INFO] If testing the driveway dent deletion demo E2E: '$testDriv
 
 divider
 
+
 echo -e "$INFO [INFO] Doing a validation check before installation..."
 if ! $CURRENT_DIR/1-click-pre-validation.sh -n "$JOB_NAMESPACE" -r "$navReplicaCount" -d "$demoPreparation"; then
   echo -e "$CROSS [ERROR] 1-click pre validation failed"
@@ -437,7 +438,7 @@ fi
 divider
 
 if [[ $(echo "$CLUSTER_TYPE" | tr '[:upper:]' '[:lower:]') == "roks" ]]; then
-  if ! $CURRENT_DIR/setup-roks-iam.sh; then
+  if ! $CURRENT_DIR/setup-roks-iam.sh -n "$JOB_NAMESPACE"; then
     echo -e "$CROSS [ERROR] Failed to setup iam for roks cluster"
     divider
     exit 1
@@ -447,6 +448,8 @@ if [[ $(echo "$CLUSTER_TYPE" | tr '[:upper:]' '[:lower:]') == "roks" ]]; then
 fi
 
 divider
+
+echo "release-nav"
 
 if ! $CURRENT_DIR/release-navigator.sh -n "$JOB_NAMESPACE" -r "$navReplicaCount" -s "$DEFAULT_FILE_STORAGE" ; then
   echo -e "$CROSS [ERROR] Failed to release navigator"
