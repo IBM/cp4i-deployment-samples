@@ -28,7 +28,6 @@
 #   -m : <demoAPICMailServerUsername> (string), Username for the mail server. Defaults to "<your-username>"
 #   -n : <JOB_NAMESPACE> (string), Namespace for the 1-click install
 #   -o : <demoAPICMailServerPort> (string), Port number of the mail server. Defaults to "2525"
-#   -p : <csDefaultAdminPassword> (string), Common service default admin password
 #   -q : <demoAPICMailServerPassword> (string), Password for the mail server.
 #   -r : <navReplicaCount> (string), Platform navigator replicas, Defaults to 3
 #   -s : <DOCKER_REGISTRY_PASS> (string), Docker registry password
@@ -42,17 +41,17 @@
 #
 # USAGE:
 #   With defaults values
-#     ./1-click-install.sh -p <csDefaultAdminPassword> -s <DOCKER_REGISTRY_PASS>
+#     ./1-click-install.sh  -s <DOCKER_REGISTRY_PASS>
 #
 #   Overriding the params
-#     ./1-click-install.sh -a <eventEnabledInsuranceDemo> -b <demoDeploymentBranch> -c <DEFAULT_FILE_STORAGE> -d <demoPreparation> -e <demoAPICEmailAddress> -f <drivewayDentDeletionDemo> -g <DEFAULT_BLOCK_STORAGE> -h <demoAPICMailServerHost> -j <tempERKey> -k <tempRepo> -l <DOCKER_REGISTRY_USER> -m <demoAPICMailServerUsername> -n <JOB_NAMESPACE> -o <demoAPICMailServerPort> -p <csDefaultAdminPassword> -q <demoAPICMailServerPassword> -r <navReplicaCount> -s <DOCKER_REGISTRY_PASS> -t <ENVIRONMENT> -u <csDefaultAdminUser> -v <useFastStorageClass> -w <testDrivewayDentDeletionDemoE2E> -x <CLUSTER_TYPE> -y -z <HA_ENABLED>
+#     ./1-click-install.sh -a <eventEnabledInsuranceDemo> -b <demoDeploymentBranch> -c <DEFAULT_FILE_STORAGE> -d <demoPreparation> -e <demoAPICEmailAddress> -f <drivewayDentDeletionDemo> -g <DEFAULT_BLOCK_STORAGE> -h <demoAPICMailServerHost> -j <tempERKey> -k <tempRepo> -l <DOCKER_REGISTRY_USER> -m <demoAPICMailServerUsername> -n <JOB_NAMESPACE> -o <demoAPICMailServerPort> -q <demoAPICMailServerPassword> -r <navReplicaCount> -s <DOCKER_REGISTRY_PASS> -t <ENVIRONMENT> -u <csDefaultAdminUser> -v <useFastStorageClass> -w <testDrivewayDentDeletionDemoE2E> -x <CLUSTER_TYPE> -y -z <HA_ENABLED>
 
 function divider() {
   echo -e "\n-------------------------------------------------------------------------------------------------------------------\n"
 }
 
 function usage() {
-  echo "Usage: $0 -a <eventEnabledInsuranceDemo> -b <demoDeploymentBranch> -c <DEFAULT_FILE_STORAGE> -d <demoPreparation> -e <demoAPICEmailAddress> -f <drivewayDentDeletionDemo> -g <DEFAULT_BLOCK_STORAGE> -h <demoAPICMailServerHost> -j <tempERKey> -k <tempRepo> -l <DOCKER_REGISTRY_USER> -m <demoAPICMailServerUsername> -n <JOB_NAMESPACE> -o <demoAPICMailServerPort> -p <csDefaultAdminPassword> -q <demoAPICMailServerPassword> -r <navReplicaCount> -s <DOCKER_REGISTRY_PASS> -t <ENVIRONMENT> -u <csDefaultAdminUser> -v <useFastStorageClass> -w <testDrivewayDentDeletionDemoE2E> -x <CLUSTER_TYPE> -A <cognitiveCarRepairDemo> -B <mappingAssistDemo> -C <weatherChatbotDemo> [-y]"
+  echo "Usage: $0 -a <eventEnabledInsuranceDemo> -b <demoDeploymentBranch> -c <DEFAULT_FILE_STORAGE> -d <demoPreparation> -e <demoAPICEmailAddress> -f <drivewayDentDeletionDemo> -g <DEFAULT_BLOCK_STORAGE> -h <demoAPICMailServerHost> -j <tempERKey> -k <tempRepo> -l <DOCKER_REGISTRY_USER> -m <demoAPICMailServerUsername> -n <JOB_NAMESPACE> -o <demoAPICMailServerPort> -q <demoAPICMailServerPassword> -r <navReplicaCount> -s <DOCKER_REGISTRY_PASS> -t <ENVIRONMENT> -u <csDefaultAdminUser> -v <useFastStorageClass> -w <testDrivewayDentDeletionDemoE2E> -x <CLUSTER_TYPE> -A <cognitiveCarRepairDemo> -B <mappingAssistDemo> -C <weatherChatbotDemo> [-y]"
   divider
   exit 1
 }
@@ -111,9 +110,6 @@ while getopts "a:b:c:d:e:f:g:h:j:k:l:m:n:o:p:q:r:s:t:u:v:w:x:z:A:B:C:y" opt; do
     ;;
   o)
     demoAPICMailServerPort="$OPTARG"
-    ;;
-  p)
-    csDefaultAdminPassword="$OPTARG"
     ;;
   q)
     demoAPICMailServerPassword="$OPTARG"
@@ -181,11 +177,6 @@ fi
 if [[ -z "${demoPreparation// /}" ]]; then
   echo -e "$CROSS [ERROR] 1-click install demo preparation parameter is empty (-d). Setting the default value of 'false' for it."
   demoPreparation="false"
-fi
-
-if [[ -z "${csDefaultAdminPassword// /}" ]]; then
-  echo -e "$CROSS [ERROR] 1-click install default admin password is empty. Please provide a value for '-p' parameter."
-  MISSING_PARAMS="true"
 fi
 
 if [[ -z "${ENVIRONMENT// /}" ]]; then
@@ -329,7 +320,7 @@ echo -e "$INFO [INFO] If testing the driveway dent deletion demo E2E: '$testDriv
 divider
 
 echo -e "$INFO [INFO] Doing a validation check before installation..."
-if ! $CURRENT_DIR/1-click-pre-validation.sh -n "$JOB_NAMESPACE" -p "$csDefaultAdminPassword" -r "$navReplicaCount" -u "$csDefaultAdminUser" -d "$demoPreparation"; then
+if ! $CURRENT_DIR/1-click-pre-validation.sh -n "$JOB_NAMESPACE" -r "$navReplicaCount" -u "$csDefaultAdminUser" -d "$demoPreparation"; then
   echo -e "$CROSS [ERROR] 1-click pre validation failed"
   divider
   exit 1
@@ -476,20 +467,6 @@ else
 fi
 
 divider
-
-# Only update common services username and password if common services is not already installed
-PASSWORD_CHANGE_FAILED="false"
-if [ "$PASSWORD_CHANGE" == "true" ]; then
-  if $CURRENT_DIR/change-cs-credentials.sh -u "$csDefaultAdminUser" -p "$csDefaultAdminPassword"; then
-    echo -e "$TICK [SUCCESS] Successfully updated the common services admin username/password"
-  else
-    echo -e "$CROSS [WARNING] Failed to update the common services admin username/password, continuing anyway..."
-    PASSWORD_CHANGE_FAILED="true"
-  fi
-else
-  echo -e "$INFO [INFO] Retrieve the common service username using the command 'oc get secrets -n ibm-common-services platform-auth-idp-credentials -o jsonpath='{.data.admin_username}' | base64 --decode' "
-  echo -e "$INFO [INFO] Retrieve the common service password using the command 'oc get secrets -n ibm-common-services platform-auth-idp-credentials -o jsonpath='{.data.admin_password}' | base64 --decode' "
-fi
 
 if [[ "$demoPreparation" == "true" || "$drivewayDentDeletionDemo" == "true" || "$eventEnabledInsuranceDemo" == "true" || "$cognitiveCarRepairDemo" == "true" || "$mappingAssistDemo" == "true" || "$weatherChatbotDemo" == "true" ]]; then
   divider && echo -e "$INFO [INFO] Setting up all required addons, products and demos in the '$JOB_NAMESPACE' namespace..."

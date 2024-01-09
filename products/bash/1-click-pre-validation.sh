@@ -13,7 +13,6 @@
 #   - Logged into cluster on the OC CLI (https://docs.openshift.com/container-platform/4.4/cli_reference/openshift_cli/getting-started-cli.html)
 #
 # PARAMETERS:
-#   -p : <csDefaultAdminPassword> (string), common services default admin password
 #   -r : <navReplicaCount> (string), Platform navigator replica count, Defaults to "3"
 #   -u : <csDefaultAdminUser> (string), Common services default admin username, Defaults to "admin"
 #   -d : <demoPreparation> (string), If all demos are to be setup. Defaults to "false"
@@ -21,17 +20,17 @@
 #
 # USAGE:
 #   With defaults values
-#     ./1-click-pre-validation.sh -p <csDefaultAdminPassword>
+#     ./1-click-pre-validation.sh 
 #
 #   Overriding the namespace and release-name
-#     ./1-click-pre-validation.sh -n <namespace> -p <csDefaultAdminPassword> -r <navReplicaCount> -u <csDefaultAdminUser> -d <demoPreparation>
+#     ./1-click-pre-validation.sh -n <namespace> -r <navReplicaCount> -u <csDefaultAdminUser> -d <demoPreparation>
 
 function divider() {
   echo -e "\n-------------------------------------------------------------------------------------------------------------------\n"
 }
 
 function usage() {
-  echo "Usage: $0 -n <namespace> -p <csDefaultAdminPassword> -r <navReplicaCount> -u <csDefaultAdminUser> -d <demoPreparation>"
+  echo "Usage: $0 -n <namespace> -r <navReplicaCount> -u <csDefaultAdminUser> -d <demoPreparation>"
   divider
   exit 1
 }
@@ -54,9 +53,6 @@ while getopts "p:r:u:d:n:" opt; do
   n)
     namespace="$OPTARG"
     ;;
-  p)
-    csDefaultAdminPassword="$OPTARG"
-    ;;
   r)
     navReplicaCount="$OPTARG"
     ;;
@@ -71,11 +67,6 @@ while getopts "p:r:u:d:n:" opt; do
     ;;
   esac
 done
-
-if [[ -z "${csDefaultAdminPassword// /}" ]]; then
-  echo -e "$cross ERROR: 1-click validation default admin password is empty. Please provide a value for '-p' parameter."
-  missingParams="true"
-fi
 
 if [[ -z "${namespace// /}" ]]; then
   echo -e "$cross ERROR: 1-click validation namespace is empty. Please provide a value for '-n' parameter."
@@ -212,22 +203,6 @@ if ! [[ "$csDefaultAdminUser" =~ $csDefaultAdminUserRegex ]]; then
   check=1
 else
   echo -e "$tick INFO: Common Services admin username ok"
-fi
-
-export csDefaultAdminPasswordRegex='^[a-zA-Z0-9-]+$'
-passwordOK=true
-if [ "${#csDefaultAdminPassword}" -lt 32 ]; then
-  echo -e "$cross ERROR: Common Services admin password should be at least 32 characters long"
-  passwordOK=false
-  check=1
-fi
-if ! [[ "$csDefaultAdminPassword" =~ $csDefaultAdminPasswordRegex ]]; then
-  echo -e "$cross ERROR: Common Services admin password can only include number, letter and -"
-  passwordOK=false
-  check=1
-fi
-if [[ "${passwordOK}" = "true" ]]; then
-  echo -e "$tick INFO: Common Services admin password ok"
 fi
 
 OCP_VERSION=$(oc version -o json | jq -r '.openshiftVersion')
