@@ -32,7 +32,6 @@
 #   -r : <navReplicaCount> (string), Platform navigator replicas, Defaults to 3
 #   -s : <DOCKER_REGISTRY_PASS> (string), Docker registry password
 #   -t : <ENVIRONMENT> (string), Environment for installation, 'staging' when you want to use the staging entitled registry
-#   -u : <csDefaultAdminUser> (string), Default common service username. Defaults to "admin"
 #   -v : <useFastStorageClass> (string), If using fast storage class for installation. Defaults to 'true'
 #   -w : <testDrivewayDentDeletionDemoE2E> (string), If testing the Driveway dent deletion demo E2E. Defaults to 'false'
 #   -x : <CLUSTER_TYPE> (string), Defines the cluster type for 1-click installation. Defaults to 'roks'
@@ -67,7 +66,7 @@ CLUSTER_TYPE="roks"
 CLUSTER_SCOPED="false"
 HA_ENABLED="true"
 
-while getopts "a:b:c:d:e:f:g:h:j:k:l:m:n:o:p:q:r:s:t:u:v:w:x:z:A:B:C:y" opt; do
+while getopts "a:b:c:d:e:f:g:h:j:k:l:m:n:o:q:r:s:t:v:w:x:z:A:B:C:y" opt; do
   case ${opt} in
   a)
     eventEnabledInsuranceDemo="$OPTARG"
@@ -123,9 +122,6 @@ while getopts "a:b:c:d:e:f:g:h:j:k:l:m:n:o:p:q:r:s:t:u:v:w:x:z:A:B:C:y" opt; do
   t)
     ENVIRONMENT="$OPTARG"
     ;;
-  u)
-    csDefaultAdminUser="$OPTARG"
-    ;;
   v)
     useFastStorageClass="$OPTARG"
     ;;
@@ -166,11 +162,6 @@ fi
 
 if [[ -z "${navReplicaCount// /}" ]]; then
   echo -e "$CROSS [ERROR] 1-click install platform navigator replica count is empty. Please provide a value for '-r' parameter."
-  MISSING_PARAMS="true"
-fi
-
-if [[ -z "${csDefaultAdminUser// /}" ]]; then
-  echo -e "$CROSS [ERROR] 1-click install default admin username is empty. Please provide a value for '-u' parameter."
   MISSING_PARAMS="true"
 fi
 
@@ -299,7 +290,6 @@ echo -e "$INFO [INFO] Cluster scoped operator install: '$CLUSTER_SCOPED'"
 echo -e "$INFO [INFO] Namespace for setting up the operators: '$DEPLOY_OPERATOR_NAMESPACE'"
 echo -e "$INFO [INFO] Navigator replica count: '$navReplicaCount'"
 echo -e "$INFO [INFO] Demo deployment branch: '$demoDeploymentBranch'"
-echo -e "$INFO [INFO] Default common service username: '$csDefaultAdminUser'"
 echo -e "$INFO [INFO] Setup all demos: '$demoPreparation'"
 echo -e "$INFO [INFO] Setup event enabled insurance demo: '$eventEnabledInsuranceDemo'"
 echo -e "$INFO [INFO] Setup driveway dent deletion demo: '$drivewayDentDeletionDemo'"
@@ -320,7 +310,7 @@ echo -e "$INFO [INFO] If testing the driveway dent deletion demo E2E: '$testDriv
 divider
 
 echo -e "$INFO [INFO] Doing a validation check before installation..."
-if ! $CURRENT_DIR/1-click-pre-validation.sh -n "$JOB_NAMESPACE" -r "$navReplicaCount" -u "$csDefaultAdminUser" -d "$demoPreparation"; then
+if ! $CURRENT_DIR/1-click-pre-validation.sh -n "$JOB_NAMESPACE" -r "$navReplicaCount" -d "$demoPreparation"; then
   echo -e "$CROSS [ERROR] 1-click pre validation failed"
   divider
   exit 1
@@ -532,12 +522,6 @@ if [[ "$demoPreparation" == "true" || "$drivewayDentDeletionDemo" == "true" || "
   elif [[ "$demoPreparation" == "false" && "$drivewayDentDeletionDemo" == "false" && "$testDrivewayDentDeletionDemoE2E" == "true" ]]; then
     echo -e "$INFO [INFO] 'testDrivewayDentDeletionDemoE2E' option was set to 'true'.\n\n$INFO [INFO] To run an automated test for driveway dent deletion demo, set the 'demoPreparation' or 'drivewayDentDeletionDemo' option to 'true' along with the 'testDrivewayDentDeletionDemoE2E' option as 'true'."
   fi
-fi
-
-if [ "$PASSWORD_CHANGE_FAILED" == "true" ]; then
-  echo -e "$CROSS [WARNING] Failed to update the common services admin username/password."
-  echo -e "$INFO [INFO] Retrieve the common service username using the command 'oc get secrets -n ibm-common-services platform-auth-idp-credentials -o jsonpath='{.data.admin_username}' | base64 --decode' "
-  echo -e "$INFO [INFO] Retrieve the common service password using the command 'oc get secrets -n ibm-common-services platform-auth-idp-credentials -o jsonpath='{.data.admin_password}' | base64 --decode' "
 fi
 
 divider && echo -e "$INFO [INFO] The 1-click installation took $(($SECONDS / 60 / 60 % 24)) hour(s) $(($SECONDS / 60 % 60)) minutes and $(($SECONDS % 60)) seconds." && divider

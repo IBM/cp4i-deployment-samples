@@ -14,7 +14,6 @@
 #
 # PARAMETERS:
 #   -r : <navReplicaCount> (string), Platform navigator replica count, Defaults to "3"
-#   -u : <csDefaultAdminUser> (string), Common services default admin username, Defaults to "admin"
 #   -d : <demoPreparation> (string), If all demos are to be setup. Defaults to "false"
 #   -n : <namespace> (string), Namespace for the 1-click validation. Defaults to "cp4i"
 #
@@ -23,20 +22,19 @@
 #     ./1-click-pre-validation.sh 
 #
 #   Overriding the namespace and release-name
-#     ./1-click-pre-validation.sh -n <namespace> -r <navReplicaCount> -u <csDefaultAdminUser> -d <demoPreparation>
+#     ./1-click-pre-validation.sh -n <namespace> -r <navReplicaCount> -d <demoPreparation>
 
 function divider() {
   echo -e "\n-------------------------------------------------------------------------------------------------------------------\n"
 }
 
 function usage() {
-  echo "Usage: $0 -n <namespace> -r <navReplicaCount> -u <csDefaultAdminUser> -d <demoPreparation>"
+  echo "Usage: $0 -n <namespace> -r <navReplicaCount> -d <demoPreparation>"
   divider
   exit 1
 }
 
 navReplicaCount="3"
-csDefaultAdminUser="admin"
 demoPreparation="false"
 CURRENT_DIR=$(dirname $0)
 tick="\xE2\x9C\x85"
@@ -48,16 +46,13 @@ namespace="cp4i"
 MIN_OCP_VERSION=4.10
 MAX_OCP_VERSION=4.12
 
-while getopts "p:r:u:d:n:" opt; do
+while getopts "p:r:d:n:" opt; do
   case ${opt} in
   n)
     namespace="$OPTARG"
     ;;
   r)
     navReplicaCount="$OPTARG"
-    ;;
-  u)
-    csDefaultAdminUser="$OPTARG"
     ;;
   d)
     demoPreparation="$OPTARG"
@@ -78,11 +73,6 @@ if [[ -z "${navReplicaCount// /}" ]]; then
   missingParams="true"
 fi
 
-if [[ -z "${csDefaultAdminUser// /}" ]]; then
-  echo -e "$cross ERROR: 1-click validation default admin username is empty. Please provide a value for '-u' parameter."
-  missingParams="true"
-fi
-
 if [[ -z "${demoPreparation// /}" ]]; then
   echo -e "$cross ERROR: 1-click validation demo preparation parameter is empty. Please provide a value for '-d' parameter."
   missingParams="true"
@@ -96,7 +86,6 @@ fi
 divider
 echo -e "$info Current directory: $CURRENT_DIR"
 echo -e "$info Project name: $namespace"
-echo -e "$info Common services admin username: $csDefaultAdminUser"
 echo -e "$info Platform navigator replica count: $navReplicaCount"
 echo -e "$info Setup all demos: $demoPreparation"
 divider
@@ -195,14 +184,6 @@ if [[ $navReplicaCount -le 0 ]]; then
   check=1
 else
   echo -e "$tick INFO: Platform navigator replica count ok"
-fi
-
-export csDefaultAdminUserRegex='^[a-zA-Z]+$'
-if ! [[ "$csDefaultAdminUser" =~ $csDefaultAdminUserRegex ]]; then
-  echo -e "$cross ERROR: Common Services admin username can contain only letters"
-  check=1
-else
-  echo -e "$tick INFO: Common Services admin username ok"
 fi
 
 OCP_VERSION=$(oc version -o json | jq -r '.openshiftVersion')
