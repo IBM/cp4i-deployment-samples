@@ -14,7 +14,6 @@
 #
 # PARAMETERS:
 #   -r : <navReplicaCount> (string), Platform navigator replica count, Defaults to "3"
-#   -d : <demoPreparation> (string), If all demos are to be setup. Defaults to "false"
 #   -n : <namespace> (string), Namespace for the 1-click validation. Defaults to "cp4i"
 #
 # USAGE:
@@ -22,20 +21,19 @@
 #     ./1-click-pre-validation.sh 
 #
 #   Overriding the namespace and release-name
-#     ./1-click-pre-validation.sh -n <namespace> -r <navReplicaCount> -d <demoPreparation>
+#     ./1-click-pre-validation.sh -n <namespace> -r <navReplicaCount>
 
 function divider() {
   echo -e "\n-------------------------------------------------------------------------------------------------------------------\n"
 }
 
 function usage() {
-  echo "Usage: $0 -n <namespace> -r <navReplicaCount> -d <demoPreparation>"
+  echo "Usage: $0 -n <namespace> -r <navReplicaCount>"
   divider
   exit 1
 }
 
 navReplicaCount="3"
-demoPreparation="false"
 CURRENT_DIR=$(dirname $0)
 tick="\xE2\x9C\x85"
 cross="\xE2\x9D\x8C"
@@ -46,16 +44,13 @@ namespace="cp4i"
 MIN_OCP_VERSION=4.12
 MAX_OCP_VERSION=4.14
 
-while getopts "p:r:d:n:" opt; do
+while getopts "p:r:n:" opt; do
   case ${opt} in
   n)
     namespace="$OPTARG"
     ;;
   r)
     navReplicaCount="$OPTARG"
-    ;;
-  d)
-    demoPreparation="$OPTARG"
     ;;
   \?)
     usage
@@ -73,11 +68,6 @@ if [[ -z "${navReplicaCount// /}" ]]; then
   missingParams="true"
 fi
 
-if [[ -z "${demoPreparation// /}" ]]; then
-  echo -e "$cross ERROR: 1-click validation demo preparation parameter is empty. Please provide a value for '-d' parameter."
-  missingParams="true"
-fi
-
 if [[ "$missingParams" == "true" ]]; then
   divider
   usage
@@ -87,96 +77,16 @@ divider
 echo -e "$info Current directory: $CURRENT_DIR"
 echo -e "$info Project name: $namespace"
 echo -e "$info Platform navigator replica count: $navReplicaCount"
-echo -e "$info Setup all demos: $demoPreparation"
 divider
 
 export check=0
 
-# CPU/Memory requirements when demoPreparation is true
-demo_products="ACE, ACE Designer, APIC, Event Streams, PostgreSQL and Asset Repository"
-cpu_req=77.95
-mem_req_gi=154.5
-total_cpu=0.0
-total_mem_gi=0.0
-
-if [[ "${demoPreparation}" == "true" || "${drivewayDentDeletionDemo}" == "true" || "${eventEnabledInsuranceDemo}" == "true" || "${cognitiveCarRepairDemo}" == "true" || "${mappingAssistDemo}" == "true" || "${weatherChatbotDemo}" == "true" ]]; then
-  for row in $(oc get node -o json | jq -r '.items[] | { name: .metadata.name, cpu: .status.allocatable.cpu, mem: .status.allocatable.memory } | @base64'); do
-    _jq() {
-      echo ${row} | base64 --decode | jq -r ${1}
-    }
-    _cpu() {
-      if [[ "$1" == "null" ]]; then
-        echo "null"
-      else
-        units=$(echo $1 | sed 's/[^a-zA-Z]*//g')
-        value=$(echo $1 | sed 's/[^0-9.]*//g')
-        if [ "$units" = "m" ]; then
-          value=$(jq -n "$value/1000")
-        fi
-        echo "${value}"
-      fi
-    }
-    _memGiB() {
-      if [[ "$1" == "null" ]]; then
-        echo "null"
-      else
-        units=$(echo $1 | sed 's/[^a-zA-Z]*//g')
-        value=$(echo $1 | sed 's/[^0-9.]*//g')
-        if [ "$units" = "Ki" ]; then
-          value=$(jq -n "$value/1048576")
-        elif [ "$units" = "Mi" ]; then
-          value=$(jq -n "$value/1024")
-        elif [ "$units" = "Gi" ]; then
-          value=$(jq -n "$value")
-        elif [ "$units" = "Ti" ]; then
-          value=$(jq -n "$value*1048576")
-        else
-          value="null"
-        fi
-        echo "${value}"
-      fi
-    }
-
-    name=$(_jq '.name')
-    cpu=$(_cpu $(_jq '.cpu'))
-    mem_gi=$(_memGiB $(_jq '.mem'))
-    printf "%s: cpus=%.1f mem=%.1f GiB\n" "$name" $cpu $mem_gi
-    total_cpu=$(jq -n "$total_cpu+$cpu")
-    total_mem_gi=$(jq -n "$total_mem_gi+$mem_gi")
-  done
-  printf "Total: cpus=%.1f mem=%.1f GiB\n" $total_cpu $total_mem_gi
-
-  divider
-
-  if [ $(jq -n "$total_cpu < $cpu_req") == "true" ]; then
-    printf "$cross ERROR: You have %0.1f allocatable cores. Minimum CPU requirement for ${demo_products} is %0.1f cores\n" $total_cpu $cpu_req
-    check=1
-  else
-    echo -e "$tick INFO: You have enough allocatable cpu for the demo"
-  fi
-
-  if [ $(jq -n "$total_mem_gi < $mem_req_gi") == "true" ]; then
-    printf "$cross ERROR: You have %0.1f GiB of allocatable memory. Minimum memory requirement for ${demo_products} is %0.1f GiB\n" $total_mem_gi $mem_req_gi
-    check=1
-  else
-    echo -e "$tick INFO: You have enough allocatable memory for the demo"
-  fi
-fi #demoPreparation
 
 if [[ $(oc get node -o json | jq -r '.items[].metadata.labels["ibm-cloud.kubernetes.io/zone"]' | uniq | wc -l | xargs) != 1 ]]; then
   echo -e "$cross ERROR: This Software Catalog installer does not support multi-zone (MZR) clusters - see https://ibm.biz/cp4i-swcat-limitations for more details, or please try again with a cluster with all nodes in a single zone"
   check=1
 else
   echo -e "$tick INFO: Cluster nodes are all in a single zone"
-fi
-
-if [[ ! -z $namespace ]] && [[ "${demoPreparation}" == "true" ]]; then
-  if [ "${#namespace}" -gt 9 ]; then
-    echo -e "$cross ERROR: When using demo preparation the project name must be 9 characters long or less"
-    check=1
-  else
-    echo -e "$tick INFO: Project name length ok"
-  fi
 fi
 
 if [[ $navReplicaCount -le 0 ]]; then

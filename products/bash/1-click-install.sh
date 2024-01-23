@@ -14,26 +14,17 @@
 #   - If running without parameters, all parameters must be set as environment variables
 #
 # PARAMETERS:
-#   -a : <eventEnabledInsuranceDemo> (string), If event enabled insurance demo is to be setup. Defaults to "false"
 #   -b : <demoDeploymentBranch> (string), The demo deployment branch to be used, Defaults to 'main'
 #   -c : <DEFAULT_FILE_STORAGE> (string), Defines the default file storage for the cluster. Defaults to "cp4i-file-performance-gid"
-#   -d : <demoPreparation> (string), If all demos are to be setup. Defaults to "false"
-#   -e : <demoAPICEmailAddress> (string), The email address APIC uses to notify of portal configuration. Defaults to "your@email.address"
-#   -f : <drivewayDentDeletionDemo> (string),  If driveway dent deletion demo is to be setup. Defaults to "false"
 #   -g : <DEFAULT_BLOCK_STORAGE> (string), Defines the default block storage for the cluster. Defaults to "cp4i-block-performance"
-#   -h : <demoAPICMailServerHost> (string), Host name of the mail server. Defaults to "smtp.mailtrap.io"
 #   -j : <tempERKey> (string), IAM API key for accessing the entitled registry.
 #   -k : <tempRepo> (string), For accessing different Registry
 #   -l : <DOCKER_REGISTRY_USER> (string), Docker registry username
-#   -m : <demoAPICMailServerUsername> (string), Username for the mail server. Defaults to "<your-username>"
 #   -n : <JOB_NAMESPACE> (string), Namespace for the 1-click install
-#   -o : <demoAPICMailServerPort> (string), Port number of the mail server. Defaults to "2525"
-#   -q : <demoAPICMailServerPassword> (string), Password for the mail server.
 #   -r : <navReplicaCount> (string), Platform navigator replicas, Defaults to 3
 #   -s : <DOCKER_REGISTRY_PASS> (string), Docker registry password
 #   -t : <ENVIRONMENT> (string), Environment for installation, 'staging' when you want to use the staging entitled registry
 #   -v : <useFastStorageClass> (string), If using fast storage class for installation. Defaults to 'true'
-#   -w : <testDrivewayDentDeletionDemoE2E> (string), If testing the Driveway dent deletion demo E2E. Defaults to 'false'
 #   -x : <CLUSTER_TYPE> (string), Defines the cluster type for 1-click installation. Defaults to 'roks'
 #   -y : <CLUSTER_SCOPED> (string) (optional), If the operator and platform navigator install should cluster scoped or not. Defaults to 'false'
 #   -z : <HA_ENABLED> (string), if cluster in single-zone is highly available. Defaults to 'true'
@@ -43,14 +34,14 @@
 #     ./1-click-install.sh  -s <DOCKER_REGISTRY_PASS>
 #
 #   Overriding the params
-#     ./1-click-install.sh -a <eventEnabledInsuranceDemo> -b <demoDeploymentBranch> -c <DEFAULT_FILE_STORAGE> -d <demoPreparation> -e <demoAPICEmailAddress> -f <drivewayDentDeletionDemo> -g <DEFAULT_BLOCK_STORAGE> -h <demoAPICMailServerHost> -j <tempERKey> -k <tempRepo> -l <DOCKER_REGISTRY_USER> -m <demoAPICMailServerUsername> -n <JOB_NAMESPACE> -o <demoAPICMailServerPort> -q <demoAPICMailServerPassword> -r <navReplicaCount> -s <DOCKER_REGISTRY_PASS> -t <ENVIRONMENT> -v <useFastStorageClass> -w <testDrivewayDentDeletionDemoE2E> -x <CLUSTER_TYPE> -y -z <HA_ENABLED>
+#     ./1-click-install.sh -b <demoDeploymentBranch> -c <DEFAULT_FILE_STORAGE> -g <DEFAULT_BLOCK_STORAGE> -j <tempERKey> -k <tempRepo> -l <DOCKER_REGISTRY_USER> -n <JOB_NAMESPACE> -r <navReplicaCount> -s <DOCKER_REGISTRY_PASS> -t <ENVIRONMENT> -v <useFastStorageClass> -x <CLUSTER_TYPE> -y -z <HA_ENABLED>
 
 function divider() {
   echo -e "\n-------------------------------------------------------------------------------------------------------------------\n"
 }
 
 function usage() {
-  echo "Usage: $0 -a <eventEnabledInsuranceDemo> -b <demoDeploymentBranch> -c <DEFAULT_FILE_STORAGE> -d <demoPreparation> -e <demoAPICEmailAddress> -f <drivewayDentDeletionDemo> -g <DEFAULT_BLOCK_STORAGE> -h <demoAPICMailServerHost> -j <tempERKey> -k <tempRepo> -l <DOCKER_REGISTRY_USER> -m <demoAPICMailServerUsername> -n <JOB_NAMESPACE> -o <demoAPICMailServerPort> -q <demoAPICMailServerPassword> -r <navReplicaCount> -s <DOCKER_REGISTRY_PASS> -t <ENVIRONMENT> -v <useFastStorageClass> -w <testDrivewayDentDeletionDemoE2E> -x <CLUSTER_TYPE> -A <cognitiveCarRepairDemo> -B <mappingAssistDemo> -C <weatherChatbotDemo> [-y]"
+  echo "Usage: $0 -b <demoDeploymentBranch> -c <DEFAULT_FILE_STORAGE> -g <DEFAULT_BLOCK_STORAGE> -j <tempERKey> -k <tempRepo> -l <DOCKER_REGISTRY_USER> -n <JOB_NAMESPACE> -r <navReplicaCount> -s <DOCKER_REGISTRY_PASS> -t <ENVIRONMENT> -v <useFastStorageClass> -x <CLUSTER_TYPE> [-y]"
   divider
   exit 1
 }
@@ -66,31 +57,16 @@ CLUSTER_TYPE="roks"
 CLUSTER_SCOPED="false"
 HA_ENABLED="true"
 
-while getopts "a:b:c:d:e:f:g:h:j:k:l:m:n:o:q:r:s:t:v:w:x:z:A:B:C:y" opt; do
+while getopts "b:c:g:j:k:l:n:r:s:t:v:x:z:y" opt; do
   case ${opt} in
-  a)
-    eventEnabledInsuranceDemo="$OPTARG"
-    ;;
   b)
     demoDeploymentBranch="$OPTARG"
     ;;
   c)
     DEFAULT_FILE_STORAGE="$OPTARG"
     ;;
-  d)
-    demoPreparation="$OPTARG"
-    ;;
-  e)
-    demoAPICEmailAddress="$OPTARG"
-    ;;
-  f)
-    drivewayDentDeletionDemo="$OPTARG"
-    ;;
   g)
     DEFAULT_BLOCK_STORAGE="$OPTARG"
-    ;;
-  h)
-    demoAPICMailServerHost="$OPTARG"
     ;;
   j)
     tempERKey="$OPTARG"
@@ -101,17 +77,8 @@ while getopts "a:b:c:d:e:f:g:h:j:k:l:m:n:o:q:r:s:t:v:w:x:z:A:B:C:y" opt; do
   l)
     DOCKER_REGISTRY_USER="$OPTARG"
     ;;
-  m)
-    demoAPICMailServerUsername="$OPTARG"
-    ;;
   n)
     JOB_NAMESPACE="$OPTARG"
-    ;;
-  o)
-    demoAPICMailServerPort="$OPTARG"
-    ;;
-  q)
-    demoAPICMailServerPassword="$OPTARG"
     ;;
   r)
     navReplicaCount="$OPTARG"
@@ -125,9 +92,6 @@ while getopts "a:b:c:d:e:f:g:h:j:k:l:m:n:o:q:r:s:t:v:w:x:z:A:B:C:y" opt; do
   v)
     useFastStorageClass="$OPTARG"
     ;;
-  w)
-    testDrivewayDentDeletionDemoE2E="$OPTARG"
-    ;;
   x)
     CLUSTER_TYPE="$OPTARG"
     ;;
@@ -136,15 +100,6 @@ while getopts "a:b:c:d:e:f:g:h:j:k:l:m:n:o:q:r:s:t:v:w:x:z:A:B:C:y" opt; do
     ;;
   z)
     HA_ENABLED="$OPTARG"
-    ;;
-  A)
-    cognitiveCarRepairDemo="$OPTARG"
-    ;;
-  B)
-    mappingAssistDemo="$OPTARG"
-    ;;
-  C)
-     weatherChatbotDemo="$OPTARG"
     ;;
   \?)
     usage
@@ -165,11 +120,6 @@ if [[ -z "${navReplicaCount// /}" ]]; then
   MISSING_PARAMS="true"
 fi
 
-if [[ -z "${demoPreparation// /}" ]]; then
-  echo -e "$CROSS [ERROR] 1-click install demo preparation parameter is empty (-d). Setting the default value of 'false' for it."
-  demoPreparation="false"
-fi
-
 if [[ -z "${ENVIRONMENT// /}" ]]; then
   echo -e "$CROSS [ERROR] 1-click install environment is empty. Please provide a value for '-t' parameter."
   MISSING_PARAMS="true"
@@ -180,24 +130,9 @@ if [[ -z "${demoDeploymentBranch// /}" ]]; then
   demoDeploymentBranch="main"
 fi
 
-if [[ -z "${eventEnabledInsuranceDemo// /}" ]]; then
-  echo -e "$INFO [INFO] 1-click install event enabled insurance parameter is empty (-a). Setting the default value of 'false' for it."
-  eventEnabledInsuranceDemo="false"
-fi
-
-if [[ -z "${drivewayDentDeletionDemo// /}" ]]; then
-  echo -e "$INFO [INFO] 1-click install driveway dent deletion parameter is empty (-f). Setting the default value of 'false' for it."
-  drivewayDentDeletionDemo="false"
-fi
-
 if [[ -z "${useFastStorageClass// /}" ]]; then
   echo -e "$INFO [INFO] 1-click install fast storage class flag is empty (-v). Setting the default value of 'false' for it."
   useFastStorageClass="false"
-fi
-
-if [[ -z "${testDrivewayDentDeletionDemoE2E// /}" ]]; then
-  echo -e "$INFO [INFO] 1-click install test driveway dent deletion demo parameter is empty (-w). Setting the default value of 'false' for it."
-  testDrivewayDentDeletionDemoE2E="false"
 fi
 
 if [[ -z "${DOCKER_REGISTRY_PASS// /}" ]]; then
@@ -225,21 +160,6 @@ if [[ -z "${HA_ENABLED// /}" ]]; then
   MISSING_PARAMS="true"
 fi
 
-if [[ -z "${cognitiveCarRepairDemo// /}" ]]; then
-  echo -e "$INFO [INFO] 1-click install Cognitive Car Repair parameter is empty (-A). Setting the default value of 'false' for it."
-  cognitiveCarRepairDemo="false"
-fi
-
-if [[ -z "${mappingAssistDemo// /}" ]]; then
-  echo -e "$INFO [INFO] 1-click install Mapping Assist parameter is empty (-B). Setting the default value of 'false' for it."
-  mappingAssistDemo="false"
-fi
-
-if [[ -z "${weatherChatbotDemo// /}" ]]; then
-  echo -e "$INFO [INFO] 1-click install Weather Chatbot parameter is empty (-C). Setting the default value of 'false' for it."
-  weatherChatbotDemo="false"
-fi
-
 if [[ "$MISSING_PARAMS" == "true" ]]; then
   divider
   exit 1
@@ -247,34 +167,6 @@ fi
 
 export CLUSTER_TYPE=$CLUSTER_TYPE
 export CLUSTER_SCOPED=$CLUSTER_SCOPED
-
-if [[ "$demoPreparation" == "true" ]]; then
-  cognitiveCarRepairDemo=true
-  drivewayDentDeletionDemo=true
-  eventEnabledInsuranceDemo=true
-  mappingAssistDemo=true
-  weatherChatbotDemo=true
-fi
-
-if [[ "$drivewayDentDeletionDemo" == "true" ]]; then
-  drivewayDentDeletionDemo=true
-fi
-
-if [[ "$eventEnabledInsuranceDemo" == "true" ]]; then
-  eventEnabledInsuranceDemo=true
-fi
-
-if [[ "$cognitiveCarRepairDemo" == "true" ]]; then
-  cognitiveCarRepairDemo=true
-fi
-
-if [[ "$mappingAssistDemo" == "true" ]]; then
-  mappingAssistDemo=true
-fi
-
-if [[ "$weatherChatbotDemo" == "true" ]]; then
-  weatherChatbotDemo=true
-fi
 
 if [[ "$CLUSTER_SCOPED" == "true" ]]; then
   DEPLOY_OPERATOR_NAMESPACE="openshift-operators"
@@ -290,28 +182,17 @@ echo -e "$INFO [INFO] Cluster scoped operator install: '$CLUSTER_SCOPED'"
 echo -e "$INFO [INFO] Namespace for setting up the operators: '$DEPLOY_OPERATOR_NAMESPACE'"
 echo -e "$INFO [INFO] Navigator replica count: '$navReplicaCount'"
 echo -e "$INFO [INFO] Demo deployment branch: '$demoDeploymentBranch'"
-echo -e "$INFO [INFO] Setup all demos: '$demoPreparation'"
-echo -e "$INFO [INFO] Setup event enabled insurance demo: '$eventEnabledInsuranceDemo'"
-echo -e "$INFO [INFO] Setup driveway dent deletion demo: '$drivewayDentDeletionDemo'"
-echo -e "$INFO [INFO] Setup cognitive car repair demo: '$cognitiveCarRepairDemo'"
-echo -e "$INFO [INFO] Setup mapping assist demo: '$mappingAssistDemo'"
-echo -e "$INFO [INFO] Setup weather chatbot demo: '$weatherChatbotDemo'"
-echo -e "$INFO [INFO] APIC email address: '$demoAPICEmailAddress'"
-echo -e "$INFO [INFO] APIC mail server hostname: '$demoAPICMailServerHost'"
-echo -e "$INFO [INFO] APIC mail server port: '$demoAPICMailServerPort'"
-echo -e "$INFO [INFO] APIC mail server username: '$demoAPICMailServerUsername'"
 echo -e "$INFO [INFO] Image repository for downloading images: '$IMAGE_REPO'"
 echo -e "$INFO [INFO] Temporary ER repository: '$tempRepo'"
 echo -e "$INFO [INFO] Docker registry username: '$DOCKER_REGISTRY_USER'"
 echo -e "$INFO [INFO] Environment for installation: '$ENVIRONMENT'"
 echo -e "$INFO [INFO] If using fast storage for the installation: '$useFastStorageClass'"
-echo -e "$INFO [INFO] If testing the driveway dent deletion demo E2E: '$testDrivewayDentDeletionDemoE2E'"
 
 divider
 
 
 echo -e "$INFO [INFO] Doing a validation check before installation..."
-if ! $CURRENT_DIR/1-click-pre-validation.sh -n "$JOB_NAMESPACE" -r "$navReplicaCount" -d "$demoPreparation"; then
+if ! $CURRENT_DIR/1-click-pre-validation.sh -n "$JOB_NAMESPACE" -r "$navReplicaCount"; then
   echo -e "$CROSS [ERROR] 1-click pre validation failed"
   divider
   exit 1
@@ -448,71 +329,5 @@ else
 fi
 
 divider
-
-if [[ "$demoPreparation" == "true" || "$drivewayDentDeletionDemo" == "true" || "$eventEnabledInsuranceDemo" == "true" || "$cognitiveCarRepairDemo" == "true" || "$mappingAssistDemo" == "true" || "$weatherChatbotDemo" == "true" ]]; then
-  divider && echo -e "$INFO [INFO] Setting up all required addons, products and demos in the '$JOB_NAMESPACE' namespace..."
-  CURRENT_DIR_WITHOUT_DOT_SLASH=${CURRENT_DIR//.\//}
-
-  # create a new backup json file to revert demos.json after setup script
-  cp $CURRENT_DIR_WITHOUT_DOT_SLASH/demos.json $CURRENT_DIR_WITHOUT_DOT_SLASH/demos-backup.json
-
-
-  echo -e "\n$INFO [INFO] Replacing all variables with their values in the demo json file to use as input for the demo script..."
-  # replace demo.json with variable values
-  sed -i -e "s/JOB_NAMESPACE/$JOB_NAMESPACE/g" $CURRENT_DIR_WITHOUT_DOT_SLASH/demos.json
-  sed -i -e "s/DEFAULT_BLOCK_STORAGE/$DEFAULT_BLOCK_STORAGE/g" $CURRENT_DIR_WITHOUT_DOT_SLASH/demos.json
-  sed -i -e "s/DEFAULT_FILE_STORAGE/$DEFAULT_FILE_STORAGE/g" $CURRENT_DIR_WITHOUT_DOT_SLASH/demos.json
-  sed -i -e "s/DEMO_DEPLOYMENT_BRANCH/$demoDeploymentBranch/g" $CURRENT_DIR_WITHOUT_DOT_SLASH/demos.json
-  sed -i -e "s/PORG_ADMIN_EMAIL/$demoAPICEmailAddress/g" $CURRENT_DIR_WITHOUT_DOT_SLASH/demos.json
-  sed -i -e "s/MAIL_SERVER_HOST/$demoAPICMailServerHost/g" $CURRENT_DIR_WITHOUT_DOT_SLASH/demos.json
-  sed -i -e "s/MAIL_SERVER_PORT/$demoAPICMailServerPort/g" $CURRENT_DIR_WITHOUT_DOT_SLASH/demos.json
-  sed -i -e "s/MAIL_SERVER_USERNAME/$demoAPICMailServerUsername/g" $CURRENT_DIR_WITHOUT_DOT_SLASH/demos.json
-  sed -i -e "s/MAIL_SERVER_PASSWORD/$demoAPICMailServerPassword/g" $CURRENT_DIR_WITHOUT_DOT_SLASH/demos.json
-  sed -i -e "s/DEMO_PREPARATION/$demoPreparation/g" $CURRENT_DIR_WITHOUT_DOT_SLASH/demos.json
-  sed -i -e "s/COGNITIVE_CAR_REPAIR_DEMO/$cognitiveCarRepairDemo/g" $CURRENT_DIR_WITHOUT_DOT_SLASH/demos.json
-  sed -i -e "s/DRIVEWAY_DENT_DELETION_DEMO/$drivewayDentDeletionDemo/g" $CURRENT_DIR_WITHOUT_DOT_SLASH/demos.json
-  sed -i -e "s/EVENT_ENABLED_INSURANCE_DEMO/$eventEnabledInsuranceDemo/g" $CURRENT_DIR_WITHOUT_DOT_SLASH/demos.json
-  sed -i -e "s/MAPPING_ASSIST_DEMO/$mappingAssistDemo/g" $CURRENT_DIR_WITHOUT_DOT_SLASH/demos.json
-  sed -i -e "s/WEATHER_CHATBOT_DEMO/$weatherChatbotDemo/g" $CURRENT_DIR_WITHOUT_DOT_SLASH/demos.json
-
-  echo -e "printing the demos.json"
-  cat $CURRENT_DIR_WITHOUT_DOT_SLASH/demos.json
-
-  retries=1
-  while ! $CURRENT_DIR/setup-demos.sh -i $CURRENT_DIR_WITHOUT_DOT_SLASH/demos.json -o $CURRENT_DIR_WITHOUT_DOT_SLASH/demos-output.json; do
-    if [ $retries -gt 3 ]; then
-      echo -e "\n$CROSS [ERROR] Failed to setup all required addons, products and demos in the '$JOB_NAMESPACE' namespace"
-      divider
-      # restore content of demo json file and delete temporary and backup files
-      cp $CURRENT_DIR_WITHOUT_DOT_SLASH/demos-backup.json $CURRENT_DIR_WITHOUT_DOT_SLASH/demos.json
-      rm -rf $CURRENT_DIR_WITHOUT_DOT_SLASH/demos.json-e $CURRENT_DIR_WITHOUT_DOT_SLASH/demos-backup.json
-      exit 1
-    fi
-    echo -e "\n$INFO [INFO] Failed to setup all required addons, products and demos in the '$JOB_NAMESPACE' namespace, retrying..."
-    divider
-    retries=$((retries + 1))
-  done
-
-  echo -e "$TICK [SUCCESS] Successfully setup all required addons, products and demos in the '$JOB_NAMESPACE' namespace"
-
-  # restore content of demo json file and delete temporary and backup files
-  cp $CURRENT_DIR_WITHOUT_DOT_SLASH/demos-backup.json $CURRENT_DIR_WITHOUT_DOT_SLASH/demos.json
-  rm -rf $CURRENT_DIR_WITHOUT_DOT_SLASH/demos.json-e $CURRENT_DIR_WITHOUT_DOT_SLASH/demos-backup.json
-
-  divider
-
-  if [[ ("$demoPreparation" == "true" || "$drivewayDentDeletionDemo" == "true") && ("$testDrivewayDentDeletionDemoE2E" == "true") ]]; then
-    echo -e "$INFO [INFO] Running an automated test for the driveway dent deletion demo in the '$JOB_NAMESPACE' namespace..."
-    if ! $CURRENT_DIR/../../DrivewayDentDeletion/Operators/test-ddd.sh -n "$JOB_NAMESPACE" -b "$demoDeploymentBranch" -f "$DEFAULT_FILE_STORAGE" -g "$DEFAULT_BLOCK_STORAGE" -a "$HA_ENABLED"; then
-      echo -e "$CROSS [ERROR] Failed to run automated test for driveway dent deletion demo in the '$JOB_NAMESPACE' namespace"
-      divider
-      exit 1
-    else
-      echo -e "$TICK [SUCCESS] Successfully ran the automated test for driveway dent deletion demo in the '$JOB_NAMESPACE' namespace"
-    fi
-  elif [[ "$demoPreparation" == "false" && "$drivewayDentDeletionDemo" == "false" && "$testDrivewayDentDeletionDemoE2E" == "true" ]]; then
-    echo -e "$INFO [INFO] 'testDrivewayDentDeletionDemoE2E' option was set to 'true'.\n\n$INFO [INFO] To run an automated test for driveway dent deletion demo, set the 'demoPreparation' or 'drivewayDentDeletionDemo' option to 'true' along with the 'testDrivewayDentDeletionDemoE2E' option as 'true'."
-  fi
-fi
 
 divider && echo -e "$INFO [INFO] The 1-click installation took $(($SECONDS / 60 / 60 % 24)) hour(s) $(($SECONDS / 60 % 60)) minutes and $(($SECONDS % 60)) seconds." && divider
