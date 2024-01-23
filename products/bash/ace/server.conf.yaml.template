@@ -1,3 +1,0 @@
-serverConfVersion: 1
-BrokerRegistry:
-  mqKeyRepository: /home/aceuser/generic/mq-certs/application
