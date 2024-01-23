@@ -28,12 +28,10 @@
 #   -m : <demoAPICMailServerUsername> (string), Username for the mail server. Defaults to "<your-username>"
 #   -n : <JOB_NAMESPACE> (string), Namespace for the 1-click install
 #   -o : <demoAPICMailServerPort> (string), Port number of the mail server. Defaults to "2525"
-#   -p : <csDefaultAdminPassword> (string), Common service default admin password
 #   -q : <demoAPICMailServerPassword> (string), Password for the mail server.
 #   -r : <navReplicaCount> (string), Platform navigator replicas, Defaults to 3
 #   -s : <DOCKER_REGISTRY_PASS> (string), Docker registry password
 #   -t : <ENVIRONMENT> (string), Environment for installation, 'staging' when you want to use the staging entitled registry
-#   -u : <csDefaultAdminUser> (string), Default common service username. Defaults to "admin"
 #   -v : <useFastStorageClass> (string), If using fast storage class for installation. Defaults to 'true'
 #   -w : <testDrivewayDentDeletionDemoE2E> (string), If testing the Driveway dent deletion demo E2E. Defaults to 'false'
 #   -x : <CLUSTER_TYPE> (string), Defines the cluster type for 1-click installation. Defaults to 'roks'
@@ -42,17 +40,17 @@
 #
 # USAGE:
 #   With defaults values
-#     ./1-click-install.sh -p <csDefaultAdminPassword> -s <DOCKER_REGISTRY_PASS>
+#     ./1-click-install.sh  -s <DOCKER_REGISTRY_PASS>
 #
 #   Overriding the params
-#     ./1-click-install.sh -a <eventEnabledInsuranceDemo> -b <demoDeploymentBranch> -c <DEFAULT_FILE_STORAGE> -d <demoPreparation> -e <demoAPICEmailAddress> -f <drivewayDentDeletionDemo> -g <DEFAULT_BLOCK_STORAGE> -h <demoAPICMailServerHost> -j <tempERKey> -k <tempRepo> -l <DOCKER_REGISTRY_USER> -m <demoAPICMailServerUsername> -n <JOB_NAMESPACE> -o <demoAPICMailServerPort> -p <csDefaultAdminPassword> -q <demoAPICMailServerPassword> -r <navReplicaCount> -s <DOCKER_REGISTRY_PASS> -t <ENVIRONMENT> -u <csDefaultAdminUser> -v <useFastStorageClass> -w <testDrivewayDentDeletionDemoE2E> -x <CLUSTER_TYPE> -y -z <HA_ENABLED>
+#     ./1-click-install.sh -a <eventEnabledInsuranceDemo> -b <demoDeploymentBranch> -c <DEFAULT_FILE_STORAGE> -d <demoPreparation> -e <demoAPICEmailAddress> -f <drivewayDentDeletionDemo> -g <DEFAULT_BLOCK_STORAGE> -h <demoAPICMailServerHost> -j <tempERKey> -k <tempRepo> -l <DOCKER_REGISTRY_USER> -m <demoAPICMailServerUsername> -n <JOB_NAMESPACE> -o <demoAPICMailServerPort> -q <demoAPICMailServerPassword> -r <navReplicaCount> -s <DOCKER_REGISTRY_PASS> -t <ENVIRONMENT> -v <useFastStorageClass> -w <testDrivewayDentDeletionDemoE2E> -x <CLUSTER_TYPE> -y -z <HA_ENABLED>
 
 function divider() {
   echo -e "\n-------------------------------------------------------------------------------------------------------------------\n"
 }
 
 function usage() {
-  echo "Usage: $0 -a <eventEnabledInsuranceDemo> -b <demoDeploymentBranch> -c <DEFAULT_FILE_STORAGE> -d <demoPreparation> -e <demoAPICEmailAddress> -f <drivewayDentDeletionDemo> -g <DEFAULT_BLOCK_STORAGE> -h <demoAPICMailServerHost> -j <tempERKey> -k <tempRepo> -l <DOCKER_REGISTRY_USER> -m <demoAPICMailServerUsername> -n <JOB_NAMESPACE> -o <demoAPICMailServerPort> -p <csDefaultAdminPassword> -q <demoAPICMailServerPassword> -r <navReplicaCount> -s <DOCKER_REGISTRY_PASS> -t <ENVIRONMENT> -u <csDefaultAdminUser> -v <useFastStorageClass> -w <testDrivewayDentDeletionDemoE2E> -x <CLUSTER_TYPE> -A <cognitiveCarRepairDemo> -B <mappingAssistDemo> -C <weatherChatbotDemo> [-y]"
+  echo "Usage: $0 -a <eventEnabledInsuranceDemo> -b <demoDeploymentBranch> -c <DEFAULT_FILE_STORAGE> -d <demoPreparation> -e <demoAPICEmailAddress> -f <drivewayDentDeletionDemo> -g <DEFAULT_BLOCK_STORAGE> -h <demoAPICMailServerHost> -j <tempERKey> -k <tempRepo> -l <DOCKER_REGISTRY_USER> -m <demoAPICMailServerUsername> -n <JOB_NAMESPACE> -o <demoAPICMailServerPort> -q <demoAPICMailServerPassword> -r <navReplicaCount> -s <DOCKER_REGISTRY_PASS> -t <ENVIRONMENT> -v <useFastStorageClass> -w <testDrivewayDentDeletionDemoE2E> -x <CLUSTER_TYPE> -A <cognitiveCarRepairDemo> -B <mappingAssistDemo> -C <weatherChatbotDemo> [-y]"
   divider
   exit 1
 }
@@ -68,7 +66,7 @@ CLUSTER_TYPE="roks"
 CLUSTER_SCOPED="false"
 HA_ENABLED="true"
 
-while getopts "a:b:c:d:e:f:g:h:j:k:l:m:n:o:p:q:r:s:t:u:v:w:x:z:A:B:C:y" opt; do
+while getopts "a:b:c:d:e:f:g:h:j:k:l:m:n:o:q:r:s:t:v:w:x:z:A:B:C:y" opt; do
   case ${opt} in
   a)
     eventEnabledInsuranceDemo="$OPTARG"
@@ -112,9 +110,6 @@ while getopts "a:b:c:d:e:f:g:h:j:k:l:m:n:o:p:q:r:s:t:u:v:w:x:z:A:B:C:y" opt; do
   o)
     demoAPICMailServerPort="$OPTARG"
     ;;
-  p)
-    csDefaultAdminPassword="$OPTARG"
-    ;;
   q)
     demoAPICMailServerPassword="$OPTARG"
     ;;
@@ -126,9 +121,6 @@ while getopts "a:b:c:d:e:f:g:h:j:k:l:m:n:o:p:q:r:s:t:u:v:w:x:z:A:B:C:y" opt; do
     ;;
   t)
     ENVIRONMENT="$OPTARG"
-    ;;
-  u)
-    csDefaultAdminUser="$OPTARG"
     ;;
   v)
     useFastStorageClass="$OPTARG"
@@ -173,19 +165,9 @@ if [[ -z "${navReplicaCount// /}" ]]; then
   MISSING_PARAMS="true"
 fi
 
-if [[ -z "${csDefaultAdminUser// /}" ]]; then
-  echo -e "$CROSS [ERROR] 1-click install default admin username is empty. Please provide a value for '-u' parameter."
-  MISSING_PARAMS="true"
-fi
-
 if [[ -z "${demoPreparation// /}" ]]; then
   echo -e "$CROSS [ERROR] 1-click install demo preparation parameter is empty (-d). Setting the default value of 'false' for it."
   demoPreparation="false"
-fi
-
-if [[ -z "${csDefaultAdminPassword// /}" ]]; then
-  echo -e "$CROSS [ERROR] 1-click install default admin password is empty. Please provide a value for '-p' parameter."
-  MISSING_PARAMS="true"
 fi
 
 if [[ -z "${ENVIRONMENT// /}" ]]; then
@@ -308,7 +290,6 @@ echo -e "$INFO [INFO] Cluster scoped operator install: '$CLUSTER_SCOPED'"
 echo -e "$INFO [INFO] Namespace for setting up the operators: '$DEPLOY_OPERATOR_NAMESPACE'"
 echo -e "$INFO [INFO] Navigator replica count: '$navReplicaCount'"
 echo -e "$INFO [INFO] Demo deployment branch: '$demoDeploymentBranch'"
-echo -e "$INFO [INFO] Default common service username: '$csDefaultAdminUser'"
 echo -e "$INFO [INFO] Setup all demos: '$demoPreparation'"
 echo -e "$INFO [INFO] Setup event enabled insurance demo: '$eventEnabledInsuranceDemo'"
 echo -e "$INFO [INFO] Setup driveway dent deletion demo: '$drivewayDentDeletionDemo'"
@@ -328,8 +309,9 @@ echo -e "$INFO [INFO] If testing the driveway dent deletion demo E2E: '$testDriv
 
 divider
 
+
 echo -e "$INFO [INFO] Doing a validation check before installation..."
-if ! $CURRENT_DIR/1-click-pre-validation.sh -n "$JOB_NAMESPACE" -p "$csDefaultAdminPassword" -r "$navReplicaCount" -u "$csDefaultAdminUser" -d "$demoPreparation"; then
+if ! $CURRENT_DIR/1-click-pre-validation.sh -n "$JOB_NAMESPACE" -r "$navReplicaCount" -d "$demoPreparation"; then
   echo -e "$CROSS [ERROR] 1-click pre validation failed"
   divider
   exit 1
@@ -455,17 +437,7 @@ fi
 
 divider
 
-if [[ $(echo "$CLUSTER_TYPE" | tr '[:upper:]' '[:lower:]') == "roks" ]]; then
-  if ! $CURRENT_DIR/setup-roks-iam.sh; then
-    echo -e "$CROSS [ERROR] Failed to setup iam for roks cluster"
-    divider
-    exit 1
-  else
-    echo -e "\n$TICK [SUCCESS] IAM setup for roks cluster"
-  fi
-fi
-
-divider
+echo "release-nav"
 
 if ! $CURRENT_DIR/release-navigator.sh -n "$JOB_NAMESPACE" -r "$navReplicaCount" -s "$DEFAULT_FILE_STORAGE" ; then
   echo -e "$CROSS [ERROR] Failed to release navigator"
@@ -476,20 +448,6 @@ else
 fi
 
 divider
-
-# Only update common services username and password if common services is not already installed
-PASSWORD_CHANGE_FAILED="false"
-if [ "$PASSWORD_CHANGE" == "true" ]; then
-  if $CURRENT_DIR/change-cs-credentials.sh -u "$csDefaultAdminUser" -p "$csDefaultAdminPassword"; then
-    echo -e "$TICK [SUCCESS] Successfully updated the common services admin username/password"
-  else
-    echo -e "$CROSS [WARNING] Failed to update the common services admin username/password, continuing anyway..."
-    PASSWORD_CHANGE_FAILED="true"
-  fi
-else
-  echo -e "$INFO [INFO] Retrieve the common service username using the command 'oc get secrets -n ibm-common-services platform-auth-idp-credentials -o jsonpath='{.data.admin_username}' | base64 --decode' "
-  echo -e "$INFO [INFO] Retrieve the common service password using the command 'oc get secrets -n ibm-common-services platform-auth-idp-credentials -o jsonpath='{.data.admin_password}' | base64 --decode' "
-fi
 
 if [[ "$demoPreparation" == "true" || "$drivewayDentDeletionDemo" == "true" || "$eventEnabledInsuranceDemo" == "true" || "$cognitiveCarRepairDemo" == "true" || "$mappingAssistDemo" == "true" || "$weatherChatbotDemo" == "true" ]]; then
   divider && echo -e "$INFO [INFO] Setting up all required addons, products and demos in the '$JOB_NAMESPACE' namespace..."
@@ -555,12 +513,6 @@ if [[ "$demoPreparation" == "true" || "$drivewayDentDeletionDemo" == "true" || "
   elif [[ "$demoPreparation" == "false" && "$drivewayDentDeletionDemo" == "false" && "$testDrivewayDentDeletionDemoE2E" == "true" ]]; then
     echo -e "$INFO [INFO] 'testDrivewayDentDeletionDemoE2E' option was set to 'true'.\n\n$INFO [INFO] To run an automated test for driveway dent deletion demo, set the 'demoPreparation' or 'drivewayDentDeletionDemo' option to 'true' along with the 'testDrivewayDentDeletionDemoE2E' option as 'true'."
   fi
-fi
-
-if [ "$PASSWORD_CHANGE_FAILED" == "true" ]; then
-  echo -e "$CROSS [WARNING] Failed to update the common services admin username/password."
-  echo -e "$INFO [INFO] Retrieve the common service username using the command 'oc get secrets -n ibm-common-services platform-auth-idp-credentials -o jsonpath='{.data.admin_username}' | base64 --decode' "
-  echo -e "$INFO [INFO] Retrieve the common service password using the command 'oc get secrets -n ibm-common-services platform-auth-idp-credentials -o jsonpath='{.data.admin_password}' | base64 --decode' "
 fi
 
 divider && echo -e "$INFO [INFO] The 1-click installation took $(($SECONDS / 60 / 60 % 24)) hour(s) $(($SECONDS / 60 % 60)) minutes and $(($SECONDS % 60)) seconds." && divider

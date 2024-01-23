@@ -13,31 +13,28 @@
 #   - Logged into cluster on the OC CLI (https://docs.openshift.com/container-platform/4.4/cli_reference/openshift_cli/getting-started-cli.html)
 #
 # PARAMETERS:
-#   -p : <csDefaultAdminPassword> (string), common services default admin password
 #   -r : <navReplicaCount> (string), Platform navigator replica count, Defaults to "3"
-#   -u : <csDefaultAdminUser> (string), Common services default admin username, Defaults to "admin"
 #   -d : <demoPreparation> (string), If all demos are to be setup. Defaults to "false"
 #   -n : <namespace> (string), Namespace for the 1-click validation. Defaults to "cp4i"
 #
 # USAGE:
 #   With defaults values
-#     ./1-click-pre-validation.sh -p <csDefaultAdminPassword>
+#     ./1-click-pre-validation.sh 
 #
 #   Overriding the namespace and release-name
-#     ./1-click-pre-validation.sh -n <namespace> -p <csDefaultAdminPassword> -r <navReplicaCount> -u <csDefaultAdminUser> -d <demoPreparation>
+#     ./1-click-pre-validation.sh -n <namespace> -r <navReplicaCount> -d <demoPreparation>
 
 function divider() {
   echo -e "\n-------------------------------------------------------------------------------------------------------------------\n"
 }
 
 function usage() {
-  echo "Usage: $0 -n <namespace> -p <csDefaultAdminPassword> -r <navReplicaCount> -u <csDefaultAdminUser> -d <demoPreparation>"
+  echo "Usage: $0 -n <namespace> -r <navReplicaCount> -d <demoPreparation>"
   divider
   exit 1
 }
 
 navReplicaCount="3"
-csDefaultAdminUser="admin"
 demoPreparation="false"
 CURRENT_DIR=$(dirname $0)
 tick="\xE2\x9C\x85"
@@ -46,22 +43,16 @@ all_done="\xF0\x9F\x92\xAF"
 info="\xE2\x84\xB9"
 missingParams="false"
 namespace="cp4i"
-MIN_OCP_VERSION=4.10
-MAX_OCP_VERSION=4.12
+MIN_OCP_VERSION=4.12
+MAX_OCP_VERSION=4.14
 
-while getopts "p:r:u:d:n:" opt; do
+while getopts "p:r:d:n:" opt; do
   case ${opt} in
   n)
     namespace="$OPTARG"
     ;;
-  p)
-    csDefaultAdminPassword="$OPTARG"
-    ;;
   r)
     navReplicaCount="$OPTARG"
-    ;;
-  u)
-    csDefaultAdminUser="$OPTARG"
     ;;
   d)
     demoPreparation="$OPTARG"
@@ -72,11 +63,6 @@ while getopts "p:r:u:d:n:" opt; do
   esac
 done
 
-if [[ -z "${csDefaultAdminPassword// /}" ]]; then
-  echo -e "$cross ERROR: 1-click validation default admin password is empty. Please provide a value for '-p' parameter."
-  missingParams="true"
-fi
-
 if [[ -z "${namespace// /}" ]]; then
   echo -e "$cross ERROR: 1-click validation namespace is empty. Please provide a value for '-n' parameter."
   missingParams="true"
@@ -84,11 +70,6 @@ fi
 
 if [[ -z "${navReplicaCount// /}" ]]; then
   echo -e "$cross ERROR: 1-click validation platform navigator replica count is empty. Please provide a value for '-r' parameter."
-  missingParams="true"
-fi
-
-if [[ -z "${csDefaultAdminUser// /}" ]]; then
-  echo -e "$cross ERROR: 1-click validation default admin username is empty. Please provide a value for '-u' parameter."
   missingParams="true"
 fi
 
@@ -105,7 +86,6 @@ fi
 divider
 echo -e "$info Current directory: $CURRENT_DIR"
 echo -e "$info Project name: $namespace"
-echo -e "$info Common services admin username: $csDefaultAdminUser"
 echo -e "$info Platform navigator replica count: $navReplicaCount"
 echo -e "$info Setup all demos: $demoPreparation"
 divider
@@ -204,30 +184,6 @@ if [[ $navReplicaCount -le 0 ]]; then
   check=1
 else
   echo -e "$tick INFO: Platform navigator replica count ok"
-fi
-
-export csDefaultAdminUserRegex='^[a-zA-Z]+$'
-if ! [[ "$csDefaultAdminUser" =~ $csDefaultAdminUserRegex ]]; then
-  echo -e "$cross ERROR: Common Services admin username can contain only letters"
-  check=1
-else
-  echo -e "$tick INFO: Common Services admin username ok"
-fi
-
-export csDefaultAdminPasswordRegex='^[a-zA-Z0-9-]+$'
-passwordOK=true
-if [ "${#csDefaultAdminPassword}" -lt 32 ]; then
-  echo -e "$cross ERROR: Common Services admin password should be at least 32 characters long"
-  passwordOK=false
-  check=1
-fi
-if ! [[ "$csDefaultAdminPassword" =~ $csDefaultAdminPasswordRegex ]]; then
-  echo -e "$cross ERROR: Common Services admin password can only include number, letter and -"
-  passwordOK=false
-  check=1
-fi
-if [[ "${passwordOK}" = "true" ]]; then
-  echo -e "$tick INFO: Common Services admin password ok"
 fi
 
 OCP_VERSION=$(oc version -o json | jq -r '.openshiftVersion')
