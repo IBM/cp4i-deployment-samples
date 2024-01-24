@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: jaeger-bookshop-query-api
+  namespace: '{{NAMESPACE}}'
+spec:
+  selector:
+    app: jaeger
+    app.kubernetes.io/component: query
+    app.kubernetes.io/name: jaeger-bookshop-query
+  ports:
+    - name: grpc-api
+      protocol: TCP
+      port: 16685
+    - name: http-api
+      protocol: TCP
+      port: 16686

@@ -1,0 +1,24 @@
+{
+  "name": "bookshop-services",
+  "version": "1.0.0",
+  "description": "Support services for the Bookshop API",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "license": "IBM",
+  "dependencies": {
+    "@opentelemetry/core": "^0.20.0",
+    "@opentelemetry/exporter-jaeger": "^0.20.0",
+    "@opentelemetry/instrumentation-grpc": "^0.20.0",
+    "@opentelemetry/instrumentation-http": "^0.20.0",
+    "@opentelemetry/node": "^0.20.0",
+    "@opentelemetry/propagator-jaeger": "^0.20.0",
+    "@opentelemetry/tracing": "^0.20.0",
+    "axios": "^0.21.1",
+    "express": "^4.17.1",
+    "http-errors": "^1.8.0",
+    "requesterror": "file:../libs/RequestError",
+    "uuid": "^8.3.2"
+  }
+}

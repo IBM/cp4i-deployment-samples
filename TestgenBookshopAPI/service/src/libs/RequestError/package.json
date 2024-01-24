@@ -1,0 +1,11 @@
+{
+  "name": "requesterror",
+  "version": "1.0.0",
+  "description": "Error class for generating http request errors",
+  "main": "requestError.js",
+  "scripts": {
+    "test": "None"
+  },
+  "author": "James Zafar",
+  "license": "ISC"
+}

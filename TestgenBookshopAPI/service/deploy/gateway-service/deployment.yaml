@@ -1,0 +1,38 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+    name: 'bookshop-gateway-v1'
+    namespace: '{{NAMESPACE}}'
+    labels:
+        app: 'bookshop-gateway'
+        version: v1
+spec:
+    replicas: 1
+    selector:
+        matchLabels:
+            app: 'bookshop-gateway'
+            version: v1
+    template:
+        metadata:
+            labels:
+                app: 'bookshop-gateway'
+                version: v1
+        spec:
+            containers:
+            - name: 'gateway'
+              image: '{{REPOSITORY}}/gateway-service:{{TAG}}'
+              ports:
+              - containerPort: 5000
+              env:
+              - name: JAEGER_SERVICE_NAME
+                value: 'bookshop-gateway'
+              - name: JAEGER_ENDPOINT
+                value: '{{JAEGER_ENDPOINT}}'
+              - name: OTEL_EXPORTER_JAEGER_ENDPOINT
+                value: '{{JAEGER_ENDPOINT}}'
+              - name: JAEGER_SAMPLER_TYPE
+                value: const
+              - name: JAEGER_SAMPLER_PARAM
+                value: '1'
+            imagePullSecrets:
+            - name: "artifactory-key"

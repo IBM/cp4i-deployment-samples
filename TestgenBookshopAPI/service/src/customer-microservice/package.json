@@ -1,0 +1,36 @@
+{
+  "name": "synthetic-api",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "start": "node app.js",
+    "dev": "nodemon app.js",
+    "test": "mocha --recursive 'test/**/*.js'"
+  },
+  "dependencies": {
+    "@opentelemetry/core": "^0.20.0",
+    "@opentelemetry/exporter-jaeger": "^0.20.0",
+    "@opentelemetry/instrumentation-grpc": "^0.20.0",
+    "@opentelemetry/instrumentation-http": "^0.20.0",
+    "@opentelemetry/node": "^0.20.0",
+    "@opentelemetry/propagator-jaeger": "^0.20.0",
+    "@opentelemetry/tracing": "^0.20.0",
+    "axios": "^0.21.1",
+    "cookie-parser": "~1.4.5",
+    "debug": "~4.3.1",
+    "express": "~4.17.1",
+    "http-errors": "~1.8.0",
+    "http-request": "file:../libs/httpRequest",
+    "moment": "^2.29.1",
+    "morgan": "~1.10.0",
+    "nodemon": "^2.0.7",
+    "pug": "3.0.2",
+    "requesterror": "file:../libs/RequestError",
+    "uuid": "^8.3.2"
+  },
+  "devDependencies": {
+    "chai": "^4.3.4",
+    "mocha": "^8.3.2",
+    "supertest": "^6.1.3"
+  }
+}
