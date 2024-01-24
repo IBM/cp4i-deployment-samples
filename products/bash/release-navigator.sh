@@ -62,30 +62,27 @@ metadata:
   name: ${namespace}-navigator
   namespace: ${namespace}
 spec:
-  version: 2023.2.1
   license:
     accept: true
-    license: L-YBXJ-ADJNSM
-  mqDashboard: true
+    license: L-VTPK-22YZPK
   replicas: ${replicas}
-  storage:
-    class: ${storage}
+  version: 2023.4.1
 EOF
 )
 OCApplyYAML "$namespace" "$YAML"
 
-# Waiting up to 90 minutes for platform navigator object to be ready
-echo "INFO: Waiting up to 90 minutes for platform navigator object to be ready"
+# Waiting up to 20 minutes for platform navigator object to be ready
+echo "INFO: Waiting up to 20 minutes for platform navigator object to be ready"
 time=0
 
 while [[ "$(oc get PlatformNavigator -n ${namespace} ${namespace}-navigator -o json | jq -r '.status.conditions[] | select(.type=="Ready").status')" != "True" ]]; do
-  if [ $time -gt 90 ]; then
+  if [ $time -gt 20 ]; then
     echo "INFO: The platform navigator object status:"
     echo "INFO: $(oc get PlatformNavigator -n ${namespace} ${namespace}-navigator)"
     echo "ERROR: Exiting installation Platform Navigator object is not ready"
     exit 1
   fi
-  echo "INFO: Waiting up to 90 minutes for platform navigator object to be ready. Waited ${time} minute(s)."
+  echo "INFO: Waiting up to 20 minutes for platform navigator object to be ready. Waited ${time} minute(s)."
 
   time=$((time + 1))
   sleep 60
