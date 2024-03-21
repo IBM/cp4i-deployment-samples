@@ -24,8 +24,8 @@ CURRENT_DIR=$(dirname $0)
 source $CURRENT_DIR/../../products/bash/utils.sh
 
 NAMESPACE="cp4i"
-BLOCK_STORAGE_CLASS="cp4i-block-performance"
-FILE_STORAGE_CLASS="cp4i-file-performance-gid"
+BLOCK_STORAGE_CLASS="ocs-storagecluster-ceph-rbd"
+FILE_STORAGE_CLASS="ocs-storagecluster-cephfs"
 DDD_ENV="dev"
 APIC="false"
 
@@ -68,8 +68,8 @@ else
   PROVIDER_ORG="ddd-demo-test"
 fi
 CATALOG="${PROVIDER_ORG}-catalog"
-PLATFORM_API="https://$(oc get route -n ${NAMESPACE} ademo-mgmt-platform-api -o jsonpath="{.spec.host}")/"
-CERTIFICATE="$(oc get route -n ${NAMESPACE} ademo-mgmt-platform-api -o json | jq -r .spec.tls.caCertificate)"
+PLATFORM_API="https://$(oc get route -n ${NAMESPACE} cp4i-navigator -o jsonpath="{.spec.host}")/"
+CERTIFICATE="$(oc get route -n ${NAMESPACE} cp4i-navigator -o json | jq -r .spec.tls.caCertificate)"
 CERTIFICATE_NEWLINES_REPLACED=$(echo "${CERTIFICATE}" | awk '{printf "%s\\n", $0}')
 
 YAML=""

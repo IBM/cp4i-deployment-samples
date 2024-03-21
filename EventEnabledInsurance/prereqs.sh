@@ -46,8 +46,8 @@ REPO="https://github.com/IBM/cp4i-deployment-samples.git"
 BRANCH="main"
 MISSING_PARAMS="false"
 OMIT_INITIAL_SETUP=false
-DEFAULT_FILE_STORAGE="cp4i-file-performance-gid"
-DEFAULT_BLOCK_STORAGE="ibmc-block-gold"
+DEFAULT_FILE_STORAGE="ocs-storagecluster-cephfs"
+DEFAULT_BLOCK_STORAGE="ocs-storagecluster-ceph-rbd"
 
 while getopts "n:r:b:e:p:of:g:" opt; do
   case ${opt} in

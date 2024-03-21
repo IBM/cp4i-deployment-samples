@@ -28,7 +28,7 @@ CURRENT_DIR=$(dirname $0)
 source $CURRENT_DIR/utils.sh
 dashboard_release_name="ace-dashboard-demo"
 namespace="cp4i"
-storage="cp4i-file-performance-gid"
+storage="ocs-storagecluster-cephfs"
 
 function usage() {
   echo "Usage: $0 -n <namespace> -r <dashboard-release-name>"

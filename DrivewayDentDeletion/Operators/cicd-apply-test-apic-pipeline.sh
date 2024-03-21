@@ -37,13 +37,13 @@ function usage() {
 
 # default vars
 NAMESPACE="cp4i"
-BRANCH="main"
-REPO="https://github.com/IBM/cp4i-deployment-samples.git"
+BRANCH="ddd-changes"
+REPO="https://github.com/drewdouglass1/cp4i-deployment-samples.git"
 CURRENT_DIR=$(dirname $0)
 source $CURRENT_DIR/../../products/bash/utils.sh
 MISSING_PARAMS="false"
-DEFAULT_FILE_STORAGE="cp4i-file-performance-gid"
-DEFAULT_BLOCK_STORAGE="cp4i-block-performance"
+DEFAULT_FILE_STORAGE="ocs-storagecluster-cephfs"
+DEFAULT_BLOCK_STORAGE="ocs-storagecluster-ceph-rbd"
 HA_ENABLED="true"
 
 while getopts "n:r:b:f:g:a:" opt; do
@@ -199,7 +199,7 @@ divider
 echo -e "$INFO [INFO] Your trigger route for the github webhook: $WEBHOOK_ROUTE"
 echo -e "$INFO [INFO] The next step is to add the trigger URL to the forked repository as a webhook with the Content type as 'application/json', which triggers an initial run of the pipeline."
 echo -e "$INFO [INFO] To manually trigger a run of the pipeline use:"
-echo -e "$INFO [INFO]    curl -X POST $WEBHOOK_ROUTE --header \"Content-Type: application/json\" --data '{\"message\":\"Test run\"}'\n"
+echo -e "$INFO [INFO]     curl -X POST $WEBHOOK_ROUTE --header \"Content-Type: application/json\" --data '{\"message\":\"Test run\"}'\n"
 echo -e "$TICK  $ALL_DONE Successfully applied all the cicd pipeline resources and requirements in the '$NAMESPACE' namespace for the apic pipeline of the driveway dent deletion demo"
 
 divider

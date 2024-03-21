@@ -7,9 +7,9 @@ spec:
   general:
     storage:
       block:
-        class: cp4i-block-performance
+        class: ocs-storagecluster-ceph-rbd
       file:
-        class: cp4i-file-performance-gid
+        class: ocs-storagecluster-cephfs
         license:
       accept: true
       ace: L-APEH-BPUCJK
