@@ -34,7 +34,7 @@ CURRENT_DIR=$(dirname $0)
 source $CURRENT_DIR/utils.sh
 namespace="cp4i"
 release_name="demo"
-block_storage="cp4i-block-performance"
+block_storage="ocs-storagecluster-ceph-rbd"
 
 while getopts "n:r:b:" opt; do
   case ${opt} in

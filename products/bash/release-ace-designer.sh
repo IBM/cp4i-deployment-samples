@@ -27,8 +27,8 @@ CURRENT_DIR=$(dirname $0)
 source $CURRENT_DIR/utils.sh
 designer_release_name="ace-designer-demo"
 namespace="cp4i"
-storage="cp4i-block-performance"
-file_storage="cp4i-file-performance-gid"
+storage="ocs-storagecluster-ceph-rbd"
+file_storage="ocs-storagecluster-cephfs"
 
 function usage() {
   echo "Usage: $0 -n <namespace> -r <designer_release_name>"

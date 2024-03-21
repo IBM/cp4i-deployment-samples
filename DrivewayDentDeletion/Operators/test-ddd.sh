@@ -49,8 +49,8 @@ BRANCH="main"
 FORKED_REPO="https://github.com/IBM/cp4i-deployment-samples.git"
 TKN_INSTALLED=false
 JQ_INSTALLED=false
-DEFAULT_FILE_STORAGE="cp4i-file-performance-gid"
-DEFAULT_BLOCK_STORAGE="cp4i-block-performance"
+DEFAULT_FILE_STORAGE="ocs-storagecluster-cephfs"
+DEFAULT_BLOCK_STORAGE="ocs-storagecluster-ceph-rbd"
 HA_ENABLED="true"
 
 while getopts "n:r:b:f:g:a:" opt; do

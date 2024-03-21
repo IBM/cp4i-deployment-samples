@@ -29,7 +29,7 @@ function usage() {
 
 namespace="cp4i"
 replicas="1"
-storage="cp4i-file-performance-gid"
+storage="ocs-storagecluster-cephfs"
 
 SCRIPT_DIR="$(dirname $0)"
 source $SCRIPT_DIR/utils.sh

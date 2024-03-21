@@ -44,8 +44,8 @@ POSTGRES_NAMESPACE=
 REPO="https://github.com/IBM/cp4i-deployment-samples.git"
 BRANCH="main"
 TKN=tkn
-DEFAULT_FILE_STORAGE="cp4i-file-performance-gid"
-DEFAULT_BLOCK_STORAGE="cp4i-block-performance"
+DEFAULT_FILE_STORAGE="ocs-storagecluster-cephfs"
+DEFAULT_BLOCK_STORAGE="ocs-storagecluster-ceph-rbd"
 
 while getopts "n:r:b:t:f:g:" opt; do
   case ${opt} in
