@@ -332,7 +332,7 @@ divider
 
 echo "release-assets"
 
-if ! $CURRENT_DIR/release-assetrepo.sh -n "$JOB_NAMESPACE" -r "$navReplicaCount" -s "$DEFAULT_BLOCK_STORAGE" ; then
+if ! $CURRENT_DIR/release-assetrepo.sh -n "$JOB_NAMESPACE" -r "$assetRepoReplicaCount" -s "$DEFAULT_BLOCK_STORAGE" ; then
   echo -e "$CROSS [ERROR] Failed to release asset repo"
   divider
   exit 1
