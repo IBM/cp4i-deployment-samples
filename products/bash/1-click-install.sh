@@ -330,4 +330,16 @@ fi
 
 divider
 
+echo "release-assets"
+
+if ! $CURRENT_DIR/release-assetrepo.sh -n "$JOB_NAMESPACE" -r "$navReplicaCount" -s "$DEFAULT_BLOCK_STORAGE" ; then
+  echo -e "$CROSS [ERROR] Failed to release asset repo"
+  divider
+  exit 1
+else
+  echo -e "\n$TICK [SUCCESS] Successfully released the platform asset repo"
+fi
+
+divider
+
 divider && echo -e "$INFO [INFO] The 1-click installation took $(($SECONDS / 60 / 60 % 24)) hour(s) $(($SECONDS / 60 % 60)) minutes and $(($SECONDS % 60)) seconds." && divider
