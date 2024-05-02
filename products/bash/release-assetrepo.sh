@@ -81,7 +81,7 @@ OCApplyYAML "$namespace" "$YAML"
 echo "INFO: Waiting up to 20 minutes for AssetRepo object to be ready"
 time=0
 
-while [[ "$(oc get AssetRepository -n ${namespace} ${namespace}-assets -o json | jq -r '.status.conditions[] | select(.type=="Ready").status')" != "True" ]]; do
+while [[ "$(oc get AssetRepository -n ${namespace} ${namespace}-assets -o json | jq -r '.status.phase')" != "Ready" ]]; do
   if [ $time -gt 20 ]; then
     echo "INFO: The asset repo object status:"
     echo "INFO: $(oc get AssetRepository -n ${namespace} ${namespace}-assets)"
