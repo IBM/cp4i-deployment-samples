@@ -337,7 +337,7 @@ if ! $CURRENT_DIR/release-assetrepo.sh -n "$JOB_NAMESPACE" -r "$assetRepoReplica
   divider
   exit 1
 else
-  echo -e "\n$TICK [SUCCESS] Successfully released the platform asset repo"
+  echo -e "\n$TICK [SUCCESS] Successfully released the asset repo"
 fi
 
 divider
