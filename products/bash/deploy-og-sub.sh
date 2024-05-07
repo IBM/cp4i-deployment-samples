@@ -273,6 +273,17 @@ spec:
   source: ibm-eventendpointmanagement-catalog
   sourceNamespace: openshift-marketplace
 ---
+apiVersion: operators.coreos.com/v1alpha1
+kind: Subscription
+metadata:
+  name: ibm-common-service-operator
+spec:
+  channel: v4.6
+  installPlanApproval: Automatic
+  name: ibm-common-service-operator
+  source: opencloud-operators
+  sourceNamespace: openshift-marketplace
+---
 # NOTE Leave the above "---" there to make SLOW_BUT_SAFE apply the last subscription
 EOF
 )
