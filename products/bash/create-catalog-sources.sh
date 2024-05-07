@@ -25,7 +25,7 @@ source $CURRENT_DIR/utils.sh
 YAML=$(cat <<EOF
 #
 # IBM Cloud Pak for Integration
-# ibm-integration-platform-navigator 7.2.0
+# ibm-integration-platform-navigator 7.2.4
 #
 ---
 apiVersion: operators.coreos.com/v1alpha1
@@ -34,9 +34,9 @@ metadata:
   name: ibm-integration-platform-navigator-catalog
   namespace: openshift-marketplace
 spec:
-  displayName: ibm-integration-platform-navigator-7.2.0
+  displayName: ibm-integration-platform-navigator-7.2.4
   publisher: IBM
-  image: icr.io/cpopen/ibm-integration-platform-navigator-catalog@sha256:6696f54af1d2cc0a97d2014fd56538e937299a693a171d0424a535027c942149
+  image: icr.io/cpopen/ibm-integration-platform-navigator-catalog@sha256:71d5b07bb009e9b111a5755c191a6dd3d5a80c24f371f93d25d30a22d6339a35
   sourceType: grpc
   updateStrategy:
     registryPoll:
@@ -44,7 +44,7 @@ spec:
 ---
 #
 # IBM Automation foundation assets
-# ibm-integration-asset-repository 1.6.0
+# ibm-integration-asset-repository 1.6.4
 #
 ---
 apiVersion: operators.coreos.com/v1alpha1
@@ -53,16 +53,13 @@ metadata:
   name: ibm-integration-asset-repository-catalog
   namespace: openshift-marketplace
 spec:
-  displayName: ibm-integration-asset-repository-1.6.0-linux-amd64
+  displayName: ibm-integration-asset-repository-1.6.4-linux-amd64
   publisher: IBM
-  image: icr.io/cpopen/ibm-integration-asset-repository-catalog@sha256:f323685c1b5f3da95026562588c71b6cd1aae35c9615acb54868ca68d14a581d
+  image: icr.io/cpopen/ibm-integration-asset-repository-catalog@sha256:7f63fb899609f79ef57eadb8ba1788d9d1ca09197ca56dc32e8916a68bd511c0
   sourceType: grpc
   updateStrategy:
     registryPoll:
       interval: 30m0s
-  grpcPodConfig:
-    nodeSelector:
-      kubernetes.io/arch: amd64
 ---
 #
 # IBM API Connect
@@ -214,22 +211,8 @@ spec:
 ---
 #
 # IBM Cloud Pak foundational services
-# ibm-cp-common-services 4.3.1
+# ibm-cp-common-services 4.6.1
 #
----
-apiVersion: operators.coreos.com/v1alpha1
-kind: CatalogSource
-metadata:
-  name: cloud-native-postgresql-catalog
-  namespace: openshift-marketplace
-spec:
-  displayName: ibm-cloud-native-postgresql-4.18.0
-  publisher: IBM
-  image: icr.io/cpopen/ibm-cpd-cloud-native-postgresql-operator-catalog@sha256:c96aa2e6bce92f2e5e4874116cf1cc1cdd60676499cd04ab1631462b8b883357
-  sourceType: grpc
-  updateStrategy:
-    registryPoll:
-      interval: 30m0s
 ---
 apiVersion: operators.coreos.com/v1alpha1
 kind: CatalogSource
@@ -237,9 +220,9 @@ metadata:
   name: opencloud-operators
   namespace: openshift-marketplace
 spec:
-  displayName: ibm-cp-common-services-4.3.1
+  displayName: ibm-cp-common-services-4.6.1
   publisher: IBM
-  image: icr.io/cpopen/ibm-common-service-catalog@sha256:8dd824397a6294d40aa44fc916b64940af56acad91298d271bc9a63f5054e41a
+  image: icr.io/cpopen/ibm-common-service-catalog@sha256:3741dd89c58a5a87da26032d466e514e113d6727d0c77f8e483b1213df10dcf3
   sourceType: grpc
   updateStrategy:
     registryPoll:
