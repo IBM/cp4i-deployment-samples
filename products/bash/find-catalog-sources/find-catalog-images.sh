@@ -4,16 +4,16 @@ SCRIPT_DIR=$(dirname $0)
 
 # Data copied from the table in https://www.ibm.com/docs/en/cloud-paks/cp-integration/2023.4?topic=images-adding-catalog-sources-cluster
 # + the row from https://ibm-cloud.slack.com/archives/CT320FAH4/p1686903900324049?thread_ts=1686887428.360699&cid=CT320FAH4
-CASES="IBM Cloud Pak for Integration	export CASE_NAME=ibm-integration-platform-navigator && export CASE_VERSION=7.2.4
-IBM Automation foundation assets	export CASE_NAME=ibm-integration-asset-repository && export CASE_VERSION=1.6.4
-IBM API Connect	export CASE_NAME=ibm-apiconnect && export CASE_VERSION=5.1.0
-IBM App Connect	export CASE_NAME=ibm-appconnect && export CASE_VERSION=11.1.0
-IBM MQ	export CASE_NAME=ibm-mq && export CASE_VERSION=3.0.0
-IBM Event Streams	export CASE_NAME=ibm-eventstreams && export CASE_VERSION=3.3.0
-IBM DataPower Gateway	export CASE_NAME=ibm-datapower-operator && export CASE_VERSION=1.9.0
-IBM Aspera HSTS	export CASE_NAME=ibm-aspera-hsts-operator && export CASE_VERSION=1.5.12
-IBM Cloud Pak foundational services	export CASE_NAME=ibm-cp-common-services && export CASE_VERSION=4.6.1
-IBM Event Endpoint Management	export CASE_NAME=ibm-eventendpointmanagement && export CASE_VERSION=11.1.1"
+CASES="IBM Cloud Pak for Integration	export CASE_NAME=ibm-integration-platform-navigator && export CASE_VERSION=7.3.0
+IBM Automation foundation assets	export CASE_NAME=ibm-integration-asset-repository && export CASE_VERSION=1.7.0
+IBM API Connect	export CASE_NAME=ibm-apiconnect && export CASE_VERSION=5.2.0
+IBM App Connect	export CASE_NAME=ibm-appconnect && export CASE_VERSION=12.0.0
+IBM MQ	export CASE_NAME=ibm-mq && export CASE_VERSION=3.2.1
+IBM Event Streams	export CASE_NAME=ibm-eventstreams && export CASE_VERSION=3.4.0
+IBM DataPower Gateway	export CASE_NAME=ibm-datapower-operator && export CASE_VERSION=1.11.0
+IBM Aspera HSTS	export CASE_NAME=ibm-aspera-hsts-operator && export CASE_VERSION=1.5.13
+IBM Cloud Pak foundational services	export CASE_NAME=ibm-cp-common-services && export CASE_VERSION=4.6.3
+IBM Event Endpoint Management	export CASE_NAME=ibm-eventendpointmanagement && export CASE_VERSION=11.2.0+20240603.010000"
 IFS='
 '
 export ARCH=amd64
