@@ -1,0 +1,791 @@
+openapi: '3.1.0'
+info:
+  title: Bookshop API
+  x-ibm-name: bookshop-api
+  version: '1.0'
+  description: |
+    Simulates an online bookshop to provide an example subject for AI-driven test generation in Cloud Pak for Integration.
+servers:
+  - url: http://bookshop-gateway
+    description: HTTP via the Bookshop gateway
+  - url: https://dp-gateway
+    description: HTTPS via the DataPower gateway
+paths:
+
+  /books:
+    post:
+      tags:
+        - Books
+      description: |
+        Add a new book to the shop
+      operationId: add_book
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NewBook'
+        required: true
+      responses:
+        '201':
+          description: |
+            The book was added successfully
+          headers:
+            'Location':
+              description: URL of the new book
+              schema:
+                type: string
+                format: url
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Book'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /books/{book_id}:
+    parameters:
+      - name: book_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    get:
+      tags:
+        - Books
+      description: |
+        Retrieve a book from the shop
+      operationId: get_book
+      responses:
+        '200':
+          description: |
+            The book was retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Book'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/BookNotFound'
+    put:
+      tags:
+        - Books
+      description: |
+        Modify a book in the shop
+      operationId: update_book
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Book'
+        required: true
+      responses:
+        '200':
+          description: |
+            The book was modified successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Book'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/BookNotFound'
+    delete:
+      tags:
+        - Books
+      description: |
+        Remove a book from the shop
+      operationId: remove_book
+      responses:
+        '204':
+          description: |
+            The book was removed successfully
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/BookNotFound'
+
+  /customers:
+    post:
+      tags:
+        - Customers
+      description: |
+        Add a new customer
+      operationId: add_customer
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NewCustomer'
+        required: true
+      responses:
+        '201':
+          description: |
+            The customer was created successfully
+          headers:
+            'Location':
+              description: URL of the new customer
+              schema:
+                type: string
+                format: url
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Customer'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /customers/{customer_id}:
+    parameters:
+      - name: customer_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    get:
+      tags:
+        - Customers
+      description: |
+        Retrieve a customer by ID
+      operationId: get_customer
+      responses:
+        '200':
+          description: The customer was retrieved successfully
+          content:
+            application/json:
+              schema:
+                '$ref': '#/components/schemas/Customer'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/CustomerNotFound'
+    put:
+      tags:
+        - Customers
+      description: |
+        Modify customer details
+      operationId: update_customer
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Customer'
+        required: true
+      responses:
+        '200':
+          description: |
+            The customer was modified successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Customer'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/CustomerNotFound'
+    delete:
+      tags:
+        - Customers
+      description: |
+        Delete a specific customer
+      operationId: delete_customer
+      responses:
+        '204':
+          description: |
+            The customer was deleted successfully
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/CustomerNotFound'
+
+  /customers/{customer_id}/orders:
+    parameters:
+      - name: customer_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    post:
+      tags:
+        - Orders
+      description: |
+        Add a new order for a customer
+      operationId: add_order
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NewOrder'
+        required: true
+      responses:
+        '201':
+          description: |
+            The order was created successfully
+          headers:
+            'Location':
+              description: URL of the new order
+              schema:
+                type: string
+                format: url
+          content:
+            application/json:
+              schema:
+                '$ref': '#/components/schemas/Order'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/CustomerNotFound'
+
+  /customers/{customer_id}/orders/{order_id}:
+    parameters:
+      - name: customer_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: order_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    get:
+      tags:
+        - Orders
+      description: |
+        Retrieve an order for a customer
+      operationId: get_order
+      responses:
+        '200':
+          description: The order was retrieved successfully
+          content:
+            application/json:
+              schema:
+                '$ref': '#/components/schemas/Order'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/OrderNotFound'
+    put:
+      tags:
+        - Orders
+      description: |
+        Modify an order for a customer
+      operationId: update_order
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Order'
+        required: true
+      responses:
+        '200':
+          description: The order was modified successfully
+          content:
+            application/json:
+              schema:
+                '$ref': '#/components/schemas/Order'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/OrderNotFound'
+    delete:
+      tags:
+        - Orders
+      description: |
+        Delete an order for a customer
+      operationId: delete_order
+      responses:
+        '204':
+          description: |
+            The order was removed successfully
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/OrderNotFound'
+
+  /services/author:
+    post:
+      tags:
+        - Services
+      description: |
+        Search for authors by name
+      operationId: find_author
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AuthorSearch'
+        required: true
+      responses:
+        '200':
+          description: |
+            The search completed without error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthorSearchResult'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /services/category:
+    post:
+      tags:
+        - Services
+      description: |
+        Choose appropriate categories for a book
+      operationId: find_category
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CategorySearch'
+        required: true
+      responses:
+        '200':
+          description: |
+            The search completed without error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CategorySearchResult'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /services/usage:
+    post:
+      tags:
+        - Services
+      description: |
+        Record service usage
+      operationId: record_usage
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ServiceUsage'
+      responses:
+        '200':
+          description: |
+            Usage was updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ServiceUsage'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+components:
+  responses:
+    BadRequest:
+      description: |
+        The request body or parameters were incorrect
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    Forbidden:
+      description: |
+        The caller does not have permission to perform the operation
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    Unauthorized:
+      description: |
+        The caller could not be authenticated
+      headers:
+        'WWW-Authenticate':
+          schema:
+            type: string
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    BookNotFound:
+      description: |
+        The requested book was not found in the shop
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    CustomerNotFound:
+      description: |
+        There is no user associated with this user id.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    OrderNotFound:
+      description: |
+        The requested order could not be located
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+  schemas:
+    Book:
+      allOf:
+        - $ref: '#/components/schemas/BookDetail'
+        - type: object
+          properties:
+            book_id:
+              $ref: '#/components/schemas/BookId'
+            author_id:
+              $ref: '#/components/schemas/AuthorId'
+            category:
+              $ref: '#/components/schemas/Category'
+          required:
+            - book_id
+            - author_id
+            - category
+      unevaluatedProperties: false
+    NewBook:
+      allOf:
+        - $ref: '#/components/schemas/BookDetail'
+      unevaluatedProperties: false
+    BookDetail:
+      type: object
+      properties:
+        title:
+          $ref: '#/components/schemas/Title'
+        author:
+          $ref: '#/components/schemas/AuthorName'
+        publisher:
+          $ref: '#/components/schemas/Publisher'
+        date:
+          $ref: '#/components/schemas/PublicationDate'
+        format:
+          $ref: '#/components/schemas/PublicationFormat'
+        isbn:
+          $ref: '#/components/schemas/ISBN'
+        synopsis:
+          $ref: '#/components/schemas/Synopsis'
+        language:
+          $ref: '#/components/schemas/Language'
+      required:
+        - title
+        - author
+        - publisher
+        - date
+        - format
+        - isbn
+        - language
+    AuthorId:
+      type: string
+      format: uuid
+    AuthorName:
+      type: string
+    BookId:
+      description: The unique identifier of a book
+      type: string
+      format: uuid
+    Category:
+      type: string
+      enum:
+        - biography
+        - business
+        - computing
+        - fiction
+        - food
+        - history
+        - science
+        - social
+    ISBN:
+      type: string
+    Language:
+      type: string
+    PublicationDate:
+      type: string
+      format: date
+    PublicationFormat:
+      type: string
+      enum:
+        - hardback
+        - paperback
+        - digital
+    Publisher:
+      type: string
+    Synopsis:
+      type: string
+    Title:
+      type: string
+
+    Customer:
+      allOf:
+        - $ref: '#/components/schemas/CustomerDetail'
+        - type: object
+          properties:
+            customer_id:
+              $ref: '#/components/schemas/CustomerId'
+          required:
+            - customer_id
+      unevaluatedProperties: false
+    NewCustomer:
+      allOf:
+        - $ref: '#/components/schemas/CustomerDetail'
+      unevaluatedProperties: false
+    CustomerDetail:
+      type: object
+      properties:
+        username:
+          $ref: '#/components/schemas/UserName'
+        first_name:
+          $ref: '#/components/schemas/CustomerFirstName'
+        last_name:
+          $ref: '#/components/schemas/CustomerLastName'
+        email:
+          $ref: '#/components/schemas/CustomerEmail'
+        password:
+          $ref: '#/components/schemas/Password'
+        phone:
+          $ref: '#/components/schemas/CustomerPhone'
+      required:
+        - username
+        - first_name
+        - last_name
+        - email
+        - password
+    CustomerEmail:
+      type: string
+    CustomerFirstName:
+      type: string
+    CustomerId:
+      description: The unique identifier of a customer
+      type: string
+      format: uuid
+    CustomerLastName:
+      type: string
+    CustomerPhone:
+      type: string
+    Password:
+      type: string
+    UserName:
+      type: string
+
+    Order:
+      allOf:
+        - $ref: '#/components/schemas/OrderDetail'
+        - type: object
+          properties:
+            order_id:
+              $ref: '#/components/schemas/OrderId'
+          required:
+            - order_id
+      unevaluatedProperties: false
+    NewOrder:
+      allOf:
+        - $ref: '#/components/schemas/OrderDetail'
+      unevaluatedProperties: false
+    OrderDetail:
+      type: object
+      properties:
+        customer_id:
+          $ref: '#/components/schemas/CustomerId'
+        book_ids:
+          type: array
+          items:
+            $ref: '#/components/schemas/BookId'
+          minItems: 1
+        quantity:
+          $ref: '#/components/schemas/OrderQuantity'
+        ship_date:
+          $ref: '#/components/schemas/ShipDate'
+        status:
+          $ref: '#/components/schemas/OrderStatus'
+        complete:
+          $ref: '#/components/schemas/OrderCompleted'
+      required:
+        - customer_id
+        - book_ids
+        - quantity
+    OrderCompleted:
+      type: boolean
+      default: false
+    OrderId:
+      description: The unique identifier of an order
+      type: string
+      format: uuid
+    OrderQuantity:
+      type: integer
+      minimum: 1
+    OrderStatus:
+      type: string
+      description: Order Status
+      enum:
+      - placed
+      - approved
+      - delivered
+    ShipDate:
+      type: string
+      format: date-time
+
+    AuthorSearch:
+      type: object
+      properties:
+        author:
+          $ref: '#/components/schemas/AuthorName'
+      required:
+        - author
+    AuthorSearchResult:
+      type: array
+      items:
+        type: object
+        properties:
+          author_name:
+            $ref: '#/components/schemas/AuthorName'
+          author_id:
+            $ref: '#/components/schemas/AuthorId'
+        required:
+          - author_id
+    CategorySearch:
+      type: object
+      properties:
+        title:
+          $ref: '#/components/schemas/Title'
+        synopsis:
+          $ref: '#/components/schemas/Synopsis'
+      required:
+        - title
+    CategorySearchResult:
+      type: array
+      items:
+        $ref: '#/components/schemas/Category'
+    ServiceUsage:
+      type: object
+      properties:
+        service:
+          $ref: '#/components/schemas/ServiceType'
+        usage:
+          $ref: '#/components/schemas/Usage'
+      required:
+        - service
+      additionalProperties: false
+    ServiceType:
+      type: string
+      enum:
+        - author
+        - category
+    Usage:
+      type: integer
+      minimum: 0
+
+    Error:
+      type: object
+      description: |
+        General error response body, based on the WDP error model:
+        https://test.cloud.ibm.com/docs/api-handbook?topic=api-handbook-errors
+      properties:
+        errors:
+          type: array
+          items:
+            $ref: '#/components/schemas/ErrorItem'
+          minItems: 1
+        trace:
+          description: Client trace ID (optional)
+          type: string
+      required:
+        - errors
+      additionalProperties: false
+    ErrorItem:
+      type: object
+      properties:
+        code:
+          type: string
+        message:
+          type: string
+        more_info:
+          type: string
+          format: url
+        target:
+          $ref: '#/components/schemas/ErrorTarget'
+      required:
+        - code
+        - message
+      additionalProperties: false
+    ErrorTarget:
+      type: object
+      properties:
+        type:
+          type: string
+          enum:
+            - field
+            - parameter
+            - header
+        name:
+          type: string
+      required:
+        - type
+        - name
+      additionalProperties: false
+
+tags:
+  - name: Books
+    description: Operations on Books
+  - name: Customers
+    description: Operations on Customers
+  - name: Orders
+    description: Operations on Orders
+  - name: Services
+    description: Bookshop services
