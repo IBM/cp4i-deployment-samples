@@ -2,8 +2,7 @@
 
 SCRIPT_DIR=$(dirname $0)
 
-# Data copied from the table in https://www.ibm.com/docs/en/cloud-paks/cp-integration/2023.4?topic=images-adding-catalog-sources-cluster
-# + the row from https://ibm-cloud.slack.com/archives/CT320FAH4/p1686903900324049?thread_ts=1686887428.360699&cid=CT320FAH4
+# Data copied from the table in https://www.ibm.com/docs/en/cloud-paks/cp-integration/16.1.0?topic=images-adding-catalog-sources-cluster
 CASES="IBM Cloud Pak for Integration	export CASE_NAME=ibm-integration-platform-navigator && export CASE_VERSION=7.3.0
 IBM Automation foundation assets	export CASE_NAME=ibm-integration-asset-repository && export CASE_VERSION=1.7.0
 IBM API Connect	export CASE_NAME=ibm-apiconnect && export CASE_VERSION=5.2.0
