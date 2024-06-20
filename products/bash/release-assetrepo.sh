@@ -64,9 +64,9 @@ metadata:
 spec:
   license:
     accept: true
-    license: L-VTPK-22YZPK
+    license: L-JTPV-KYG8TF
   replicas: 1
-  version: 2023.4.1
+  version: 4.0-sc2
   singleReplicaOnly: true
   storage:
     assetDataVolume:

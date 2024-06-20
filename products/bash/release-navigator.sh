@@ -64,9 +64,9 @@ metadata:
 spec:
   license:
     accept: true
-    license: L-VTPK-22YZPK
+    license: L-JTPV-KYG8TF
   replicas: ${replicas}
-  version: 2023.4.1
+  version: 16.1.0
 EOF
 )
 OCApplyYAML "$namespace" "$YAML"
