@@ -212,7 +212,7 @@ kind: Subscription
 metadata:
   name: ibm-eventstreams-ibm-eventstreams-openshift-marketplace
 spec:
-  channel: v3.4
+  channel: v3.5
   installPlanApproval: Automatic
   name: ibm-eventstreams
   source: ibm-eventstreams
@@ -256,7 +256,7 @@ kind: Subscription
 metadata:
   name: ibm-apiconnect-ibm-apiconnect-catalog-openshift-marketplace
 spec:
-  channel: v5.2-sc2
+  channel: v5.3-sc2
   installPlanApproval: Automatic
   name: ibm-apiconnect
   source: ibm-apiconnect-catalog
@@ -267,7 +267,7 @@ kind: Subscription
 metadata:
   name: ibm-eventendpointmanagement-ibm-eventendpointmanagement-catalog-openshift-marketplace
 spec:
-  channel: v11.2
+  channel: v11.4
   installPlanApproval: Automatic
   name: ibm-eventendpointmanagement
   source: ibm-eventendpointmanagement-catalog
