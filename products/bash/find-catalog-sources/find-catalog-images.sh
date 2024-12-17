@@ -3,16 +3,16 @@
 SCRIPT_DIR=$(dirname $0)
 
 # Data copied from the table in https://www.ibm.com/docs/en/cloud-paks/cp-integration/16.1.0?topic=images-adding-catalog-sources-cluster
-CASES="IBM Cloud Pak for Integration	export CASE_NAME=ibm-integration-platform-navigator && export CASE_VERSION=7.3.0
-IBM Automation foundation assets	export CASE_NAME=ibm-integration-asset-repository && export CASE_VERSION=1.7.0
-IBM API Connect	export CASE_NAME=ibm-apiconnect && export CASE_VERSION=5.2.0
-IBM App Connect	export CASE_NAME=ibm-appconnect && export CASE_VERSION=12.0.0
-IBM MQ	export CASE_NAME=ibm-mq && export CASE_VERSION=3.2.1
-IBM Event Streams	export CASE_NAME=ibm-eventstreams && export CASE_VERSION=3.4.0
-IBM DataPower Gateway	export CASE_NAME=ibm-datapower-operator && export CASE_VERSION=1.11.0
+CASES="IBM Cloud Pak for Integration	export CASE_NAME=ibm-integration-platform-navigator && export CASE_VERSION=7.3.8
+IBM Automation foundation assets	export CASE_NAME=ibm-integration-asset-repository && export CASE_VERSION=1.7.7
+IBM API Connect	export CASE_NAME=ibm-apiconnect && export CASE_VERSION=5.3.0
+IBM App Connect	export CASE_NAME=ibm-appconnect && export CASE_VERSION=12.0.7
+IBM MQ	export CASE_NAME=ibm-mq && export CASE_VERSION=3.2.7
+IBM Event Streams	export CASE_NAME=ibm-eventstreams && export CASE_VERSION=3.5.2
+IBM DataPower Gateway	export CASE_NAME=ibm-datapower-operator && export CASE_VERSION=1.11.3
 IBM Aspera HSTS	export CASE_NAME=ibm-aspera-hsts-operator && export CASE_VERSION=1.5.13
-IBM Cloud Pak foundational services	export CASE_NAME=ibm-cp-common-services && export CASE_VERSION=4.6.3
-IBM Event Endpoint Management	export CASE_NAME=ibm-eventendpointmanagement && export CASE_VERSION=11.2.0+20240603.010000"
+IBM Cloud Pak foundational services	export CASE_NAME=ibm-cp-common-services && export CASE_VERSION=4.6.8
+IBM Event Endpoint Management	export CASE_NAME=ibm-eventendpointmanagement && export CASE_VERSION=11.4.0"
 IFS='
 '
 export ARCH=amd64
