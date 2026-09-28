@@ -13,7 +13,7 @@
     "@opentelemetry/instrumentation-grpc": "^0.20.0",
     "@opentelemetry/instrumentation-http": "^0.20.0",
     "@opentelemetry/node": "^0.20.0",
-    "@opentelemetry/propagator-jaeger": "^0.20.0",
+    "@opentelemetry/propagator-jaeger": "^2.9.0",
     "@opentelemetry/tracing": "^0.20.0",
     "axios": "^0.21.1",
     "express": "^4.17.1",
