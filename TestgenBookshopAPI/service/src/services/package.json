@@ -8,7 +8,7 @@
   },
   "license": "IBM",
   "dependencies": {
-    "@opentelemetry/core": "^0.20.0",
+    "@opentelemetry/core": "^2.8.0",
     "@opentelemetry/exporter-jaeger": "^0.20.0",
     "@opentelemetry/instrumentation-grpc": "^0.20.0",
     "@opentelemetry/instrumentation-http": "^0.20.0",
